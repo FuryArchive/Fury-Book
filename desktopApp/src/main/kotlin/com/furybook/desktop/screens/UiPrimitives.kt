@@ -64,23 +64,36 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.furybook.ui.theme.DublAccent
+import com.furybook.ui.theme.DublAccentSoft
+import com.furybook.ui.theme.DublBackground
+import com.furybook.ui.theme.DublBorder
+import com.furybook.ui.theme.DublCustomResource
+import com.furybook.ui.theme.DublGold
+import com.furybook.ui.theme.DublHealth
+import com.furybook.ui.theme.DublMana
+import com.furybook.ui.theme.DublMuted
+import com.furybook.ui.theme.DublStamina
+import com.furybook.ui.theme.DublSurface
+import com.furybook.ui.theme.DublSurfaceInset
+import com.furybook.ui.theme.DublSurfaceRaised
+import com.furybook.ui.theme.DublText
 
-// Desktop-only palette.  The shared Android palette intentionally stays unchanged;
-// these values target the darker, higher-contrast desktop reference UI.
-internal val DesktopBackground = Color(0xFF080D13)
-internal val DesktopSurface = Color(0xFF101821)
-internal val DesktopSurfaceRaised = Color(0xFF151F2A)
-internal val DesktopSurfaceInset = Color(0xFF0B1219)
-internal val DesktopBorder = Color(0xFF263544)
-internal val DesktopText = Color(0xFFF6F7F9)
-internal val DesktopMuted = Color(0xFF9AA4B2)
-internal val DesktopAccent = Color(0xFFF05B70)
-internal val DesktopAccentSoft = Color(0xFF3F222C)
-internal val DesktopGold = Color(0xFFF4C460)
-internal val DesktopHealth = Color(0xFFF05B70)
-internal val DesktopStamina = Color(0xFFE8BA60)
-internal val DesktopMana = Color(0xFF66A7FF)
-internal val DesktopCustomResource = Color(0xFF70C3AE)
+// Desktop aliases the shared Fury Book palette so Android and desktop stay visually aligned.
+internal val DesktopBackground = DublBackground
+internal val DesktopSurface = DublSurface
+internal val DesktopSurfaceRaised = DublSurfaceRaised
+internal val DesktopSurfaceInset = DublSurfaceInset
+internal val DesktopBorder = DublBorder
+internal val DesktopText = DublText
+internal val DesktopMuted = DublMuted
+internal val DesktopAccent = DublAccent
+internal val DesktopAccentSoft = DublAccentSoft
+internal val DesktopGold = DublGold
+internal val DesktopHealth = DublHealth
+internal val DesktopStamina = DublStamina
+internal val DesktopMana = DublMana
+internal val DesktopCustomResource = DublCustomResource
 
 internal object FuryMotion {
     const val FastMs = 110
@@ -1157,7 +1170,7 @@ internal fun DesktopResourceTile(
                 )
             }
         }
-        Box(Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(999.dp)).background(Color(0xFF222D39))) {
+        Box(Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(999.dp)).background(DesktopBorder.copy(alpha = .72f))) {
             Box(Modifier.fillMaxWidth(animatedFraction).height(5.dp).background(tint.copy(alpha = .94f)))
         }
     }
