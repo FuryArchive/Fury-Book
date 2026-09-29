@@ -15,6 +15,14 @@ object FuryAuthProtocol {
         ),
     )
 
+    fun signUpBody(email: String, password: String, nickname: String): String = jsonStringify(
+        jsonObject(
+            "email" to jsonString(email.trim()),
+            "password" to jsonString(password),
+            "data" to jsonObject("nickname" to jsonString(nickname.trim())),
+        ),
+    )
+
     fun refreshBody(refreshToken: String): String = jsonStringify(
         jsonObject("refresh_token" to jsonString(refreshToken)),
     )
@@ -45,6 +53,10 @@ object FuryAuthProtocol {
         return when {
             "invalid login credentials" in lower -> "Неверный email или пароль."
             "email not confirmed" in lower -> "Email ещё не подтверждён."
+            "user already registered" in lower || "already been registered" in lower ->
+                "Аккаунт с таким email уже существует."
+            "password" in lower && ("least" in lower || "short" in lower) ->
+                "Пароль слишком короткий. Используйте минимум 8 символов."
             "rate limit" in lower -> "Слишком много попыток. Попробуйте позже."
             else -> raw.ifBlank { "Не удалось подключиться к Fury Cloud." }
         }
