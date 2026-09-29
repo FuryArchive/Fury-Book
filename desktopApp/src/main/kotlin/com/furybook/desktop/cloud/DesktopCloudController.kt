@@ -31,7 +31,7 @@ class DesktopCloudController(
     private val gateway = DesktopFuryCloudGateway()
     private val metadataStore = DesktopCloudMetadataStore()
     private val api = FuryNativeCloudApi(gateway)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var coordinator: NativeCloudSyncCoordinator? = null
     private var scheduledJob: Job? = null
     private var chiEnabled = false
