@@ -18,6 +18,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,27 +28,33 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.furybook.android.data.AndroidContentPackState
+import com.furybook.android.cloud.AndroidCloudController
 import com.furybook.android.data.AndroidFcpInstaller
 import com.furybook.content.FcpComposition
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.dubl.application.CharacterTransferImportResult
 import com.furybook.dubl.data.CharacterTransferRejectReason
 import com.furybook.android.state.CharacterController
+import com.furybook.cloud.NativeCloudStatus
 import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublScreenHeader
 import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.launch
 
 private const val TRANSFER_EXTENSION = ".dubl"
 
 @Composable
 fun CharactersScreen(
     controller: CharacterController,
+    cloudController: AndroidCloudController,
     contentPackComposition: FcpComposition,
     onContentPackActiveChange: (String, Boolean) -> Unit,
 ) {
@@ -55,6 +62,13 @@ fun CharactersScreen(
     var transferStatus by remember { mutableStateOf<String?>(null) }
     var contentPackStatus by remember { mutableStateOf<String?>(null) }
     var installedPackRevision by remember { mutableIntStateOf(0) }
+    var cloudRegistering by remember { mutableStateOf(false) }
+    var cloudNickname by remember { mutableStateOf("") }
+    var cloudEmail by remember { mutableStateOf("") }
+    var cloudPassword by remember { mutableStateOf("") }
+    var cloudAuthBusy by remember { mutableStateOf(false) }
+    var cloudLoginMessage by remember { mutableStateOf<String?>(null) }
+    val cloudScope = rememberCoroutineScope()
     val snapshot = controller.snapshot
     val context = LocalContext.current
     installedPackRevision
@@ -141,6 +155,173 @@ fun CharactersScreen(
         }
 
         DublCard(Modifier.fillMaxWidth()) {
+            Text("Fury Cloud", style = MaterialTheme.typography.titleMedium)
+            val session = cloudController.session
+            if (session == null) {
+                Text(
+                    "Локальные персонажи останутся на устройстве. При первом входе они безопасно объединятся с облаком — существующие данные не перезаписываются.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        enabled = !cloudAuthBusy,
+                        onClick = {
+                            cloudRegistering = false
+                            cloudLoginMessage = null
+                        },
+                    ) { Text("Войти") }
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        enabled = !cloudAuthBusy,
+                        onClick = {
+                            cloudRegistering = true
+                            cloudLoginMessage = null
+                        },
+                    ) { Text("Создать аккаунт") }
+                }
+                if (cloudRegistering) {
+                    OutlinedTextField(
+                        value = cloudNickname,
+                        onValueChange = { cloudNickname = it.take(32); cloudLoginMessage = null },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text("Никнейм") },
+                        supportingText = { Text("От 2 до 32 символов.") },
+                    )
+                }
+                OutlinedTextField(
+                    value = cloudEmail,
+                    onValueChange = { cloudEmail = it; cloudLoginMessage = null },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Email") },
+                    supportingText = {
+                        if (cloudRegistering) Text("На этот адрес придёт письмо для подтверждения аккаунта.")
+                    },
+                )
+                OutlinedTextField(
+                    value = cloudPassword,
+                    onValueChange = { cloudPassword = it; cloudLoginMessage = null },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    label = { Text("Пароль") },
+                    supportingText = {
+                        if (cloudRegistering) Text("Минимум 8 символов.")
+                    },
+                )
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !cloudAuthBusy,
+                    onClick = {
+                        val email = cloudEmail.trim()
+                        val nickname = cloudNickname.trim()
+                        val validation = when {
+                            cloudRegistering && nickname.length !in 2..32 -> "Никнейм должен содержать от 2 до 32 символов."
+                            email.isBlank() -> "Введите email."
+                            !email.contains("@") || !email.substringAfter("@", "").contains(".") -> "Введите корректный email."
+                            cloudPassword.isBlank() -> "Введите пароль."
+                            cloudRegistering && cloudPassword.length < 8 -> "Пароль должен содержать минимум 8 символов."
+                            else -> null
+                        }
+                        if (validation != null) {
+                            cloudLoginMessage = validation
+                        } else {
+                            cloudAuthBusy = true
+                            cloudLoginMessage = null
+                            cloudScope.launch {
+                                if (cloudRegistering) {
+                                    cloudController.signUp(email, cloudPassword, nickname)
+                                        .onSuccess { signedIn ->
+                                            cloudPassword = ""
+                                            if (signedIn) {
+                                                cloudLoginMessage = "Аккаунт создан. Локальные и облачные персонажи безопасно объединены."
+                                            } else {
+                                                cloudRegistering = false
+                                                cloudLoginMessage = "Аккаунт создан. Подтвердите email из письма, затем войдите."
+                                            }
+                                        }
+                                        .onFailure { cloudLoginMessage = it.message ?: "Не удалось создать аккаунт." }
+                                } else {
+                                    cloudController.signIn(email, cloudPassword)
+                                        .onSuccess {
+                                            cloudPassword = ""
+                                            cloudLoginMessage = "Вход выполнен. Локальные и облачные персонажи безопасно объединены."
+                                        }
+                                        .onFailure { cloudLoginMessage = it.message ?: "Не удалось войти." }
+                                }
+                                cloudAuthBusy = false
+                            }
+                        }
+                    },
+                ) {
+                    Text(
+                        when {
+                            cloudAuthBusy -> "Подождите…"
+                            cloudRegistering -> "Создать аккаунт"
+                            else -> "Войти и синхронизировать"
+                        },
+                    )
+                }
+                if (cloudRegistering) {
+                    Text(
+                        "После регистрации откройте письмо, подтвердите email и вернитесь в Fury Book. Локальные персонажи до входа никуда не исчезнут.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                Text(
+                    cloudController.nickname.ifBlank { session.email.substringBefore('@') },
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(session.email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    cloudStatusText(cloudController.status),
+                    color = cloudStatusColor(cloudController.status),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                cloudController.statusMessage?.let { message ->
+                    Text(message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                cloudController.lastSyncedAt?.let { value ->
+                    Text(
+                        "Последняя синхронизация: $value",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                cloudController.lastSyncedBy?.let { value ->
+                    Text(
+                        value,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = cloudController::requestSync,
+                    ) { Text("Синхронизировать") }
+                    TextButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            cloudScope.launch {
+                                cloudController.signOut()
+                                cloudLoginMessage = "Аккаунт отключён. Локальные персонажи сохранены."
+                            }
+                        },
+                    ) { Text("Выйти") }
+                }
+            }
+            cloudLoginMessage?.let { message ->
+                Text(message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        DublCard(Modifier.fillMaxWidth()) {
             Text("Fury Content Packs", style = MaterialTheme.typography.titleMedium)
             Text(
                 "Активные FCP определяют правила, каталоги и подключаемые части интерфейса.",
@@ -221,6 +402,30 @@ fun CharactersScreen(
         }
     }
 
+    cloudController.conflicts.firstOrNull()?.let { conflict ->
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Персонаж изменён на другом устройстве") },
+            text = {
+                Text(
+                    "Fury Book ничего не перезаписал. Облачная версия: revision ${conflict.serverRevision}" +
+                        (conflict.updatedBy?.let { " · $it" } ?: "") +
+                        ". Выберите, какую версию оставить.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    cloudScope.launch { cloudController.useCloudVersion() }
+                }) { Text("Загрузить облачную") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    cloudScope.launch { cloudController.keepLocalVersion(conflict) }
+                }) { Text(if (conflict.deleteRequested) "Удалить всё равно" else "Сохранить локальную") }
+            },
+        )
+    }
+
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
@@ -283,3 +488,21 @@ private fun safeTransferFileName(name: String): String = name
     .ifBlank { "character" }
     .replace(Regex("[\\\\/:*?\"<>|]+"), "_")
     .take(80)
+
+
+@Composable
+private fun cloudStatusColor(status: NativeCloudStatus) = when (status) {
+    NativeCloudStatus.SYNCED -> MaterialTheme.colorScheme.primary
+    NativeCloudStatus.CONFLICT, NativeCloudStatus.ERROR -> MaterialTheme.colorScheme.error
+    else -> MaterialTheme.colorScheme.onSurfaceVariant
+}
+
+private fun cloudStatusText(status: NativeCloudStatus): String = when (status) {
+    NativeCloudStatus.SIGNED_OUT -> "Не подключено"
+    NativeCloudStatus.CONNECTING -> "Подключение…"
+    NativeCloudStatus.SYNCING -> "Синхронизация…"
+    NativeCloudStatus.SYNCED -> "Синхронизировано"
+    NativeCloudStatus.OFFLINE -> "Офлайн · изменения в очереди"
+    NativeCloudStatus.CONFLICT -> "Конфликт изменений"
+    NativeCloudStatus.ERROR -> "Ошибка синхронизации"
+}

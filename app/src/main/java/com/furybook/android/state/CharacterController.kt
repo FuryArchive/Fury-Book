@@ -1,11 +1,11 @@
 package com.furybook.android.state
 
-import com.furybook.android.data.CharacterRepository
-import com.furybook.android.data.CharacterSheetExtrasRepository
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.furybook.dubl.application.DublApplication
+import com.furybook.dubl.data.CharacterStore
+import com.furybook.dubl.data.CharacterExtrasStore
 import com.furybook.dubl.application.CharacterTransferImportResult
 import com.furybook.dubl.model.AppSnapshot
 import com.furybook.dubl.model.AttributeId
@@ -28,8 +28,8 @@ import java.util.UUID
 
 /** Android observable adapter over the shared application boundary. */
 class CharacterController(
-    repository: CharacterRepository,
-    extrasRepository: CharacterSheetExtrasRepository,
+    repository: CharacterStore,
+    extrasRepository: CharacterExtrasStore,
 ) {
     private val application = DublApplication(
         characterStore = repository,

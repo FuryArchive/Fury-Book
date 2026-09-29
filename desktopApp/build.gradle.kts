@@ -16,6 +16,8 @@ dependencies {
     implementation(project(":shared"))
     implementation("org.jetbrains.compose.material3:material3:1.12.0-alpha03")
     implementation(compose.desktop.currentOs)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.10.2")
 }
 
 compose.desktop {
