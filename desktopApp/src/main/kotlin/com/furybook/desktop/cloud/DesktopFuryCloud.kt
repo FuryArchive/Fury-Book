@@ -43,6 +43,21 @@ class DesktopFuryCloudGateway : FuryCloudAuth, FuryCloudTransport {
         }
     }
 
+    override suspend fun signUp(email: String, password: String, nickname: String): Result<FuryAuthSession?> = runCatching {
+        withContext(Dispatchers.IO) {
+            val response = request(
+                path = "/auth/v1/signup?redirect_to=https%3A%2F%2Ffuryarchive.github.io%2FFury-Book%2Fapp%2F",
+                body = FuryAuthProtocol.signUpBody(email, password, nickname),
+                bearer = null,
+            )
+            if (response.statusCode() !in 200..299) {
+                error(FuryAuthProtocol.friendlyError(FuryAuthProtocol.parseError(response.body())))
+            }
+            val session = runCatching { FuryAuthProtocol.parseSession(response.body()) }.getOrNull()
+            session?.also(sessionStore::save)
+        }
+    }
+
     override suspend fun signOut() {
         val session = sessionStore.load()
         if (session != null) {
