@@ -76,7 +76,7 @@ class AndroidFuryCloudGateway(context: Context) : FuryCloudAuth, FuryCloudTransp
         }
         if (response.code !in 200..299) {
             val parsed = FuryAuthProtocol.parseError(response.body)
-            error(parsed.ifBlank { "Fury Cloud: HTTP \${response.code}" })
+            error(parsed.ifBlank { "Fury Cloud: HTTP ${response.code}" })
         }
         response.body
     }
@@ -192,4 +192,4 @@ class AndroidCloudMetadataStore(context: Context) : NativeCloudMetadataStore {
 }
 
 fun androidCloudDeviceLabel(): String =
-    "Android · \${Build.MANUFACTURER} \${Build.MODEL}".replace(Regex("\\s+"), " ").trim()
+    "Android · ${Build.MANUFACTURER} ${Build.MODEL}".replace(Regex("\\s+"), " ").trim()
