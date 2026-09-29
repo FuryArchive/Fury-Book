@@ -58,6 +58,7 @@ private fun WebRoot() {
     var booting by remember { mutableStateOf(true) }
     var cloudHadState by remember { mutableStateOf(false) }
     var fatalError by remember { mutableStateOf<String?>(null) }
+    var syncWarning by remember { mutableStateOf<String?>(null) }
 
     suspend fun hydrateRemote(): Boolean {
         val remote = cloud.pull() ?: return false
@@ -73,8 +74,10 @@ private fun WebRoot() {
             val restored = cloud.restoreSession()
             if (restored != null) {
                 BrowserStorageScope.useUser(restored.userId)
-                cloudHadState = hydrateRemote()
                 session = restored
+                runCatching { hydrateRemote() }
+                    .onSuccess { cloudHadState = it }
+                    .onFailure { syncWarning = "Облачная синхронизация временно недоступна. Локальные данные сохранены." }
             } else {
                 BrowserStorageScope.useGuest()
             }
@@ -96,14 +99,16 @@ private fun WebRoot() {
                 scope.launch {
                     runCatching {
                         BrowserStorageScope.useUser(authenticated.userId)
-                        cloudHadState = hydrateRemote()
+                        session = authenticated
+                        runCatching { hydrateRemote() }
+                            .onSuccess { cloudHadState = it }
+                            .onFailure { syncWarning = "Вход выполнен, но облачная синхронизация пока недоступна." }
                         if (!cloudHadState && !BrowserCharacterStore().hasStoredState()) {
                             restoreBrowserStoredState(guestState)
                         }
-                        session = authenticated
                     }.onFailure {
                         BrowserStorageScope.useGuest()
-                        fatalError = it.message ?: "Ошибка синхронизации"
+                        session = null
                     }
                 }
             },
@@ -124,6 +129,12 @@ private fun WebRoot() {
                             )
                             cloudHadState = true
                         }
+                    }
+                }
+                syncWarning?.let { warning ->
+                    LaunchedEffect(warning) {
+                        kotlinx.coroutines.delay(6000)
+                        if (syncWarning == warning) syncWarning = null
                     }
                 }
                 FuryWebApp(
