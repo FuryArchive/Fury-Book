@@ -293,7 +293,12 @@ jobs:
         shell: pwsh
         run: |
           $releaseFile = Get-ChildItem 'desktopApp/build/compose/binaries/main/app' -File -Filter 'release' -Recurse -ErrorAction Stop |
-            Where-Object { $_.FullName -match '[\\/]runtime[\\/]release          if ($runtime -notmatch '(^| )java\.net\.http( |$)') {
+            Where-Object { $_.FullName -match '[\\/]runtime[\\/]release$' } |
+            Select-Object -First 1
+          if (-not $releaseFile) { throw 'Missing bundled runtime metadata under desktopApp/build/compose/binaries/main/app' }
+          Write-Host "Runtime metadata: $($releaseFile.FullName)"
+          $runtime = Get-Content $releaseFile.FullName -Raw
+          if ($runtime -notmatch '(^| )java\.net\.http( |$)') {
             Write-Host $runtime
             throw 'Bundled Desktop runtime is missing java.net.http'
           }
