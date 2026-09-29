@@ -1,4 +1,4 @@
-name: Dispatch Fury Book 0.5.1 release
+name: Clear failed 0.5.1 release run
 
 on:
   push:
@@ -6,22 +6,17 @@ on:
 
 permissions:
   actions: write
-  contents: write
+  contents: read
 
 jobs:
-  release:
+  cancel:
     runs-on: ubuntu-latest
     steps:
-      - name: Move v0.5.1 to current main and dispatch release
+      - name: Cancel superseded failed release run
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          MAIN_SHA="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')"
-          gh api --method PATCH "repos/$GH_REPO/git/refs/tags/v0.5.1"             -f sha="$MAIN_SHA"             -F force=true
-          gh workflow run release.yml             --repo "$GH_REPO"             --ref main             -f version=0.5.1
-          echo "v0.5.1 -> $MAIN_SHA; release workflow dispatched"
-
-# Retry after release-contract fix
+          gh api --method POST "repos/$GH_REPO/actions/runs/36594809124/cancel" || true
