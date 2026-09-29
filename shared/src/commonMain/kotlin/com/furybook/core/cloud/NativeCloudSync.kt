@@ -1,4 +1,4 @@
-package com.furybook.cloud
+package com.furybook.core.cloud
 
 import com.furybook.core.json.JsonValue
 import com.furybook.core.json.array

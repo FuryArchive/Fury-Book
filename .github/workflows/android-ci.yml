@@ -47,12 +47,12 @@ jobs:
       - name: Prepare APK
         run: |
           mkdir -p out
-          cp app/build/outputs/apk/preview/app-preview.apk out/Fury-Book-Android-dev.apk
+          cp app/build/outputs/apk/preview/app-preview.apk out/Fury-Book-Android.apk
 
       - name: Upload development APK
         uses: actions/upload-artifact@v4
         with:
-          name: Fury-Book-Android-dev
-          path: out/Fury-Book-Android-dev.apk
+          name: Fury-Book-Android
+          path: out/Fury-Book-Android.apk
           if-no-files-found: error
           retention-days: 14

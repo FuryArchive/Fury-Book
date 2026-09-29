@@ -1,4 +1,4 @@
-package com.furybook.cloud
+package com.furybook.core.cloud
 
 data class FuryAuthSession(
     val userId: String,

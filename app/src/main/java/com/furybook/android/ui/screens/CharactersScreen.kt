@@ -43,7 +43,7 @@ import com.furybook.dubl.content.DublChiFcp
 import com.furybook.dubl.application.CharacterTransferImportResult
 import com.furybook.dubl.data.CharacterTransferRejectReason
 import com.furybook.android.state.CharacterController
-import com.furybook.cloud.NativeCloudStatus
+import com.furybook.core.cloud.NativeCloudStatus
 import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublScreenHeader
 import java.nio.charset.StandardCharsets

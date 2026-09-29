@@ -1,4 +1,4 @@
-package com.furybook.cloud
+package com.furybook.core.cloud
 
 import com.furybook.dubl.data.CharacterExtrasStore
 import com.furybook.dubl.data.CharacterStore

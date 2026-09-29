@@ -33,7 +33,7 @@ import com.furybook.ui.theme.DublFocus
 import com.furybook.ui.theme.DublMuted
 import com.furybook.desktop.DesktopAppState
 import com.furybook.desktop.cloud.DesktopCloudController
-import com.furybook.cloud.NativeCloudStatus
+import com.furybook.core.cloud.NativeCloudStatus
 import java.awt.FileDialog
 import java.awt.Frame
 import java.nio.charset.StandardCharsets

@@ -65,8 +65,8 @@ import com.furybook.desktop.screens.FuryMotion
 import com.furybook.desktop.screens.MagicScreen
 import com.furybook.desktop.screens.SkillsScreen
 import com.furybook.desktop.cloud.DesktopCloudController
-import com.furybook.cloud.ObservingCharacterStore
-import com.furybook.cloud.ObservingCharacterExtrasStore
+import com.furybook.core.cloud.ObservingCharacterStore
+import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.dubl.data.DesktopCharacterStore
 import com.furybook.dubl.data.DesktopCharacterExtrasStore
 
