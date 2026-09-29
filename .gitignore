@@ -43,3 +43,8 @@ replay_pid*
 # Local rulebook source fixtures used by tools/rulebook; never runtime/package inputs.
 /Dубль All Stars 3.69 REWORK(1)(2).docx
 /sources/*.docx
+
+/site/app/
+/site/appdev/
+/web-*.png
+/wd-*.png

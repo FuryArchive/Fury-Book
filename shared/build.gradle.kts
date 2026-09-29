@@ -22,6 +22,10 @@ kotlin {
         }
     }
 
+    js {
+        browser()
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation("org.jetbrains.compose.runtime:runtime:1.12.0")

@@ -1,0 +1,95 @@
+{
+  "format": "fury.content-pack",
+  "formatVersion": 1,
+  "id": "dubl-chi-3.69",
+  "name": "DUBL 3.69 — ЦИ",
+  "version": "3.69",
+  "ruleset": {
+    "id": "dubl",
+    "version": "3.69",
+    "engineApi": 1
+  },
+  "dependencies": [
+    {
+      "id": "dubl-3.69",
+      "version": "3.69"
+    }
+  ],
+  "modules": [
+    {
+      "id": "core",
+      "name": "DUBL Chi",
+      "required": true,
+      "enabledByDefault": true
+    }
+  ],
+  "entries": [
+    {
+      "kind": "dubl.development",
+      "path": "content/development_chi_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 10
+    },
+    {
+      "kind": "dubl.chi",
+      "path": "content/chi_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 20
+    }
+  ],
+  "ui": [
+    {
+      "id": "dubl.chi.resource",
+      "surface": "character.resources",
+      "component": "resource-meter",
+      "binding": "dubl.chi",
+      "label": "ЦИ",
+      "order": 40,
+      "properties": {
+        "icon": "chi",
+        "accent": "fury.accent"
+      }
+    },
+    {
+      "id": "dubl.chi.resource-settings",
+      "surface": "character.resource-settings",
+      "component": "resource-toggle",
+      "binding": "dubl.chi",
+      "label": "ЦИ",
+      "order": 40,
+      "properties": {
+        "icon": "chi"
+      }
+    },
+    {
+      "id": "dubl.chi.development-tab",
+      "surface": "development.tabs",
+      "component": "development-browser",
+      "binding": "dubl.chi",
+      "label": "ЦИ",
+      "order": 40,
+      "properties": {
+        "icon": "chi"
+      }
+    },
+    {
+      "id": "dubl.chi.economy",
+      "surface": "character.economy",
+      "component": "xp-line",
+      "binding": "dubl.chi",
+      "label": "Дополнительный запас ЦИ",
+      "order": 40,
+      "properties": {}
+    }
+  ],
+  "claims": [
+    {
+      "kind": "dubl.development",
+      "id": "martial_technique_08d81ce45b880c24"
+    }
+  ]
+}

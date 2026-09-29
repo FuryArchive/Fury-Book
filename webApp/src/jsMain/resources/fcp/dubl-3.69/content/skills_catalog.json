@@ -1,0 +1,427 @@
+{
+  "schemaVersion": 1,
+  "source": "core",
+  "rankCosts": [
+    0,
+    10,
+    30,
+    60,
+    100,
+    150,
+    210,
+    280,
+    360,
+    450,
+    550
+  ],
+  "rankCostSourceRefs": [
+    "core:t-000167"
+  ],
+  "skills": [
+    {
+      "id": "athletics",
+      "name": "Атлетика",
+      "description": "Прыжки, лазание, плавание",
+      "auto6": "Да",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "PHYSICAL",
+      "defaultAttributeHint": "STRENGTH",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 1
+    },
+    {
+      "id": "barter",
+      "name": "Бартер",
+      "description": "Торговля,",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "SOCIAL",
+      "defaultAttributeHint": "CHARISMA",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 2
+    },
+    {
+      "id": "awareness",
+      "name": "Внимательность",
+      "description": "Слух, зрение",
+      "auto6": "Да",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "FIELD",
+      "defaultAttributeHint": "PERCEPTION",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 3
+    },
+    {
+      "id": "riding",
+      "name": "Верховая езда",
+      "description": "Держаться в седле",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES_MINUS_2",
+      "category": "PHYSICAL",
+      "defaultAttributeHint": "DEXTERITY",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 4
+    },
+    {
+      "id": "lockpicking",
+      "name": "Взлом",
+      "description": "Взламывание замков и схожих устройств",
+      "auto6": "Да",
+      "auto12": "Да",
+      "untrained": "YES",
+      "category": "TECHNICAL",
+      "defaultAttributeHint": "DEXTERITY",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 5
+    },
+    {
+      "id": "driving",
+      "name": "Вождение",
+      "description": "Управление колесным транспортом",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES_MINUS_2",
+      "category": "TECHNICAL",
+      "defaultAttributeHint": "DEXTERITY",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 6
+    },
+    {
+      "id": "survival",
+      "name": "Выживание",
+      "description": "Охота, ориентирование в дикой местности",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES_MINUS_2",
+      "category": "FIELD",
+      "defaultAttributeHint": "PERCEPTION",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 7
+    },
+    {
+      "id": "animal_handling",
+      "name": "Дрессировка",
+      "description": "",
+      "auto6": "Да",
+      "auto12": "Нет",
+      "untrained": "NO",
+      "category": "SOCIAL",
+      "defaultAttributeHint": "CHARISMA",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 8
+    },
+    {
+      "id": "intimidation",
+      "name": "Запугивание",
+      "description": "Устрашение",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "SOCIAL",
+      "defaultAttributeHint": "CHARISMA",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 9
+    },
+    {
+      "id": "knowledge_academic",
+      "name": "Знание (Академическое)",
+      "description": "",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "KNOWLEDGE",
+      "defaultAttributeHint": "INTELLIGENCE",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 10
+    },
+    {
+      "id": "knowledge_template",
+      "name": "Знание (Любое)",
+      "description": "",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "NO",
+      "category": "KNOWLEDGE",
+      "defaultAttributeHint": "INTELLIGENCE",
+      "template": true,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 11
+    },
+    {
+      "id": "engineering_repair",
+      "name": "Инженерное дело (Ремонт)",
+      "description": "",
+      "auto6": "Да",
+      "auto12": "Нет",
+      "untrained": "NO",
+      "category": "TECHNICAL",
+      "defaultAttributeHint": "INTELLIGENCE",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 12
+    },
+    {
+      "id": "performance_vocal",
+      "name": "Исполнение (Вокал)",
+      "description": "Пение",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES_MINUS_2",
+      "category": "SOCIAL",
+      "defaultAttributeHint": "CHARISMA",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 13
+    },
+    {
+      "id": "performance_template",
+      "name": "Исполнение (Любое)",
+      "description": "Игра на музыкальных инструментах, ораторское искусство, танцы",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "NO",
+      "category": "SOCIAL",
+      "defaultAttributeHint": "CHARISMA",
+      "template": true,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 14
+    },
+    {
+      "id": "leadership",
+      "name": "Лидерство",
+      "description": "Управление подчиненными, командование",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "SOCIAL",
+      "defaultAttributeHint": "CHARISMA",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 15
+    },
+    {
+      "id": "eloquence",
+      "name": "Красноречие",
+      "description": "Обман, дипломатия",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "SOCIAL",
+      "defaultAttributeHint": "CHARISMA",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 16
+    },
+    {
+      "id": "medicine",
+      "name": "Медицина",
+      "description": "Оказание медицинской помощи",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "KNOWLEDGE",
+      "defaultAttributeHint": "INTELLIGENCE",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 17
+    },
+    {
+      "id": "piloting",
+      "name": "Пилотирование",
+      "description": "Управление летательными аппаратами,",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "NO",
+      "category": "TECHNICAL",
+      "defaultAttributeHint": "DEXTERITY",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 18
+    },
+    {
+      "id": "search",
+      "name": "Поиск",
+      "description": "",
+      "auto6": "Да",
+      "auto12": "Да",
+      "untrained": "YES",
+      "category": "FIELD",
+      "defaultAttributeHint": "PERCEPTION",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 19
+    },
+    {
+      "id": "profession_template",
+      "name": "Профессия",
+      "description": "",
+      "auto6": "Да",
+      "auto12": "Нет",
+      "untrained": "NO",
+      "category": "KNOWLEDGE",
+      "defaultAttributeHint": "INTELLIGENCE",
+      "template": true,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 20
+    },
+    {
+      "id": "craft_template",
+      "name": "Ремесло",
+      "description": "Создание предметов",
+      "auto6": "Да",
+      "auto12": "Да",
+      "untrained": "NO",
+      "category": "TECHNICAL",
+      "defaultAttributeHint": "INTELLIGENCE",
+      "template": true,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 21
+    },
+    {
+      "id": "stealth",
+      "name": "Скрытность",
+      "description": "Незаметность, бесшумность",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "FIELD",
+      "defaultAttributeHint": "DEXTERITY",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 22
+    },
+    {
+      "id": "shooting",
+      "name": "Стрельба",
+      "description": "Меткость и точность стрельбы",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "COMBAT",
+      "defaultAttributeHint": "PERCEPTION",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 23
+    },
+    {
+      "id": "melee_weapon",
+      "name": "Холодное оружие",
+      "description": "Опытность владения холодным оружием, точность атак",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "COMBAT",
+      "defaultAttributeHint": "DEXTERITY",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 24
+    },
+    {
+      "id": "throwing",
+      "name": "Метание",
+      "description": "Меткость и точность метания",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "COMBAT",
+      "defaultAttributeHint": "DEXTERITY",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 25
+    },
+    {
+      "id": "unarmed",
+      "name": "Рукопашный бой",
+      "description": "Кулачные бои, борьба",
+      "auto6": "Нет",
+      "auto12": "Нет",
+      "untrained": "YES",
+      "category": "COMBAT",
+      "defaultAttributeHint": "DEXTERITY",
+      "template": false,
+      "sourceRefs": [
+        "core:t-000163"
+      ],
+      "sourceRow": 26
+    },
+    {
+      "id": "computers",
+      "name": "Компьютеры",
+      "description": "",
+      "auto6": "Не указано в базовой таблице",
+      "auto12": "Не указано в базовой таблице",
+      "untrained": "UNSPECIFIED",
+      "category": "TECHNICAL",
+      "defaultAttributeHint": "INTELLIGENCE",
+      "template": false,
+      "sourceKind": "supplemental-heading",
+      "sourceRefs": [
+        "core:p-000945"
+      ]
+    }
+  ]
+}

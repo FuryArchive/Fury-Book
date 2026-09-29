@@ -1,0 +1,117 @@
+{
+  "format": "fury.content-pack",
+  "formatVersion": 1,
+  "id": "dubl-3.69",
+  "name": "DUBL 3.69",
+  "version": "3.69",
+  "ruleset": {
+    "id": "dubl",
+    "version": "3.69",
+    "engineApi": 1
+  },
+  "modules": [
+    {
+      "id": "core",
+      "name": "DUBL 3.69 Core",
+      "required": true,
+      "enabledByDefault": true
+    },
+    {
+      "id": "melee",
+      "name": "Martial Arts",
+      "required": false,
+      "enabledByDefault": true
+    },
+    {
+      "id": "archmage",
+      "name": "Archmage",
+      "required": false,
+      "enabledByDefault": true
+    }
+  ],
+  "entries": [
+    {
+      "kind": "dubl.skills",
+      "path": "content/skills_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 10
+    },
+    {
+      "kind": "dubl.conditions",
+      "path": "content/conditions_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 20
+    },
+    {
+      "kind": "dubl.development",
+      "path": "content/development_regular_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 100
+    },
+    {
+      "kind": "dubl.development",
+      "path": "content/development_special_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 110
+    },
+    {
+      "kind": "dubl.development",
+      "path": "content/development_ability_roots_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 120
+    },
+    {
+      "kind": "dubl.development",
+      "path": "content/development_martial_catalog.json",
+      "modules": [
+        "melee"
+      ],
+      "order": 130
+    },
+    {
+      "kind": "dubl.development",
+      "path": "content/development_magic_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 150
+    },
+    {
+      "kind": "dubl.development",
+      "path": "content/development_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 199
+    },
+    {
+      "kind": "dubl.magic-equipment",
+      "path": "content/magic_equipment_catalog.json",
+      "modules": [
+        "core",
+        "archmage"
+      ],
+      "order": 300
+    },
+    {
+      "kind": "dubl.skill-effects",
+      "path": "content/skill_effects_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 400
+    }
+  ],
+  "dependencies": [],
+  "ui": []
+}
