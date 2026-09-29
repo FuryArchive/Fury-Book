@@ -64,6 +64,11 @@ import com.furybook.desktop.screens.EquipmentScreen
 import com.furybook.desktop.screens.FuryMotion
 import com.furybook.desktop.screens.MagicScreen
 import com.furybook.desktop.screens.SkillsScreen
+import com.furybook.desktop.cloud.DesktopCloudController
+import com.furybook.cloud.ObservingCharacterStore
+import com.furybook.cloud.ObservingCharacterExtrasStore
+import com.furybook.dubl.data.DesktopCharacterStore
+import com.furybook.dubl.data.DesktopCharacterExtrasStore
 
 internal enum class DesktopSection(val label: String) {
     SHEET("Лист"),
@@ -121,20 +126,38 @@ private fun DesktopVisualTheme(content: @Composable () -> Unit) {
 
 @Composable
 private fun DesktopApp() {
-    val state = remember { DesktopAppState() }
+    val baseCharacters = remember { DesktopCharacterStore() }
+    val baseExtras = remember { DesktopCharacterExtrasStore() }
+    val observedCharacters = remember(baseCharacters) { ObservingCharacterStore(baseCharacters) }
+    val observedExtras = remember(baseExtras) { ObservingCharacterExtrasStore(baseExtras) }
+    val cloudController = remember(baseCharacters, baseExtras) {
+        DesktopCloudController(baseCharacters, baseExtras).also {
+            it.bind(observedCharacters, observedExtras)
+        }
+    }
+    val reloadToken = cloudController.reloadToken
+    val state = remember(reloadToken) { DesktopAppState(observedCharacters, observedExtras) }
     var selected by remember { mutableStateOf(DesktopSection.SHEET) }
+
+    LaunchedEffect(cloudController) {
+        cloudController.setChiEnabled(state.chiPackEnabled)
+        cloudController.restoreAndSync()
+    }
+    LaunchedEffect(state.chiPackEnabled) {
+        cloudController.setChiEnabled(state.chiPackEnabled)
+    }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         val layout = layoutClassForWidth(maxWidth.value.toInt())
         if (layout == DublLayoutClass.COMPACT) {
             Column(Modifier.fillMaxSize()) {
                 CompactNavigation(selected, { selected = it })
-                DesktopContent(state, selected, layout, { selected = it }, Modifier.weight(1f))
+                DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
             }
         } else {
             Row(Modifier.fillMaxSize()) {
                 DesktopRail(state, selected, { selected = it }, Modifier.width(230.dp).fillMaxHeight())
-                DesktopContent(state, selected, layout, { selected = it }, Modifier.weight(1f))
+                DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
             }
         }
     }
@@ -273,6 +296,7 @@ private val DesktopSection.iconKind: DesktopIconKind
 @Composable
 private fun DesktopContent(
     state: DesktopAppState,
+    cloudController: DesktopCloudController,
     section: DesktopSection,
     layout: DublLayoutClass,
     onNavigate: (DesktopSection) -> Unit,
@@ -316,7 +340,7 @@ private fun DesktopContent(
                 DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
                 DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
                 DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
-                DesktopSection.CHARACTERS -> CharactersScreen(state, animatedPageModifier)
+                DesktopSection.CHARACTERS -> CharactersScreen(state, cloudController, animatedPageModifier)
             }
         }
     }
