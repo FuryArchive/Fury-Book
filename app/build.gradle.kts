@@ -5,10 +5,10 @@ plugins {
 
 val appVersionName = providers.environmentVariable("FURY_BOOK_VERSION_NAME").orNull
     ?: providers.environmentVariable("DUBL_VERSION_NAME").orNull
-    ?: "0.5"
+    ?: "0.5.1"
 val appVersionCode = providers.environmentVariable("FURY_BOOK_VERSION_CODE").orNull?.toIntOrNull()
     ?: providers.environmentVariable("DUBL_VERSION_CODE").orNull?.toIntOrNull()
-    ?: 105000000
+    ?: 105001000
 val releaseKeystorePath = providers.environmentVariable("FURY_BOOK_KEYSTORE_PATH").orNull
     ?: providers.environmentVariable("DUBL_KEYSTORE_PATH").orNull
 val releaseKeystorePassword = providers.environmentVariable("FURY_BOOK_KEYSTORE_PASSWORD").orNull
