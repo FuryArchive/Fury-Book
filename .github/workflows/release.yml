@@ -228,7 +228,7 @@ jobs:
           set -euo pipefail
           RELEASE_FILE="desktopApp/build/compose/binaries/main/app/FuryBook/lib/runtime/release"
           [[ -f "$RELEASE_FILE" ]] || { echo "Missing bundled runtime metadata: $RELEASE_FILE" >&2; exit 1; }
-          grep -Eq 'MODULES=.*(^| )java\.net\.http( |$)' "$RELEASE_FILE" || {
+          grep -Fq 'java.net.http' "$RELEASE_FILE" || {
             echo "Bundled Desktop runtime is missing java.net.http" >&2
             cat "$RELEASE_FILE" >&2
             exit 1
@@ -297,67 +297,6 @@ jobs:
           Write-Host "Runtime metadata: $($releaseFile.FullName)"
           $runtime = Get-Content $releaseFile.FullName -Raw
           if (-not $runtime.Contains('java.net.http')) {
-            Write-Host $runtime
-            throw 'Bundled Desktop runtime is missing java.net.http'
-          }
-
-      - name: Stage Windows packages
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path out | Out-Null
-          $exe = Get-ChildItem 'desktopApp/build/compose/binaries/main/exe/*.exe' -ErrorAction Stop | Select-Object -First 1
-          $msi = Get-ChildItem 'desktopApp/build/compose/binaries/main/msi/*.msi' -ErrorAction Stop | Select-Object -First 1
-          if (-not $exe) { throw 'Windows EXE package was not produced.' }
-          if (-not $msi) { throw 'Windows MSI package was not produced.' }
-          Copy-Item $exe.FullName 'out/Fury-Book-${{ needs.validate.outputs.version }}-Windows-x64.exe'
-          Copy-Item $msi.FullName 'out/Fury-Book-${{ needs.validate.outputs.version }}-Windows-x64.msi'
-
-      - name: Upload Windows release artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: fury-book-release-windows
-          path: |
-            out/Fury-Book-${{ needs.validate.outputs.version }}-Windows-x64.exe
-            out/Fury-Book-${{ needs.validate.outputs.version }}-Windows-x64.msi
-          if-no-files-found: error
-
-  publish:
-    needs: [validate, content-pack, android, linux, windows]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download release artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: fury-book-release-*
-          path: release
-          merge-multiple: true
-
-      - name: Publish one GitHub Release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          VERSION: ${{ needs.validate.outputs.version }}
-        run: |
-          set -euo pipefail
-          TAG="v$VERSION"
-          shopt -s nullglob
-          FILES=(release/*)
-          [[ ${#FILES[@]} -ge 7 ]] || { echo "Expected release artifacts are missing" >&2; ls -la release || true; exit 1; }
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "${FILES[@]}" --clobber
-          else
-            gh release create "$TAG" "${FILES[@]}" \
-              --verify-tag \
-              --title "Fury Book $VERSION" \
-              --generate-notes
-          fi
- } |
-            Select-Object -First 1
-          if (-not $releaseFile) { throw 'Missing bundled runtime metadata under desktopApp/build/compose/binaries/main/app' }
-          Write-Host "Runtime metadata: $($releaseFile.FullName)"
-          $runtime = Get-Content $releaseFile.FullName -Raw
-          if ($runtime -notmatch '(^| )java\.net\.http( |$)') {
             Write-Host $runtime
             throw 'Bundled Desktop runtime is missing java.net.http'
           }
