@@ -1,4 +1,4 @@
-name: Clear failed 0.5.1 release run
+name: Force-clear failed 0.5.1 release run
 
 on:
   push:
@@ -12,11 +12,11 @@ jobs:
   cancel:
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel superseded failed release run
+      - name: Force-cancel superseded release run
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         shell: bash
         run: |
           set -euo pipefail
-          gh api --method POST "repos/$GH_REPO/actions/runs/36594809124/cancel" || true
+          gh api --method POST "repos/$GH_REPO/actions/runs/36594809124/force-cancel" || true
