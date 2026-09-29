@@ -233,9 +233,17 @@ class NativeCloudSyncCoordinator(
 
     suspend fun keepLocal(conflict: NativeSyncConflict, chiEnabled: Boolean): NativeSyncOutcome {
         val local = characterStore.load()
-        val characterJson = CloudProtocol.characterJson(local, conflict.characterId)
-            ?: return useCloud(chiEnabled)
-        val extrasJson = CloudProtocol.extrasJson(extrasStore.load(conflict.characterId))
+        val characterJson = if (conflict.deleteRequested) {
+            "{}"
+        } else {
+            CloudProtocol.characterJson(local, conflict.characterId)
+                ?: return useCloud(chiEnabled)
+        }
+        val extrasJson = if (conflict.deleteRequested) {
+            "{}"
+        } else {
+            CloudProtocol.extrasJson(extrasStore.load(conflict.characterId))
+        }
         api.force(conflict, characterJson, extrasJson, deviceLabel)
         val current = metadataStore.load()
         metadataStore.save(
