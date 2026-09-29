@@ -23,3 +23,5 @@ jobs:
           gh api --method PATCH "repos/$GH_REPO/git/refs/tags/v0.5.1"             -f sha="$MAIN_SHA"             -F force=true
           gh workflow run release.yml             --repo "$GH_REPO"             --ref main             -f version=0.5.1
           echo "v0.5.1 -> $MAIN_SHA; release workflow dispatched"
+
+# Retry after release-contract fix
