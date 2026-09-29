@@ -79,7 +79,7 @@ class DesktopFuryCloudGateway : FuryCloudAuth, FuryCloudTransport {
         }
         if (response.statusCode() !in 200..299) {
             val parsed = FuryAuthProtocol.parseError(response.body())
-            error(parsed.ifBlank { "Fury Cloud: HTTP \${response.statusCode()}" })
+            error(parsed.ifBlank { "Fury Cloud: HTTP ${response.statusCode()}" })
         }
         response.body()
     }
@@ -164,7 +164,7 @@ class DesktopCloudMetadataStore : NativeCloudMetadataStore {
     override fun save(metadata: NativeCloudMetadata) {
         prefs.put("linked_user_id", metadata.linkedUserId)
         prefs.putInt("state_revision", metadata.stateRevision)
-        prefs.put("known_revisions", metadata.knownRevisions.entries.joinToString("\\n") { "\${it.key}=\${it.value}" })
+        prefs.put("known_revisions", metadata.knownRevisions.entries.joinToString("\\n") { "${it.key}=${it.value}" })
         prefs.put("dirty_ids", encodeSet(metadata.dirtyIds))
         prefs.put("deleted_ids", encodeSet(metadata.deletedIds))
         prefs.flush()
