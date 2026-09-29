@@ -41,9 +41,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.furybook.android.data.AndroidContentPackState
+import com.furybook.android.cloud.AndroidCloudController
 import com.furybook.android.data.CharacterRepository
 import com.furybook.android.data.CharacterSheetExtrasRepository
 import com.furybook.android.state.CharacterController
+import com.furybook.cloud.ObservingCharacterStore
+import com.furybook.cloud.ObservingCharacterExtrasStore
 import com.furybook.android.ui.components.dismissKeyboardOnPointerDown
 import com.furybook.android.ui.screens.CharactersScreen
 import com.furybook.android.ui.screens.EquipmentScreen
@@ -69,13 +72,31 @@ private enum class AppSection(val label: String) {
 @Composable
 fun DublApp() {
     val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
-    val controller = remember(appContext) {
-        CharacterController(CharacterRepository(appContext), CharacterSheetExtrasRepository(appContext))
+    val characterRepository = remember(appContext) { CharacterRepository(appContext) }
+    val extrasRepository = remember(appContext) { CharacterSheetExtrasRepository(appContext) }
+    val observingCharacters = remember(characterRepository) { ObservingCharacterStore(characterRepository) }
+    val observingExtras = remember(extrasRepository) { ObservingCharacterExtrasStore(extrasRepository) }
+    val cloudController = remember(appContext, characterRepository, extrasRepository) {
+        AndroidCloudController(appContext, characterRepository, extrasRepository).also {
+            it.bind(observingCharacters, observingExtras)
+        }
+    }
+    val reloadToken = cloudController.reloadToken
+    val controller = remember(appContext, reloadToken) {
+        CharacterController(observingCharacters, observingExtras)
     }
     var selected by rememberSaveable { mutableStateOf(AppSection.OVERVIEW) }
     var pendingSection by remember { mutableStateOf<AppSection?>(null) }
     var chiPackEnabled by rememberSaveable { mutableStateOf(AndroidContentPackState.isChiEnabled(appContext)) }
     val chiDevelopmentIds = remember(appContext) { AndroidContentPackState.chiDevelopmentIds(appContext) }
+
+    LaunchedEffect(cloudController) {
+        cloudController.restoreAndSync()
+    }
+
+    LaunchedEffect(chiPackEnabled) {
+        cloudController.setChiEnabled(chiPackEnabled)
+    }
 
     LaunchedEffect(chiPackEnabled, controller.snapshot.activeCharacterId) {
         controller.setRuntimeContentSuppression(
@@ -127,10 +148,15 @@ fun DublApp() {
                     AppSection.INVENTORY -> EquipmentScreen(controller)
                     AppSection.MORE -> CharactersScreen(
                         controller = controller,
+                        cloudController = cloudController,
                         contentPackComposition = AndroidContentPackState.composition(appContext, chiPackEnabled),
                         onContentPackActiveChange = { packId, enabled ->
                             AndroidContentPackState.setPackEnabled(appContext, packId, enabled)
-                            if (packId == DublChiFcp.PACK_ID) chiPackEnabled = enabled
+                            if (packId == DublChiFcp.PACK_ID) {
+                                chiPackEnabled = enabled
+                                cloudController.setChiEnabled(enabled)
+                            }
+                            cloudController.requestSync()
                         },
                     )
                 }
