@@ -1,17 +1,18 @@
-name: Create Fury Book 0.5.1 tag
+name: Dispatch Fury Book 0.5.1 release
 
 on:
   push:
     branches: [release/0.5.1-trigger]
 
 permissions:
+  actions: write
   contents: write
 
 jobs:
-  tag:
+  release:
     runs-on: ubuntu-latest
     steps:
-      - name: Create v0.5.1 tag on current main
+      - name: Move v0.5.1 to current main and dispatch release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
@@ -19,9 +20,6 @@ jobs:
         run: |
           set -euo pipefail
           MAIN_SHA="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')"
-          if gh api "repos/$GH_REPO/git/ref/tags/v0.5.1" >/dev/null 2>&1; then
-            echo "v0.5.1 already exists"
-            exit 0
-          fi
-          gh api --method POST "repos/$GH_REPO/git/refs"             -f ref='refs/tags/v0.5.1'             -f sha="$MAIN_SHA"
-          echo "Created v0.5.1 at $MAIN_SHA"
+          gh api --method PATCH "repos/$GH_REPO/git/refs/tags/v0.5.1"             -f sha="$MAIN_SHA"             -F force=true
+          gh workflow run release.yml             --repo "$GH_REPO"             --ref main             -f version=0.5.1
+          echo "v0.5.1 -> $MAIN_SHA; release workflow dispatched"
