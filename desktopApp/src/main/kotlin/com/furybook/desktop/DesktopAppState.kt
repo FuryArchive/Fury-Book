@@ -17,6 +17,8 @@ import com.furybook.dubl.content.DublUiRegistry
 import com.furybook.dubl.content.DublUiRenderModels
 import com.furybook.dubl.application.CharacterTransferImportResult
 import com.furybook.dubl.data.DesktopCharacterExtrasStore
+import com.furybook.dubl.data.CharacterStore
+import com.furybook.dubl.data.CharacterExtrasStore
 import com.furybook.dubl.data.mergeDevelopmentCatalogs
 import com.furybook.dubl.data.DesktopCharacterStore
 import com.furybook.dubl.model.*
@@ -27,9 +29,10 @@ import java.nio.file.StandardCopyOption
 import java.util.UUID
 import java.util.prefs.Preferences
 
-class DesktopAppState {
-    private val characterStore = DesktopCharacterStore()
-    private val extrasStore = DesktopCharacterExtrasStore()
+class DesktopAppState(
+    private val characterStore: CharacterStore = DesktopCharacterStore(),
+    private val extrasStore: CharacterExtrasStore = DesktopCharacterExtrasStore(),
+) {
     private val application = DublApplication(
         characterStore = characterStore,
         extrasStore = extrasStore,
