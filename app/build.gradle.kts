@@ -56,9 +56,8 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
-            resValue("string", "app_name", "Fury Book Dev")
+            applicationIdSuffix = ".preview"
+            resValue("string", "app_name", "Fury Book")
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
@@ -74,10 +73,9 @@ android {
             // Performance-testable CI build: release optimizations, but signed with
             // the repository's debug key and installed next to the stable app.
             initWith(getByName("release"))
-            applicationIdSuffix = ".dev"
-            versionNameSuffix = "-dev"
+            applicationIdSuffix = ".preview"
             isDebuggable = false
-            resValue("string", "app_name", "Fury Book Dev")
+            resValue("string", "app_name", "Fury Book")
             signingConfig = signingConfigs.getByName("debug")
             matchingFallbacks += listOf("release")
         }

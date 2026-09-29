@@ -13,7 +13,9 @@ def test_android_branding_uses_fury_book_without_changing_stable_application_id(
 
     assert 'applicationId = "com.dubl.character.android"' in gradle
     assert 'resValue("string", "app_name", "Fury Book")' in gradle
-    assert gradle.count('resValue("string", "app_name", "Fury Book Dev")') == 2
+    assert 'Fury Book Dev' not in gradle
+    assert 'versionNameSuffix = "-dev"' not in gradle
+    assert gradle.count('resValue("string", "app_name", "Fury Book")') == 3
     assert 'android:icon="@mipmap/ic_launcher"' in manifest
     assert 'android:roundIcon="@mipmap/ic_launcher_round"' in manifest
     assert (ROOT / "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml").is_file()
@@ -61,7 +63,8 @@ def test_release_artifacts_use_fury_book_product_name_while_ruleset_identity_sta
     release = text(".github/workflows/release.yml")
     ruleset = text("shared/src/commonMain/kotlin/com/furybook/dubl/model/RulesetModels.kt")
 
-    assert 'Fury-Book-Android-dev.apk' in android_ci
+    assert 'Fury-Book-Android.apk' in android_ci
+    assert 'Fury-Book-Android-dev.apk' not in android_ci
     assert 'Fury-Book-${{ needs.validate.outputs.version }}-Android.apk' in release
     assert '--title "Fury Book $VERSION"' in release
     assert 'const val ID = "dubl"' in ruleset

@@ -2,13 +2,13 @@ package com.furybook.android.cloud
 
 import android.content.Context
 import android.os.Build
-import com.furybook.cloud.FuryAuthProtocol
-import com.furybook.cloud.FuryAuthSession
-import com.furybook.cloud.FuryAuthSessionStore
-import com.furybook.cloud.FuryCloudAuth
-import com.furybook.cloud.FuryCloudTransport
-import com.furybook.cloud.NativeCloudMetadata
-import com.furybook.cloud.NativeCloudMetadataStore
+import com.furybook.core.cloud.FuryAuthProtocol
+import com.furybook.core.cloud.FuryAuthSession
+import com.furybook.core.cloud.FuryAuthSessionStore
+import com.furybook.core.cloud.FuryCloudAuth
+import com.furybook.core.cloud.FuryCloudTransport
+import com.furybook.core.cloud.NativeCloudMetadata
+import com.furybook.core.cloud.NativeCloudMetadataStore
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlinx.coroutines.Dispatchers

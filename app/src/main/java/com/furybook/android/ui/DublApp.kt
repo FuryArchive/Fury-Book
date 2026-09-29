@@ -45,8 +45,8 @@ import com.furybook.android.cloud.AndroidCloudController
 import com.furybook.android.data.CharacterRepository
 import com.furybook.android.data.CharacterSheetExtrasRepository
 import com.furybook.android.state.CharacterController
-import com.furybook.cloud.ObservingCharacterStore
-import com.furybook.cloud.ObservingCharacterExtrasStore
+import com.furybook.core.cloud.ObservingCharacterStore
+import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.android.ui.components.dismissKeyboardOnPointerDown
 import com.furybook.android.ui.screens.CharactersScreen
 import com.furybook.android.ui.screens.EquipmentScreen
