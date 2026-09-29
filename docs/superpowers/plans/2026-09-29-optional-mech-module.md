@@ -48,7 +48,7 @@
 - Modify `app/src/main/java/com/furybook/android/data/AndroidDublFcp.kt` and `AndroidContentPackState.kt`: load, verify, compose, enable, and disable the bundled pack.
 - Create `app/src/main/java/com/furybook/android/data/MechRepository.kt` and `app/src/main/java/com/furybook/android/state/MechController.kt`: Android persistence and observable adapter.
 - Modify `app/src/main/java/com/furybook/android/ui/DublApp.kt` and `ui/screens/CharactersScreen.kt`; create `ui/screens/MechScreen.kt`: open a dedicated mech page from the optional pack area without adding a seventh bottom-nav item.
-- Modify `shared/src/desktopMain/kotlin/com/furybook/desktop/data/DesktopCatalogLoader.kt` and `DesktopCharacterStore.kt` only to share existing resource and data-directory conventions; create `DesktopMechStore.kt`.
+- Modify `shared/src/desktopMain/kotlin/com/furybook/desktop/data/DesktopCatalogLoader.kt`; create `shared/src/desktopMain/kotlin/com/furybook/dubl/data/DesktopMechStore.kt` using the existing character-store data-directory convention.
 - Modify `desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt`, `Main.kt`, and `screens/CharactersScreen.kt`; create `screens/MechScreen.kt`.
 - Modify `tools/tests/test_fcp_contract.py` and add common tests under `shared/src/commonTest/kotlin/com/furybook/dubl/mechs/` and `.../dubl/content/`.
 
@@ -92,7 +92,10 @@
 - Test: `shared/src/commonTest/kotlin/com/furybook/dubl/mechs/MechRulesTest.kt`
 
 **Interfaces:**
-- `MechBuild(id, name, pilotCharacterId, frameId, engineId, coreId, mountedWeapons, installedSystemIds, currentSectionDurability, structure, stress, energy, heat, repairs, ammunition)`.
+- `MechBuild(id: String, name: String, pilotCharacterId: String?, frameId: String, engineId: String, coreId: String, mountedWeapons: List<MechMountedWeapon>, installedSystemIds: List<String>, controlMode: MechControlMode, combatState: MechCombatState)`.
+- `MechCombatState(currentSectionDurability: Int, structure: Int, stress: Int, energy: Int, heat: Int, repairs: Int, ammunition: Map<String, Int>)`.
+- `MechDerivedStats` contains calculated frame, engine, core, defense, reflex, initiative, electronic-defense, durability, section, load, mass, capacity, and energy/heat limits. `MechBuildValidation` contains `violations: List<MechBuildViolation>`.
+- `MechCheckKind` covers `REFLEXES`, `INITIATIVE`, `ELECTRONIC_DEFENSE`, `SHOOTING`, `MANEUVER`, `MELEE`, `RAM`, `GRAPPLE`, `SEARCH`, and `EW_ATTACK`. `MechCheckPreset(title: String, bonus: Int?, contributions: List<RollContribution>, formulaText: String, unavailableReason: String)` is consumed by the existing DUBL roll UI.
 - `MechRules.derive(build: MechBuild, catalog: MechCatalog): MechDerivedStats`.
 - `MechRules.validate(build: MechBuild, catalog: MechCatalog): MechBuildValidation`; validation returns typed violations for missing IDs, class limits, incompatible mounts, weapon traction, load, mass/cargo, capacity, and energy.
 - `MechRules.checkPreset(kind: MechCheckKind, build: MechBuild, catalog: MechCatalog, pilot: DublCharacter?): MechCheckPreset`.
@@ -120,7 +123,7 @@
 - `data class MechRosterLoadResult(val roster: MechRoster, val warnings: List<String>)`.
 - `interface MechRosterStore { fun load(): MechRosterLoadResult; fun save(roster: MechRoster) }`.
 - `object MechRosterCodec { fun encode(roster: MechRoster): String; fun decode(raw: String): MechRosterLoadResult }`.
-- `class MechApplication(store: MechRosterStore, idFactory: () -> String)` exposes `roster`, `createBuild(name)`, `saveBuild(build, catalog): MechBuildSaveResult`, `deleteBuild(id)`, `setControlMode(id, mode)`, and `updateCombatState(id, state)`. `saveBuild` persists only when `MechRules.validate` has no violations.
+- `class MechApplication(store: MechRosterStore, idFactory: () -> String)` exposes `roster: MechRoster`, `createBuild(name: String): MechBuild`, `saveBuild(build: MechBuild, catalog: MechCatalog): MechBuildSaveResult`, `deleteBuild(id: String)`, `setControlMode(id: String, mode: MechControlMode)`, and `updateCombatState(id: String, state: MechCombatState)`. `MechBuildSaveResult` is `Saved(build)` or `Rejected(validation)`; save persists only when `MechRules.validate` has no violations.
 
 - [ ] **Step 1: Add failing round-trip and recovery tests.** Add `rosterCodecRoundTripsPilotAiAndCurrentState`, `decodeKeepsValidBuildsAndWarnsForMalformedBuild`, `missingPilotReferenceDoesNotDropBuild`, `saveBuildRejectsInvalidAssemblyWithoutChangingRoster`, and `disabledModuleDoesNotDeleteRoster`.
 - [ ] **Step 2: Run the tests and verify they fail.** Run `./gradlew :shared:desktopTest --tests com.furybook.dubl.mechs.MechRosterTest`. Expected: missing roster API or failing assertions.
@@ -164,16 +167,16 @@
 - Modify: `app/src/main/java/com/furybook/android/ui/screens/CharactersScreen.kt`
 - Create: `app/src/main/java/com/furybook/android/state/MechController.kt`
 - Create: `app/src/main/java/com/furybook/android/ui/screens/MechScreen.kt`
-- Test: `tools/tests/test_fcp_contract.py` or the existing Android state-test source set if available.
+- Test: `tools/tests/test_fcp_contract.py`.
 
 **Interfaces:**
 - `MechController(catalog: MechCatalog, store: MechRosterStore, idFactory: () -> String)` exposes observable roster, `saveBuild`, `setControlMode`, `updateCombatState`, and load warnings by adapting `MechApplication`.
 - `MechScreen(controller, pilots, onBack)` provides roster, creation/editing, build validation, mech card, action rolls, and combat-state fields.
 - The Android bottom navigation stays six items. The optional pack card in `CharactersScreen` opens the dedicated mech page; leaving the page returns to the same DUBL area.
 
-- [ ] **Step 1: Add failing state-adapter tests for Android.** Verify that creating a valid build updates observable roster, invalid builds return validation errors without mutation, pilot IDs link to the provided DUBL roster, and a disabled catalog closes the page.
-- [ ] **Step 2: Run the relevant Android tests and confirm failure.** Run `./gradlew :app:testDebugUnitTest`. Expected: missing controller/UI contracts or failing assertions.
-- [ ] **Step 3: Implement `MechController`.** Wrap `MechApplication` and publish only its separate roster; resolve a pilot by ID from the supplied character snapshot and tolerate a missing pilot as defined by Task 2.
+- [ ] **Step 1: Add failing Android source-contract test.** Add `androidMechEntryAndDisabledRouteArePackGated` to `tools/tests/test_fcp_contract.py`; assert the More-page entry is pack-gated, closing the route on disable, and the bottom navigation remains six items.
+- [ ] **Step 2: Run the contract test and confirm the missing route behavior.** Run `python3 -m pytest tools/tests/test_fcp_contract.py -q`. Expected: fail because the mech entry and route are absent.
+- [ ] **Step 3: Implement `MechController`.** Wrap `MechApplication` and publish only its separate roster; resolve a pilot by ID from the supplied character snapshot and tolerate a missing pilot as defined by Task 2. Common tests from Task 3 cover invalid-save behavior.
 - [ ] **Step 4: Add Android page entry and disabled-state behavior.** Add an “Открыть мехи” action to the active pack card in `CharactersScreen`; have `DublApp` open a dedicated page, close it when the pack becomes disabled, and keep the bottom bar at six items.
 - [ ] **Step 5: Implement the build and mech card UI.** Add frame/engine/core selectors, compatible weapon mounts and systems, AI install/control handoff, validation messages, derived values, pilot picker, current structure/stress/energy/heat/repairs/ammunition, maneuver/action list, and DUBL-compatible roll result breakdowns. Disable save while validation violations remain.
 - [ ] **Step 6: Run Android tests and compile.** Run `./gradlew :app:testDebugUnitTest :app:assembleDebug`. Expected: tests pass and debug APK compiles with module both enabled and disabled.
@@ -196,7 +199,7 @@
 - `DesktopSection.MECHS` is present in the rail/compact navigation only while the pack is enabled.
 - The content-pack manager and mech page use the same stable pack ID, label, and behavior as Android.
 
-- [ ] **Step 1: Add failing Desktop parity contract checks.** Assert the conditional mech navigation, pack-manager entry, same shared `MechRules`/controller boundary, and hidden route when disabled.
+- [ ] **Step 1: Add failing Desktop source-contract test.** Add `desktopMechNavigationAndRouteArePackGated` to `tools/tests/test_fcp_contract.py`; assert sidebar/compact nav filtering, the shared rules boundary, and route reset when disabled.
 - [ ] **Step 2: Run `python3 -m pytest tools/tests/test_fcp_contract.py -q` and confirm the missing Desktop route assertions.**
 - [ ] **Step 3: Add conditional Desktop navigation and page entry.** Update `DesktopSection`, rail, compact navigation, `DesktopContent`, and pack manager so the route appears only while active; if disabled while selected, return to the character sheet.
 - [ ] **Step 4: Implement Desktop mech UI using shared models.** Match Android's creation/editing fields and validation, pilot/AI handoff, combat values, maneuvers, checks, attacks, and result breakdown. Keep list and builder behavior equivalent across platforms.
