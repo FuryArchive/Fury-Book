@@ -18,6 +18,7 @@
 - Android and Desktop share the same rules, catalog models, and persistence contract.
 - User-created builds that violate mechbook assembly limits are not saved.
 - A DUBL pilot and an installed AI system can coexist; control can be passed between them as defined by the mechbook.
+- Mech actions use the mechbook's action points, reactions, energy, ammunition, heat, stress, structure, and repair rules.
 - Typed content comes from the mechbook; mechanics use DUBL rules where the mechbook refers to DUBL.
 - Any conflict or unclear rule between the mechbook and DUBL pauses implementation until the user answers.
 
@@ -93,22 +94,28 @@
 
 **Interfaces:**
 - `MechBuild(id: String, name: String, pilotCharacterId: String?, frameId: String, engineId: String, coreId: String, mountedWeapons: List<MechMountedWeapon>, installedSystemIds: List<String>, controlMode: MechControlMode, combatState: MechCombatState)`.
-- `MechCombatState(currentSectionDurability: Int, structure: Int, stress: Int, energy: Int, heat: Int, repairs: Int, ammunition: Map<String, Int>)`.
+- `MechCombatState(actionPoints: Int, reactionAvailable: Boolean, currentSectionDurability: Int, structure: Int, stress: Int, energy: Int, heat: Int, repairs: Int, ammunition: Map<String, Int>)`.
+- `MechActionCost(actionPoints: Int, energy: Int, heat: Int, ammunition: Int)`, `MechActionResult`, and `MechHeatResolution` represent shared action payments and reactor outcomes.
 - `MechDerivedStats` contains calculated frame, engine, core, defense, reflex, initiative, electronic-defense, durability, section, load, mass, capacity, and energy/heat limits. `MechBuildValidation` contains `violations: List<MechBuildViolation>`.
 - `MechCheckKind` covers `REFLEXES`, `INITIATIVE`, `ELECTRONIC_DEFENSE`, `SHOOTING`, `MANEUVER`, `MELEE`, `RAM`, `GRAPPLE`, `SEARCH`, and `EW_ATTACK`. `MechCheckPreset(title: String, bonus: Int?, contributions: List<RollContribution>, formulaText: String, unavailableReason: String)` is consumed by the existing DUBL roll UI.
 - `MechRules.derive(build: MechBuild, catalog: MechCatalog): MechDerivedStats`.
 - `MechRules.validate(build: MechBuild, catalog: MechCatalog): MechBuildValidation`; validation returns typed violations for missing IDs, class limits, incompatible mounts, weapon traction, load, mass/cargo, capacity, and energy.
 - `MechRules.checkPreset(kind: MechCheckKind, build: MechBuild, catalog: MechCatalog, pilot: DublCharacter?): MechCheckPreset`.
 - `MechRules.effectiveArmor(targetArmor: Int, armorPiercing: Int): Int`.
+- `MechRules.startTurn(build: MechBuild, catalog: MechCatalog): MechBuild` restores the documented energy generation and action/reaction allowance.
+- `MechRules.spendAction(build: MechBuild, cost: MechActionCost): MechActionResult` rejects unaffordable actions without mutating state.
+- `MechRules.addHeat(build: MechBuild, catalog: MechCatalog, amount: Int, rollDie: () -> Int): MechHeatResolution` applies the danger-zone/limit/stress and reactor-incident rules.
+- Weapon, maneuver, and system entries carry their action-point, energy, heat, reaction, and ammunition costs from the mechbook.
 - Maneuver models retain action-point cost, energy/heat cost, check kind/difficulty, and effects/text exactly as catalogued. Roll resolution calls the existing shared `rollCheck`, `rollFollowUp`, and DUBL target comparison APIs.
 
-- [ ] **Step 1: Add failing golden rules tests.** Create `MechRulesTest.kt` with `everestExampleDerivesDocumentedStats`, `validationRejectsEngineAboveFrameLimit`, `validationRejectsUnavailableMountAndOverloadedBuild`, `pilotChecksUseLowerRelevantStatAndKeepSkillRank`, `directConnectionUsesFullMechStatAndKeepsPilotSkill`, `aiControlUsesInstalledAiProfileAndCanCoexistWithPilot`, `unoperatedMechHasNoOperatorCheckPreset`, `armorPiercingFourReducesArmorByFourToMinimumZero`, and `maneuverAndAttackPresetsUseTheirDocumentedSkills`.
+- [ ] **Step 1: Add failing golden rules tests.** Create `MechRulesTest.kt` with `everestExampleDerivesDocumentedStats`, `validationRejectsEngineAboveFrameLimit`, `validationRejectsUnavailableMountAndOverloadedBuild`, `pilotChecksUseLowerRelevantStatAndKeepSkillRank`, `directConnectionUsesFullMechStatAndKeepsPilotSkill`, `aiControlUsesInstalledAiProfileAndCanCoexistWithPilot`, `unoperatedMechHasNoOperatorCheckPreset`, `armorPiercingFourReducesArmorByFourToMinimumZero`, `maneuverAndAttackPresetsUseTheirDocumentedSkills`, `turnStartRestoresEnergyAndThreeActionPoints`, `weaponActionDeductsCostsAndAddsHeat`, `unaffordableActionLeavesCombatStateUnchanged`, `dangerZoneStartsAtHalfHeatLimit`, and `reachingHeatLimitSpendsStressResetsHeatAndRollsIncident`.
 - [ ] **Step 2: Run the tests and verify they fail.** Run `./gradlew :shared:desktopTest --tests com.furybook.dubl.mechs.MechRulesTest`. Expected: compilation/test failure because the mech model and rules are missing.
 - [ ] **Step 3: Add the persisted build and derived/validation result types.** Use stable component IDs rather than copying catalog records into a build. Keep current combat values separate from derived maximums so catalog updates recalculate limits without overwriting current values.
 - [ ] **Step 4: Implement derivation and build validation.** Apply catalog values and installed modifiers once. For the documented Everest example, assert hull durability `192`, section durability `48`, load limit `20`, and the stated frame/engine/core totals. Invalid builds return violations and never become saved application state.
-- [ ] **Step 5: Implement pilot, direct-link, AI, maneuver, attack, and armor rules.** Resolve the rules exactly as stated by the mechbook: use the lower applicable pilot/mech characteristic, retain the relevant DUBL skill, bypass the limit only for the direct-connection trait, use the AI system profile while it controls the mech, and leave a mech without an operator unable to make operator-dependent checks. Armor penetration reduces armor by its listed value to a minimum of zero. Use the DUBL roll pipeline rather than a second dice implementation.
-- [ ] **Step 6: Run the rule tests.** Run `./gradlew :shared:desktopTest --tests com.furybook.dubl.mechs.MechRulesTest`. Expected: all golden results and validation violations pass.
-- [ ] **Step 7: Commit the shared rules.** `git add shared/src/commonMain/kotlin/com/furybook/dubl/mechs/MechBuild.kt shared/src/commonMain/kotlin/com/furybook/dubl/mechs/MechRules.kt shared/src/commonTest/kotlin/com/furybook/dubl/mechs/MechRulesTest.kt && git commit -m "feat: add shared mech rules"`
+- [ ] **Step 5: Implement action economy, resources, heat, damage, and repair transitions.** Begin each turn with the documented action/reaction allowance and energy generation. Deduct only the costs listed on an action; reject actions when points, energy, or ammunition are insufficient. Apply the half-limit danger zone, stress loss, heat reset, and reactor incident roll at the heat limit. Track section durability/structure using the mechbook. Implement the documented short/full repair state changes.
+- [ ] **Step 6: Implement pilot, direct-link, AI, maneuver, attack, and armor rules.** Resolve the rules exactly as stated by the mechbook: use the lower applicable pilot/mech characteristic, retain the relevant DUBL skill, bypass the limit only for the direct-connection trait, use the AI system profile while it controls the mech, and leave a mech without an operator unable to make operator-dependent checks. Armor penetration reduces armor by its listed value to a minimum of zero. Use the DUBL roll pipeline rather than a second dice implementation.
+- [ ] **Step 7: Run the rule tests.** Run `./gradlew :shared:desktopTest --tests com.furybook.dubl.mechs.MechRulesTest`. Expected: all golden results and validation violations pass.
+- [ ] **Step 8: Commit the shared rules.** `git add shared/src/commonMain/kotlin/com/furybook/dubl/mechs/MechBuild.kt shared/src/commonMain/kotlin/com/furybook/dubl/mechs/MechRules.kt shared/src/commonTest/kotlin/com/furybook/dubl/mechs/MechRulesTest.kt && git commit -m "feat: add shared mech rules"`
 
 ---
 
@@ -178,7 +185,7 @@
 - [ ] **Step 2: Run the contract test and confirm the missing route behavior.** Run `python3 -m pytest tools/tests/test_fcp_contract.py -q`. Expected: fail because the mech entry and route are absent.
 - [ ] **Step 3: Implement `MechController`.** Wrap `MechApplication` and publish only its separate roster; resolve a pilot by ID from the supplied character snapshot and tolerate a missing pilot as defined by Task 2. Common tests from Task 3 cover invalid-save behavior.
 - [ ] **Step 4: Add Android page entry and disabled-state behavior.** Add an “Открыть мехи” action to the active pack card in `CharactersScreen`; have `DublApp` open a dedicated page, close it when the pack becomes disabled, and keep the bottom bar at six items.
-- [ ] **Step 5: Implement the build and mech card UI.** Add frame/engine/core selectors, compatible weapon mounts and systems, AI install/control handoff, validation messages, derived values, pilot picker, current structure/stress/energy/heat/repairs/ammunition, maneuver/action list, and DUBL-compatible roll result breakdowns. Disable save while validation violations remain.
+- [ ] **Step 5: Implement the build and mech card UI.** Add frame/engine/core selectors, compatible weapon mounts and systems, AI install/control handoff, validation messages, derived values, pilot picker, current action points/reaction, structure/stress/energy/heat/repairs/ammunition, maneuver/action list, and action costs, and DUBL-compatible roll result breakdowns. Disable save while validation violations remain.
 - [ ] **Step 6: Run Android tests and compile.** Run `./gradlew :app:testDebugUnitTest :app:assembleDebug`. Expected: tests pass and debug APK compiles with module both enabled and disabled.
 - [ ] **Step 7: Commit Android integration.** `git add app/src/main/java/com/furybook/android/ui/DublApp.kt app/src/main/java/com/furybook/android/ui/screens/CharactersScreen.kt app/src/main/java/com/furybook/android/state/MechController.kt app/src/main/java/com/furybook/android/ui/screens/MechScreen.kt && git commit -m "feat: add Android mech screens"`
 
@@ -211,7 +218,7 @@
 
 ## Plan Self-Review
 
-- **Spec coverage:** Optional activation and disabled UI are covered by Task 4 and Task 5/6; all catalogs and source data by Task 1; build calculations, pilot limits, direct connection, weapons, maneuvers and AI handoff by Task 2; separate roster, corruption recovery and pilot reference behavior by Task 3; both platform flows by Tasks 5 and 6; compatibility and FCP docs by Task 6.
+- **Spec coverage:** Optional activation and disabled UI are covered by Task 4 and Task 5/6; all catalogs and source data by Task 1; build calculations, action economy, energy/heat/stress/damage transitions, pilot limits, direct connection, weapons, maneuvers and AI handoff by Task 2; separate roster, corruption recovery and pilot reference behavior by Task 3; both platform flows by Tasks 5 and 6; compatibility and FCP docs by Task 6.
 - **Step scan:** Each checkbox is one test, implementation, verification, or commit action. Shared APIs are listed before consuming tasks.
 - **Type consistency:** Tasks 1–3 define `MechCatalog`, `MechBuild`, `MechRosterStore`, `MechApplication`, and `MechRules` before platform consumers.
 - **Review Focus:** All five listed failure classes have named tests or contract checks in the task that owns the behavior.
