@@ -160,6 +160,18 @@ jobs:
           chmod +x gradlew packaging/linux/build-appimage.sh
           FURY_BOOK_VERSION="$FURY_BOOK_DESKTOP_VERSION" packaging/linux/build-appimage.sh
 
+      - name: Verify bundled Desktop runtime modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_FILE="desktopApp/build/compose/binaries/main/app/FuryBook/lib/runtime/release"
+          [[ -f "$RELEASE_FILE" ]] || { echo "Missing bundled runtime metadata: $RELEASE_FILE" >&2; exit 1; }
+          grep -Eq 'MODULES=.*(^| )java\.net\.http( |$)' "$RELEASE_FILE" || {
+            echo "Bundled Desktop runtime is missing java.net.http" >&2
+            cat "$RELEASE_FILE" >&2
+            exit 1
+          }
+
       - name: Smoke-test Compose AppImage
         shell: bash
         run: |
