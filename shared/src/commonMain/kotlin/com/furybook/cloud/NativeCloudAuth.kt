@@ -15,6 +15,7 @@ interface FuryAuthSessionStore {
 
 interface FuryCloudAuth {
     suspend fun signIn(email: String, password: String): Result<FuryAuthSession>
+    suspend fun signUp(email: String, password: String, nickname: String): Result<FuryAuthSession?>
     suspend fun restore(): FuryAuthSession?
     suspend fun signOut()
 }
