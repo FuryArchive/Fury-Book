@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0E1014">
+  <meta name="description" content="Fury Book — character manager for DUBL.">
+  <title>Fury Book</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0E1014;
+      --surface: #191C23;
+      --surface-raised: #1D2028;
+      --border: #30343E;
+      --text: #EEE9E1;
+      --muted: #A1A5B0;
+      --accent: #A83948;
+      --accent-strong: #BB5863;
+      --gold: #D0AE7E;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 32px 18px;
+      background:
+        radial-gradient(circle at 50% 15%, rgba(168, 57, 72, 0.12), transparent 34rem),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    main {
+      width: min(100%, 620px);
+      text-align: center;
+    }
+
+    .mark {
+      width: 86px;
+      height: 86px;
+      margin: 0 auto 26px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      background: #111318;
+      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.28);
+    }
+
+    .mark svg { width: 64px; height: 64px; }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(36px, 7vw, 58px);
+      line-height: 0.95;
+      letter-spacing: -0.045em;
+      font-weight: 800;
+    }
+
+    .subtitle {
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .downloads {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 38px;
+    }
+
+    .download {
+      min-height: 84px;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      color: var(--text);
+      text-decoration: none;
+      transition: transform 120ms ease, border-color 120ms ease, background 120ms ease;
+    }
+
+    .download:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-strong);
+      background: var(--surface-raised);
+    }
+
+    .download:focus-visible {
+      outline: 3px solid rgba(212, 134, 143, 0.35);
+      outline-offset: 3px;
+    }
+
+    .download strong {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .download small {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .download.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .download.primary:hover {
+      background: var(--accent-strong);
+      border-color: var(--accent-strong);
+    }
+
+    .download.primary small { color: #F4DDE0; }
+
+    .meta {
+      margin-top: 22px;
+      min-height: 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    footer {
+      margin-top: 54px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    footer a {
+      color: var(--gold);
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    .sep { margin: 0 9px; color: var(--border); }
+
+    @media (max-width: 560px) {
+      body { padding: 28px 16px; }
+      .downloads { grid-template-columns: 1fr; }
+      .download { min-height: 72px; }
+      footer { margin-top: 38px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 256 256" role="img">
+        <path d="M73 58h118v30h-82v38h66v29h-66v69H73V58z" fill="#EEE9E1"/>
+        <path d="M174 157h33v67h-33z" fill="#A83948"/>
+      </svg>
+    </div>
+
+    <h1>FURY BOOK</h1>
+    <p class="subtitle">Character manager for DUBL</p>
+
+    <div class="downloads">
+      <a id="windows" class="download primary" href="https://github.com/FuryArchive/Fury-Book/releases/download/v0.5/FURY-0.5-Windows-x64.exe">
+        <strong>Windows</strong>
+        <small>x64 · EXE</small>
+      </a>
+      <a id="linux" class="download" href="https://github.com/FuryArchive/Fury-Book/releases/download/v0.5/FURY-0.5-Linux-x86_64.AppImage">
+        <strong>Linux</strong>
+        <small>x86_64 · AppImage</small>
+      </a>
+      <a id="android" class="download" href="https://github.com/FuryArchive/Fury-Book/releases/download/v0.5/FURY-0.5-Android.apk">
+        <strong>Android</strong>
+        <small>APK</small>
+      </a>
+    </div>
+
+    <div id="release" class="meta">Latest release: v0.5</div>
+
+    <footer>
+      <a href="https://github.com/FuryArchive/Fury-Book">Source</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/FuryArchive/Fury-Book/releases/latest">Release notes</a>
+    </footer>
+  </main>
+
+  <script>
+    const api = "https://api.github.com/repos/FuryArchive/Fury-Book/releases/latest";
+
+    const patterns = {
+      windows: /windows.*x64.*\.exe$/i,
+      linux: /linux.*x86_64.*\.appimage$/i,
+      android: /android.*\.apk$/i
+    };
+
+    fetch(api, { headers: { Accept: "application/vnd.github+json" } })
+      .then(response => {
+        if (!response.ok) throw new Error("GitHub API request failed");
+        return response.json();
+      })
+      .then(release => {
+        for (const [id, pattern] of Object.entries(patterns)) {
+          const asset = release.assets?.find(item => pattern.test(item.name));
+          if (asset) document.getElementById(id).href = asset.browser_download_url;
+        }
+
+        if (release.tag_name) {
+          document.getElementById("release").textContent = "Latest release: " + release.tag_name;
+        }
+      })
+      .catch(() => {
+        // Keep the known-good v0.5 direct links when the API is unavailable.
+      });
+  </script>
+</body>
+</html>
