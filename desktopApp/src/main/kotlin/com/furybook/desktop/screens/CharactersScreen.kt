@@ -346,7 +346,7 @@ fun CharactersScreen(state: DesktopAppState, cloudController: DesktopCloudContro
             title = { Text("Персонаж изменён на другом устройстве") },
             text = {
                 Text(
-                    "Fury Book ничего не перезаписал. Облачная версия: revision \${conflict.serverRevision}" +
+                    "Fury Book ничего не перезаписал. Облачная версия: revision ${conflict.serverRevision}" +
                         (conflict.updatedBy?.let { " · $it" } ?: "") +
                         ". Выберите, какую версию оставить.",
                 )
