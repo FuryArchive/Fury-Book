@@ -86,8 +86,8 @@ object CharacterTransferCodec {
         "activeConditions" to jsonArray(extras.activeConditions.map { it.name }.sorted().map(::jsonString)),
         "hiddenResourceIds" to jsonArray(extras.hiddenResourceIds.map { it.name }.sorted().map(::jsonString)),
         "preferredSkillAttributes" to JsonValue.Obj(linkedMapOf<String, JsonValue>().apply {
-            extras.preferredSkillAttributes.toSortedMap().forEach { (skillId, attribute) ->
-                put(skillId, jsonString(attribute.name))
+            extras.preferredSkillAttributes.entries.sortedBy { it.key }.forEach { entry ->
+                put(entry.key, jsonString(entry.value.name))
             }
         }),
         "skillGroups" to jsonString(SheetGroupingRules.encode(extras.skillGroups)),

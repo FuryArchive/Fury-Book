@@ -74,7 +74,12 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 12px;
+      margin-top: 12px;
+    }
+
+    .web-launch {
       margin-top: 38px;
+      min-height: 92px;
     }
 
     .download {
@@ -168,22 +173,27 @@
     <h1>FURY BOOK</h1>
     <p class="subtitle">Character manager for DUBL</p>
 
+    <a class="download primary web-launch" href="./app/">
+      <strong>Open Fury Book</strong>
+      <small>Run in your browser · no installation</small>
+    </a>
+
     <div class="downloads">
-      <a id="windows" class="download primary" href="https://github.com/FuryArchive/Fury-Book/releases/download/v0.5/FURY-0.5-Windows-x64.exe">
+      <a id="windows" class="download" href="https://github.com/FuryArchive/Fury-Book/releases/download/v0.5.1/Fury-Book-0.5.1-Windows-x64.exe">
         <strong>Windows</strong>
         <small>x64 · EXE</small>
       </a>
-      <a id="linux" class="download" href="https://github.com/FuryArchive/Fury-Book/releases/download/v0.5/FURY-0.5-Linux-x86_64.AppImage">
+      <a id="linux" class="download" href="https://github.com/FuryArchive/Fury-Book/releases/download/v0.5.1/Fury-Book-0.5.1-Linux-x86_64.AppImage">
         <strong>Linux</strong>
         <small>x86_64 · AppImage</small>
       </a>
-      <a id="android" class="download" href="https://github.com/FuryArchive/Fury-Book/releases/download/v0.5/FURY-0.5-Android.apk">
+      <a id="android" class="download" href="https://github.com/FuryArchive/Fury-Book/releases/download/v0.5.1/Fury-Book-0.5.1-Android.apk">
         <strong>Android</strong>
         <small>APK</small>
       </a>
     </div>
 
-    <div id="release" class="meta">Latest release: v0.5</div>
+    <div id="release" class="meta">Latest release: v0.5.1</div>
 
     <footer>
       <a href="https://github.com/FuryArchive/Fury-Book">Source</a>
@@ -217,7 +227,7 @@
         }
       })
       .catch(() => {
-        // Keep the known-good v0.5 direct links when the API is unavailable.
+        // Keep the known-good v0.5.1 direct links when the API is unavailable.
       });
   </script>
 </body>

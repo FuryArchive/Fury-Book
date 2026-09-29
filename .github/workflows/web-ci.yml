@@ -1,0 +1,53 @@
+name: Web Compose
+
+on:
+  pull_request:
+    paths:
+      - "webApp/**"
+      - "shared/**"
+      - "supabase/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "kotlin-js-store/**"
+      - ".npmrc"
+      - ".github/workflows/web-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "webApp/**"
+      - "shared/**"
+      - "supabase/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle.properties"
+      - "kotlin-js-store/**"
+      - ".npmrc"
+      - ".github/workflows/web-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Verify shared rules and web build
+        env:
+          NPM_CONFIG_ALLOW_GIT: all
+        run: ./gradlew :shared:desktopTest :webApp:compileKotlinJs :webApp:jsBrowserDistribution
