@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release version (for example 0.5.1)
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -23,10 +29,16 @@ jobs:
       - name: Resolve release version
         id: meta
         shell: bash
+        env:
+          RELEASE_VERSION_INPUT: ${{ inputs.version }}
         run: |
           set -euo pipefail
-          TAG="${GITHUB_REF_NAME}"
-          VERSION="${TAG#v}"
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            VERSION="${RELEASE_VERSION_INPUT}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+            VERSION="${TAG#v}"
+          fi
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]]; then
             echo "Release tag must look like v0.5 or v0.5.1" >&2
             exit 1
@@ -54,6 +66,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: v${{ needs.validate.outputs.version }}
 
       - name: Install FCP validation dependencies
         run: sudo apt-get update && sudo apt-get install -y python3-pytest
@@ -93,6 +107,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: v${{ needs.validate.outputs.version }}
 
       - name: Set up Java 17
         uses: actions/setup-java@v6
@@ -161,6 +177,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: v${{ needs.validate.outputs.version }}
 
       - name: Set up Java 17
         uses: actions/setup-java@v6
@@ -239,6 +257,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: v${{ needs.validate.outputs.version }}
 
       - name: Set up Java 17
         uses: actions/setup-java@v6
