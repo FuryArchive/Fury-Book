@@ -104,6 +104,26 @@ class AndroidCloudController(
         statusMessage = error.message ?: "Не удалось войти в Fury Account."
     }
 
+    suspend fun signUp(email: String, password: String, nickname: String): Result<Boolean> = runCatching {
+        status = NativeCloudStatus.CONNECTING
+        statusMessage = "Создаём Fury Account…"
+        val created = gateway.signUp(email, password, nickname).getOrThrow()
+        if (created == null) {
+            status = NativeCloudStatus.SIGNED_OUT
+            statusMessage = "Аккаунт создан. Подтвердите email из письма, затем войдите."
+            false
+        } else {
+            session = created
+            conflicts = emptyList()
+            rebuildCoordinator()
+            syncInternal(firstLinkAllowed = true)
+            true
+        }
+    }.onFailure { error ->
+        status = NativeCloudStatus.ERROR
+        statusMessage = error.message ?: "Не удалось создать Fury Account."
+    }
+
     suspend fun signOut() {
         scheduledJob?.cancel()
         gateway.signOut()
