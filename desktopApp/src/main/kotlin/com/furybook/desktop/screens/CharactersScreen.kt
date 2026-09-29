@@ -46,8 +46,11 @@ fun CharactersScreen(state: DesktopAppState, cloudController: DesktopCloudContro
     var confirmDelete by remember { mutableStateOf(false) }
     var transferStatus by remember { mutableStateOf<String?>(null) }
     var contentPackStatus by remember { mutableStateOf<String?>(null) }
+    var cloudRegistering by remember { mutableStateOf(false) }
+    var cloudNickname by remember { mutableStateOf("") }
     var cloudEmail by remember { mutableStateOf("") }
     var cloudPassword by remember { mutableStateOf("") }
+    var cloudAuthBusy by remember { mutableStateOf(false) }
     var cloudLoginMessage by remember { mutableStateOf<String?>(null) }
     val cloudScope = rememberCoroutineScope()
 
@@ -112,12 +115,43 @@ fun CharactersScreen(state: DesktopAppState, cloudController: DesktopCloudContro
                         color = DublMuted,
                         style = MaterialTheme.typography.bodySmall,
                     )
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            modifier = Modifier.weight(1f),
+                            enabled = !cloudAuthBusy,
+                            onClick = {
+                                cloudRegistering = false
+                                cloudLoginMessage = null
+                            },
+                        ) { Text("Войти") }
+                        OutlinedButton(
+                            modifier = Modifier.weight(1f),
+                            enabled = !cloudAuthBusy,
+                            onClick = {
+                                cloudRegistering = true
+                                cloudLoginMessage = null
+                            },
+                        ) { Text("Создать аккаунт") }
+                    }
+                    if (cloudRegistering) {
+                        OutlinedTextField(
+                            value = cloudNickname,
+                            onValueChange = { cloudNickname = it.take(32); cloudLoginMessage = null },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text("Никнейм") },
+                            supportingText = { Text("От 2 до 32 символов.") },
+                        )
+                    }
                     OutlinedTextField(
                         value = cloudEmail,
                         onValueChange = { cloudEmail = it; cloudLoginMessage = null },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         label = { Text("Email") },
+                        supportingText = {
+                            if (cloudRegistering) Text("На этот адрес придёт письмо для подтверждения аккаунта.")
+                        },
                     )
                     OutlinedTextField(
                         value = cloudPassword,
@@ -126,31 +160,70 @@ fun CharactersScreen(state: DesktopAppState, cloudController: DesktopCloudContro
                         singleLine = true,
                         visualTransformation = PasswordVisualTransformation(),
                         label = { Text("Пароль") },
+                        supportingText = {
+                            if (cloudRegistering) Text("Минимум 8 символов.")
+                        },
                     )
                     Button(
                         modifier = Modifier.fillMaxWidth(),
+                        enabled = !cloudAuthBusy,
                         onClick = {
                             val email = cloudEmail.trim()
-                            when {
-                                email.isBlank() -> cloudLoginMessage = "Введите email."
-                                cloudPassword.isBlank() -> cloudLoginMessage = "Введите пароль."
-                                else -> cloudScope.launch {
-                                    cloudLoginMessage = null
-                                    cloudController.signIn(email, cloudPassword)
-                                        .onSuccess {
-                                            cloudPassword = ""
-                                            cloudLoginMessage = "Вход выполнен. Локальные и облачные персонажи объединены."
-                                        }
-                                        .onFailure { cloudLoginMessage = it.message ?: "Не удалось войти." }
+                            val nickname = cloudNickname.trim()
+                            val validation = when {
+                                cloudRegistering && nickname.length !in 2..32 -> "Никнейм должен содержать от 2 до 32 символов."
+                                email.isBlank() -> "Введите email."
+                                !email.contains("@") || !email.substringAfter("@", "").contains(".") -> "Введите корректный email."
+                                cloudPassword.isBlank() -> "Введите пароль."
+                                cloudRegistering && cloudPassword.length < 8 -> "Пароль должен содержать минимум 8 символов."
+                                else -> null
+                            }
+                            if (validation != null) {
+                                cloudLoginMessage = validation
+                            } else {
+                                cloudAuthBusy = true
+                                cloudLoginMessage = null
+                                cloudScope.launch {
+                                    if (cloudRegistering) {
+                                        cloudController.signUp(email, cloudPassword, nickname)
+                                            .onSuccess { signedIn ->
+                                                cloudPassword = ""
+                                                if (signedIn) {
+                                                    cloudLoginMessage = "Аккаунт создан. Локальные и облачные персонажи безопасно объединены."
+                                                } else {
+                                                    cloudRegistering = false
+                                                    cloudLoginMessage = "Аккаунт создан. Подтвердите email из письма, затем войдите."
+                                                }
+                                            }
+                                            .onFailure { cloudLoginMessage = it.message ?: "Не удалось создать аккаунт." }
+                                    } else {
+                                        cloudController.signIn(email, cloudPassword)
+                                            .onSuccess {
+                                                cloudPassword = ""
+                                                cloudLoginMessage = "Вход выполнен. Локальные и облачные персонажи безопасно объединены."
+                                            }
+                                            .onFailure { cloudLoginMessage = it.message ?: "Не удалось войти." }
+                                    }
+                                    cloudAuthBusy = false
                                 }
                             }
                         },
-                    ) { Text("Войти и синхронизировать") }
-                    Text(
-                        "Аккаунт можно создать в веб-версии Fury Book.",
-                        color = DublMuted,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
+                    ) {
+                        Text(
+                            when {
+                                cloudAuthBusy -> "Подождите…"
+                                cloudRegistering -> "Создать аккаунт"
+                                else -> "Войти и синхронизировать"
+                            },
+                        )
+                    }
+                    if (cloudRegistering) {
+                        Text(
+                            "После регистрации откройте письмо, подтвердите email и вернитесь в Fury Book. Локальные персонажи до входа никуда не исчезнут.",
+                            color = DublMuted,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
                 } else {
                     Text(
                         cloudController.nickname.ifBlank { session.email.substringBefore('@') },
