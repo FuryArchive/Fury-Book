@@ -1,6 +1,6 @@
 val desktopVersion = providers.environmentVariable("FURY_BOOK_VERSION").orNull
     ?: providers.environmentVariable("DUBL_VERSION").orNull
-    ?: "0.5.0"
+    ?: "0.5.1"
 
 plugins {
     id("org.jetbrains.kotlin.jvm")
