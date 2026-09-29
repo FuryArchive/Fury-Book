@@ -103,7 +103,6 @@ private fun DesktopVisualTheme(content: @Composable () -> Unit) {
             onSurfaceVariant = DesktopMuted,
             outline = DesktopBorder,
             outlineVariant = DesktopBorder,
-            error = Color(0xFFFF7183),
         ),
         typography = typography.copy(
             headlineMedium = typography.headlineMedium.copy(fontSize = 30.sp, lineHeight = 36.sp),
