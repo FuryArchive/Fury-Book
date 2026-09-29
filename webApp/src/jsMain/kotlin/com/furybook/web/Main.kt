@@ -54,105 +54,142 @@ private fun WebRoot() {
     val scope = rememberCoroutineScope()
     var resources by remember { mutableStateOf<Map<String, String>?>(null) }
     var session by remember { mutableStateOf<WebAuthSession?>(null) }
-    var localMode by remember { mutableStateOf(false) }
     var booting by remember { mutableStateOf(true) }
-    var cloudHadState by remember { mutableStateOf(false) }
     var fatalError by remember { mutableStateOf<String?>(null) }
-    var syncWarning by remember { mutableStateOf<String?>(null) }
+    var connectionError by remember { mutableStateOf<String?>(null) }
+    var appEpoch by remember { mutableStateOf(0) }
 
-    suspend fun hydrateRemote(): Boolean {
-        val remote = cloud.pull() ?: return false
+    suspend fun hydrateRemote(): CloudBootstrap {
+        val remote = cloud.pull()
         BrowserCharacterStore().replaceRaw(remote.snapshot)
         BrowserCharacterExtrasStore().replaceRaw(remote.extras)
         BrowserPackState.chiEnabled = remote.chiEnabled
-        return true
+        return remote
     }
 
+    fun cloudErrorMessage(error: Throwable): String =
+        error.message?.takeIf { it.isNotBlank() }
+            ?: "Не удалось подключиться к Fury Cloud. Проверьте интернет и попробуйте снова."
+
     LaunchedEffect(Unit) {
-        runCatching {
-            resources = loadBundledFcpTexts()
-            val restored = cloud.restoreSession()
-            if (restored != null) {
-                BrowserStorageScope.useUser(restored.userId)
-                session = restored
-                runCatching { hydrateRemote() }
-                    .onSuccess { cloudHadState = it }
-                    .onFailure { syncWarning = "Облачная синхронизация временно недоступна. Локальные данные сохранены." }
-            } else {
-                BrowserStorageScope.useGuest()
-            }
-        }.onFailure { fatalError = it.message ?: "Не удалось запустить Fury Book" }
+        runCatching { resources = loadBundledFcpTexts() }
+            .onFailure { fatalError = it.message ?: "Не удалось загрузить правила Fury Book" }
+        if (fatalError == null) {
+            runCatching { cloud.restoreSession() }
+                .onSuccess { restored ->
+                    session = restored
+                    if (restored != null) {
+                        clearBrowserSessionData()
+                        runCatching { hydrateRemote() }
+                            .onSuccess { connectionError = null }
+                            .onFailure { connectionError = cloudErrorMessage(it) }
+                    }
+                }
+                .onFailure { connectionError = cloudErrorMessage(it) }
+        }
         booting = false
     }
 
     when {
         fatalError != null -> FatalScreen(fatalError!!)
         booting || resources == null -> LoadingScreen("Загружаем Fury Book")
-        session == null && !localMode -> LoginScreen(
+        session == null -> LoginScreen(
             cloud = cloud,
-            onLocal = {
-                BrowserStorageScope.useGuest()
-                localMode = true
-            },
             onAuthenticated = { authenticated ->
-                val guestState = captureBrowserStoredState()
                 scope.launch {
-                    runCatching {
-                        BrowserStorageScope.useUser(authenticated.userId)
-                        session = authenticated
-                        runCatching { hydrateRemote() }
-                            .onSuccess { cloudHadState = it }
-                            .onFailure { syncWarning = "Вход выполнен, но облачная синхронизация пока недоступна." }
-                        if (!cloudHadState && !BrowserCharacterStore().hasStoredState()) {
-                            restoreBrowserStoredState(guestState)
+                    clearBrowserSessionData()
+                    session = authenticated
+                    connectionError = null
+                    runCatching { hydrateRemote() }
+                        .onSuccess { appEpoch++ }
+                        .onFailure { connectionError = cloudErrorMessage(it) }
+                }
+            },
+        )
+        connectionError != null -> CloudUnavailableScreen(
+            message = connectionError!!,
+            onRetry = {
+                scope.launch {
+                    runCatching { hydrateRemote() }
+                        .onSuccess {
+                            connectionError = null
+                            appEpoch++
                         }
-                    }.onFailure {
-                        BrowserStorageScope.useGuest()
-                        session = null
-                    }
+                        .onFailure { connectionError = cloudErrorMessage(it) }
+                }
+            },
+            onSignOut = {
+                scope.launch {
+                    cloud.signOut()
+                    clearBrowserSessionData()
+                    session = null
+                    connectionError = null
+                    appEpoch++
                 }
             },
         )
         else -> {
-            val activeSession = session
-            key(activeSession?.userId ?: "local") {
-                val state = remember(resources, activeSession?.userId) {
-                    DesktopAppState(resources!!, if (activeSession == null) null else cloud)
+            val activeSession = session!!
+            key(activeSession.userId, appEpoch) {
+                val state = remember(resources, activeSession.userId, appEpoch) {
+                    DesktopAppState(resources!!, cloud)
                 }
-                if (activeSession != null) {
-                    LaunchedEffect(state, cloudHadState) {
-                        if (!cloudHadState) {
-                            cloud.push(
-                                snapshot = BrowserCharacterStore().raw(),
-                                extras = BrowserCharacterExtrasStore().raw(),
-                                chiEnabled = BrowserPackState.chiEnabled,
-                            )
-                            cloudHadState = true
-                        }
-                    }
+
+                LaunchedEffect(state) {
+                    cloud.schedule(
+                        snapshot = BrowserCharacterStore().raw(),
+                        extras = BrowserCharacterExtrasStore().raw(),
+                        chiEnabled = BrowserPackState.chiEnabled,
+                    )
                 }
-                syncWarning?.let { warning ->
-                    LaunchedEffect(warning) {
-                        kotlinx.coroutines.delay(6000)
-                        if (syncWarning == warning) syncWarning = null
-                    }
-                }
+
                 FuryWebApp(
                     state = state,
-                    accountEmail = activeSession?.email ?: "Локальный профиль",
+                    accountName = cloud.profileNickname.ifBlank { activeSession.email.substringBefore('@') },
+                    accountEmail = activeSession.email,
                     onSignOut = {
-                        if (activeSession == null) {
-                            localMode = false
-                        } else {
-                            scope.launch {
-                                cloud.signOut()
-                                BrowserStorageScope.useGuest()
-                                session = null
-                                cloudHadState = false
-                            }
+                        scope.launch {
+                            cloud.signOut()
+                            clearBrowserSessionData()
+                            session = null
+                            connectionError = null
+                            appEpoch++
                         }
                     },
                 )
+
+                cloud.conflict?.let { conflict ->
+                    ConflictDialog(
+                        conflict = conflict,
+                        onUseCloud = {
+                            scope.launch {
+                                cloud.clearConflictForReload()
+                                runCatching { hydrateRemote() }
+                                    .onSuccess { appEpoch++ }
+                                    .onFailure { connectionError = cloudErrorMessage(it) }
+                            }
+                        },
+                        onKeepMine = {
+                            scope.launch {
+                                cloud.forceConflict()
+                            }
+                        },
+                    )
+                }
+
+                if (cloud.status.phase == CloudSyncPhase.ERROR) {
+                    SyncErrorDialog(
+                        message = cloud.status.message ?: "Fury Cloud недоступен",
+                        onRetry = { scope.launch { cloud.retryLast() } },
+                        onReloadCloud = {
+                            scope.launch {
+                                runCatching { hydrateRemote() }
+                                    .onSuccess { appEpoch++ }
+                                    .onFailure { connectionError = cloudErrorMessage(it) }
+                            }
+                        },
+                    )
+                }
             }
         }
     }
@@ -184,24 +221,41 @@ private fun FatalScreen(message: String) {
     }
 }
 
+private enum class AuthMode { LOGIN, REGISTER }
+
 @Composable
 private fun LoginScreen(
     cloud: WebCloudSync,
-    onLocal: () -> Unit,
     onAuthenticated: (WebAuthSession) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    var mode by remember { mutableStateOf(AuthMode.LOGIN) }
+    var nickname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf<String?>(null) }
+    var statusIsError by remember { mutableStateOf(false) }
+
+    fun validate(): String? {
+        val cleanEmail = email.trim()
+        if (cleanEmail.isBlank()) return "Введите email."
+        if (!Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$").matches(cleanEmail)) return "Введите корректный email."
+        if (password.isBlank()) return "Введите пароль."
+        if (mode == AuthMode.REGISTER) {
+            val cleanNickname = nickname.trim()
+            if (cleanNickname.length !in 2..32) return "Никнейм должен содержать от 2 до 32 символов."
+            if (password.length < 8) return "Пароль должен содержать минимум 8 символов."
+        }
+        return null
+    }
 
     Box(
         Modifier.fillMaxSize().background(DesktopBackground).padding(20.dp),
         contentAlignment = Alignment.Center,
     ) {
         Surface(
-            modifier = Modifier.widthIn(max = 430.dp).fillMaxWidth(),
+            modifier = Modifier.widthIn(max = 450.dp).fillMaxWidth(),
             shape = RoundedCornerShape(20.dp),
             color = DesktopSurface,
             border = BorderStroke(1.dp, DesktopBorder),
@@ -209,73 +263,214 @@ private fun LoginScreen(
         ) {
             Column(
                 Modifier.padding(horizontal = 28.dp, vertical = 30.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text("Fury Book", color = DesktopAccent, fontSize = 34.sp, fontWeight = FontWeight.Bold)
                 Text("DUBL 3.69 · Web", color = DesktopMuted)
-                Spacer(Modifier.height(4.dp))
+                Text(
+                    if (mode == AuthMode.LOGIN) "Войдите в Fury Account. Веб-версия работает только с облаком."
+                    else "Создайте Fury Account. После регистрации подтвердите email из письма.",
+                    color = DesktopMuted,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(2.dp))
+
+                if (mode == AuthMode.REGISTER) {
+                    OutlinedTextField(
+                        value = nickname,
+                        onValueChange = { nickname = it.take(32); status = null },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        label = { Text("Никнейм") },
+                        supportingText = { Text("От 2 до 32 символов. Будет отображаться в Fury Book.") },
+                    )
+                }
+
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = { email = it; status = null },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     label = { Text("Email") },
+                    supportingText = {
+                        if (mode == AuthMode.REGISTER) Text("На этот адрес придёт письмо для подтверждения аккаунта.")
+                    },
                 )
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { password = it; status = null },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     label = { Text("Пароль") },
+                    supportingText = {
+                        if (mode == AuthMode.REGISTER) Text("Минимум 8 символов.")
+                    },
                 )
-                status?.let { Text(it, color = DesktopMuted, style = MaterialTheme.typography.bodySmall) }
+
+                status?.let {
+                    Text(
+                        it,
+                        color = if (statusIsError) MaterialTheme.colorScheme.error else DesktopMuted,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !busy && email.isNotBlank() && password.length >= 6,
+                    enabled = !busy,
                     onClick = {
+                        val validation = validate()
+                        if (validation != null) {
+                            status = validation
+                            statusIsError = true
+                            return@Button
+                        }
                         busy = true
                         status = null
+                        statusIsError = false
                         scope.launch {
-                            cloud.signIn(email, password)
-                                .onSuccess(onAuthenticated)
-                                .onFailure { status = it.message ?: "Не удалось войти" }
+                            if (mode == AuthMode.LOGIN) {
+                                cloud.signIn(email, password)
+                                    .onSuccess(onAuthenticated)
+                                    .onFailure {
+                                        status = it.message ?: "Неверный email или пароль."
+                                        statusIsError = true
+                                    }
+                            } else {
+                                cloud.signUp(email, password, nickname)
+                                    .onSuccess { created ->
+                                        if (created != null) {
+                                            onAuthenticated(created)
+                                        } else {
+                                            status = "Аккаунт создан. Мы отправили письмо на ${email.trim()}. Подтвердите email, затем вернитесь сюда и войдите."
+                                            statusIsError = false
+                                            mode = AuthMode.LOGIN
+                                        }
+                                    }
+                                    .onFailure {
+                                        status = it.message ?: "Не удалось создать аккаунт."
+                                        statusIsError = true
+                                    }
+                            }
                             busy = false
                         }
                     },
-                ) { Text(if (busy) "Подождите…" else "Войти") }
+                ) {
+                    Text(
+                        when {
+                            busy -> "Подождите…"
+                            mode == AuthMode.LOGIN -> "Войти"
+                            else -> "Создать аккаунт"
+                        },
+                    )
+                }
+
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !busy && email.isNotBlank() && password.length >= 6,
-                    onClick = {
-                        busy = true
-                        status = null
-                        scope.launch {
-                            cloud.signUp(email, password)
-                                .onSuccess { created ->
-                                    if (created != null) onAuthenticated(created)
-                                    else status = "Аккаунт создан. Подтвердите email и затем войдите."
-                                }
-                                .onFailure { status = it.message ?: "Не удалось создать аккаунт" }
-                            busy = false
-                        }
-                    },
-                ) { Text("Создать аккаунт") }
-                TextButton(
-                    modifier = Modifier.fillMaxWidth(),
                     enabled = !busy,
-                    onClick = onLocal,
-                ) { Text("Продолжить локально") }
-                Text(
-                    "Без аккаунта данные остаются в этом браузере. После входа они синхронизируются с Fury Cloud.",
-                    color = DesktopMuted,
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                )
+                    onClick = {
+                        mode = if (mode == AuthMode.LOGIN) AuthMode.REGISTER else AuthMode.LOGIN
+                        status = null
+                        statusIsError = false
+                    },
+                ) {
+                    Text(if (mode == AuthMode.LOGIN) "Нет аккаунта? Создать" else "Уже есть аккаунт? Войти")
+                }
+
+                if (mode == AuthMode.REGISTER) {
+                    Text(
+                        "1. Введите никнейм, email и пароль.\n2. Нажмите «Создать аккаунт».\n3. Откройте письмо и подтвердите email.\n4. Вернитесь сюда и войдите.",
+                        color = DesktopMuted,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
         }
     }
 }
+
+@Composable
+private fun CloudUnavailableScreen(
+    message: String,
+    onRetry: () -> Unit,
+    onSignOut: () -> Unit,
+) {
+    Box(Modifier.fillMaxSize().background(DesktopBackground).padding(24.dp), contentAlignment = Alignment.Center) {
+        Surface(
+            modifier = Modifier.widthIn(max = 520.dp).fillMaxWidth(),
+            color = DesktopSurface,
+            shape = RoundedCornerShape(18.dp),
+            border = BorderStroke(1.dp, DesktopBorder),
+        ) {
+            Column(Modifier.padding(26.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Text("Нет связи с Fury Cloud", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text(message, color = DesktopMuted)
+                Text("Веб-версия не работает офлайн, поэтому данные персонажей здесь не редактируются без соединения.", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
+                Button(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text("Повторить") }
+                TextButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) { Text("Выйти из аккаунта") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConflictDialog(
+    conflict: CloudConflict,
+    onUseCloud: () -> Unit,
+    onKeepMine: () -> Unit,
+) {
+    FuryDialog(
+        onDismissRequest = {},
+        title = { Text("Персонаж изменён на другом устройстве") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(conflict.characterName, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "В облаке уже есть более новая версия #${conflict.serverRevision}. " +
+                        "Источник: ${conflict.serverUpdatedBy ?: "другое устройство"}.",
+                    color = DesktopMuted,
+                )
+                conflict.serverUpdatedAt?.let { Text("Изменено: ${formatWebTime(it)}", color = DesktopMuted, style = MaterialTheme.typography.bodySmall) }
+                Text(
+                    "Fury Book не стал ничего перезаписывать автоматически. Можно загрузить облачную версию или явно заменить её текущей. Перед заменой облачная версия остаётся в истории синхронизации.",
+                    color = DesktopMuted,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        },
+        confirmButton = { Button(onClick = onUseCloud) { Text("Загрузить облачную") } },
+        dismissButton = {
+            OutlinedButton(onClick = onKeepMine) {
+                Text(if (conflict.deleteRequested) "Удалить всё равно" else "Сохранить мою версию")
+            }
+        },
+    )
+}
+
+@Composable
+private fun SyncErrorDialog(
+    message: String,
+    onRetry: () -> Unit,
+    onReloadCloud: () -> Unit,
+) {
+    FuryDialog(
+        onDismissRequest = {},
+        title = { Text("Синхронизация остановлена") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(message, color = DesktopMuted)
+                Text("Редактирование заблокировано, пока Fury Book не подтвердит запись в облако.", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
+            }
+        },
+        confirmButton = { Button(onClick = onRetry) { Text("Повторить синхронизацию") } },
+        dismissButton = { TextButton(onClick = onReloadCloud) { Text("Отбросить локальные изменения") } },
+    )
+}
+
+private fun formatWebTime(value: String): String = runCatching {
+    js("new Date(value).toLocaleString()") as String
+}.getOrDefault(value)
 
 @Composable
 private fun DesktopVisualTheme(content: @Composable () -> Unit) {
@@ -315,6 +510,7 @@ private fun DesktopVisualTheme(content: @Composable () -> Unit) {
 @Composable
 private fun FuryWebApp(
     state: DesktopAppState,
+    accountName: String,
     accountEmail: String,
     onSignOut: () -> Unit,
 ) {
@@ -329,7 +525,7 @@ private fun FuryWebApp(
             ) { padding ->
                 Column(Modifier.fillMaxSize().padding(padding)) {
                     if (selected == DesktopSection.CHARACTERS) {
-                        MobileAccountStrip(accountEmail, onSignOut)
+                        MobileAccountStrip(accountName, accountEmail, onSignOut)
                     }
                     DesktopContent(state, selected, layout, { selected = it }, Modifier.weight(1f))
                 }
@@ -340,6 +536,7 @@ private fun FuryWebApp(
                     state = state,
                     selected = selected,
                     onSelected = { selected = it },
+                    accountName = accountName,
                     accountEmail = accountEmail,
                     onSignOut = onSignOut,
                     modifier = Modifier.width(230.dp).fillMaxHeight(),
@@ -355,6 +552,7 @@ private fun DesktopRail(
     state: DesktopAppState,
     selected: DesktopSection,
     onSelected: (DesktopSection) -> Unit,
+    accountName: String,
     accountEmail: String,
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier,
@@ -411,18 +609,24 @@ private fun DesktopRail(
             { onSelected(DesktopSection.CHARACTERS) },
             Modifier.fillMaxWidth(),
         )
-        Text(accountEmail, color = DesktopMuted, style = MaterialTheme.typography.bodySmall, maxLines = 1, modifier = Modifier.padding(horizontal = 8.dp))
+        Column(Modifier.padding(horizontal = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(accountName, color = DesktopText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            Text(accountEmail, color = DesktopMuted, style = MaterialTheme.typography.bodySmall, maxLines = 1)
+        }
         TextButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) { Text("Выйти") }
     }
 }
 
 @Composable
-private fun MobileAccountStrip(accountEmail: String, onSignOut: () -> Unit) {
+private fun MobileAccountStrip(accountName: String, accountEmail: String, onSignOut: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().background(DesktopSurfaceInset).padding(horizontal = 14.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(accountEmail, color = DesktopMuted, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f), maxLines = 1)
+        Column(Modifier.weight(1f)) {
+            Text(accountName, color = DesktopText, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, maxLines = 1)
+            Text(accountEmail, color = DesktopMuted, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+        }
         TextButton(onClick = onSignOut) { Text("Выйти") }
     }
 }

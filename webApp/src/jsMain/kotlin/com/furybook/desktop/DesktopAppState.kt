@@ -20,6 +20,7 @@ import com.furybook.dubl.model.*
 import com.furybook.web.BrowserCharacterExtrasStore
 import com.furybook.web.BrowserCharacterStore
 import com.furybook.web.BrowserPackState
+import com.furybook.web.CloudSyncStatus
 import com.furybook.web.WebCatalogLoader
 import com.furybook.web.WebCloudSync
 import com.furybook.web.webUuid
@@ -65,6 +66,12 @@ class DesktopAppState(
         private set
     var extras: CharacterSheetExtras by mutableStateOf(application.activeExtras)
         private set
+
+    val webCloudSync: WebCloudSync?
+        get() = cloudSync
+
+    val cloudStatus: CloudSyncStatus?
+        get() = cloudSync?.status
 
     val activeCharacter: DublCharacter
         get() = if (chiPackEnabled) snapshot.activeCharacter else snapshot.activeCharacter.withoutRuntimeDevelopmentEffects(
