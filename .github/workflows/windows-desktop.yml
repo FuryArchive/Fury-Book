@@ -90,32 +90,3 @@ jobs:
             desktopApp/build/compose/binaries/main/msi/*.msi
           if-no-files-found: error
           retention-days: 14
- } |
-            Select-Object -First 1
-          if (-not $releaseFile) { throw 'Missing bundled runtime metadata under desktopApp/build/compose/binaries/main/app' }
-          Write-Host "Runtime metadata: $($releaseFile.FullName)"
-          $runtime = Get-Content $releaseFile.FullName -Raw
-          if ($runtime -notmatch '(^| )java\.net\.http( |$)') {
-            Write-Host $runtime
-            throw 'Bundled Desktop runtime is missing java.net.http'
-          }
-
-      - name: Verify Windows packages
-        shell: pwsh
-        run: |
-          $exe = Get-ChildItem 'desktopApp/build/compose/binaries/main/exe/*.exe' -ErrorAction Stop
-          $msi = Get-ChildItem 'desktopApp/build/compose/binaries/main/msi/*.msi' -ErrorAction Stop
-          if ($exe.Count -lt 1) { throw 'Windows EXE package was not produced.' }
-          if ($msi.Count -lt 1) { throw 'Windows MSI package was not produced.' }
-          $exe | ForEach-Object { Write-Host "EXE: $($_.FullName)" }
-          $msi | ForEach-Object { Write-Host "MSI: $($_.FullName)" }
-
-      - name: Upload Windows desktop artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: Fury-Book-Windows-Desktop
-          path: |
-            desktopApp/build/compose/binaries/main/exe/*.exe
-            desktopApp/build/compose/binaries/main/msi/*.msi
-          if-no-files-found: error
-          retention-days: 14
