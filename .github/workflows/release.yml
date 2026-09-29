@@ -222,6 +222,18 @@ jobs:
           mv "$SOURCE" "$TARGET"
           sha256sum "$TARGET" > "$TARGET.sha256"
 
+      - name: Verify Linux bundled runtime modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          RELEASE_FILE="desktopApp/build/compose/binaries/main/app/FuryBook/lib/runtime/release"
+          [[ -f "$RELEASE_FILE" ]] || { echo "Missing bundled runtime metadata: $RELEASE_FILE" >&2; exit 1; }
+          grep -Eq 'MODULES=.*(^| )java\.net\.http( |$)' "$RELEASE_FILE" || {
+            echo "Bundled Desktop runtime is missing java.net.http" >&2
+            cat "$RELEASE_FILE" >&2
+            exit 1
+          }
+
       - name: Smoke-test Linux AppImage
         shell: bash
         run: |
@@ -275,7 +287,18 @@ jobs:
       - name: Test, compile, and package Windows desktop
         shell: pwsh
         run: |
-          .\gradlew.bat --no-daemon :shared:desktopTest :desktopApp:compileKotlin :desktopApp:packageExe :desktopApp:packageMsi --stacktrace
+          .\gradlew.bat --no-daemon :shared:desktopTest :desktopApp:compileKotlin :desktopApp:createDistributable :desktopApp:packageExe :desktopApp:packageMsi --stacktrace
+
+      - name: Verify Windows bundled runtime modules
+        shell: pwsh
+        run: |
+          $releaseFile = 'desktopApp/build/compose/binaries/main/app/FuryBook/lib/runtime/release'
+          if (-not (Test-Path $releaseFile)) { throw "Missing bundled runtime metadata: $releaseFile" }
+          $runtime = Get-Content $releaseFile -Raw
+          if ($runtime -notmatch '(^| )java\.net\.http( |$)') {
+            Write-Host $runtime
+            throw 'Bundled Desktop runtime is missing java.net.http'
+          }
 
       - name: Stage Windows packages
         shell: pwsh
