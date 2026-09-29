@@ -1,0 +1,27 @@
+name: Create Fury Book 0.5.1 tag
+
+on:
+  push:
+    branches: [release/0.5.1-trigger]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create v0.5.1 tag on current main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          MAIN_SHA="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')"
+          if gh api "repos/$GH_REPO/git/ref/tags/v0.5.1" >/dev/null 2>&1; then
+            echo "v0.5.1 already exists"
+            exit 0
+          fi
+          gh api --method POST "repos/$GH_REPO/git/refs"             -f ref='refs/tags/v0.5.1'             -f sha="$MAIN_SHA"
+          echo "Created v0.5.1 at $MAIN_SHA"
