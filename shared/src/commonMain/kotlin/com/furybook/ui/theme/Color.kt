@@ -2,23 +2,23 @@ package com.furybook.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Canonical DUBL graphite/crimson palette shared by Android and desktop.
-val DublBackground = Color(0xFF0E1014)
-val DublSurface = Color(0xFF191C23)
-val DublSurfaceInset = Color(0xFF13161B)
-val DublSurfaceRaised = Color(0xFF1D2028)
-val DublBorder = Color(0xFF30343E)
-val DublText = Color(0xFFEEE9E1)
-val DublMuted = Color(0xFFA1A5B0)
+// Canonical Fury Book charcoal/crimson palette shared across Android and desktop.
+val DublBackground = Color(0xFF0B0D10)
+val DublSurface = Color(0xFF14161A)
+val DublSurfaceInset = Color(0xFF0F1114)
+val DublSurfaceRaised = Color(0xFF181B20)
+val DublBorder = Color(0xFF2A2E34)
+val DublText = Color(0xFFE6E1D8)
+val DublMuted = Color(0xFF9A958D)
 
-val DublAccent = Color(0xFFA83948)
-val DublAccentStrong = Color(0xFFBB5863)
-val DublAccentSoft = Color(0xFF39252E)
-val DublFocus = Color(0xFFD4868F)
-val DublGold = Color(0xFFD0AE7E)
+val DublAccent = Color(0xFFD34F64)
+val DublAccentStrong = Color(0xFFDF6477)
+val DublAccentSoft = Color(0xFF3A1E24)
+val DublFocus = Color(0xFFD98290)
+val DublGold = Color(0xFFD0A24A)
 
-val DublHealth = Color(0xFFB65866)
-val DublStamina = Color(0xFFB49B68)
-val DublMana = Color(0xFF8095C7)
-val DublCustomResource = Color(0xFF71A492)
-val DublDanger = Color(0xFFD77B86)
+val DublHealth = Color(0xFFD94A5C)
+val DublStamina = Color(0xFFD6A54B)
+val DublMana = Color(0xFF6F98D6)
+val DublCustomResource = Color(0xFF65B4A4)
+val DublDanger = Color(0xFFD95C67)
