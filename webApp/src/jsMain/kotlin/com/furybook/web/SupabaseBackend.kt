@@ -50,6 +50,9 @@ class WebCloudSync {
         val credentials = js("({})")
         credentials.email = email.trim()
         credentials.password = password
+        val options = js("({})")
+        options.emailRedirectTo = window.location.origin + window.location.pathname
+        credentials.options = options
         val response = (client.auth.signUp(credentials) as Promise<dynamic>).await()
         response.error?.let { authError -> kotlin.error(authError.message as? String ?: "Не удалось зарегистрироваться") }
         val session = response.data?.session
@@ -69,15 +72,31 @@ class WebCloudSync {
         pendingTimer = null
     }
 
+    private suspend fun currentAccessToken(): String {
+        val response = (client.auth.getSession() as Promise<dynamic>).await()
+        response.error?.let { authError -> kotlin.error(authError.message as? String ?: "Auth session error") }
+        return response.data?.session?.access_token as? String ?: error("Auth session is missing")
+    }
+
     suspend fun pull(): CloudBootstrap? {
         val id = userId ?: return null
-        val query = client.from("user_state")
-            .select("snapshot,extras,pack_state,revision")
-            .eq("user_id", id)
-            .maybeSingle()
-        val response = (query as Promise<dynamic>).await()
-        response.error?.let { syncError -> kotlin.error(syncError.message as? String ?: "Cloud sync error") }
-        val data = response.data ?: return null
+        val token = currentAccessToken()
+        val encodedId = js("encodeURIComponent")(id) as String
+        val url = "$SUPABASE_URL/rest/v1/user_state?user_id=eq.$encodedId&select=snapshot,extras,pack_state,revision"
+        val init = js("({})")
+        init.method = "GET"
+        init.headers = js("({})")
+        init.headers.apikey = SUPABASE_PUBLISHABLE_KEY
+        init.headers.Authorization = "Bearer $token"
+        init.headers.Accept = "application/json"
+        val response = (window.asDynamic().fetch(url, init) as Promise<dynamic>).await()
+        val body = (response.text() as Promise<String>).await()
+        if (!(response.ok as Boolean)) {
+            error("Cloud sync failed (${response.status}): $body")
+        }
+        val rows = js("JSON.parse")(body)
+        if ((rows.length as Int) == 0) return null
+        val data = rows[0]
         val pack = data.pack_state
         return CloudBootstrap(
             snapshot = data.snapshot as String,
@@ -91,12 +110,13 @@ class WebCloudSync {
         pendingTimer?.let(window::clearTimeout)
         pendingTimer = window.setTimeout({
             pendingTimer = null
-            scope.launch { push(snapshot, extras, chiEnabled) }
+            scope.launch { runCatching { push(snapshot, extras, chiEnabled) } }
         }, 800)
     }
 
     suspend fun push(snapshot: String, extras: String, chiEnabled: Boolean) {
         val id = userId ?: return
+        val token = currentAccessToken()
         val pack = js("({})")
         pack.chiEnabled = chiEnabled
         val row = js("({})")
@@ -105,7 +125,20 @@ class WebCloudSync {
         row.extras = extras
         row.pack_state = pack
         row.updated_at = js("new Date().toISOString()")
-        val response = (client.from("user_state").upsert(row) as Promise<dynamic>).await()
-        response.error?.let { syncError -> kotlin.error(syncError.message as? String ?: "Cloud sync error") }
+
+        val url = "$SUPABASE_URL/rest/v1/user_state?on_conflict=user_id"
+        val init = js("({})")
+        init.method = "POST"
+        init.headers = js("({})")
+        init.headers.apikey = SUPABASE_PUBLISHABLE_KEY
+        init.headers.Authorization = "Bearer $token"
+        init.headers["Content-Type"] = "application/json"
+        init.headers.Prefer = "resolution=merge-duplicates,return=minimal"
+        init.body = js("JSON.stringify")(row)
+        val response = (window.asDynamic().fetch(url, init) as Promise<dynamic>).await()
+        if (!(response.ok as Boolean)) {
+            val body = (response.text() as Promise<String>).await()
+            error("Cloud sync failed (${response.status}): $body")
+        }
     }
 }
