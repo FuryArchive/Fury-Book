@@ -10,69 +10,45 @@ import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.CharacterSheetResourceId
 import com.furybook.dubl.model.ConditionLocalDataCodec
 import com.furybook.dubl.model.SheetGroupingRules
-import kotlinx.browser.localStorage
 
-private const val SNAPSHOT_KEY = "furybook.web.snapshot.v1"
-private const val EXTRAS_KEY = "furybook.web.extras.v1"
-private const val CHI_KEY = "furybook.web.pack.chi"
+private object BrowserSessionMemory {
+    var snapshotRaw: String? = null
+    var extrasRaw: String = "{\"version\":1,\"characters\":{}}"
+    var chiEnabled: Boolean = false
 
-object BrowserStorageScope {
-    var userId: String? = null
-        private set
-
-    fun useGuest() {
-        userId = null
+    fun clear() {
+        snapshotRaw = null
+        extrasRaw = "{\"version\":1,\"characters\":{}}"
+        chiEnabled = false
     }
-
-    fun useUser(id: String) {
-        userId = id
-    }
-
-    fun key(base: String): String = userId?.let { "$base.user.$it" } ?: base
 }
 
-data class BrowserStoredState(
-    val snapshot: String,
-    val extras: String,
-    val chiEnabled: Boolean,
-)
-
-fun captureBrowserStoredState(): BrowserStoredState = BrowserStoredState(
-    snapshot = BrowserCharacterStore().raw(),
-    extras = BrowserCharacterExtrasStore().raw(),
-    chiEnabled = BrowserPackState.chiEnabled,
-)
-
-fun restoreBrowserStoredState(state: BrowserStoredState) {
-    BrowserCharacterStore().replaceRaw(state.snapshot)
-    BrowserCharacterExtrasStore().replaceRaw(state.extras)
-    BrowserPackState.chiEnabled = state.chiEnabled
-}
+fun clearBrowserSessionData() = BrowserSessionMemory.clear()
 
 fun webUuid(): String = js("crypto.randomUUID()") as String
 
 class BrowserCharacterStore : CharacterStore {
-    override fun load() = localStorage.getItem(BrowserStorageScope.key(SNAPSHOT_KEY))
+    override fun load() = BrowserSessionMemory.snapshotRaw
         ?.let { raw -> runCatching { SnapshotCodec.decode(raw, ::webUuid) }.getOrNull() }
         ?: SnapshotCodec.fresh(::webUuid)
 
     override fun save(snapshot: com.furybook.dubl.model.AppSnapshot) {
-        localStorage.setItem(BrowserStorageScope.key(SNAPSHOT_KEY), SnapshotCodec.encode(snapshot))
+        BrowserSessionMemory.snapshotRaw = SnapshotCodec.encode(snapshot)
     }
 
-    fun hasStoredState(): Boolean = localStorage.getItem(BrowserStorageScope.key(SNAPSHOT_KEY)) != null
+    fun hasStoredState(): Boolean = BrowserSessionMemory.snapshotRaw != null
 
-    fun raw(): String = localStorage.getItem(BrowserStorageScope.key(SNAPSHOT_KEY))
-        ?: SnapshotCodec.encode(SnapshotCodec.fresh(::webUuid)).also { localStorage.setItem(BrowserStorageScope.key(SNAPSHOT_KEY), it) }
+    fun raw(): String = BrowserSessionMemory.snapshotRaw
+        ?: SnapshotCodec.encode(SnapshotCodec.fresh(::webUuid)).also { BrowserSessionMemory.snapshotRaw = it }
 
     fun replaceRaw(raw: String) {
         SnapshotCodec.decode(raw, ::webUuid)
-        localStorage.setItem(BrowserStorageScope.key(SNAPSHOT_KEY), raw)
+        BrowserSessionMemory.snapshotRaw = raw
     }
 }
 
 class BrowserCharacterExtrasStore : CharacterExtrasStore {
-    private var state: MutableMap<String, CharacterSheetExtras> = decode(localStorage.getItem(BrowserStorageScope.key(EXTRAS_KEY)).orEmpty()).toMutableMap()
+    private var state: MutableMap<String, CharacterSheetExtras> = decode(BrowserSessionMemory.extrasRaw).toMutableMap()
 
     override fun load(characterId: String): CharacterSheetExtras = state[characterId] ?: CharacterSheetExtras()
 
@@ -89,11 +65,11 @@ class BrowserCharacterExtrasStore : CharacterExtrasStore {
 
     fun replaceRaw(raw: String) {
         state = decode(raw).toMutableMap()
-        localStorage.setItem(BrowserStorageScope.key(EXTRAS_KEY), encode(state))
+        BrowserSessionMemory.extrasRaw = encode(state)
     }
 
     private fun persist() {
-        localStorage.setItem(BrowserStorageScope.key(EXTRAS_KEY), encode(state))
+        BrowserSessionMemory.extrasRaw = encode(state)
     }
 
     private fun encode(state: Map<String, CharacterSheetExtras>): String = buildString {
@@ -201,13 +177,23 @@ class BrowserCharacterExtrasStore : CharacterExtrasStore {
     private fun stringArray(values: Iterable<String>): String = values.joinToString(prefix = "[", postfix = "]", separator = ",", transform = ::quoted)
     private fun quoted(value: String): String = buildString {
         append('"')
-        value.forEach { c -> when (c) { '\\' -> append("\\\\"); '"' -> append("\\\""); '\n' -> append("\\n"); '\r' -> append("\\r"); '\t' -> append("\\t"); else -> append(c) } }
+        value.forEach { c ->
+            when {
+                c == '\\' -> append("\\\\")
+                c == '"' -> append("\\\"")
+                c == '\n' -> append("\\n")
+                c == '\r' -> append("\\r")
+                c == '\t' -> append("\\t")
+                c.code < 0x20 -> append("\\u").append(c.code.toString(16).padStart(4, '0'))
+                else -> append(c)
+            }
+        }
         append('"')
     }
 }
 
 object BrowserPackState {
     var chiEnabled: Boolean
-        get() = localStorage.getItem(BrowserStorageScope.key(CHI_KEY)) == "true"
-        set(value) = localStorage.setItem(BrowserStorageScope.key(CHI_KEY), value.toString())
+        get() = BrowserSessionMemory.chiEnabled
+        set(value) { BrowserSessionMemory.chiEnabled = value }
 }
