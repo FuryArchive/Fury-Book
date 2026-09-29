@@ -18,6 +18,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -27,27 +28,33 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.furybook.android.data.AndroidContentPackState
+import com.furybook.android.cloud.AndroidCloudController
 import com.furybook.android.data.AndroidFcpInstaller
 import com.furybook.content.FcpComposition
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.dubl.application.CharacterTransferImportResult
 import com.furybook.dubl.data.CharacterTransferRejectReason
 import com.furybook.android.state.CharacterController
+import com.furybook.cloud.NativeCloudStatus
 import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublScreenHeader
 import java.nio.charset.StandardCharsets
+import kotlinx.coroutines.launch
 
 private const val TRANSFER_EXTENSION = ".dubl"
 
 @Composable
 fun CharactersScreen(
     controller: CharacterController,
+    cloudController: AndroidCloudController,
     contentPackComposition: FcpComposition,
     onContentPackActiveChange: (String, Boolean) -> Unit,
 ) {
@@ -55,6 +62,10 @@ fun CharactersScreen(
     var transferStatus by remember { mutableStateOf<String?>(null) }
     var contentPackStatus by remember { mutableStateOf<String?>(null) }
     var installedPackRevision by remember { mutableIntStateOf(0) }
+    var cloudEmail by remember { mutableStateOf("") }
+    var cloudPassword by remember { mutableStateOf("") }
+    var cloudLoginMessage by remember { mutableStateOf<String?>(null) }
+    val cloudScope = rememberCoroutineScope()
     val snapshot = controller.snapshot
     val context = LocalContext.current
     installedPackRevision
@@ -141,6 +152,103 @@ fun CharactersScreen(
         }
 
         DublCard(Modifier.fillMaxWidth()) {
+            Text("Fury Cloud", style = MaterialTheme.typography.titleMedium)
+            val session = cloudController.session
+            if (session == null) {
+                Text(
+                    "Локальные персонажи останутся на устройстве. При первом входе они безопасно объединятся с облаком — существующие данные не перезаписываются.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                OutlinedTextField(
+                    value = cloudEmail,
+                    onValueChange = { cloudEmail = it; cloudLoginMessage = null },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Email") },
+                )
+                OutlinedTextField(
+                    value = cloudPassword,
+                    onValueChange = { cloudPassword = it; cloudLoginMessage = null },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    label = { Text("Пароль") },
+                )
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        val email = cloudEmail.trim()
+                        when {
+                            email.isBlank() -> cloudLoginMessage = "Введите email."
+                            cloudPassword.isBlank() -> cloudLoginMessage = "Введите пароль."
+                            else -> cloudScope.launch {
+                                cloudLoginMessage = null
+                                cloudController.signIn(email, cloudPassword)
+                                    .onSuccess {
+                                        cloudPassword = ""
+                                        cloudLoginMessage = "Вход выполнен. Локальные и облачные персонажи объединены."
+                                    }
+                                    .onFailure { cloudLoginMessage = it.message ?: "Не удалось войти." }
+                            }
+                        }
+                    },
+                ) { Text("Войти и синхронизировать") }
+                Text(
+                    "Аккаунт можно создать в веб-версии Fury Book.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            } else {
+                Text(
+                    cloudController.nickname.ifBlank { session.email.substringBefore('@') },
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(session.email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    cloudStatusText(cloudController.status),
+                    color = cloudStatusColor(cloudController.status),
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                cloudController.statusMessage?.let { message ->
+                    Text(message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                cloudController.lastSyncedAt?.let { value ->
+                    Text(
+                        "Последняя синхронизация: $value",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                cloudController.lastSyncedBy?.let { value ->
+                    Text(
+                        value,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = cloudController::requestSync,
+                    ) { Text("Синхронизировать") }
+                    TextButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            cloudScope.launch {
+                                cloudController.signOut()
+                                cloudLoginMessage = "Аккаунт отключён. Локальные персонажи сохранены."
+                            }
+                        },
+                    ) { Text("Выйти") }
+                }
+            }
+            cloudLoginMessage?.let { message ->
+                Text(message, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+
+        DublCard(Modifier.fillMaxWidth()) {
             Text("Fury Content Packs", style = MaterialTheme.typography.titleMedium)
             Text(
                 "Активные FCP определяют правила, каталоги и подключаемые части интерфейса.",
@@ -221,6 +329,30 @@ fun CharactersScreen(
         }
     }
 
+    cloudController.conflicts.firstOrNull()?.let { conflict ->
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("Персонаж изменён на другом устройстве") },
+            text = {
+                Text(
+                    "Fury Book ничего не перезаписал. Облачная версия: revision \${conflict.serverRevision}" +
+                        (conflict.updatedBy?.let { " · $it" } ?: "") +
+                        ". Выберите, какую версию оставить.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    cloudScope.launch { cloudController.useCloudVersion() }
+                }) { Text("Загрузить облачную") }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    cloudScope.launch { cloudController.keepLocalVersion(conflict) }
+                }) { Text(if (conflict.deleteRequested) "Удалить всё равно" else "Сохранить локальную") }
+            },
+        )
+    }
+
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
@@ -283,3 +415,21 @@ private fun safeTransferFileName(name: String): String = name
     .ifBlank { "character" }
     .replace(Regex("[\\\\/:*?\"<>|]+"), "_")
     .take(80)
+
+
+@Composable
+private fun cloudStatusColor(status: NativeCloudStatus) = when (status) {
+    NativeCloudStatus.SYNCED -> MaterialTheme.colorScheme.primary
+    NativeCloudStatus.CONFLICT, NativeCloudStatus.ERROR -> MaterialTheme.colorScheme.error
+    else -> MaterialTheme.colorScheme.onSurfaceVariant
+}
+
+private fun cloudStatusText(status: NativeCloudStatus): String = when (status) {
+    NativeCloudStatus.SIGNED_OUT -> "Не подключено"
+    NativeCloudStatus.CONNECTING -> "Подключение…"
+    NativeCloudStatus.SYNCING -> "Синхронизация…"
+    NativeCloudStatus.SYNCED -> "Синхронизировано"
+    NativeCloudStatus.OFFLINE -> "Офлайн · изменения в очереди"
+    NativeCloudStatus.CONFLICT -> "Конфликт изменений"
+    NativeCloudStatus.ERROR -> "Ошибка синхронизации"
+}
