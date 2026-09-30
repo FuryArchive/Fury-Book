@@ -53,3 +53,26 @@ fun DublCharacter.characterSheetDevelopmentSections(
     }
     return base
 }
+
+
+fun ensureMagicSchoolsInSpecialGroup(
+    saved: List<SheetGroup>,
+    defaults: List<SheetGroup>,
+    validItemIds: List<String>,
+): List<SheetGroup> {
+    if (saved.isEmpty()) return saved
+    val assigned = saved.flatMapTo(mutableSetOf()) { it.itemIds }
+    val missingMagicSchools = validItemIds.filter { isMagicSchoolSheetEntryId(it) && it !in assigned }
+    if (missingMagicSchools.isEmpty()) return saved
+
+    val defaultSpecial = defaults.firstOrNull { it.title == "Спец. навыки" }
+        ?: return saved
+    val result = saved.toMutableList()
+    val index = result.indexOfFirst { it.id == defaultSpecial.id }
+    if (index >= 0) {
+        result[index] = result[index].copy(itemIds = result[index].itemIds + missingMagicSchools)
+    } else {
+        result += defaultSpecial.copy(itemIds = missingMagicSchools)
+    }
+    return result
+}
