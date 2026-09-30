@@ -133,6 +133,18 @@ class DesktopAppState(
         return installed.manifest
     }
 
+    fun enabledContentPackIds(): Set<String> = contentPackComposition.active.mapTo(linkedSetOf()) { it.id }
+
+    fun applyCloudContentPackState(enabledPackIds: Set<String>) {
+        setChiPackActive(DublChiFcp.PACK_ID in enabledPackIds)
+        DesktopFcpInstaller.listInstalled(installedFcpRoot).forEach { manifest ->
+            val shouldEnable = manifest.id in enabledPackIds
+            if (contentPackPreferences.getBoolean(manifest.id, false) != shouldEnable) {
+                setContentPackActive(manifest.id, shouldEnable)
+            }
+        }
+    }
+
     fun setContentPackActive(packId: String, enabled: Boolean) {
         when (packId) {
             DublFcp.PACK_ID -> require(enabled) { "Required FCP ${DublFcp.PACK_ID} cannot be disabled" }
