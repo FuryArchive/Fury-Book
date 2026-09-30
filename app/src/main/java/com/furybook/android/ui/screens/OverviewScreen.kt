@@ -111,6 +111,7 @@ import com.furybook.dubl.model.CharacterEconomy
 import com.furybook.dubl.model.CharacterEconomyBreakdown
 import com.furybook.dubl.model.CharacterSheetResourceId
 import com.furybook.dubl.model.DublCharacter
+import com.furybook.dubl.model.FlurryWeaponProfile
 import com.furybook.dubl.model.CustomCondition
 import com.furybook.dubl.model.CustomResource
 import com.furybook.dubl.model.DevelopmentCatalog
@@ -141,6 +142,7 @@ import com.furybook.dubl.model.allowedSkillIds
 import com.furybook.dubl.model.compareRollToTarget
 import com.furybook.dubl.model.developmentNormalize
 import com.furybook.dubl.model.rollPreset
+import com.furybook.dubl.model.rule
 import com.furybook.dubl.model.rollCheck
 import com.furybook.dubl.model.rollFollowUp
 import com.furybook.dubl.model.resolveSkill
@@ -1633,6 +1635,7 @@ private fun QuickChecksSection(onRoll: (RollContext) -> Unit) {
     val contexts = listOf(
         RollContext.DODGE,
         RollContext.ATTACK,
+        RollContext.FLURRY,
         RollContext.PARRY,
         RollContext.FEINT,
         RollContext.GRAPPLE,
@@ -1649,7 +1652,7 @@ private fun QuickChecksSection(onRoll: (RollContext) -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text("Боевые проверки", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Боевые действия", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
                     if (expanded) "Без боевого состояния; цель/СЛ вводится вручную." else "${contexts.size} быстрых действий · свернуто",
                     style = MaterialTheme.typography.bodySmall,
@@ -1695,11 +1698,25 @@ private fun ContextRollSheet(
     var selectedAttribute by remember(context, selectedSkillId, character.id) {
         mutableStateOf(attributesFor(selectedSkillId).firstOrNull())
     }
-    val preset = character.rollPreset(context, selectedSkillId, selectedAttribute)
+    var flurryProfile by remember(context, character.id) { mutableStateOf(FlurryWeaponProfile.LIGHT) }
+    var shortFlurry by remember(context, character.id) { mutableStateOf(false) }
+    val basePreset = character.rollPreset(context, selectedSkillId, selectedAttribute)
+    val flurryRule = if (context == RollContext.FLURRY) flurryProfile.rule(shortFlurry) else null
+    val preset = if (flurryRule != null && basePreset.bonus != null) {
+        val label = if (shortFlurry) "Короткий шквал" else "Шквал атак"
+        basePreset.copy(
+            bonus = basePreset.bonus + flurryRule.attackBonus,
+            contributions = basePreset.contributions + RollContribution(label, flurryRule.attackBonus),
+            formulaText = "${basePreset.formulaText} + $label",
+        )
+    } else {
+        basePreset
+    }
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
-    val reminders = remember(character, context, developmentCatalog, effectCatalog, alreadyAppliedLabels) {
+    val reminderContext = if (context == RollContext.FLURRY) RollContext.ATTACK else context
+    val reminders = remember(character, reminderContext, developmentCatalog, effectCatalog, alreadyAppliedLabels) {
         SkillEffectRules(character, developmentCatalog, effectCatalog)
-            .forContext(context)
+            .forContext(reminderContext)
             .filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels }
     }
     CheckRollSheet(
@@ -1719,6 +1736,10 @@ private fun ContextRollSheet(
         onAttributeSelected = { selectedAttribute = it },
         automaticContributions = preset.contributions,
         effectReminders = reminders,
+        flurryProfile = flurryProfile.takeIf { context == RollContext.FLURRY },
+        shortFlurry = shortFlurry,
+        onFlurryProfile = { flurryProfile = it },
+        onShortFlurry = { shortFlurry = it },
         onDismiss = onDismiss,
     )
 }
@@ -3417,6 +3438,10 @@ private fun CheckRollSheet(
     effectOptions: List<SkillRollEffectOption> = emptyList(),
     effectReminders: List<SkillEffectDefinition> = emptyList(),
     onAttributeSelected: ((AttributeId) -> Unit)? = null,
+    flurryProfile: FlurryWeaponProfile? = null,
+    shortFlurry: Boolean = false,
+    onFlurryProfile: ((FlurryWeaponProfile) -> Unit)? = null,
+    onShortFlurry: ((Boolean) -> Unit)? = null,
     onDismiss: () -> Unit,
 ) {
     var advantageCount by remember(rememberKey) { mutableStateOf(0) }
@@ -3590,6 +3615,57 @@ private fun CheckRollSheet(
                         )
                     }
                 }
+            }
+
+            if (flurryProfile != null && onFlurryProfile != null && onShortFlurry != null) {
+                val rule = flurryProfile.rule(shortFlurry)
+                Spacer(Modifier.height(12.dp))
+                Text("Параметры шквала", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    items(FlurryWeaponProfile.entries, key = { it.name }) { profile ->
+                        FilterChip(
+                            selected = flurryProfile == profile,
+                            onClick = {
+                                onFlurryProfile(profile)
+                                invalidateResult()
+                            },
+                            label = { Text(profile.title) },
+                        )
+                    }
+                }
+                Spacer(Modifier.height(7.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    FilterChip(
+                        selected = !shortFlurry,
+                        onClick = {
+                            onShortFlurry(false)
+                            invalidateResult()
+                        },
+                        label = { Text("Полный шквал") },
+                    )
+                    FilterChip(
+                        selected = shortFlurry,
+                        onClick = {
+                            onShortFlurry(true)
+                            invalidateResult()
+                        },
+                        label = { Text("Короткий · 2 ОД") },
+                    )
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    buildString {
+                        append("Бонус +${rule.attackBonus}. ")
+                        append("1 попадание за каждые ${rule.excessPerHit} превышения")
+                        if (rule.shortExcessPenalty > 0) append("; для короткого требуемое превышение +${rule.shortExcessPenalty}")
+                        append(". Максимум ${rule.maxHits}. ")
+                        append("Реакцию использовать нельзя.")
+                        if (rule.alternateWeaponDamage) append(" Урон двух оружий чередуется.")
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
 
             if (checkBonus != null) {
