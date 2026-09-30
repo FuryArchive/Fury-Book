@@ -306,6 +306,11 @@ fun CharactersScreen(state: DesktopAppState, cloudController: DesktopCloudContro
                         onToggle = { enabled ->
                             contentPackStatus = runCatching {
                                 state.setContentPackActive(manifest.id, enabled)
+                                val nextIds = cloudController.enabledPackIds.toMutableSet().apply {
+                                    if (enabled) add(manifest.id) else remove(manifest.id)
+                                }
+                                cloudController.setEnabledPackIds(nextIds)
+                                cloudController.requestSync()
                                 if (enabled) "${manifest.name} включён." else "${manifest.name} выключен."
                             }.getOrElse { error ->
                                 "Ошибка FCP: ${error.message ?: "неизвестная ошибка"}"
