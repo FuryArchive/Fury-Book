@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.furybook.dubl.data.SnapshotCodec
+import com.furybook.core.cloud.FuryCloudTransport
 import kotlin.js.Promise
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
@@ -66,7 +67,7 @@ data class CloudBootstrap(
 
 private data class ScheduledState(val snapshot: String, val extras: String, val chiEnabled: Boolean)
 
-class WebCloudSync {
+class WebCloudSync : FuryCloudTransport {
     private val client: dynamic = SupabaseModule.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
     private val scope = MainScope()
     private val deviceLabel = detectDeviceLabel()
@@ -150,7 +151,7 @@ class WebCloudSync {
 
     suspend fun pull(): CloudBootstrap {
         status = status.copy(phase = CloudSyncPhase.CONNECTING, message = null)
-        val data = rpc("get_web_bootstrap", js("({})"))
+        val data = rpcDynamic("get_web_bootstrap", js("({})"))
         val profile = data.profile
         val state = data.state
         val characters = data.characters
@@ -251,7 +252,7 @@ class WebCloudSync {
             payload.p_character_id = current.characterId
             payload.p_expected_revision = current.serverRevision
             payload.p_device = deviceLabel
-            val result = rpc("delete_web_character", payload)
+            val result = rpcDynamic("delete_web_character", payload)
             if ((result.status as? String) == "conflict") {
                 updateConflictFromResult(current, result)
                 error("Персонаж снова изменился на другом устройстве.")
@@ -272,7 +273,7 @@ class WebCloudSync {
         payload.p_expected_revision = current.serverRevision
         payload.p_device = deviceLabel
         payload.p_action = "force"
-        val result = rpc("save_web_character", payload)
+        val result = rpcDynamic("save_web_character", payload)
         if ((result.status as? String) == "conflict") {
             updateConflictFromResult(current, result)
             error("Персонаж снова изменился на другом устройстве.")
@@ -296,7 +297,7 @@ class WebCloudSync {
     suspend fun updateNickname(nickname: String): Result<String> = runCatching {
         val payload = js("({})")
         payload.p_nickname = nickname.trim()
-        val result = rpc("set_profile_nickname", payload)
+        val result = rpcDynamic("set_profile_nickname", payload)
         val saved = (result.nickname as? String).orEmpty().ifBlank { nickname.trim() }
         profileNickname = saved
         saved
@@ -341,7 +342,7 @@ class WebCloudSync {
             payload.p_expected_revision = characterRevisions[id] ?: 0
             payload.p_device = deviceLabel
             payload.p_action = "save"
-            val result = rpc("save_web_character", payload)
+            val result = rpcDynamic("save_web_character", payload)
             if ((result.status as? String) == "conflict") {
                 conflict = CloudConflict(
                     characterId = id,
@@ -373,7 +374,7 @@ class WebCloudSync {
             payload.p_character_id = id
             payload.p_expected_revision = characterRevisions[id] ?: 0
             payload.p_device = deviceLabel
-            val result = rpc("delete_web_character", payload)
+            val result = rpcDynamic("delete_web_character", payload)
             if ((result.status as? String) == "conflict") {
                 conflict = CloudConflict(
                     characterId = id,
@@ -404,10 +405,10 @@ class WebCloudSync {
             statePayload.p_pack_state = pack
             statePayload.p_expected_revision = stateRevision
             statePayload.p_device = deviceLabel
-            var stateResult = rpc("save_web_state", statePayload)
+            var stateResult = rpcDynamic("save_web_state", statePayload)
             if ((stateResult.status as? String) == "conflict") {
                 statePayload.p_expected_revision = numberToInt(stateResult.serverRevision)
-                stateResult = rpc("save_web_state", statePayload)
+                stateResult = rpcDynamic("save_web_state", statePayload)
             }
             if ((stateResult.status as? String) != "ok") error("Не удалось синхронизировать настройки Fury Book")
             stateRevision = numberToInt(stateResult.revision)
@@ -441,7 +442,13 @@ class WebCloudSync {
         return response.data?.session?.access_token as? String ?: error("Сессия истекла. Войдите снова.")
     }
 
-    private suspend fun rpc(name: String, payload: dynamic): dynamic {
+    override suspend fun rpc(function: String, jsonBody: String): String {
+        val payload = js("JSON.parse")(jsonBody)
+        val result = rpcDynamic(function, payload)
+        return js("JSON.stringify")(result) as String
+    }
+
+    private suspend fun rpcDynamic(name: String, payload: dynamic): dynamic {
         val token = currentAccessToken()
         val url = "$SUPABASE_URL/rest/v1/rpc/$name"
         val init = js("({})")
