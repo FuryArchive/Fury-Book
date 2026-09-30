@@ -108,6 +108,7 @@ import com.furybook.dubl.model.resolvedSkills
 import com.furybook.dubl.model.displayNotes
 import com.furybook.dubl.model.characterSheetDevelopmentSections
 import com.furybook.dubl.model.isMagicSchoolSheetEntryId
+import com.furybook.dubl.model.ensureMagicSchoolsInSpecialGroup
 import com.furybook.dubl.model.skillCalculationForRoll
 import com.furybook.desktop.DesktopAppState
 import kotlinx.coroutines.delay
@@ -1239,10 +1240,11 @@ private fun SheetDevelopmentPanel(
             .distinctBy { it.entry.id }
     }
     val developmentDefaults = defaultDevelopmentGroups(character, state)
+    val developmentIds = developmentItems.map { it.entry.id }
     val developmentGroups = SheetGroupingRules.normalize(
-        extras.developmentGroups,
+        ensureMagicSchoolsInSpecialGroup(extras.developmentGroups, developmentDefaults, developmentIds),
         developmentDefaults,
-        developmentItems.map { it.entry.id },
+        developmentIds,
         "development:ungrouped",
     )
     LaunchedEffect(developmentGroups, extras.developmentGroups) {
