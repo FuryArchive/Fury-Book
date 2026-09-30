@@ -47,11 +47,10 @@ object FlurryRules {
     }
 
     /**
-     * Number of successful attacks from the amount by which the attack roll
-     * exceeds the target. A successful base hit always produces one attack;
-     * further attacks are gained for each full excess threshold.
+     * The rulebook grants one hit for every full excess interval, up to the
+     * weapon profile's cap. Short flurry raises that interval by one.
      */
     fun hitCount(excess: Int, profile: FlurryProfile): Int =
-        if (excess < 0) 0
-        else (1 + excess / profile.excessPerHit.coerceAtLeast(1)).coerceAtMost(profile.maximumHits)
+        if (excess <= 0) 0
+        else (excess / profile.excessPerHit.coerceAtLeast(1)).coerceAtMost(profile.maximumHits)
 }
