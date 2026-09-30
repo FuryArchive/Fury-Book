@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.furybook.android.data.AndroidContentPackState
 import com.furybook.android.cloud.AndroidCloudController
-import com.furybook.android.data.CharacterRepository
+import com.furybook.android.data.CharacterRepository\nimport com.furybook.android.data.AndroidFcpInstaller
 import com.furybook.android.data.CharacterSheetExtrasRepository
 import com.furybook.android.state.CharacterController
 import com.furybook.core.cloud.ObservingCharacterStore
@@ -91,11 +91,21 @@ fun DublApp() {
     val chiDevelopmentIds = remember(appContext) { AndroidContentPackState.chiDevelopmentIds(appContext) }
 
     LaunchedEffect(cloudController) {
+        cloudController.setEnabledPackIds(
+            AndroidContentPackState.composition(appContext, chiPackEnabled).active.mapTo(linkedSetOf()) { it.id },
+        )
         cloudController.restoreAndSync()
+        val cloudIds = cloudController.enabledPackIds
+        AndroidContentPackState.setChiEnabled(appContext, DublChiFcp.PACK_ID in cloudIds)
+        AndroidFcpInstaller.listInstalled(appContext).forEach { manifest ->
+            AndroidContentPackState.setPackEnabled(appContext, manifest.id, manifest.id in cloudIds)
+        }
+        chiPackEnabled = AndroidContentPackState.isChiEnabled(appContext)
     }
 
     LaunchedEffect(chiPackEnabled) {
-        cloudController.setChiEnabled(chiPackEnabled)
+        val availableActive = AndroidContentPackState.composition(appContext, chiPackEnabled).active.mapTo(linkedSetOf()) { it.id }
+        cloudController.setEnabledPackIds(cloudController.enabledPackIds + availableActive)
     }
 
     LaunchedEffect(chiPackEnabled, controller.snapshot.activeCharacterId) {
@@ -152,10 +162,11 @@ fun DublApp() {
                         contentPackComposition = AndroidContentPackState.composition(appContext, chiPackEnabled),
                         onContentPackActiveChange = { packId, enabled ->
                             AndroidContentPackState.setPackEnabled(appContext, packId, enabled)
-                            if (packId == DublChiFcp.PACK_ID) {
-                                chiPackEnabled = enabled
-                                cloudController.setChiEnabled(enabled)
+                            if (packId == DublChiFcp.PACK_ID) chiPackEnabled = enabled
+                            val nextIds = cloudController.enabledPackIds.toMutableSet().apply {
+                                if (enabled) add(packId) else remove(packId)
                             }
+                            cloudController.setEnabledPackIds(nextIds)
                             cloudController.requestSync()
                         },
                     )
