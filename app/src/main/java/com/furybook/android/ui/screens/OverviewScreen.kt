@@ -111,6 +111,9 @@ import com.furybook.dubl.model.CharacterEconomy
 import com.furybook.dubl.model.CharacterEconomyBreakdown
 import com.furybook.dubl.model.CharacterSheetResourceId
 import com.furybook.dubl.model.DublCharacter
+import com.furybook.dubl.model.FlurryMode
+import com.furybook.dubl.model.FlurryRules
+import com.furybook.dubl.model.FlurryWeaponProfile
 import com.furybook.dubl.model.CustomCondition
 import com.furybook.dubl.model.CustomResource
 import com.furybook.dubl.model.DevelopmentCatalog
@@ -138,7 +141,9 @@ import com.furybook.dubl.model.SkillRollEffectOption
 import com.furybook.dubl.model.allowedAttributes
 import com.furybook.dubl.model.allowedSkillIds
 import com.furybook.dubl.model.compareRollToTarget
+import com.furybook.dubl.model.characterSheetDevelopmentSections
 import com.furybook.dubl.model.developmentNormalize
+import com.furybook.dubl.model.isMagicSchoolSheetEntryId
 import com.furybook.dubl.model.rollPreset
 import com.furybook.dubl.model.rollCheck
 import com.furybook.dubl.model.rollFollowUp
@@ -455,7 +460,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 invalidIds = invalidOverviewDevelopmentIds,
                 onGroupsChanged = { groups -> controller.setDevelopmentGroups(groups) },
                 onConfigure = { showDevelopmentGroupManager = true },
-                onEntryClick = { selectedDevelopmentId = it.id },
+                onEntryClick = { entry -> if (!isMagicSchoolSheetEntryId(entry.id)) selectedDevelopmentId = entry.id },
             )
         }
 
@@ -1632,6 +1637,7 @@ private fun QuickChecksSection(onRoll: (RollContext) -> Unit) {
     val contexts = listOf(
         RollContext.DODGE,
         RollContext.ATTACK,
+        RollContext.FLURRY,
         RollContext.PARRY,
         RollContext.FEINT,
         RollContext.GRAPPLE,
@@ -1694,7 +1700,18 @@ private fun ContextRollSheet(
     var selectedAttribute by remember(context, selectedSkillId, character.id) {
         mutableStateOf(attributesFor(selectedSkillId).firstOrNull())
     }
-    val preset = character.rollPreset(context, selectedSkillId, selectedAttribute)
+    var flurryMode by remember(context, character.id) { mutableStateOf(FlurryMode.FULL) }
+    var flurryWeapon by remember(context, character.id) { mutableStateOf(FlurryWeaponProfile.ONE_HANDED) }
+
+    val basePreset = character.rollPreset(context, selectedSkillId, selectedAttribute)
+    val flurryProfile = if (context == RollContext.FLURRY) FlurryRules.profile(flurryMode, flurryWeapon) else null
+    val preset = flurryProfile?.let { profile ->
+        basePreset.copy(
+            bonus = basePreset.bonus?.plus(profile.attackBonus),
+            contributions = basePreset.contributions + RollContribution("Шквал", profile.attackBonus),
+            formulaText = basePreset.formulaText + " + Шквал ${signed(profile.attackBonus)}",
+        )
+    } ?: basePreset
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
     val reminders = remember(character, context, developmentCatalog, effectCatalog, alreadyAppliedLabels) {
         SkillEffectRules(character, developmentCatalog, effectCatalog)
@@ -1706,7 +1723,7 @@ private fun ContextRollSheet(
         bonusTitle = "Бонус проверки",
         checkBonus = preset.bonus,
         formulaText = preset.formulaText,
-        rememberKey = "context-${character.id}-${context.name}-${selectedSkillId ?: "none"}",
+        rememberKey = "context-${character.id}-${context.name}-${selectedSkillId ?: "none"}-${flurryMode.name}-${flurryWeapon.name}",
         skillOptions = skillOptions,
         selectedSkillId = selectedSkillId,
         onSkillSelected = { id ->
@@ -1718,6 +1735,49 @@ private fun ContextRollSheet(
         onAttributeSelected = { selectedAttribute = it },
         automaticContributions = preset.contributions,
         effectReminders = reminders,
+        ruleContent = flurryProfile?.let { profile ->
+            {
+                Text("Вариант шквала", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    items(FlurryMode.entries) { option ->
+                        FilterChip(
+                            selected = flurryMode == option,
+                            onClick = { flurryMode = option },
+                            label = { Text(option.title) },
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text("Оружие", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(6.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                    items(FlurryWeaponProfile.entries) { option ->
+                        FilterChip(
+                            selected = flurryWeapon == option,
+                            onClick = { flurryWeapon = option },
+                            label = { Text(option.title) },
+                        )
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "${profile.actionText} · бонус ${signed(profile.attackBonus)} · доп. попадание за каждые ${profile.excessPerHit} превышения · максимум ${profile.maximumHits}. Реакция во время шквала недоступна.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        resultDetail = flurryProfile?.let { profile ->
+            { roll, target ->
+                if (target == null) {
+                    "Укажите результат защиты/СЛ, чтобы посчитать количество попаданий шквала."
+                } else {
+                    val margin = compareRollToTarget(roll, target).margin
+                    "Попаданий шквала: ${FlurryRules.hitCount(margin, profile)} / ${profile.maximumHits}"
+                }
+            }
+        },
         onDismiss = onDismiss,
     )
 }
@@ -1916,11 +1976,7 @@ private fun defaultSkillGroups(skills: List<ResolvedSkill>): List<SheetGroup> = 
 private fun developmentSheetSections(
     character: DublCharacter,
     catalog: DevelopmentCatalog,
-): List<DevelopmentSheetSection> = DevelopmentRules(
-    character,
-    catalog,
-    DevelopmentProgress(character.development),
-).ownedSheetSections()
+): List<DevelopmentSheetSection> = character.characterSheetDevelopmentSections(catalog)
 
 private fun ownedDevelopmentItems(
     character: DublCharacter,
@@ -3411,6 +3467,8 @@ private fun CheckRollSheet(
     effectOptions: List<SkillRollEffectOption> = emptyList(),
     effectReminders: List<SkillEffectDefinition> = emptyList(),
     onAttributeSelected: ((AttributeId) -> Unit)? = null,
+    ruleContent: (@Composable () -> Unit)? = null,
+    resultDetail: ((RollResult, Int?) -> String?)? = null,
     onDismiss: () -> Unit,
 ) {
     var advantageCount by remember(rememberKey) { mutableStateOf(0) }
@@ -3468,6 +3526,10 @@ private fun CheckRollSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            ruleContent?.let {
+                Spacer(Modifier.height(10.dp))
+                it()
+            }
             if (automaticContributions.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 Text("Автоматические эффекты", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = DublAccent)
@@ -3738,6 +3800,16 @@ private fun CheckRollSheet(
                                     RollTargetOutcome.FAILURE -> DublDanger
                                 },
                                 fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        resultDetail?.invoke(roll, targetValue)?.let { detail ->
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                detail,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = DublAccent,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
                             )
                         }
                         Text(
