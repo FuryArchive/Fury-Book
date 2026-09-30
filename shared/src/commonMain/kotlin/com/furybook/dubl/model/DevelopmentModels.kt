@@ -178,12 +178,18 @@ enum class DevelopmentSheetSectionType {
     CHI,
 }
 
+enum class DevelopmentSheetItemSource {
+    DEVELOPMENT,
+    MAGIC_SCHOOL,
+}
+
 data class DevelopmentSheetItem(
     val entry: DevelopmentEntry,
     val rank: Int,
     val optionIndex: Int,
     val depth: Int,
     val parentId: String? = null,
+    val source: DevelopmentSheetItemSource = DevelopmentSheetItemSource.DEVELOPMENT,
 )
 
 data class DevelopmentSheetSection(
@@ -300,9 +306,55 @@ class DevelopmentRules(
         val special = ownedEntries.filter { (entry, _) -> entry.isSpecialDevelopment }
         val martial = ownedEntries.filter { (entry, _) -> entry.isMartialArt }
         val chi = ownedEntries.filter { (entry, _) -> entry.isChiDevelopment }
+
+        val magicSchoolItems = character.magic.schools
+            .mapNotNull { school ->
+                val canonical = MagicSchoolCatalog.canonicalizeOrNull(school.name) ?: return@mapNotNull null
+                canonical to school
+            }
+            .groupBy({ it.first }, { it.second })
+            .map { (canonical, copies) ->
+                val rank = copies.maxOf { it.rank.coerceAtLeast(0) }
+                val note = copies.firstOrNull { it.note.isNotBlank() }?.note.orEmpty()
+                canonical to DevelopmentSheetItem(
+                    entry = DevelopmentEntry(
+                        id = "magic-school:${developmentNormalize(canonical)}",
+                        name = canonical,
+                        section = "Ветки способностей",
+                        category = "Школы магии",
+                        cost = 25,
+                        costType = DevelopmentCostType.XP,
+                        maxRank = rank.coerceAtLeast(1),
+                        requirements = "-",
+                        benefit = "Школа магии · Сила магии $rank",
+                        notes = note,
+                        tags = listOf("Школа магии"),
+                        accessId = null,
+                        abilityOptions = emptyList(),
+                        incomplete = false,
+                        repeatable = false,
+                        perfectRoot = false,
+                        mechanicsConflict = "",
+                        conflictNote = "",
+                    ),
+                    rank = rank,
+                    optionIndex = 0,
+                    depth = 0,
+                    source = DevelopmentSheetItemSource.MAGIC_SCHOOL,
+                )
+            }
+            .filter { (_, item) -> item.rank > 0 }
+            .sortedBy { (canonical, _) -> MagicSchoolCatalog.sortIndex(canonical) }
+            .map { it.second }
+
+        val specialSection = buildSection(DevelopmentSheetSectionType.SPECIAL, special)
+        val combinedSpecial = (specialSection?.items.orEmpty() + magicSchoolItems).takeIf { it.isNotEmpty() }?.let {
+            DevelopmentSheetSection(DevelopmentSheetSectionType.SPECIAL, it)
+        }
+
         return listOfNotNull(
             buildSection(DevelopmentSheetSectionType.REGULAR, regular),
-            buildSection(DevelopmentSheetSectionType.SPECIAL, special),
+            combinedSpecial,
             buildSection(DevelopmentSheetSectionType.MARTIAL_ARTS, martial),
             buildSection(DevelopmentSheetSectionType.CHI, chi),
         )
