@@ -122,6 +122,13 @@ class DevelopmentAcquisitionPlanner(
         val stack: Set<String> = emptySet(),
     )
 
+    private fun acquisitionRank(character: DublCharacter, entry: DevelopmentEntry): Int =
+        if (entry.id == MagicEquipmentRules.BASE_MANA_ENTRY_ID) {
+            character.effectiveManaRankForDevelopment()
+        } else {
+            character.developmentRank(entry.id)
+        }
+
     private val unlockRules = DevelopmentRules(baseCharacter, catalog, DevelopmentProgress(baseCharacter.development))
     private val unlocksIndex: Map<String, List<DevelopmentEntry>> by lazy {
         val reverse = linkedMapOf<String, MutableList<DevelopmentEntry>>()
@@ -154,7 +161,7 @@ class DevelopmentAcquisitionPlanner(
                 state = state.copy(unresolved = state.unresolved + "Неизвестная запись: ${target.entryId}")
                 return@forEachIndexed
             }
-            val currentRank = state.character.developmentRank(entry.id)
+            val currentRank = acquisitionRank(state.character, entry)
             val desiredRank = when {
                 !target.includeTarget -> currentRank
                 target.targetRank != null -> target.targetRank
@@ -167,7 +174,7 @@ class DevelopmentAcquisitionPlanner(
                 request = request,
                 path = "target-$index-${entry.id}",
             )
-            if (target.includeTarget && desiredRank > state.character.developmentRank(entry.id)) {
+            if (target.includeTarget && desiredRank > acquisitionRank(state.character, entry)) {
                 state = addDevelopmentRank(
                     state,
                     entry,
@@ -454,7 +461,7 @@ class DevelopmentAcquisitionPlanner(
         request: DevelopmentAcquisitionRequest,
         path: String,
     ): State {
-        if (state.character.developmentRank(entry.id) >= rank) return state
+        if (acquisitionRank(state.character, entry) >= rank) return state
         val withRequirements = satisfyEntryRequirements(state, entry, request, path)
         return addDevelopmentRank(withRequirements, entry, rank, optionIndex)
     }
@@ -465,7 +472,7 @@ class DevelopmentAcquisitionPlanner(
         targetRank: Int,
         optionIndex: Int,
     ): State {
-        val current = state.character.developmentRank(entry.id)
+        val current = acquisitionRank(state.character, entry)
         val toRank = targetRank.coerceIn(current, entry.maxRank.coerceAtLeast(1))
         if (toRank <= current) return state
         val resolvedOption = if (entry.isAbility) optionIndex.coerceIn(0, (entry.abilityOptions.size - 1).coerceAtLeast(0)) else 0
