@@ -144,6 +144,7 @@ import com.furybook.dubl.model.compareRollToTarget
 import com.furybook.dubl.model.characterSheetDevelopmentSections
 import com.furybook.dubl.model.developmentNormalize
 import com.furybook.dubl.model.isMagicSchoolSheetEntryId
+import com.furybook.dubl.model.ensureMagicSchoolsInSpecialGroup
 import com.furybook.dubl.model.rollPreset
 import com.furybook.dubl.model.rollCheck
 import com.furybook.dubl.model.rollFollowUp
@@ -329,10 +330,12 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         character.characterSheetDevelopmentSections(developmentCatalog).flatMap { it.items }.distinctBy { it.entry.id }
     }
     val normalizedDevelopmentGroups = remember(overviewDevelopmentItems, sheetExtras.developmentGroups, character, developmentCatalog) {
+        val defaults = defaultDevelopmentGroups(character, developmentCatalog)
+        val validIds = overviewDevelopmentItems.map { it.entry.id }
         SheetGroupingRules.normalize(
-            sheetExtras.developmentGroups,
-            defaultDevelopmentGroups(character, developmentCatalog),
-            overviewDevelopmentItems.map { it.entry.id },
+            ensureMagicSchoolsInSpecialGroup(sheetExtras.developmentGroups, defaults, validIds),
+            defaults,
+            validIds,
             DEVELOPMENT_UNGROUPED_ID,
         )
     }
@@ -663,10 +666,11 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     if (showDevelopmentGroupManager) {
         val owned = ownedDevelopmentItems(character, developmentCatalog)
         val defaults = defaultDevelopmentGroups(character, developmentCatalog)
+        val validIds = owned.map { it.entry.id }
         val normalized = SheetGroupingRules.normalize(
-            sheetExtras.developmentGroups,
+            ensureMagicSchoolsInSpecialGroup(sheetExtras.developmentGroups, defaults, validIds),
             defaults,
-            owned.map { it.entry.id },
+            validIds,
             DEVELOPMENT_UNGROUPED_ID,
         )
         GroupManagerSheet(
