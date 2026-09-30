@@ -26,6 +26,7 @@ compose.desktop {
         nativeDistributions {
             packageName = "FuryBook"
             packageVersion = desktopVersion
+            modules("java.net.http")
             targetFormats(
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Deb,
                 org.jetbrains.compose.desktop.application.dsl.TargetFormat.Rpm,

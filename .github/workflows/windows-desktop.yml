@@ -57,7 +57,19 @@ jobs:
         shell: pwsh
         run: |
           $env:FURY_BOOK_VERSION = $env:FURY_BOOK_DESKTOP_VERSION
-          .\gradlew.bat --no-daemon :shared:desktopTest :desktopApp:compileKotlin :desktopApp:packageExe :desktopApp:packageMsi --stacktrace
+          .\gradlew.bat --no-daemon :shared:desktopTest :desktopApp:compileKotlin :desktopApp:createDistributable :desktopApp:packageExe :desktopApp:packageMsi --stacktrace
+
+      - name: Verify bundled Desktop runtime modules
+        shell: pwsh
+        run: |
+          $releaseFile = Get-ChildItem 'desktopApp/build/compose/binaries/main/app' -File -Filter 'release' -Recurse -ErrorAction Stop | Select-Object -First 1
+          if (-not $releaseFile) { throw 'Missing bundled runtime metadata under desktopApp/build/compose/binaries/main/app' }
+          Write-Host "Runtime metadata: $($releaseFile.FullName)"
+          $runtime = Get-Content $releaseFile.FullName -Raw
+          if (-not $runtime.Contains('java.net.http')) {
+            Write-Host $runtime
+            throw 'Bundled Desktop runtime is missing java.net.http'
+          }
 
       - name: Verify Windows packages
         shell: pwsh
