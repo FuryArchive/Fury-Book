@@ -169,6 +169,22 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             },
         )
     }
+    // Keep browser/detail state composed while the asynchronously prepared catalogue refreshes
+    // after character changes. Otherwise buying a rank temporarily enters the loading branch and
+    // drops the selected entry, returning the user to the list.
+    var query by remember(character.id) { mutableStateOf("") }
+    var tab by remember(character.id) { mutableStateOf(DevelopmentTab.REGULAR) }
+    var availableOnly by remember(character.id) { mutableStateOf(false) }
+    var browserFilter by remember(character.id) { mutableStateOf(DevelopmentBrowserFilter.ALL) }
+    var selectedEntryId by remember(character.id) { mutableStateOf<String?>(null) }
+    var plannedDevelopmentIds by remember(character.id) { mutableStateOf(emptySet<String>()) }
+    var acquisitionRequest by remember(character.id) { mutableStateOf<DevelopmentAcquisitionRequest?>(null) }
+    var pendingAbilityPurchase by remember(character.id) { mutableStateOf<PendingAbilityPurchase?>(null) }
+    var pendingRequirementOverride by remember(character.id) { mutableStateOf<PendingRequirementOverride?>(null) }
+    var editingDevelopment by remember(character.id) { mutableStateOf<DevelopmentEntry?>(null) }
+    var creatingCustomDevelopment by remember(character.id) { mutableStateOf(false) }
+    var groupVisibility by remember(character.id) { mutableStateOf(DevelopmentGroupVisibility()) }
+
     var loadingStage by remember(character.id) { mutableStateOf("Загружаем каталог развития…") }
     val preparation by produceState<DevelopmentScreenPreparation?>(
         initialValue = null,
@@ -220,19 +236,6 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     val availabilityById = prepared.availabilityById
     val developmentIndex = prepared.index
     val progress = DevelopmentProgress(character.development)
-    var query by remember(character.id) { mutableStateOf("") }
-    var tab by remember(character.id) { mutableStateOf(DevelopmentTab.REGULAR) }
-    var availableOnly by remember(character.id) { mutableStateOf(false) }
-    var browserFilter by remember(character.id) { mutableStateOf(DevelopmentBrowserFilter.ALL) }
-    var selectedEntryId by remember(character.id) { mutableStateOf<String?>(null) }
-    var plannedDevelopmentIds by remember(character.id) { mutableStateOf(emptySet<String>()) }
-    var acquisitionRequest by remember(character.id) { mutableStateOf<DevelopmentAcquisitionRequest?>(null) }
-    var pendingAbilityPurchase by remember(character.id) { mutableStateOf<PendingAbilityPurchase?>(null) }
-    var pendingRequirementOverride by remember(character.id) { mutableStateOf<PendingRequirementOverride?>(null) }
-    var editingDevelopment by remember(character.id) { mutableStateOf<DevelopmentEntry?>(null) }
-    var creatingCustomDevelopment by remember(character.id) { mutableStateOf(false) }
-    var groupVisibility by remember(character.id) { mutableStateOf(DevelopmentGroupVisibility()) }
-
     val rules = prepared.rules
     val planner = remember(character, catalog) { DevelopmentAcquisitionPlanner(character, catalog) }
     val chiRules = remember(character, catalog) { ChiRules(character, catalog) }

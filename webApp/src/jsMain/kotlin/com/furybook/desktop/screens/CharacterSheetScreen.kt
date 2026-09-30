@@ -97,6 +97,7 @@ import com.furybook.dubl.model.DevelopmentEntry
 import com.furybook.dubl.model.DevelopmentProgress
 import com.furybook.dubl.model.DevelopmentRules
 import com.furybook.dubl.model.DevelopmentSheetSectionType
+import com.furybook.dubl.model.DevelopmentSheetItemSource
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.RollContext
 import com.furybook.dubl.model.ResolvedSkill
@@ -219,6 +220,10 @@ fun CharacterSheetScreen(
                     },
                     onRoll = { context, attribute -> rollRequest = ContextRollRequest(context, attribute) },
                 )
+            }
+
+            item {
+                CombatActionsPanel(onRoll = { context -> rollRequest = ContextRollRequest(context) })
             }
 
             item {
@@ -371,6 +376,48 @@ fun CharacterSheetScreen(
     grouping?.let { kind -> GroupingManagerDialog(state, kind, onDismiss = { grouping = null }) }
 }
 
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CombatActionsPanel(
+    onRoll: (RollContext) -> Unit,
+) {
+    val contexts = listOf(
+        RollContext.DODGE,
+        RollContext.ATTACK,
+        RollContext.FLURRY,
+        RollContext.PARRY,
+        RollContext.FEINT,
+        RollContext.GRAPPLE,
+        RollContext.DISARM,
+        RollContext.TRIP,
+        RollContext.PUSH,
+        RollContext.KNOCKDOWN,
+        RollContext.BREAK_ITEM,
+    )
+    DesktopPanel(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            DesktopSectionHeader(
+                "Боевые действия",
+                subtitle = "Быстрые проверки по правилам боя",
+                icon = DesktopIconKind.DEFENSE,
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp),
+            ) {
+                contexts.forEach { context ->
+                    OutlinedButton(
+                        onClick = { onRoll(context) },
+                        modifier = Modifier.widthIn(min = 118.dp),
+                    ) {
+                        Text(context.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -1159,13 +1206,14 @@ private fun DevelopmentBranchConnector(modifier: Modifier = Modifier) {
 private fun DevelopmentTreeRow(
     item: com.furybook.dubl.model.DevelopmentSheetItem,
     displayDepth: Int,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val child = displayDepth > 0
     val indent = (displayDepth.coerceAtMost(3) * 10).dp
+    val interactiveModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Surface(
-        modifier = modifier.fillMaxWidth().padding(start = if (child) 8.dp else 0.dp).clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth().padding(start = if (child) 8.dp else 0.dp).then(interactiveModifier),
         shape = RoundedCornerShape(if (child) 6.dp else 8.dp),
         color = if (child) DesktopSurfaceInset.copy(alpha = .46f) else DesktopSurfaceInset.copy(alpha = .72f),
         border = if (child) null else BorderStroke(1.dp, DesktopBorder.copy(alpha = .62f)),
@@ -1215,7 +1263,7 @@ private fun SheetDevelopmentPanel(
     onNavigateDevelopment: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val rules = remember(character.development, character.developmentOverrides, character.customDevelopmentEntries) {
+    val rules = remember(character.development, character.magic, character.developmentOverrides, character.customDevelopmentEntries) {
         DevelopmentRules(character, state.developmentCatalog, DevelopmentProgress(character.development))
     }
     val developmentItems = remember(rules) {
@@ -1291,7 +1339,9 @@ private fun SheetDevelopmentPanel(
                                                     DevelopmentTreeRow(
                                                         item = item,
                                                         displayDepth = SheetGroupingRules.localDepth(item.entry.id, groupIds, parentById),
-                                                        onClick = { onDevelopmentDetails(item.entry) },
+                                                        onClick = if (item.source == DevelopmentSheetItemSource.DEVELOPMENT) {
+                                                            { onDevelopmentDetails(item.entry) }
+                                                        } else null,
                                                     )
                                                 }
                                             }

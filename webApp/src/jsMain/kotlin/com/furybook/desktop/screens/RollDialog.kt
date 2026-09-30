@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DublCharacter
+import com.furybook.dubl.model.FlurryWeaponProfile
 import com.furybook.dubl.model.ResolvedSkill
 import com.furybook.dubl.model.RollMode
 import com.furybook.dubl.model.RollResult
@@ -37,6 +38,7 @@ import com.furybook.dubl.model.resolveSkill
 import com.furybook.dubl.model.rollCheck
 import com.furybook.dubl.model.rollFollowUp
 import com.furybook.dubl.model.rollPreset
+import com.furybook.dubl.model.rule
 import com.furybook.dubl.model.skillCalculationForRoll
 import com.furybook.dubl.model.selectedTotals
 import com.furybook.ui.theme.DublMuted
@@ -269,14 +271,31 @@ fun ContextRollDialog(
     var result by remember(context) { mutableStateOf<RollResult?>(null) }
     var skillMenu by remember { mutableStateOf(false) }
     var attributeMenu by remember { mutableStateOf(false) }
+    var flurryProfile by remember(context) { mutableStateOf(FlurryWeaponProfile.LIGHT) }
+    var shortFlurry by remember(context) { mutableStateOf(false) }
+    var flurryProfileMenu by remember { mutableStateOf(false) }
 
     val attrOptions = if (context == RollContext.ATTRIBUTE) AttributeId.entries else context.allowedAttributes(skill?.id)
     val selectedAttribute = initialAttribute?.takeIf { it in attrOptions } ?: attribute?.takeIf { it in attrOptions } ?: attrOptions.firstOrNull()
-    val preset = character.rollPreset(context, skill?.id, selectedAttribute)
+    val basePreset = character.rollPreset(context, skill?.id, selectedAttribute)
+    val flurryRule = if (context == RollContext.FLURRY) flurryProfile.rule(shortFlurry) else null
+    val baseBonus = basePreset.bonus
+    val preset = if (flurryRule != null && baseBonus != null) {
+        val label = if (shortFlurry) "Короткий шквал" else "Шквал атак"
+        basePreset.copy(
+            bonus = baseBonus + flurryRule.attackBonus,
+            contributions = basePreset.contributions + com.furybook.dubl.model.RollContribution(label, flurryRule.attackBonus),
+            formulaText = "${basePreset.formulaText} + $label",
+        )
+    } else basePreset
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
-    val reminders = SkillEffectRules(character, developmentCatalog, effectCatalog)
-        .forContext(context)
-        .filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels }
+    val reminders = SkillEffectRules(character, developmentCatalog, effectCatalog).let { rules ->
+        if (context == RollContext.FLURRY) {
+            rules.forContext(RollContext.ATTACK)
+        } else {
+            rules.forContext(context)
+        }
+    }.filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels }
 
     FuryDialog(
         onDismissRequest = onDismiss,
@@ -286,14 +305,50 @@ fun ContextRollDialog(
                 if (skills.isNotEmpty()) {
                     OutlinedButton(onClick = { skillMenu = true }) { Text("Умение: ${skill?.name ?: "—"}") }
                     DropdownMenu(expanded = skillMenu, onDismissRequest = { skillMenu = false }) {
-                        skills.forEach { option -> DropdownMenuItem(text = { Text(option.name) }, onClick = { skill = option; attribute = null; skillMenu = false }) }
+                        skills.forEach { option -> DropdownMenuItem(text = { Text(option.name) }, onClick = { skill = option; attribute = null; skillMenu = false; result = null }) }
                     }
                 }
                 if (attrOptions.isNotEmpty()) {
                     OutlinedButton(onClick = { attributeMenu = true }) { Text("Характеристика: ${(selectedAttribute ?: attrOptions.first()).title}") }
                     DropdownMenu(expanded = attributeMenu, onDismissRequest = { attributeMenu = false }) {
-                        attrOptions.forEach { option -> DropdownMenuItem(text = { Text(option.title) }, onClick = { attribute = option; attributeMenu = false }) }
+                        attrOptions.forEach { option -> DropdownMenuItem(text = { Text(option.title) }, onClick = { attribute = option; attributeMenu = false; result = null }) }
                     }
+                }
+                if (context == RollContext.FLURRY) {
+                    val rule = flurryProfile.rule(shortFlurry)
+                    OutlinedButton(onClick = { flurryProfileMenu = true }) { Text("Оружие: ${flurryProfile.title}") }
+                    DropdownMenu(expanded = flurryProfileMenu, onDismissRequest = { flurryProfileMenu = false }) {
+                        FlurryWeaponProfile.entries.forEach { profile ->
+                            DropdownMenuItem(
+                                text = { Text(profile.title) },
+                                onClick = {
+                                    flurryProfile = profile
+                                    flurryProfileMenu = false
+                                    result = null
+                                },
+                            )
+                        }
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = shortFlurry,
+                            onCheckedChange = {
+                                shortFlurry = it
+                                result = null
+                            },
+                        )
+                        Text("Короткий шквал · 2 ОД")
+                    }
+                    Text(
+                        buildString {
+                            append("Бонус +${rule.attackBonus}. ")
+                            append("1 попадание за каждые ${rule.excessPerHit} превышения")
+                            if (rule.shortExcessPenalty > 0) append("; для короткого требуемое превышение +${rule.shortExcessPenalty}")
+                            append(". Максимум ${rule.maxHits}. Реакцию использовать нельзя.")
+                            if (rule.alternateWeaponDamage) append(" Урон двух оружий чередуется.")
+                        },
+                        color = DublMuted,
+                    )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(advantageText, { advantageText = it.filter(Char::isDigit).take(1) }, label = { Text("Преим.") }, modifier = Modifier.weight(1f), singleLine = true)
