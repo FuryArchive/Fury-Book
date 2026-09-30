@@ -477,4 +477,78 @@ class DevelopmentRulesTest {
         assertEquals(1, section.items[1].depth)
     }
 
+
+    @Test
+    fun manaRequirementsAcceptRomanArabicAndHigherRanks() {
+        val roman = child.copy(
+            id = "mana-roman",
+            name = "Великанская магия",
+            accessId = null,
+            requirements = "Запас маны (III)",
+        )
+        val baseArabic = child.copy(
+            id = "mana-arabic",
+            name = "Медитация",
+            accessId = null,
+            requirements = "Базовый запас маны 3",
+        )
+        val localCatalog = DevelopmentCatalog("test", listOf(roman, baseArabic))
+
+        val rankFour = character().copy(magic = CharacterMagic(manaRank = 4))
+        val rules = DevelopmentRules(rankFour, localCatalog, DevelopmentProgress())
+        assertTrue(rules.requirements(roman).all { it.status == RequirementStatus.OK })
+        assertTrue(rules.requirements(baseArabic).all { it.status == RequirementStatus.OK })
+        assertEquals(4, rules.featureRank("Запас маны"))
+        assertEquals(4, rules.featureRank("Базовый запас маны"))
+
+        val rankTwo = DevelopmentRules(
+            character().copy(magic = CharacterMagic(manaRank = 2)),
+            localCatalog,
+            DevelopmentProgress(),
+        )
+        assertTrue(rankTwo.requirements(roman).any { it.status == RequirementStatus.FAIL })
+    }
+
+    @Test
+    fun acquisitionPlannerTreatsOwnedHigherManaRankAsSatisfied() {
+        val giantMagic = child.copy(
+            id = "giant-magic",
+            name = "Великанская магия",
+            accessId = null,
+            requirements = "Запас маны (III)",
+        )
+        val localCatalog = DevelopmentCatalog("test", listOf(giantMagic))
+        val rankFour = character().copy(magic = CharacterMagic(manaRank = 4))
+
+        val plan = DevelopmentAcquisitionPlanner(rankFour, localCatalog).plan(
+            DevelopmentAcquisitionRequest.single(
+                entryId = giantMagic.id,
+                includeTarget = false,
+                enforceBudget = false,
+            ),
+        )
+
+        assertTrue(plan.unresolvedRequirements.isEmpty())
+        assertTrue(plan.steps.isEmpty())
+    }
+
+    @Test
+    fun learnedMagicSchoolsAppearInSpecialSkillsSection() {
+        val mage = character().copy(
+            magic = CharacterMagic(
+                schools = listOf(
+                    MagicSchool(name = "Разрушение", rank = 5),
+                    MagicSchool(name = "Ограждение", rank = 3),
+                ),
+            ),
+        )
+        val sections = DevelopmentRules(mage, DevelopmentCatalog("test", emptyList()), DevelopmentProgress())
+            .ownedSheetSections()
+        val special = sections.single { it.type == DevelopmentSheetSectionType.SPECIAL }
+
+        assertEquals(listOf("Ограждение", "Разрушение"), special.items.map { it.entry.name })
+        assertEquals(listOf(3, 5), special.items.map { it.rank })
+        assertTrue(special.items.all { it.source == DevelopmentSheetItemSource.MAGIC_SCHOOL })
+    }
+
 }
