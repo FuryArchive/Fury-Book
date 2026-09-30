@@ -97,6 +97,7 @@ import com.furybook.dubl.model.DevelopmentEntry
 import com.furybook.dubl.model.DevelopmentProgress
 import com.furybook.dubl.model.DevelopmentRules
 import com.furybook.dubl.model.DevelopmentSheetSectionType
+import com.furybook.dubl.model.DevelopmentSheetItemSource
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.RollContext
 import com.furybook.dubl.model.ResolvedSkill
@@ -1159,13 +1160,14 @@ private fun DevelopmentBranchConnector(modifier: Modifier = Modifier) {
 private fun DevelopmentTreeRow(
     item: com.furybook.dubl.model.DevelopmentSheetItem,
     displayDepth: Int,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val child = displayDepth > 0
     val indent = (displayDepth.coerceAtMost(3) * 10).dp
+    val interactiveModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Surface(
-        modifier = modifier.fillMaxWidth().padding(start = if (child) 8.dp else 0.dp).clickable(onClick = onClick),
+        modifier = modifier.fillMaxWidth().padding(start = if (child) 8.dp else 0.dp).then(interactiveModifier),
         shape = RoundedCornerShape(if (child) 6.dp else 8.dp),
         color = if (child) DesktopSurfaceInset.copy(alpha = .46f) else DesktopSurfaceInset.copy(alpha = .72f),
         border = if (child) null else BorderStroke(1.dp, DesktopBorder.copy(alpha = .62f)),
@@ -1291,7 +1293,9 @@ private fun SheetDevelopmentPanel(
                                                     DevelopmentTreeRow(
                                                         item = item,
                                                         displayDepth = SheetGroupingRules.localDepth(item.entry.id, groupIds, parentById),
-                                                        onClick = { onDevelopmentDetails(item.entry) },
+                                                        onClick = if (item.source == DevelopmentSheetItemSource.DEVELOPMENT) {
+                                                            { onDevelopmentDetails(item.entry) }
+                                                        } else null,
                                                     )
                                                 }
                                             }
