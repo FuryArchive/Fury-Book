@@ -57,6 +57,7 @@ fun CharactersScreen(
     cloudController: AndroidCloudController,
     contentPackComposition: FcpComposition,
     onContentPackActiveChange: (String, Boolean) -> Unit,
+    onOpenCampaign: () -> Unit,
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
     var transferStatus by remember { mutableStateOf<String?>(null) }
@@ -152,6 +153,22 @@ fun CharactersScreen(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+
+        DublCard(Modifier.fillMaxWidth()) {
+            Text("Кампании", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Приглашайте игроков, привязывайте персонажей и открывайте GM Screen.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                enabled = cloudController.session != null,
+                onClick = onOpenCampaign,
+            ) {
+                Text(if (cloudController.session == null) "Сначала войдите в Fury Account" else "Открыть кампании")
+            }
         }
 
         DublCard(Modifier.fillMaxWidth()) {
