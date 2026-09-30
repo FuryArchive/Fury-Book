@@ -74,7 +74,7 @@ class DesktopCloudController(
         extras.onDeleted = { scheduleSync() }
     }
 
-    fun setEnabledPackIds(ids: Set<String>) {
+    fun updateEnabledPackIds(ids: Set<String>) {
         val normalized = ids.filter(String::isNotBlank).toSet()
         if (localEnabledPackIds == normalized) return
         localEnabledPackIds = normalized
