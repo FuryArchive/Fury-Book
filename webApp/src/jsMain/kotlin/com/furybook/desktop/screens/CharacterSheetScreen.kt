@@ -1263,7 +1263,7 @@ private fun SheetDevelopmentPanel(
     onNavigateDevelopment: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val rules = remember(character.development, character.developmentOverrides, character.customDevelopmentEntries) {
+    val rules = remember(character.development, character.magic, character.developmentOverrides, character.customDevelopmentEntries) {
         DevelopmentRules(character, state.developmentCatalog, DevelopmentProgress(character.development))
     }
     val developmentItems = remember(rules) {
