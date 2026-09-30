@@ -193,7 +193,7 @@ class NativeCloudSyncCoordinator(
             return NativeSyncOutcome.Synced(cloud)
         }
 
-        val merged = api.link(local, localExtras, chiEnabled, deviceLabel)
+        val merged = api.link(local, localExtras, enabledPackIds, deviceLabel)
         applyBootstrap(merged)
         saveCleanMetadata(merged)
         return NativeSyncOutcome.Synced(merged)
@@ -201,7 +201,7 @@ class NativeCloudSyncCoordinator(
 
     suspend fun syncNow(enabledPackIds: Set<String>): NativeSyncOutcome {
         var metadata = metadataStore.load()
-        if (metadata.linkedUserId != userId) return linkOrResume(chiEnabled)
+        if (metadata.linkedUserId != userId) return linkOrResume(enabledPackIds)
 
         val local = characterStore.load()
         val response = api.sync(
