@@ -283,8 +283,21 @@ class DevelopmentAcquisitionPlanner(
             return chooseAlternative(state, text, expanded, owner, request, path)
         }
 
-        if (Regex("^(?:Базовый\\s+)?[Зз]апас маны", RegexOption.IGNORE_CASE).containsMatchIn(text) ||
-            developmentNormalize(text).startsWith("заклинание:") ||
+        developmentManaRequirementRank(text)?.let { needMana ->
+            if (state.character.effectiveManaRankForDevelopment() >= needMana) return state
+            val manaEntry = catalog.byId(MagicEquipmentRules.BASE_MANA_ENTRY_ID)
+                ?: return state.copy(unresolved = state.unresolved + text)
+            return satisfyAndAcquireDevelopment(
+                state = state,
+                entry = manaEntry,
+                rank = needMana,
+                optionIndex = 0,
+                request = request,
+                path = "$path-mana",
+            )
+        }
+
+        if (developmentNormalize(text).startsWith("заклинание:") ||
             Regex("^Знать\\s*\\d+\\s*заклинани", RegexOption.IGNORE_CASE).containsMatchIn(text) ||
             Regex("^Любые (два|три) боевых крика", RegexOption.IGNORE_CASE).containsMatchIn(text)
         ) {
