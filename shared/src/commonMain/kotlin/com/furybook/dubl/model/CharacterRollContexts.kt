@@ -9,6 +9,7 @@ enum class RollContext(val title: String) {
     RUN("Бег"),
     DODGE("Уворачивание"),
     ATTACK("Атака"),
+    FLURRY("Шквал атак"),
     PARRY("Парирование"),
     FEINT("Финт"),
     GRAPPLE("Захват"),
@@ -20,14 +21,14 @@ enum class RollContext(val title: String) {
 }
 
 fun RollContext.allowedSkillIds(): List<String> = when (this) {
-    RollContext.ATTACK, RollContext.BREAK_ITEM -> listOf("unarmed", "melee_weapon", "shooting", "throwing")
+    RollContext.ATTACK, RollContext.FLURRY, RollContext.BREAK_ITEM -> listOf("unarmed", "melee_weapon", "shooting", "throwing")
     RollContext.PARRY, RollContext.DISARM -> listOf("unarmed", "melee_weapon")
     RollContext.FEINT -> listOf("eloquence", "unarmed", "melee_weapon")
     else -> emptyList()
 }
 
 fun RollContext.allowedAttributes(skillId: String?): List<AttributeId> = when (this) {
-    RollContext.ATTACK, RollContext.BREAK_ITEM -> when (skillId) {
+    RollContext.ATTACK, RollContext.FLURRY, RollContext.BREAK_ITEM -> when (skillId) {
         "shooting" -> listOf(AttributeId.PERCEPTION, AttributeId.DEXTERITY)
         "throwing", "unarmed", "melee_weapon" -> listOf(AttributeId.DEXTERITY, AttributeId.STRENGTH)
         else -> emptyList()
@@ -98,6 +99,7 @@ fun DublCharacter.rollPreset(
             formulaOverride = "2d6 + Рефлексы + ситуационные бонусы защиты",
         )
         RollContext.ATTACK -> attackLikePreset(context, skillId ?: "melee_weapon", attribute)
+        RollContext.FLURRY -> attackLikePreset(context, skillId ?: "melee_weapon", attribute)
         RollContext.PARRY -> {
             val base = attackLikePreset(context, skillId ?: "melee_weapon", attribute)
             base.withDevelopmentBonus("Фехтовальщик", developmentRank(DevelopmentEffectIds.FENCER))
