@@ -42,7 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.furybook.android.data.AndroidContentPackState
 import com.furybook.android.cloud.AndroidCloudController
-import com.furybook.android.data.CharacterRepository\nimport com.furybook.android.data.AndroidFcpInstaller
+import com.furybook.android.data.CharacterRepository
+import com.furybook.android.data.AndroidFcpInstaller
 import com.furybook.android.data.CharacterSheetExtrasRepository
 import com.furybook.android.state.CharacterController
 import com.furybook.core.cloud.ObservingCharacterStore
