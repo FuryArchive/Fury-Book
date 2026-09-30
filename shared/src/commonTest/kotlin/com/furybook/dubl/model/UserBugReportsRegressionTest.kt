@@ -119,7 +119,8 @@ class UserBugReportsRegressionTest {
         assertEquals(3, short.excessPerHit)
         assertFalse(short.reactionAllowed)
         assertEquals(3, FlurryRules.hitCount(6, full))
-        assertEquals(3, FlurryRules.hitCount(6, short))
+        assertEquals(2, FlurryRules.hitCount(6, short))
+        assertEquals(0, FlurryRules.hitCount(1, full))
     }
 
     @Test
