@@ -289,10 +289,13 @@ fun ContextRollDialog(
         )
     } else basePreset
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
-    val reminderContext = if (context == RollContext.FLURRY) RollContext.ATTACK else context
-    val reminders = SkillEffectRules(character, developmentCatalog, effectCatalog)
-        .forContext(reminderContext)
-        .filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels }
+    val reminders = SkillEffectRules(character, developmentCatalog, effectCatalog).let { rules ->
+        if (context == RollContext.FLURRY) {
+            rules.forContext(RollContext.ATTACK)
+        } else {
+            rules.forContext(context)
+        }
+    }.filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels }
 
     FuryDialog(
         onDismissRequest = onDismiss,
