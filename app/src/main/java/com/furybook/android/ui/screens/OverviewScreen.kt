@@ -2099,7 +2099,9 @@ private fun LazyListScope.ownedDevelopmentSectionItems(
                                 displayDepth = SheetGroupingRules.localDepth(item.entry.id, groupIds, parentById),
                                 invalid = item.entry.id in invalidIds,
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = { onEntryClick(item.entry) },
+                                onClick = if (item.source == DevelopmentSheetItemSource.DEVELOPMENT) {
+                                    { onEntryClick(item.entry) }
+                                } else null,
                             )
                         }
                     }
