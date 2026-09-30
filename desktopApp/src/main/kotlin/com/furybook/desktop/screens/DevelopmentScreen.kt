@@ -397,7 +397,18 @@ fun DevelopmentScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                             onOpenEntry = { targetId -> selectedEntryId = targetId },
                             onAcquireRequirements = { acquisitionRequest = DevelopmentAcquisitionRequest.single(entry.id, includeTarget = false) },
                             onAcquireAll = { optionIndex ->
-                                acquisitionRequest = DevelopmentAcquisitionRequest.single(entry.id, includeTarget = true, optionIndex = optionIndex)
+                                val request = DevelopmentAcquisitionRequest.single(entry.id, includeTarget = true, optionIndex = optionIndex)
+                                val plan = DevelopmentAcquisitionPlanner(state.activeCharacter, developmentCatalog).plan(request)
+                                val simpleTargetOnly = plan.choices.isEmpty() &&
+                                    plan.unresolvedRequirements.isEmpty() &&
+                                    plan.steps.size == 1 &&
+                                    (plan.steps.firstOrNull() as? DevelopmentAcquisitionStep.Development)?.entryId == entry.id
+                                if (simpleTargetOnly && plan.canApply) {
+                                    state.acquireDevelopment(request)
+                                    selectedEntryId = entry.id
+                                } else {
+                                    acquisitionRequest = request
+                                }
                             },
                             onManual = { legacyDetailsEntry = entry },
                             onEditLocal = { editingDevelopment = entry },
@@ -470,11 +481,22 @@ fun DevelopmentScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                                 acquisitionRequest = DevelopmentAcquisitionRequest.single(entry.id, includeTarget = false)
                             },
                             onAcquireAll = { optionIndex ->
-                                acquisitionRequest = DevelopmentAcquisitionRequest.single(
+                                val request = DevelopmentAcquisitionRequest.single(
                                     entryId = entry.id,
                                     includeTarget = true,
                                     optionIndex = optionIndex,
                                 )
+                                val plan = DevelopmentAcquisitionPlanner(state.activeCharacter, developmentCatalog).plan(request)
+                                val simpleTargetOnly = plan.choices.isEmpty() &&
+                                    plan.unresolvedRequirements.isEmpty() &&
+                                    plan.steps.size == 1 &&
+                                    (plan.steps.firstOrNull() as? DevelopmentAcquisitionStep.Development)?.entryId == entry.id
+                                if (simpleTargetOnly && plan.canApply) {
+                                    state.acquireDevelopment(request)
+                                    selectedEntryId = entry.id
+                                } else {
+                                    acquisitionRequest = request
+                                }
                             },
                             onManual = { legacyDetailsEntry = entry },
                             onEditLocal = { editingDevelopment = entry },
@@ -1026,6 +1048,7 @@ private fun DevelopmentInspector(
 private fun developmentAcquisitionStepText(step: DevelopmentAcquisitionStep): String = when (step) {
     is DevelopmentAcquisitionStep.Attribute -> "${step.label}: ${step.fromValue} → ${step.toValue} · ${step.xpCost} XP"
     is DevelopmentAcquisitionStep.Skill -> "${step.label}: ${step.fromRank} → ${step.toRank} · ${step.xpCost} XP"
+    is DevelopmentAcquisitionStep.ManaRank -> "${step.label}: ${step.fromRank} → ${step.toRank} · ${step.xpCost} XP"
     is DevelopmentAcquisitionStep.Development -> "${step.label}: ${step.fromRank} → ${step.toRank}" +
         when {
             step.abilityCost > 0 -> " · ${step.abilityCost} ОС"
