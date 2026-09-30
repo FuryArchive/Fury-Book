@@ -301,9 +301,12 @@ class DevelopmentAcquisitionPlanner(
             if (state.character.creationComplete) {
                 return state.copy(unresolved = state.unresolved + "$text — базовый запас маны можно повышать только при создании персонажа")
             }
-            val nextCharacter = state.character.copy(
+            val withManaRank = state.character.copy(
                 magic = state.character.magic.copy(manaRank = needMana),
                 manaEnabled = true,
+            )
+            val nextCharacter = withManaRank.copy(
+                manaCurrent = withManaRank.effectiveManaMaximum,
             )
             return state.copy(
                 character = nextCharacter,
