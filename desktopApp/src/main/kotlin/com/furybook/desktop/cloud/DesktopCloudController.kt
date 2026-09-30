@@ -5,6 +5,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.furybook.core.cloud.CloudBootstrap
+import com.furybook.core.cloud.CampaignDashboard
+import com.furybook.core.cloud.CampaignInvite
+import com.furybook.core.cloud.CampaignSummary
+import com.furybook.core.cloud.FuryCampaignApi
 import com.furybook.core.cloud.FuryNativeCloudApi
 import com.furybook.core.cloud.NativeCloudStatus
 import com.furybook.core.cloud.NativeCloudSyncCoordinator
@@ -31,6 +35,7 @@ class DesktopCloudController(
     private val gateway = DesktopFuryCloudGateway()
     private val metadataStore = DesktopCloudMetadataStore()
     private val api = FuryNativeCloudApi(gateway)
+    private val campaignApi = FuryCampaignApi(gateway) { UUID.randomUUID().toString() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var coordinator: NativeCloudSyncCoordinator? = null
     private var scheduledJob: Job? = null
@@ -53,6 +58,12 @@ class DesktopCloudController(
     var enabledPackIds by mutableStateOf<Set<String>>(emptySet())
         private set
     var reloadToken by mutableIntStateOf(0)
+        private set
+    var campaigns by mutableStateOf<List<CampaignSummary>>(emptyList())
+        private set
+    var campaignDashboard by mutableStateOf<CampaignDashboard?>(null)
+        private set
+    var campaignMessage by mutableStateOf<String?>(null)
         private set
 
     init {
@@ -88,6 +99,7 @@ class DesktopCloudController(
             return
         }
         syncInternal(firstLinkAllowed = true)
+        refreshCampaigns()
     }
 
     suspend fun signIn(email: String, password: String): Result<Unit> = runCatching {
@@ -98,6 +110,7 @@ class DesktopCloudController(
         conflicts = emptyList()
         rebuildCoordinator()
         syncInternal(firstLinkAllowed = true)
+        refreshCampaigns().getOrThrow()
         Unit
     }.onFailure { error ->
         status = NativeCloudStatus.ERROR
@@ -117,6 +130,7 @@ class DesktopCloudController(
             conflicts = emptyList()
             rebuildCoordinator()
             syncInternal(firstLinkAllowed = true)
+            refreshCampaigns().getOrThrow()
             true
         }
     }.onFailure { error ->
@@ -134,8 +148,92 @@ class DesktopCloudController(
         nickname = ""
         lastSyncedAt = null
         lastSyncedBy = null
+        campaigns = emptyList()
+        campaignDashboard = null
+        campaignMessage = null
         status = NativeCloudStatus.SIGNED_OUT
         statusMessage = "Локальные персонажи сохранены на компьютере."
+    }
+
+    suspend fun refreshCampaigns(): Result<Unit> = runCatching {
+        if (session == null) {
+            campaigns = emptyList()
+            campaignDashboard = null
+            return@runCatching
+        }
+        campaigns = campaignApi.listCampaigns()
+        val activeId = campaignDashboard?.id
+        if (activeId != null && campaigns.none { it.id == activeId && it.isOwner }) {
+            campaignDashboard = null
+        }
+        campaignMessage = null
+    }.onFailure { error ->
+        campaignMessage = error.message ?: "Не удалось загрузить кампании."
+    }
+
+    suspend fun createCampaign(name: String): Result<CampaignSummary> = runCatching {
+        val created = campaignApi.createCampaign(name.trim())
+        campaigns = campaignApi.listCampaigns()
+        campaignDashboard = campaignApi.getDashboard(created.id)
+        campaignMessage = "Кампания создана."
+        created
+    }.onFailure { error ->
+        campaignMessage = error.message ?: "Не удалось создать кампанию."
+    }
+
+    suspend fun createCampaignInvite(campaignId: String): Result<CampaignInvite> = runCatching {
+        campaignApi.createInvite(campaignId)
+    }.onFailure { error ->
+        campaignMessage = error.message ?: "Не удалось создать приглашение."
+    }
+
+    suspend fun joinCampaign(inviteCode: String, characterId: String): Result<CampaignSummary> = runCatching {
+        val joined = campaignApi.joinCampaign(inviteCode.trim(), characterId)
+        campaigns = campaignApi.listCampaigns()
+        campaignMessage = "Персонаж добавлен в кампанию."
+        joined
+    }.onFailure { error ->
+        campaignMessage = error.message ?: "Не удалось вступить в кампанию."
+    }
+
+    suspend fun setCampaignCharacter(campaignId: String, characterId: String): Result<Unit> = runCatching {
+        campaignApi.setCharacter(campaignId, characterId)
+        campaigns = campaignApi.listCampaigns()
+        Unit
+    }.onFailure { error ->
+        campaignMessage = error.message ?: "Не удалось сменить персонажа кампании."
+    }
+
+    suspend fun openGmDashboard(campaignId: String): Result<CampaignDashboard> = runCatching {
+        val summary = campaigns.firstOrNull { it.id == campaignId }
+            ?: error("Кампания не найдена.")
+        require(summary.isOwner) { "GM Screen доступен только владельцу кампании." }
+        campaignApi.getDashboard(campaignId).also { campaignDashboard = it }
+    }.onFailure { error ->
+        campaignMessage = error.message ?: "Не удалось открыть GM Screen."
+    }
+
+    suspend fun refreshGmDashboard(): Result<CampaignDashboard> {
+        val active = campaignDashboard ?: return Result.failure(IllegalStateException("GM Screen не открыт."))
+        return openGmDashboard(active.id)
+    }
+
+    suspend fun removeCampaignMember(campaignId: String, userId: String): Result<Unit> = runCatching {
+        campaignApi.removeMember(campaignId, userId)
+        campaignDashboard = campaignApi.getDashboard(campaignId)
+        campaigns = campaignApi.listCampaigns()
+        Unit
+    }.onFailure { error ->
+        campaignMessage = error.message ?: "Не удалось удалить игрока из кампании."
+    }
+
+    suspend fun leaveCampaign(campaignId: String): Result<Unit> = runCatching {
+        campaignApi.leaveCampaign(campaignId)
+        campaigns = campaignApi.listCampaigns()
+        campaignDashboard = campaignDashboard?.takeUnless { it.id == campaignId }
+        Unit
+    }.onFailure { error ->
+        campaignMessage = error.message ?: "Не удалось выйти из кампании."
     }
 
     fun requestSync() {
