@@ -104,8 +104,11 @@ fun DublApp() {
     }
 
     LaunchedEffect(chiPackEnabled) {
-        val availableActive = AndroidContentPackState.composition(appContext, chiPackEnabled).active.mapTo(linkedSetOf()) { it.id }
-        cloudController.setEnabledPackIds(cloudController.enabledPackIds + availableActive)
+        val installedIds = AndroidFcpInstaller.listInstalled(appContext).mapTo(linkedSetOf()) { it.id }
+        val optionalAvailable = installedIds + DublChiFcp.PACK_ID
+        val availableActive = AndroidContentPackState.composition(appContext, chiPackEnabled).active
+            .mapTo(linkedSetOf()) { it.id }
+        cloudController.setEnabledPackIds((cloudController.enabledPackIds - optionalAvailable) + availableActive)
     }
 
     LaunchedEffect(chiPackEnabled, controller.snapshot.activeCharacterId) {
