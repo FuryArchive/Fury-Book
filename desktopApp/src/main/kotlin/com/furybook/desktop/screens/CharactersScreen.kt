@@ -309,7 +309,7 @@ fun CharactersScreen(state: DesktopAppState, cloudController: DesktopCloudContro
                                 val nextIds = cloudController.enabledPackIds.toMutableSet().apply {
                                     if (enabled) add(manifest.id) else remove(manifest.id)
                                 }
-                                cloudController.setEnabledPackIds(nextIds)
+                                cloudController.updateEnabledPackIds(nextIds)
                                 cloudController.requestSync()
                                 if (enabled) "${manifest.name} включён." else "${manifest.name} выключен."
                             }.getOrElse { error ->
