@@ -2118,8 +2118,9 @@ private fun GroupActionMenu(
 private fun GroupingManagerDialog(state: DesktopAppState, kind: GroupingKind, onDismiss: () -> Unit) {
     val character = state.activeCharacter
     val skillItems = character.resolvedSkills(includeHidden = true)
-    val developmentRules = DevelopmentRules(character, state.developmentCatalog, DevelopmentProgress(character.development))
-    val developmentItems = developmentRules.ownedSheetSections().flatMap { it.items }.distinctBy { it.entry.id }
+    val developmentItems = character.characterSheetDevelopmentSections(state.developmentCatalog)
+        .flatMap { it.items }
+        .distinctBy { it.entry.id }
     val labels = if (kind == GroupingKind.SKILLS) {
         skillItems.associate { skill ->
             skill.id to if (skill.id in character.hiddenSkillIds) "${skill.name} · скрыто" else skill.name
@@ -2131,11 +2132,17 @@ private fun GroupingManagerDialog(state: DesktopAppState, kind: GroupingKind, on
     val defaults = if (kind == GroupingKind.SKILLS) defaultSkillGroups(skillItems) else defaultDevelopmentGroups(character, state)
     val ungroupedId = if (kind == GroupingKind.SKILLS) "skills:ungrouped" else "development:ungrouped"
     var groups by remember(character.id, kind) {
+        val validIds = labels.keys.toList()
+        val savedGroups = if (kind == GroupingKind.SKILLS) {
+            state.extras.skillGroups
+        } else {
+            ensureMagicSchoolsInSpecialGroup(state.extras.developmentGroups, defaults, validIds)
+        }
         mutableStateOf(
             SheetGroupingRules.normalize(
-                if (kind == GroupingKind.SKILLS) state.extras.skillGroups else state.extras.developmentGroups,
+                savedGroups,
                 defaults,
-                labels.keys.toList(),
+                validIds,
                 ungroupedId,
             ),
         )
