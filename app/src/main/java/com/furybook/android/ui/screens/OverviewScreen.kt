@@ -326,7 +326,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         DevelopmentRules(character, developmentCatalog, DevelopmentProgress(character.development))
     }
     val overviewDevelopmentItems = remember(character, developmentCatalog) {
-        overviewDevelopmentRules.ownedSheetSections().flatMap { it.items }.distinctBy { it.entry.id }
+        character.characterSheetDevelopmentSections(developmentCatalog).flatMap { it.items }.distinctBy { it.entry.id }
     }
     val normalizedDevelopmentGroups = remember(overviewDevelopmentItems, sheetExtras.developmentGroups, character, developmentCatalog) {
         SheetGroupingRules.normalize(
