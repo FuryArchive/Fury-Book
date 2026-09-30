@@ -105,6 +105,29 @@ data class OwnedDevelopment(
     val optionIndex: Int = 0,
 )
 
+internal fun developmentManaRequirementRank(text: String): Int? {
+    val match = Regex(
+        "^(?:Базовый\\s+)?Запас маны(?:\\s*\\(?\\s*(IV|V|III|II|I|\\d+)\\s*\\)?)?",
+        RegexOption.IGNORE_CASE,
+    ).find(text.trim()) ?: return null
+    val token = match.groupValues.getOrNull(1).orEmpty().uppercase()
+    return when (token) {
+        "" -> 1
+        "I" -> 1
+        "II" -> 2
+        "III" -> 3
+        "IV" -> 4
+        "V" -> 5
+        else -> token.toIntOrNull()
+    }
+}
+
+internal fun DublCharacter.effectiveManaRankForDevelopment(): Int =
+    maxOf(
+        magic.manaRank,
+        development[MagicEquipmentRules.BASE_MANA_ENTRY_ID]?.rank ?: 0,
+    ).coerceIn(0, 5)
+
 data class DevelopmentProgress(
     val owned: Map<String, OwnedDevelopment> = emptyMap(),
 ) {
@@ -339,7 +362,13 @@ class DevelopmentRules(
     }
 
     fun featureRank(name: String): Int {
-        if (developmentAlias(name) == developmentAlias("Базовый запас маны")) return character.magic.manaRank
+        val featureAlias = developmentAlias(name)
+        if (
+            featureAlias == developmentAlias("Базовый запас маны") ||
+            featureAlias == developmentAlias("Запас маны")
+        ) {
+            return character.effectiveManaRankForDevelopment()
+        }
         val known = catalog.matchingName(name)
         val preferred = known.filterNot { it.isAbility }.ifEmpty { known }
         return preferred.maxOfOrNull { progress.rank(it.id) } ?: 0
@@ -463,9 +492,12 @@ class DevelopmentRules(
             )
         }
 
-        if (Regex("^(?:Базовый\\s+)?[Зз]апас маны", RegexOption.IGNORE_CASE).containsMatchIn(text)) {
-            val needMana = Regex("(\\d+)").find(text)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 1
-            return valueCheck("Базовый запас маны", character.magic.manaRank, needMana)
+        developmentManaRequirementRank(text)?.let { needMana ->
+            return valueCheck(
+                "Базовый запас маны",
+                character.effectiveManaRankForDevelopment(),
+                needMana,
+            )
         }
         if (developmentNormalize(text).startsWith("заклинание:")) {
             val requested = text.substringAfter(':').trim()
