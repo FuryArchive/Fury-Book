@@ -802,11 +802,22 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                     acquisitionRequest = DevelopmentAcquisitionRequest.single(entry.id, includeTarget = false)
                 },
                 onAcquireAll = { optionIndex ->
-                    acquisitionRequest = DevelopmentAcquisitionRequest.single(
+                    val request = DevelopmentAcquisitionRequest.single(
                         entryId = entry.id,
                         includeTarget = true,
                         optionIndex = optionIndex,
                     )
+                    val plan = DevelopmentAcquisitionPlanner(character, catalog).plan(request)
+                    val simpleTargetOnly = plan.choices.isEmpty() &&
+                        plan.unresolvedRequirements.isEmpty() &&
+                        plan.steps.size == 1 &&
+                        (plan.steps.firstOrNull() as? DevelopmentAcquisitionStep.Development)?.entryId == entry.id
+                    if (simpleTargetOnly && plan.canApply) {
+                        controller.acquireDevelopment(catalog, request)
+                        selectedEntryId = entry.id
+                    } else {
+                        acquisitionRequest = request
+                    }
                 },
                 onOpenEntry = { targetId -> selectedEntryId = targetId },
                 onIncrease = { optionIndex -> increase(entry, optionIndex) },
@@ -833,8 +844,10 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             catalog = catalog,
             request = request,
             onApply = { resolved ->
+                val focusedEntryId = selectedEntryId
                 controller.acquireDevelopment(catalog, resolved)
                 acquisitionRequest = null
+                selectedEntryId = focusedEntryId
             },
             onDismiss = { acquisitionRequest = null },
         )
@@ -2025,6 +2038,7 @@ private fun DevelopmentDetailSheet(
 private fun developmentAcquisitionStepText(step: DevelopmentAcquisitionStep): String = when (step) {
     is DevelopmentAcquisitionStep.Attribute -> "${step.label}: ${step.fromValue} → ${step.toValue} · ${step.xpCost} XP"
     is DevelopmentAcquisitionStep.Skill -> "${step.label}: ${step.fromRank} → ${step.toRank} · ${step.xpCost} XP"
+    is DevelopmentAcquisitionStep.ManaRank -> "${step.label}: ${step.fromRank} → ${step.toRank} · ${step.xpCost} XP"
     is DevelopmentAcquisitionStep.Development -> "${step.label}: ${step.fromRank} → ${step.toRank}" +
         when {
             step.abilityCost > 0 -> " · ${step.abilityCost} ОС"

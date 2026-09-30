@@ -63,6 +63,15 @@ sealed interface DevelopmentAcquisitionStep {
         override val abilityCost: Int = 0
     }
 
+    data class ManaRank(
+        val fromRank: Int,
+        val toRank: Int,
+        override val xpCost: Int,
+    ) : DevelopmentAcquisitionStep {
+        override val label: String = "Запас маны"
+        override val abilityCost: Int = 0
+    }
+
     data class Development(
         val entryId: String,
         val name: String,
@@ -283,8 +292,33 @@ class DevelopmentAcquisitionPlanner(
             return chooseAlternative(state, text, expanded, owner, request, path)
         }
 
-        if (Regex("^(?:Базовый\\s+)?[Зз]апас маны", RegexOption.IGNORE_CASE).containsMatchIn(text) ||
-            developmentNormalize(text).startsWith("заклинание:") ||
+        manaRequirementRankOrNull(text)?.let { needMana ->
+            val current = state.character.magic.manaRank
+            if (current >= needMana) return state
+            if (needMana !in 1..5) {
+                return state.copy(unresolved = state.unresolved + "$text — допустимый ранг запаса маны 1–5")
+            }
+            if (state.character.creationComplete) {
+                return state.copy(unresolved = state.unresolved + "$text — базовый запас маны можно повышать только при создании персонажа")
+            }
+            val withManaRank = state.character.copy(
+                magic = state.character.magic.copy(manaRank = needMana),
+                manaEnabled = true,
+            )
+            val nextCharacter = withManaRank.copy(
+                manaCurrent = withManaRank.effectiveManaMaximum,
+            )
+            return state.copy(
+                character = nextCharacter,
+                steps = state.steps + DevelopmentAcquisitionStep.ManaRank(
+                    fromRank = current,
+                    toRank = needMana,
+                    xpCost = (needMana - current) * 100,
+                ),
+            )
+        }
+
+        if (developmentNormalize(text).startsWith("заклинание:") ||
             Regex("^Знать\\s*\\d+\\s*заклинани", RegexOption.IGNORE_CASE).containsMatchIn(text) ||
             Regex("^Любые (два|три) боевых крика", RegexOption.IGNORE_CASE).containsMatchIn(text)
         ) {
@@ -517,6 +551,7 @@ class DevelopmentAcquisitionPlanner(
                 when {
                     existing is DevelopmentAcquisitionStep.Attribute && step is DevelopmentAcquisitionStep.Attribute -> existing.attribute == step.attribute
                     existing is DevelopmentAcquisitionStep.Skill && step is DevelopmentAcquisitionStep.Skill -> existing.skillId == step.skillId
+                    existing is DevelopmentAcquisitionStep.ManaRank && step is DevelopmentAcquisitionStep.ManaRank -> true
                     existing is DevelopmentAcquisitionStep.Development && step is DevelopmentAcquisitionStep.Development -> existing.entryId == step.entryId
                     else -> false
                 }
@@ -532,6 +567,10 @@ class DevelopmentAcquisitionPlanner(
                         xpCost = existing.xpCost + step.xpCost,
                     )
                     existing is DevelopmentAcquisitionStep.Skill && step is DevelopmentAcquisitionStep.Skill -> existing.copy(
+                        toRank = step.toRank,
+                        xpCost = existing.xpCost + step.xpCost,
+                    )
+                    existing is DevelopmentAcquisitionStep.ManaRank && step is DevelopmentAcquisitionStep.ManaRank -> existing.copy(
                         toRank = step.toRank,
                         xpCost = existing.xpCost + step.xpCost,
                     )

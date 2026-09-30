@@ -23,6 +23,10 @@ import androidx.compose.ui.unit.dp
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DublCharacter
+import com.furybook.dubl.model.FlurryMode
+import com.furybook.dubl.model.FlurryRules
+import com.furybook.dubl.model.FlurryWeaponProfile
+import com.furybook.dubl.model.RollContribution
 import com.furybook.dubl.model.ResolvedSkill
 import com.furybook.dubl.model.RollMode
 import com.furybook.dubl.model.RollResult
@@ -269,10 +273,21 @@ fun ContextRollDialog(
     var result by remember(context) { mutableStateOf<RollResult?>(null) }
     var skillMenu by remember { mutableStateOf(false) }
     var attributeMenu by remember { mutableStateOf(false) }
+    var flurryMode by remember(context) { mutableStateOf(FlurryMode.FULL) }
+    var flurryWeapon by remember(context) { mutableStateOf(FlurryWeaponProfile.ONE_HANDED) }
+    var flurryWeaponMenu by remember { mutableStateOf(false) }
 
     val attrOptions = if (context == RollContext.ATTRIBUTE) AttributeId.entries else context.allowedAttributes(skill?.id)
     val selectedAttribute = initialAttribute?.takeIf { it in attrOptions } ?: attribute?.takeIf { it in attrOptions } ?: attrOptions.firstOrNull()
-    val preset = character.rollPreset(context, skill?.id, selectedAttribute)
+    val basePreset = character.rollPreset(context, skill?.id, selectedAttribute)
+    val flurryProfile = if (context == RollContext.FLURRY) FlurryRules.profile(flurryMode, flurryWeapon) else null
+    val preset = flurryProfile?.let { profile ->
+        basePreset.copy(
+            bonus = basePreset.bonus?.plus(profile.attackBonus),
+            contributions = basePreset.contributions + RollContribution("Шквал", profile.attackBonus),
+            formulaText = basePreset.formulaText + " + Шквал ${signed(profile.attackBonus)}",
+        )
+    } ?: basePreset
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
     val reminders = SkillEffectRules(character, developmentCatalog, effectCatalog)
         .forContext(context)
@@ -295,6 +310,36 @@ fun ContextRollDialog(
                         attrOptions.forEach { option -> DropdownMenuItem(text = { Text(option.title) }, onClick = { attribute = option; attributeMenu = false }) }
                     }
                 }
+                flurryProfile?.let { profile ->
+                    FurySegmentedControl(
+                        options = FlurryMode.entries.map { it.title },
+                        selectedIndex = FlurryMode.entries.indexOf(flurryMode),
+                        onSelected = { index ->
+                            flurryMode = FlurryMode.entries[index]
+                            result = null
+                        },
+                    )
+                    OutlinedButton(onClick = { flurryWeaponMenu = true }) {
+                        Text("Оружие: ${flurryWeapon.title}")
+                    }
+                    DropdownMenu(expanded = flurryWeaponMenu, onDismissRequest = { flurryWeaponMenu = false }) {
+                        FlurryWeaponProfile.entries.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.title) },
+                                onClick = {
+                                    flurryWeapon = option
+                                    flurryWeaponMenu = false
+                                    result = null
+                                },
+                            )
+                        }
+                    }
+                    Text(
+                        "${profile.actionText} · бонус ${signed(profile.attackBonus)} · доп. попадание за каждые ${profile.excessPerHit} превышения · максимум ${profile.maximumHits}. Реакция недоступна.",
+                        color = DublMuted,
+                        style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    )
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(advantageText, { advantageText = it.filter(Char::isDigit).take(1) }, label = { Text("Преим.") }, modifier = Modifier.weight(1f), singleLine = true)
                     OutlinedTextField(hindranceText, { hindranceText = it.filter(Char::isDigit).take(1) }, label = { Text("Помех.") }, modifier = Modifier.weight(1f), singleLine = true)
@@ -311,6 +356,15 @@ fun ContextRollDialog(
                     targetText.toIntOrNull()?.let { target ->
                         val comparison = compareRollToTarget(roll, target)
                         Text("${comparison.outcome} (${signed(comparison.margin)})")
+                        flurryProfile?.let { profile ->
+                            Text(
+                                "Попаданий шквала: ${FlurryRules.hitCount(comparison.margin, profile)} / ${profile.maximumHits}",
+                                color = DublMuted,
+                            )
+                        }
+                    }
+                    if (flurryProfile != null && targetText.toIntOrNull() == null) {
+                        Text("Укажите результат защиты/СЛ, чтобы посчитать попадания шквала.", color = DublMuted)
                     }
                     roll.specialResult?.let { Text(it.title) }
                     roll.note?.let { Text(it, color = DublMuted) }
