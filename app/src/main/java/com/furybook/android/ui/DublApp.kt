@@ -357,6 +357,11 @@ private fun DublNavIcon(
                 drawLine(color, Offset(w * 0.60f, h * 0.16f), Offset(w * 0.68f, h * 0.28f), stroke, cap)
                 drawLine(color, Offset(w * 0.18f, h * 0.47f), Offset(w * 0.82f, h * 0.47f), stroke, cap)
             }
+            AppSection.CAMPAIGN -> {
+                drawCircle(color, radius = w * 0.10f, center = Offset(w * 0.36f, h * 0.42f), style = Stroke(width = stroke))
+                drawCircle(color, radius = w * 0.10f, center = Offset(w * 0.64f, h * 0.42f), style = Stroke(width = stroke))
+                drawLine(color, Offset(w * 0.24f, h * 0.72f), Offset(w * 0.76f, h * 0.72f), stroke, cap)
+            }
             AppSection.MORE -> {
                 listOf(0.30f, 0.50f, 0.70f).forEach { x ->
                     drawCircle(color, radius = w * 0.07f, center = Offset(w * x, h * 0.50f))
