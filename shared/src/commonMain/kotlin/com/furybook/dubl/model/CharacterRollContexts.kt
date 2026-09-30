@@ -9,6 +9,7 @@ enum class RollContext(val title: String) {
     RUN("Бег"),
     DODGE("Уворачивание"),
     ATTACK("Атака"),
+    FLURRY("Шквал атак"),
     PARRY("Парирование"),
     FEINT("Финт"),
     GRAPPLE("Захват"),
@@ -19,15 +20,51 @@ enum class RollContext(val title: String) {
     BREAK_ITEM("Поломка предмета"),
 }
 
+enum class FlurryWeaponProfile(
+    val title: String,
+    val attackBonus: Int,
+    val excessPerHit: Int,
+    val maxHits: Int,
+    val twoWeapons: Boolean = false,
+) {
+    LIGHT("Одно лёгкое оружие", 4, 2, 3),
+    ONE_HANDED("Одноручное оружие", 3, 3, 3),
+    TWO_HANDED("Двуручное оружие", 2, 4, 3),
+    TWO_WEAPONS_LIGHT("Два оружия · самое тяжёлое лёгкое", 2, 2, 6, true),
+    TWO_WEAPONS_ONE_HANDED("Два оружия · самое тяжёлое одноручное", 2, 3, 6, true),
+    TWO_WEAPONS_TWO_HANDED("Два оружия · самое тяжёлое двуручное", 2, 4, 6, true),
+}
+
+data class FlurryAttackRule(
+    val attackBonus: Int,
+    val excessPerHit: Int,
+    val maxHits: Int,
+    val shortExcessPenalty: Int,
+    val actionCost: String,
+    val reactionAllowed: Boolean,
+    val alternateWeaponDamage: Boolean,
+)
+
+fun FlurryWeaponProfile.rule(short: Boolean): FlurryAttackRule = FlurryAttackRule(
+    // Core 3.69 uses the general division rule: fractions are rounded up.
+    attackBonus = if (short) (attackBonus + 1) / 2 else attackBonus,
+    excessPerHit = excessPerHit,
+    maxHits = maxHits,
+    shortExcessPenalty = if (short) 1 else 0,
+    actionCost = if (short) "2 ОД" else "полный раунд",
+    reactionAllowed = false,
+    alternateWeaponDamage = twoWeapons,
+)
+
 fun RollContext.allowedSkillIds(): List<String> = when (this) {
-    RollContext.ATTACK, RollContext.BREAK_ITEM -> listOf("unarmed", "melee_weapon", "shooting", "throwing")
+    RollContext.ATTACK, RollContext.FLURRY, RollContext.BREAK_ITEM -> listOf("unarmed", "melee_weapon", "shooting", "throwing")
     RollContext.PARRY, RollContext.DISARM -> listOf("unarmed", "melee_weapon")
     RollContext.FEINT -> listOf("eloquence", "unarmed", "melee_weapon")
     else -> emptyList()
 }
 
 fun RollContext.allowedAttributes(skillId: String?): List<AttributeId> = when (this) {
-    RollContext.ATTACK, RollContext.BREAK_ITEM -> when (skillId) {
+    RollContext.ATTACK, RollContext.FLURRY, RollContext.BREAK_ITEM -> when (skillId) {
         "shooting" -> listOf(AttributeId.PERCEPTION, AttributeId.DEXTERITY)
         "throwing", "unarmed", "melee_weapon" -> listOf(AttributeId.DEXTERITY, AttributeId.STRENGTH)
         else -> emptyList()
@@ -98,6 +135,7 @@ fun DublCharacter.rollPreset(
             formulaOverride = "2d6 + Рефлексы + ситуационные бонусы защиты",
         )
         RollContext.ATTACK -> attackLikePreset(context, skillId ?: "melee_weapon", attribute)
+        RollContext.FLURRY -> attackLikePreset(context, skillId ?: "melee_weapon", attribute)
         RollContext.PARRY -> {
             val base = attackLikePreset(context, skillId ?: "melee_weapon", attribute)
             base.withDevelopmentBonus("Фехтовальщик", developmentRank(DevelopmentEffectIds.FENCER))
