@@ -50,7 +50,9 @@ class DesktopCloudController(
         private set
     var lastSyncedBy by mutableStateOf<String?>(null)
         private set
-    var enabledPackIds by mutableStateOf<Set<String>>(emptySet())\n        private set\n    var reloadToken by mutableIntStateOf(0)
+    var enabledPackIds by mutableStateOf<Set<String>>(emptySet())
+        private set
+    var reloadToken by mutableIntStateOf(0)
         private set
 
     init {
@@ -72,9 +74,11 @@ class DesktopCloudController(
         extras.onDeleted = { scheduleSync() }
     }
 
-    fun setChiEnabled(enabled: Boolean) {
-        if (chiEnabled == enabled) return
-        chiEnabled = enabled
+    fun setEnabledPackIds(ids: Set<String>) {
+        val normalized = ids.filter(String::isNotBlank).toSet()
+        if (localEnabledPackIds == normalized) return
+        localEnabledPackIds = normalized
+        enabledPackIds = normalized
         if (session != null) scheduleSync()
     }
 
@@ -206,7 +210,8 @@ class DesktopCloudController(
     }
 
     private fun updateBootstrap(bootstrap: CloudBootstrap) {
-        nickname = bootstrap.nickname\n        enabledPackIds = bootstrap.enabledPackIds
+        nickname = bootstrap.nickname
+        enabledPackIds = bootstrap.enabledPackIds
         val newest = bootstrap.characters.maxByOrNull { it.updatedAt }
         lastSyncedAt = newest?.updatedAt
         lastSyncedBy = newest?.updatedBy
