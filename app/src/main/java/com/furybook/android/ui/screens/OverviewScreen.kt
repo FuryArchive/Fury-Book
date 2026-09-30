@@ -116,6 +116,7 @@ import com.furybook.dubl.model.CustomResource
 import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DevelopmentEntry
 import com.furybook.dubl.model.DevelopmentSheetItem
+import com.furybook.dubl.model.DevelopmentSheetItemSource
 import com.furybook.dubl.model.DevelopmentSheetSection
 import com.furybook.dubl.model.DevelopmentSheetSectionType
 import com.furybook.dubl.model.DevelopmentProgress
@@ -2082,7 +2083,9 @@ private fun LazyListScope.ownedDevelopmentSectionItems(
                                 displayDepth = SheetGroupingRules.localDepth(item.entry.id, groupIds, parentById),
                                 invalid = item.entry.id in invalidIds,
                                 modifier = Modifier.fillMaxWidth(),
-                                onClick = { onEntryClick(item.entry) },
+                                onClick = if (item.source == DevelopmentSheetItemSource.DEVELOPMENT) {
+                                    { onEntryClick(item.entry) }
+                                } else null,
                             )
                         }
                     }
@@ -2227,13 +2230,14 @@ private fun CompactDevelopmentTile(
     displayDepth: Int,
     invalid: Boolean,
     modifier: Modifier = Modifier,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
 ) {
     val accent = if (invalid) DublDanger else developmentAccent(item.entry)
+    val interactiveModifier = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Surface(
         modifier = modifier
             .clip(RoundedCornerShape(9.dp))
-            .clickable(onClick = onClick),
+            .then(interactiveModifier),
         shape = RoundedCornerShape(9.dp),
         color = accent.copy(alpha = 0.04f),
         border = BorderStroke(1.dp, accent.copy(alpha = if (invalid) 0.62f else 0.30f)),
