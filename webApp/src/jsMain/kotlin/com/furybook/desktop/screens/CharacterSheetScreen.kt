@@ -106,6 +106,8 @@ import com.furybook.dubl.model.SkillCategory
 import com.furybook.dubl.model.SkillEffectRules
 import com.furybook.dubl.model.resolvedSkills
 import com.furybook.dubl.model.displayNotes
+import com.furybook.dubl.model.characterSheetDevelopmentSections
+import com.furybook.dubl.model.isMagicSchoolSheetEntryId
 import com.furybook.dubl.model.skillCalculationForRoll
 import com.furybook.desktop.DesktopAppState
 import kotlinx.coroutines.delay
@@ -232,6 +234,14 @@ fun CharacterSheetScreen(
                     onGrouping = { grouping = it },
                     onDevelopmentDetails = { sheetDevelopmentEntry = it },
                     onNavigateDevelopment = onNavigateDevelopment,
+                    onNavigateMagic = onNavigateMagic,
+                )
+            }
+
+            item {
+                QuickCombatActionsPanel(
+                    onRoll = { context -> rollRequest = ContextRollRequest(context) },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
 
@@ -898,6 +908,7 @@ private fun SkillsDevelopmentWorkspace(
     onGrouping: (GroupingKind) -> Unit,
     onDevelopmentDetails: (DevelopmentEntry) -> Unit,
     onNavigateDevelopment: () -> Unit,
+    onNavigateMagic: () -> Unit,
 ) {
     if (compact) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -906,7 +917,7 @@ private fun SkillsDevelopmentWorkspace(
                 Modifier.fillMaxWidth(),
             )
             SheetDevelopmentPanel(
-                state, character, extras, onGrouping, onDevelopmentDetails, onNavigateDevelopment,
+                state, character, extras, onGrouping, onDevelopmentDetails, onNavigateDevelopment, onNavigateMagic,
                 Modifier.fillMaxWidth(),
             )
         }
@@ -924,7 +935,7 @@ private fun SkillsDevelopmentWorkspace(
             }
             Box(Modifier.weight(.65f)) {
                 SheetDevelopmentPanel(
-                    state, character, extras, onGrouping, onDevelopmentDetails, onNavigateDevelopment,
+                    state, character, extras, onGrouping, onDevelopmentDetails, onNavigateDevelopment, onNavigateMagic,
                     Modifier.fillMaxWidth(),
                 )
             }
@@ -1213,13 +1224,19 @@ private fun SheetDevelopmentPanel(
     onGrouping: (GroupingKind) -> Unit,
     onDevelopmentDetails: (DevelopmentEntry) -> Unit,
     onNavigateDevelopment: () -> Unit,
+    onNavigateMagic: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val rules = remember(character.development, character.developmentOverrides, character.customDevelopmentEntries) {
-        DevelopmentRules(character, state.developmentCatalog, DevelopmentProgress(character.development))
-    }
-    val developmentItems = remember(rules) {
-        rules.ownedSheetSections().flatMap { it.items }.distinctBy { it.entry.id }
+    val developmentItems = remember(
+        character.development,
+        character.developmentOverrides,
+        character.customDevelopmentEntries,
+        character.magic.schools,
+        state.developmentCatalog,
+    ) {
+        character.characterSheetDevelopmentSections(state.developmentCatalog)
+            .flatMap { it.items }
+            .distinctBy { it.entry.id }
     }
     val developmentDefaults = defaultDevelopmentGroups(character, state)
     val developmentGroups = SheetGroupingRules.normalize(
@@ -1291,7 +1308,10 @@ private fun SheetDevelopmentPanel(
                                                     DevelopmentTreeRow(
                                                         item = item,
                                                         displayDepth = SheetGroupingRules.localDepth(item.entry.id, groupIds, parentById),
-                                                        onClick = { onDevelopmentDetails(item.entry) },
+                                                        onClick = {
+                                                            if (isMagicSchoolSheetEntryId(item.entry.id)) onNavigateMagic()
+                                                            else onDevelopmentDetails(item.entry)
+                                                        },
                                                     )
                                                 }
                                             }
@@ -1307,6 +1327,48 @@ private fun SheetDevelopmentPanel(
     }
 }
 
+
+@Composable
+private fun QuickCombatActionsPanel(
+    onRoll: (RollContext) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val contexts = listOf(
+        RollContext.DODGE,
+        RollContext.ATTACK,
+        RollContext.FLURRY,
+        RollContext.PARRY,
+        RollContext.FEINT,
+        RollContext.GRAPPLE,
+        RollContext.DISARM,
+        RollContext.TRIP,
+        RollContext.PUSH,
+        RollContext.KNOCKDOWN,
+        RollContext.BREAK_ITEM,
+    )
+    DesktopPanel(modifier) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            DesktopSectionHeader(
+                "Боевые действия",
+                subtitle = "Быстрые проверки без отдельного боевого состояния",
+                icon = DesktopIconKind.DEFENSE,
+            )
+            contexts.chunked(4).forEach { rowContexts ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    rowContexts.forEach { context ->
+                        OutlinedButton(
+                            onClick = { onRoll(context) },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text(context.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                    repeat(4 - rowContexts.size) { Spacer(Modifier.weight(1f)) }
+                }
+            }
+        }
+    }
+}
 
 private fun rankLabel(rank: Int): String = when (rank) {
     1 -> "I"
@@ -2436,7 +2498,7 @@ private fun defaultSkillGroups(skills: List<com.furybook.dubl.model.ResolvedSkil
     skills.filter { it.category == category }.map { it.id }.takeIf { it.isNotEmpty() }?.let { SheetGroup("skills:${category.name}", category.title, it) }
 }
 
-private fun defaultDevelopmentGroups(character: DublCharacter, state: DesktopAppState): List<SheetGroup> = DevelopmentRules(character, state.developmentCatalog, DevelopmentProgress(character.development)).ownedSheetSections().map { section ->
+private fun defaultDevelopmentGroups(character: DublCharacter, state: DesktopAppState): List<SheetGroup> = character.characterSheetDevelopmentSections(state.developmentCatalog).map { section ->
     SheetGroup(
         "development:${section.type.name}",
         when (section.type) {
