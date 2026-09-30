@@ -225,6 +225,10 @@ fun CharacterSheetScreen(
             }
 
             item {
+                CombatActionsPanel(onRoll = { context -> rollRequest = ContextRollRequest(context) })
+            }
+
+            item {
                 SkillsDevelopmentWorkspace(
                     state = state,
                     character = character,
@@ -374,6 +378,48 @@ fun CharacterSheetScreen(
     grouping?.let { kind -> GroupingManagerDialog(state, kind, onDismiss = { grouping = null }) }
 }
 
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CombatActionsPanel(
+    onRoll: (RollContext) -> Unit,
+) {
+    val contexts = listOf(
+        RollContext.DODGE,
+        RollContext.ATTACK,
+        RollContext.FLURRY,
+        RollContext.PARRY,
+        RollContext.FEINT,
+        RollContext.GRAPPLE,
+        RollContext.DISARM,
+        RollContext.TRIP,
+        RollContext.PUSH,
+        RollContext.KNOCKDOWN,
+        RollContext.BREAK_ITEM,
+    )
+    DesktopPanel(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            DesktopSectionHeader(
+                "Боевые действия",
+                subtitle = "Быстрые проверки по правилам боя",
+                icon = DesktopIconKind.DEFENSE,
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp),
+            ) {
+                contexts.forEach { context ->
+                    OutlinedButton(
+                        onClick = { onRoll(context) },
+                        modifier = Modifier.widthIn(min = 118.dp),
+                    ) {
+                        Text(context.title, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
