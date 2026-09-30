@@ -34,7 +34,7 @@ class DesktopCloudController(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var coordinator: NativeCloudSyncCoordinator? = null
     private var scheduledJob: Job? = null
-    private var chiEnabled = false
+    private var localEnabledPackIds: Set<String> = emptySet()
 
     var session by mutableStateOf(gateway.currentSession())
         private set
@@ -50,7 +50,7 @@ class DesktopCloudController(
         private set
     var lastSyncedBy by mutableStateOf<String?>(null)
         private set
-    var reloadToken by mutableIntStateOf(0)
+    var enabledPackIds by mutableStateOf<Set<String>>(emptySet())\n        private set\n    var reloadToken by mutableIntStateOf(0)
         private set
 
     init {
@@ -142,7 +142,7 @@ class DesktopCloudController(
         val active = coordinator ?: return
         status = NativeCloudStatus.SYNCING
         val before = localSignature()
-        runCatching { active.useCloud(chiEnabled) }
+        runCatching { active.useCloud(localEnabledPackIds) }
             .onSuccess { outcome ->
                 conflicts = emptyList()
                 applyOutcome(outcome)
@@ -155,7 +155,7 @@ class DesktopCloudController(
         val active = coordinator ?: return
         status = NativeCloudStatus.SYNCING
         val before = localSignature()
-        runCatching { active.keepLocal(conflict, chiEnabled) }
+        runCatching { active.keepLocal(conflict, localEnabledPackIds) }
             .onSuccess { outcome ->
                 applyOutcome(outcome)
                 if (before != localSignature()) reloadToken += 1
@@ -182,7 +182,7 @@ class DesktopCloudController(
         }
         val before = localSignature()
         runCatching {
-            if (firstLinkAllowed) active.linkOrResume(chiEnabled) else active.syncNow(chiEnabled)
+            if (firstLinkAllowed) active.linkOrResume(localEnabledPackIds) else active.syncNow(localEnabledPackIds)
         }.onSuccess { outcome ->
             applyOutcome(outcome)
             if (before != localSignature()) reloadToken += 1
@@ -206,7 +206,7 @@ class DesktopCloudController(
     }
 
     private fun updateBootstrap(bootstrap: CloudBootstrap) {
-        nickname = bootstrap.nickname
+        nickname = bootstrap.nickname\n        enabledPackIds = bootstrap.enabledPackIds
         val newest = bootstrap.characters.maxByOrNull { it.updatedAt }
         lastSyncedAt = newest?.updatedAt
         lastSyncedBy = newest?.updatedBy
