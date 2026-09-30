@@ -279,10 +279,11 @@ fun ContextRollDialog(
     val selectedAttribute = initialAttribute?.takeIf { it in attrOptions } ?: attribute?.takeIf { it in attrOptions } ?: attrOptions.firstOrNull()
     val basePreset = character.rollPreset(context, skill?.id, selectedAttribute)
     val flurryRule = if (context == RollContext.FLURRY) flurryProfile.rule(shortFlurry) else null
-    val preset = if (flurryRule != null && basePreset.bonus != null) {
+    val baseBonus = basePreset.bonus
+    val preset = if (flurryRule != null && baseBonus != null) {
         val label = if (shortFlurry) "Короткий шквал" else "Шквал атак"
         basePreset.copy(
-            bonus = basePreset.bonus + flurryRule.attackBonus,
+            bonus = baseBonus + flurryRule.attackBonus,
             contributions = basePreset.contributions + com.furybook.dubl.model.RollContribution(label, flurryRule.attackBonus),
             formulaText = "${basePreset.formulaText} + $label",
         )
