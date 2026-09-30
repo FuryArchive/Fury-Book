@@ -92,7 +92,7 @@ fun DublApp() {
     val chiDevelopmentIds = remember(appContext) { AndroidContentPackState.chiDevelopmentIds(appContext) }
 
     LaunchedEffect(cloudController) {
-        cloudController.setEnabledPackIds(
+        cloudController.updateEnabledPackIds(
             AndroidContentPackState.composition(appContext, chiPackEnabled).active.mapTo(linkedSetOf()) { it.id },
         )
         cloudController.restoreAndSync()
@@ -109,7 +109,7 @@ fun DublApp() {
         val optionalAvailable = installedIds + DublChiFcp.PACK_ID
         val availableActive = AndroidContentPackState.composition(appContext, chiPackEnabled).active
             .mapTo(linkedSetOf()) { it.id }
-        cloudController.setEnabledPackIds((cloudController.enabledPackIds - optionalAvailable) + availableActive)
+        cloudController.updateEnabledPackIds((cloudController.enabledPackIds - optionalAvailable) + availableActive)
     }
 
     LaunchedEffect(chiPackEnabled, controller.snapshot.activeCharacterId) {
@@ -170,7 +170,7 @@ fun DublApp() {
                             val nextIds = cloudController.enabledPackIds.toMutableSet().apply {
                                 if (enabled) add(packId) else remove(packId)
                             }
-                            cloudController.setEnabledPackIds(nextIds)
+                            cloudController.updateEnabledPackIds(nextIds)
                             cloudController.requestSync()
                         },
                     )
