@@ -50,6 +50,7 @@ import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.android.ui.components.dismissKeyboardOnPointerDown
 import com.furybook.android.ui.screens.CharactersScreen
+import com.furybook.android.ui.screens.CampaignScreen
 import com.furybook.android.ui.screens.EquipmentScreen
 import com.furybook.android.ui.screens.FeatsScreen
 import com.furybook.android.ui.screens.MagicScreen
@@ -67,6 +68,7 @@ private enum class AppSection(val label: String) {
     FEATS("Навыки"),
     MAGIC("Магия"),
     INVENTORY("Вещи"),
+    CAMPAIGN("Кампания"),
     MORE("Ещё"),
 }
 
@@ -160,6 +162,11 @@ fun DublApp() {
                     AppSection.FEATS -> FeatsScreen(controller, chiPackEnabled)
                     AppSection.MAGIC -> MagicScreen(controller)
                     AppSection.INVENTORY -> EquipmentScreen(controller)
+                    AppSection.CAMPAIGN -> CampaignScreen(
+                        controller = controller,
+                        cloudController = cloudController,
+                        onBack = { selected = AppSection.MORE },
+                    )
                     AppSection.MORE -> CharactersScreen(
                         controller = controller,
                         cloudController = cloudController,
@@ -173,6 +180,7 @@ fun DublApp() {
                             cloudController.updateEnabledPackIds(nextIds)
                             cloudController.requestSync()
                         },
+                        onOpenCampaign = { selected = AppSection.CAMPAIGN },
                     )
                 }
             }
@@ -247,7 +255,7 @@ private fun DublBottomBar(
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                AppSection.entries.forEach { section ->
+                AppSection.entries.filter { it != AppSection.CAMPAIGN }.forEach { section ->
                     val active = selected == section
                     Surface(
                         modifier = Modifier
