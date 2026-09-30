@@ -34,6 +34,7 @@ internal enum class DesktopSection(val label: String) {
     DEVELOPMENT("Навыки"),
     MAGIC("Магия"),
     EQUIPMENT("Снаряжение"),
+    CAMPAIGN("Кампания"),
     CHARACTERS("Ещё"),
 }
 
@@ -145,6 +146,7 @@ private fun WebRoot() {
 
                 FuryWebApp(
                     state = state,
+                    cloud = cloud,
                     accountName = cloud.profileNickname.ifBlank { activeSession.email.substringBefore('@') },
                     accountEmail = activeSession.email,
                     onSignOut = {
@@ -510,6 +512,7 @@ private fun DesktopVisualTheme(content: @Composable () -> Unit) {
 @Composable
 private fun FuryWebApp(
     state: DesktopAppState,
+    cloud: WebCloudSync,
     accountName: String,
     accountEmail: String,
     onSignOut: () -> Unit,
@@ -527,7 +530,7 @@ private fun FuryWebApp(
                     if (selected == DesktopSection.CHARACTERS) {
                         MobileAccountStrip(accountName, accountEmail, onSignOut)
                     }
-                    DesktopContent(state, selected, layout, { selected = it }, Modifier.weight(1f))
+                    DesktopContent(state, cloud, selected, layout, { selected = it }, Modifier.weight(1f))
                 }
             }
         } else {
@@ -541,7 +544,7 @@ private fun FuryWebApp(
                     onSignOut = onSignOut,
                     modifier = Modifier.width(230.dp).fillMaxHeight(),
                 )
-                DesktopContent(state, selected, layout, { selected = it }, Modifier.weight(1f))
+                DesktopContent(state, cloud, selected, layout, { selected = it }, Modifier.weight(1f))
             }
         }
     }
@@ -710,12 +713,14 @@ private val DesktopSection.iconKind: DesktopIconKind
         DesktopSection.DEVELOPMENT -> DesktopIconKind.DEVELOPMENT
         DesktopSection.MAGIC -> DesktopIconKind.MAGIC
         DesktopSection.EQUIPMENT -> DesktopIconKind.EQUIPMENT
+        DesktopSection.CAMPAIGN -> DesktopIconKind.CHARACTERS
         DesktopSection.CHARACTERS -> DesktopIconKind.CHARACTERS
     }
 
 @Composable
 private fun DesktopContent(
     state: DesktopAppState,
+    cloud: WebCloudSync,
     section: DesktopSection,
     layout: DublLayoutClass,
     onNavigate: (DesktopSection) -> Unit,
@@ -759,6 +764,7 @@ private fun DesktopContent(
                 DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
                 DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
                 DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
+                DesktopSection.CAMPAIGN -> CampaignScreen(state, cloud, animatedPageModifier)
                 DesktopSection.CHARACTERS -> CharactersScreen(state, animatedPageModifier)
             }
         }
