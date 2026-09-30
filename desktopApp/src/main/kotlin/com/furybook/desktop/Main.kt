@@ -46,6 +46,7 @@ import com.furybook.ui.layout.DublLayoutClass
 import com.furybook.ui.layout.layoutClassForWidth
 import com.furybook.ui.theme.DublTheme
 import com.furybook.desktop.screens.CharacterSheetScreen
+import com.furybook.desktop.screens.CampaignScreen
 import com.furybook.desktop.screens.CharactersScreen
 import com.furybook.desktop.screens.DevelopmentScreen
 import com.furybook.desktop.screens.DesktopIcon
@@ -76,6 +77,7 @@ internal enum class DesktopSection(val label: String) {
     DEVELOPMENT("Навыки"),
     MAGIC("Магия"),
     EQUIPMENT("Снаряжение"),
+    CAMPAIGN("Кампания"),
     CHARACTERS("Персонажи"),
 }
 
@@ -293,6 +295,7 @@ private val DesktopSection.iconKind: DesktopIconKind
         DesktopSection.DEVELOPMENT -> DesktopIconKind.DEVELOPMENT
         DesktopSection.MAGIC -> DesktopIconKind.MAGIC
         DesktopSection.EQUIPMENT -> DesktopIconKind.EQUIPMENT
+        DesktopSection.CAMPAIGN -> DesktopIconKind.CHARACTERS
         DesktopSection.CHARACTERS -> DesktopIconKind.CHARACTERS
     }
 
@@ -343,6 +346,7 @@ private fun DesktopContent(
                 DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
                 DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
                 DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
+                DesktopSection.CAMPAIGN -> CampaignScreen(state, cloudController, animatedPageModifier)
                 DesktopSection.CHARACTERS -> CharactersScreen(state, cloudController, animatedPageModifier)
             }
         }
