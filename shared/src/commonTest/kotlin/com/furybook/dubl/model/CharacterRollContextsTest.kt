@@ -47,4 +47,44 @@ class CharacterRollContextsTest {
         assertEquals(7, character.rollPreset(RollContext.PUSH).bonus)
         assertEquals(7, character.rollPreset(RollContext.KNOCKDOWN).bonus)
     }
+
+    @Test
+    fun flurryUsesAttackSkillsAndCoreWeaponTable() {
+        assertEquals(
+            listOf("unarmed", "melee_weapon", "shooting", "throwing"),
+            RollContext.FLURRY.allowedSkillIds(),
+        )
+        assertEquals(
+            listOf(AttributeId.DEXTERITY, AttributeId.STRENGTH),
+            RollContext.FLURRY.allowedAttributes("melee_weapon"),
+        )
+
+        val full = FlurryWeaponProfile.LIGHT.rule(short = false)
+        assertEquals(4, full.attackBonus)
+        assertEquals(2, full.excessPerHit)
+        assertEquals(3, full.maxHits)
+        assertEquals(0, full.shortExcessPenalty)
+        assertEquals("полный раунд", full.actionCost)
+        assertEquals(false, full.reactionAllowed)
+
+        val shortOneHanded = FlurryWeaponProfile.ONE_HANDED.rule(short = true)
+        assertEquals(2, shortOneHanded.attackBonus)
+        assertEquals(3, shortOneHanded.excessPerHit)
+        assertEquals(1, shortOneHanded.shortExcessPenalty)
+        assertEquals("2 ОД", shortOneHanded.actionCost)
+
+        val twoWeapons = FlurryWeaponProfile.TWO_WEAPONS_TWO_HANDED.rule(short = false)
+        assertEquals(2, twoWeapons.attackBonus)
+        assertEquals(4, twoWeapons.excessPerHit)
+        assertEquals(6, twoWeapons.maxHits)
+        assertEquals(true, twoWeapons.alternateWeaponDamage)
+    }
+
+    @Test
+    fun shortFlurryRoundsHalfBonusUp() {
+        assertEquals(2, FlurryWeaponProfile.LIGHT.rule(short = true).attackBonus)
+        assertEquals(2, FlurryWeaponProfile.ONE_HANDED.rule(short = true).attackBonus)
+        assertEquals(1, FlurryWeaponProfile.TWO_HANDED.rule(short = true).attackBonus)
+    }
+
 }
