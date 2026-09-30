@@ -140,14 +140,14 @@ private fun DesktopApp() {
     var selected by remember { mutableStateOf(DesktopSection.SHEET) }
 
     LaunchedEffect(cloudController) {
-        cloudController.setEnabledPackIds(state.enabledContentPackIds())
+        cloudController.updateEnabledPackIds(state.enabledContentPackIds())
         cloudController.restoreAndSync()
         state.applyCloudContentPackState(cloudController.enabledPackIds)
     }
     LaunchedEffect(state.chiPackEnabled) {
         val availableIds = state.contentPackComposition.available.mapTo(linkedSetOf()) { it.id }
         val activeIds = state.enabledContentPackIds()
-        cloudController.setEnabledPackIds((cloudController.enabledPackIds - availableIds) + activeIds)
+        cloudController.updateEnabledPackIds((cloudController.enabledPackIds - availableIds) + activeIds)
     }
 
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
