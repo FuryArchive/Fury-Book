@@ -44,7 +44,7 @@ data class CloudCharacter(
 data class CloudBootstrap(
     val nickname: String,
     val activeCharacterId: String,
-    val chiEnabled: Boolean,
+    val enabledPackIds: Set<String>,
     val stateRevision: Int,
     val characters: List<CloudCharacter>,
 )
@@ -90,13 +90,13 @@ class FuryNativeCloudApi(private val transport: FuryCloudTransport) {
     suspend fun link(
         snapshot: AppSnapshot,
         extras: Map<String, CharacterSheetExtras>,
-        chiEnabled: Boolean,
+        enabledPackIds: Set<String>,
         device: String,
     ): CloudBootstrap {
         val body = jsonObject(
             "p_snapshot" to jsonString(SnapshotCodec.encode(snapshot)),
             "p_extras" to CloudProtocol.extrasValue(extras),
-            "p_pack_state" to jsonObject("chiEnabled" to jsonBoolean(chiEnabled)),
+            "p_pack_state" to CloudProtocol.packStateValue(enabledPackIds),
             "p_device" to jsonString(device),
         )
         return CloudProtocol.parseBootstrap(transport.rpc("native_link_device", jsonStringify(body)))
@@ -108,7 +108,7 @@ class FuryNativeCloudApi(private val transport: FuryCloudTransport) {
         dirtyIds: Set<String>,
         deletedIds: Set<String>,
         knownRevisions: Map<String, Int>,
-        chiEnabled: Boolean,
+        enabledPackIds: Set<String>,
         knownStateRevision: Int,
         device: String,
     ): NativeSyncResponse {
@@ -118,7 +118,7 @@ class FuryNativeCloudApi(private val transport: FuryCloudTransport) {
             "p_dirty_ids" to jsonArray(dirtyIds.map(::jsonString)),
             "p_deleted_ids" to jsonArray(deletedIds.map(::jsonString)),
             "p_known_revisions" to JsonValue.Obj(knownRevisions.mapValues { jsonNumber(it.value) }),
-            "p_pack_state" to jsonObject("chiEnabled" to jsonBoolean(chiEnabled)),
+            "p_pack_state" to CloudProtocol.packStateValue(enabledPackIds),
             "p_known_state_revision" to jsonNumber(knownStateRevision),
             "p_device" to jsonString(device),
         )
@@ -177,14 +177,14 @@ class NativeCloudSyncCoordinator(
         )
     }
 
-    suspend fun linkOrResume(chiEnabled: Boolean): NativeSyncOutcome {
+    suspend fun linkOrResume(enabledPackIds: Set<String>): NativeSyncOutcome {
         val local = characterStore.load()
         val localExtras = loadExtras(local)
         val metadata = metadataStore.load()
         val cloud = api.bootstrap()
 
         if (metadata.linkedUserId == userId) {
-            return syncNow(chiEnabled)
+            return syncNow(enabledPackIds)
         }
 
         if (cloud.characters.isNotEmpty() && isPristineLocal(local, localExtras)) {
@@ -199,7 +199,7 @@ class NativeCloudSyncCoordinator(
         return NativeSyncOutcome.Synced(merged)
     }
 
-    suspend fun syncNow(chiEnabled: Boolean): NativeSyncOutcome {
+    suspend fun syncNow(enabledPackIds: Set<String>): NativeSyncOutcome {
         var metadata = metadataStore.load()
         if (metadata.linkedUserId != userId) return linkOrResume(chiEnabled)
 
@@ -210,7 +210,7 @@ class NativeCloudSyncCoordinator(
             dirtyIds = metadata.dirtyIds,
             deletedIds = metadata.deletedIds,
             knownRevisions = metadata.knownRevisions,
-            chiEnabled = chiEnabled,
+            enabledPackIds = enabledPackIds,
             knownStateRevision = metadata.stateRevision,
             device = deviceLabel,
         )
@@ -224,20 +224,20 @@ class NativeCloudSyncCoordinator(
         return NativeSyncOutcome.Synced(response.bootstrap)
     }
 
-    suspend fun useCloud(chiEnabled: Boolean): NativeSyncOutcome {
+    suspend fun useCloud(enabledPackIds: Set<String>): NativeSyncOutcome {
         val cloud = api.bootstrap()
         applyBootstrap(cloud)
         saveCleanMetadata(cloud)
         return NativeSyncOutcome.Synced(cloud)
     }
 
-    suspend fun keepLocal(conflict: NativeSyncConflict, chiEnabled: Boolean): NativeSyncOutcome {
+    suspend fun keepLocal(conflict: NativeSyncConflict, enabledPackIds: Set<String>): NativeSyncOutcome {
         val local = characterStore.load()
         val characterJson = if (conflict.deleteRequested) {
             "{}"
         } else {
             CloudProtocol.characterJson(local, conflict.characterId)
-                ?: return useCloud(chiEnabled)
+                ?: return useCloud(enabledPackIds)
         }
         val extrasJson = if (conflict.deleteRequested) {
             "{}"
@@ -252,7 +252,7 @@ class NativeCloudSyncCoordinator(
                 deletedIds = current.deletedIds - conflict.characterId,
             ),
         )
-        return syncNow(chiEnabled)
+        return syncNow(enabledPackIds)
     }
 
     fun unlinkPreservingLocal() {
@@ -346,6 +346,19 @@ internal object CloudProtocol {
         return jsonStringify(item)
     }
 
+    fun packStateValue(enabledPackIds: Set<String>): JsonValue.Obj = jsonObject(
+        "version" to jsonNumber(2),
+        "enabledPackIds" to jsonArray(enabledPackIds.sorted().map(::jsonString)),
+    )
+
+    private fun parseEnabledPackIds(pack: JsonValue.Obj?): Set<String> {
+        if (pack == null) return emptySet()
+        val ids = pack.array("enabledPackIds").mapNotNull { it.asString() }.filter(String::isNotBlank).toSet()
+        if (ids.isNotEmpty()) return ids
+        // Backward compatibility with Fury Book 0.6 cloud state.
+        return if (pack.bool("chiEnabled", false)) setOf("dubl-chi-3.69") else emptySet()
+    }
+
     fun extrasValue(extras: Map<String, CharacterSheetExtras>): JsonValue.Obj =
         jsonObject(
             "version" to jsonNumber(1),
@@ -402,7 +415,7 @@ internal object CloudProtocol {
         return CloudBootstrap(
             nickname = profile?.string("nickname").orEmpty(),
             activeCharacterId = state?.string("activeCharacterId").orEmpty(),
-            chiEnabled = pack?.bool("chiEnabled", false) ?: false,
+            enabledPackIds = parseEnabledPackIds(pack),
             stateRevision = state?.int("revision", 0) ?: 0,
             characters = characters,
         )
