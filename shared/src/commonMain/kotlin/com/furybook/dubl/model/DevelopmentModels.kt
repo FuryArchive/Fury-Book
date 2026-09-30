@@ -463,9 +463,8 @@ class DevelopmentRules(
             )
         }
 
-        if (Regex("^(?:Базовый\\s+)?[Зз]апас маны", RegexOption.IGNORE_CASE).containsMatchIn(text)) {
-            val needMana = Regex("(\\d+)").find(text)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 1
-            return valueCheck("Базовый запас маны", character.magic.manaRank, needMana)
+        manaRequirementRankOrNull(text)?.let { needMana ->
+            return valueCheck("Запас маны", character.magic.manaRank, needMana)
         }
         if (developmentNormalize(text).startsWith("заклинание:")) {
             val requested = text.substringAfter(':').trim()
