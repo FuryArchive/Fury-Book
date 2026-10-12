@@ -31,6 +31,7 @@ def test_legacy_planner_requires_canonical_context_and_cannot_write_or_create_un
     sources += sorted((shared / "com/furybook/dubl/application").glob("*.kt"))
     sources += [
         shared / "com/furybook/dubl/data/SnapshotCodec.kt",
+        shared / "com/furybook/dubl/data/LegacySnapshotValidation.kt",
         shared / "com/furybook/dubl/data/CharacterTransferCodec.kt",
         shared / "com/furybook/dubl/data/CharacterStore.kt",
         shared / "com/furybook/dubl/state/CharacterSession.kt",
