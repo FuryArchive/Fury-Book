@@ -238,4 +238,62 @@ class AcquisitionPlannerTest {
         assertTrue(validateAcquisitionProjection(listOf(change),state(),c,listOf(invalid)).issues.isNotEmpty())
         assertFalse(plan(AcquisitionRequest("hero",request("a").targets,externalConfirmations=listOf(invalid)),state(),c).executable)
     }
+
+    @Test fun owned_prerequisite_repairs_missing_ancestor_without_charging_owned_rank() {
+        val c = catalog(definition("b"),definition("a",owned("b")),definition("target",owned("a")))
+        val original = state(listOf(instance("a")))
+        val direct = plan(request("a"),original,c)
+        assertTrue(direct.executable)
+        assertEquals(emptyList(),direct.changes)
+        assertEquals(Amount.ZERO,direct.cost)
+        val requested = request("target")
+        val explicit = AcquisitionRequest("hero",requested.targets,prerequisiteSelections=mapOf(
+            acquisitionChoiceId(ref("target"),"need/a") to listOf(AcquisitionTarget(ref("a"),"owned/a",1))))
+        for (r in listOf(requested,explicit)) {
+            val repaired = plan(r,original,c)
+            assertTrue(repaired.executable,repaired.issues.toString())
+            assertEquals(listOf(ref("b"),ref("target")),repaired.changes.map { it.definition })
+            assertEquals(Amount(20,0),repaired.cost)
+            assertEquals(Amount(80,10),repaired.remaining)
+            assertEquals(instance("a"),repaired.projectedContext.instances.single { it.definition == ref("a") })
+            assertTrue(validateAcquisitionProjection(repaired.changes,original,c).issues.isEmpty())
+        }
+    }
+
+    @Test fun owned_prerequisite_repair_retains_explicit_choices_and_cycle_bounds() {
+        val alternatives = RequirementNode.AnyOf("repair-choice",source,listOf(owned("b"),owned("c")))
+        val c = catalog(definition("b"),definition("c",price=20),definition("a",alternatives),definition("target",owned("a")))
+        val original = state(listOf(instance("a")))
+        val first = plan(request("target"),original,c)
+        assertFalse(first.executable)
+        val question = first.questions.single()
+        assertEquals(setOf(Amount(10,0),Amount(20,0)),question.options.map { assertIs<PriceResult.Known>(it.quote).cost }.toSet())
+        val selected = AcquisitionRequest("hero",request("target").targets,mapOf(question.id to "need/c"))
+        val repaired = plan(selected,original,c)
+        assertTrue(repaired.executable,repaired.issues.toString())
+        assertEquals(listOf(ref("c"),ref("target")),repaired.changes.map { it.definition })
+        assertEquals(Amount(30,0),repaired.cost)
+        assertTrue(validateAcquisitionProjection(repaired.changes,original,c).issues.isEmpty())
+        val cycle = catalog(definition("a",owned("b")),definition("b",owned("a")),definition("target",owned("a")))
+        val blocked = plan(request("target"),original,cycle)
+        assertFalse(blocked.executable)
+        assertTrue(blocked.changes.isEmpty())
+        assertTrue(blocked.issues.any { it.reason == "Cyclic dependency" })
+    }
+
+    @Test fun unrelated_mutation_records_cannot_donate_acquisition_confirmations() {
+        val confirmation = RequirementWitness.External("approval","scope","confirmed",source)
+        val c = catalog(definition("target",RequirementNode.ExternalEvidence("permission",source,"approval","scope")))
+        val original = state()
+        for (type in LedgerEntryType.entries.filter { it != LedgerEntryType.Purchase && it != LedgerEntryType.Undo }) {
+            val entry = LedgerEntry("other",type,emptyList(),Amount.ZERO,RuleVersions("c1","r1"),
+                creationPhase=original.creationPhase,evidenceCanonical=encodeAcquisitionEvidence(listOf(confirmation)))
+            val receipt = Receipt("other","{\"characterId\":\"hero\"}",SavedAcquisitionResult(Amount.ZERO,Amount(100,10),emptyList()),
+                ReceiptStatus.Applied,0,1)
+            val persisted = original.copy(ledger=original.ledger.copy(entries=listOf(entry)),receipts=listOf(receipt),revision=1,storageRevision=1)
+            val loaded = assertIs<LoadResult.Loaded>(decodeEnvelope(encodeEnvelope(persisted))).state
+            assertTrue(retainedAcquisitionConfirmations(loaded).isEmpty(),type.name)
+            assertFalse(plan(request("target"),loaded,c).executable,type.name)
+        }
+    }
 }

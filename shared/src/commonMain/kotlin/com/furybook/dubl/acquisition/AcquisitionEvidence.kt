@@ -33,10 +33,10 @@ fun decodeAcquisitionConfirmations(evidenceCanonical: String): List<RequirementW
     })
 } catch (_: IllegalArgumentException) { emptyList() } catch (_: IllegalStateException) { emptyList() }
 
-/** Undone operations cannot continue supplying the confirmations recorded by that operation. */
+/** Only active purchases can retain acquisition confirmations; other mutation types are not permission writers. */
 fun retainedAcquisitionConfirmations(state: StoredCharacter): List<RequirementWitness.External> {
     val applied = state.receipts.filter { it.status == ReceiptStatus.Applied }.map { it.operationId }.toSet()
-    return EnvelopeList(state.ledger.entries.filter { it.operationId in applied && it.type != LedgerEntryType.Undo }
+    return EnvelopeList(state.ledger.entries.filter { it.operationId in applied && it.type == LedgerEntryType.Purchase }
         .flatMap { decodeAcquisitionConfirmations(it.evidenceCanonical) }.distinct())
 }
 internal fun externalJson(value: RequirementWitness.External) = jsonObject("evidenceKey" to jsonString(value.evidenceKey),

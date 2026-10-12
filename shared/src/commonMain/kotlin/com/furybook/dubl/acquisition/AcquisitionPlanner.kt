@@ -142,14 +142,16 @@ private class Planning(val request: AcquisitionRequest, val state: StoredCharact
             draft.changes, draft.questions, draft.issues, cost, remaining, token, draft.context, draft.prices)
     }
 
-    private fun acquire(start: Draft, target: AcquisitionTarget, path: Set<DefinitionRef>, include: Boolean = true): Draft {
+    private fun acquire(start: Draft, target: AcquisitionTarget, path: Set<DefinitionRef>, include: Boolean = true,
+        repairOwnedRequirements: Boolean = false): Draft {
         val d = start.context.catalog.definitions[target.definition]
             ?: return block(start, target.definition, "Missing catalog definition", RequirementStatus.SourceUnresolved)
         if (work-- <= 0 || path.size >= 64) return block(start, d.ref, "Planner traversal limit reached", RequirementStatus.SourceUnresolved)
         val resolved = resolveTarget(target, d, start.context)
         if (resolved.issue != null) return start.copy(issues = start.issues + resolved.issue)
         val change = resolved.change!!
-        if (include && change.fromRank == change.toRank) return start
+        // Direct attained-rank requests are no-ops. A prerequisite must still prove (and may repair) its affected chain.
+        if (include && change.fromRank == change.toRank && !repairOwnedRequirements) return start
         if (d.ref in path) return block(start, d.ref, "Cyclic dependency", RequirementStatus.SourceUnresolved)
         val next = satisfy(start, d.requirements, d.ref, path + d.ref)
         val proof = evaluate(d.requirements, next.context)
@@ -175,7 +177,7 @@ private class Planning(val request: AcquisitionRequest, val state: StoredCharact
             if (node is RequirementNode.Unresolved || node is RequirementNode.ExternalEvidence || node is RequirementNode.Exclusive || node is RequirementNode.CreationPhase)
                 return block(start, owner, "A target selection cannot replace source or external evidence", RequirementStatus.SourceUnresolved, node.nodeId)
             var next = start
-            for (target in supplied) next = acquire(next, target, path)
+            for (target in supplied) next = acquire(next, target, path, repairOwnedRequirements=true)
             val proof = evaluate(node, next.context)
             return if (proof.status == RequirementStatus.Satisfied) next else next.copy(issues = next.issues + issue(owner, proof))
         }
@@ -258,7 +260,7 @@ private class Planning(val request: AcquisitionRequest, val state: StoredCharact
         }
         val target = AcquisitionTarget(ref, existing?.instanceId ?: instanceId, maxOf(rank, existing?.rank ?: rank),
             existing?.parameters ?: parameters, existing?.abilityOptionId ?: option)
-        val next = acquire(start,target,path)
+        val next = acquire(start,target,path,repairOwnedRequirements=true)
         val proof = evaluate(node,next.context)
         return if (proof.status == RequirementStatus.Satisfied) next else next.copy(issues=next.issues+issue(owner,proof))
     }
