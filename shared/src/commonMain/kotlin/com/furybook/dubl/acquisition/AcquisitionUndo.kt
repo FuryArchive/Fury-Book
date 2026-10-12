@@ -95,11 +95,7 @@ private fun validatePurchaseInverse(state:StoredCharacter,entry:LedgerEntry,rece
     val before=decodeMutationProjection(state,canonicalJson(jsonStringify(JsonValue.Obj(current.values+beforeRoot.values))))
     require(before.character.id==state.character.id && before.creationPhase==state.creationPhase && entry.creationPhase==state.creationPhase) { "Purchase phase/scope mismatch" }
     // Check saved confirmation/token/evidence against the exact ledger operation; never quote today's catalog.
-    val command=objectJson(receipt.requestCanonical)
-    require(command.text("type")=="ConfirmAcquisition" && command.text("characterId")==state.character.id)
-    require(command.text("expectedRevision")==receipt.beforeRevision.toString())
-    val token=objectJson(command.text("previewToken"))
-    require(token.values["request"]==command.values["request"] && token.text("characterId")==state.character.id)
+    val token=validatedConfirmationToken(receipt,state.character.id)
     require(token.text("baseRevision")==receipt.beforeRevision.toString() && token.text("phase")==entry.creationPhase.name)
     require(token.text("catalogRevision")==entry.ruleVersions.catalogRevision && token.text("resolutionRevision")==entry.ruleVersions.resolutionRevision)
     val envelope=objectJson(encodeEnvelope(state.copy(outbox=emptyList())))
@@ -107,19 +103,25 @@ private fun validatePurchaseInverse(state:StoredCharacter,entry:LedgerEntry,rece
     val encodedEntry=(ledger.values.getValue("entries") as JsonValue.Arr).values.map { it as JsonValue.Obj }.single { it.text("operationId")==entry.operationId }
     val tokenChanges=token.values.getValue("changes") as JsonValue.Arr
     require(tokenChanges==encodedEntry.values["changes"]) { "Receipt token transitions differ from ledger" }
-    require(Amount.fromJson(jsonStringify(token.values.getValue("cost")))==receipt.result.cost)
-    require(Amount.fromJson(jsonStringify(token.values.getValue("remaining")))==receipt.result.remaining)
+    require(confirmedAmount(token.values.getValue("cost"))==receipt.result.cost)
+    require(confirmedAmount(token.values.getValue("remaining"))==receipt.result.remaining)
     require((pureNoop || entry.changes.isNotEmpty()) && entry.amountDelta.xp<=0 && entry.amountDelta.ap<=0)
     require((token.values["issues"] as JsonValue.Arr).values.isEmpty()) { "Saved acquisition was blocked" }
     val evidence=objectJson(entry.evidenceCanonical)
     require(evidence.text("phase")==entry.creationPhase.name)
+    require(confirmedExternals(evidence.values.getValue("externalConfirmations"))==
+        confirmedExternals((token.values.getValue("request") as JsonValue.Obj).values.getValue("externalConfirmations"))) {
+        "Saved confirmations differ from the confirmed request"
+    }
     val quotes=(token.values.getValue("quotes") as JsonValue.Arr).values
     val prices=(evidence.values.getValue("prices") as JsonValue.Arr).values
     require(quotes.size==entry.changes.size && prices.size==quotes.size)
     var total=Amount.ZERO
     prices.forEachIndexed { index,value -> val row=value as JsonValue.Obj
+        row.exactKeys("instanceId","sourceRef","quote")
+        confirmedSource(row.values.getValue("sourceRef"))
         require(row.text("instanceId")==entry.changes[index].instanceId && row.values["quote"]==quotes[index])
-        total+=Amount.fromJson(jsonStringify((quotes[index] as JsonValue.Obj).values.getValue("cost")))
+        total+=confirmedAmount((quotes[index] as JsonValue.Obj).values.getValue("cost"))
     }
     require(total==receipt.result.cost) { "Purchase price evidence differs from paid amount" }
     require(purchaseForward(before,state,entry.changes)==acquisitionProjectionCanonical(state)) { "Inverse evidence changes fields not owned by the purchase" }
@@ -269,4 +271,113 @@ private fun resolveUndoCandidate(state: StoredCharacter): UndoCandidate {
     val restored=if(tip.type==LedgerEntryType.Purchase) validatePurchaseInverse(state,tip,receipt)
         else validateMutationInverse(state,tip,receipt)
     return UndoCandidate(tip,receipt,restored)
+}
+
+/** Validate complete persisted confirmation identity before trusting a zero-change classification.
+ * Reconstructing the existing DTO canonical form rejects missing/unknown request/command fields;
+ * an absent/null value is never validated by equality with another absent/null value.
+ */
+private fun validatedConfirmationToken(receipt: Receipt, characterId: String): JsonValue.Obj {
+    val command=objectJson(receipt.requestCanonical)
+    command.exactKeys("type","characterId","request","expectedRevision","previewToken")
+    val request=confirmedRequest(command.values.getValue("request"))
+    val tokenRaw=command.text("previewToken")
+    require(tokenRaw==canonicalJson(tokenRaw)) { "Noncanonical saved preview token" }
+    require(ConfirmAcquisition(receipt.operationId,characterId,request,receipt.beforeRevision,tokenRaw).canonical==receipt.requestCanonical) {
+        "Incomplete or mismatched confirmed acquisition command"
+    }
+    val token=objectJson(tokenRaw)
+    token.exactKeys("request","characterId","baseRevision","catalogRevision","resolutionRevision","phase", "changes","cost","remaining","issues","choices","quotes")
+    val tokenRequest=confirmedRequest(token.values.getValue("request"))
+    require(request.characterId==characterId && token.text("characterId")==characterId && tokenRequest.canonical==request.canonical) {
+        "Confirmed request character/identity mismatch"
+    }
+    // Existing comparison with ledger below validates the complete changes and revision/version fields.
+    require(token.values.getValue("changes") is JsonValue.Arr)
+    require((token.values.getValue("issues") as JsonValue.Arr).values.isEmpty()) { "Saved acquisition has unresolved issues" }
+    val cost=confirmedAmount(token.values.getValue("cost"))
+    val remaining=confirmedAmount(token.values.getValue("remaining"))
+    require(cost.xp>=0 && cost.ap>=0 && remaining.xp>=0 && remaining.ap>=0) { "Saved acquisition has unresolved/invalid amounts" }
+    // T07 emits choice rows only for explicit AnyOf selections. Already-satisfied
+    // requirements and sole skill-family members resolve without a question/selection.
+    (token.values.getValue("choices") as JsonValue.Arr).values.forEach { value ->
+        val choice=value as JsonValue.Obj
+        choice.exactKeys("id","selectedId")
+        val id=choice.nonblank("id")
+        val selected=choice.nonblank("selectedId")
+        require(request.choiceSelections[id]==selected) { "Saved acquisition choice was not resolved by this request" }
+    }
+    (token.values.getValue("quotes") as JsonValue.Arr).values.forEach { value ->
+        val quote=value as JsonValue.Obj
+        quote.exactKeys("cost","sources","discountEvidence")
+        confirmedAmount(quote.values.getValue("cost"))
+        (quote.values.getValue("sources") as JsonValue.Arr).values.forEach(::confirmedSource)
+        (quote.values.getValue("discountEvidence") as JsonValue.Arr).values.forEach(::confirmedRequirementProof)
+    }
+    return token
+}
+private fun JsonValue.Obj.exactKeys(vararg keys:String) {
+    require(values.keys==keys.toSet()) { "Incomplete or unsupported acquisition proof fields" }
+}
+private fun JsonValue.Obj.nonblank(key:String):String = text(key).also { require(it.isNotBlank()) { "Blank acquisition identity: $key" } }
+private fun JsonValue.Obj.optionalIdentity(key:String):String? = if(values.getValue(key)==JsonValue.Null) null else nonblank(key)
+private fun confirmedStrings(value:JsonValue):Map<String,String> = (value as JsonValue.Obj).values.mapValues { (key,value) ->
+    require(key.isNotBlank()); (value as JsonValue.Str).value.also { require(it.isNotBlank()) }
+}
+private fun confirmedRequest(value:JsonValue):AcquisitionRequest {
+    val row=value as JsonValue.Obj
+    row.exactKeys("characterId","targets","choiceSelections","includeTargets","prerequisiteSelections","externalConfirmations")
+    fun target(value:JsonValue):AcquisitionTarget {
+        val t=value as JsonValue.Obj
+        t.exactKeys("definition","instanceId","targetRank","parameters","optionId")
+        val definition=t.values.getValue("definition") as JsonValue.Obj
+        definition.exactKeys("packId","entryId")
+        val rank=(t.values.getValue("targetRank") as JsonValue.Num).raw.toIntOrNull()
+            ?: throw IllegalArgumentException("Invalid acquisition target rank")
+        return AcquisitionTarget(DefinitionRef(definition.nonblank("packId"),definition.nonblank("entryId")),
+            t.optionalIdentity("instanceId"),rank,confirmedStrings(t.values.getValue("parameters")),t.optionalIdentity("optionId"))
+    }
+    val request=AcquisitionRequest(row.nonblank("characterId"),(row.values.getValue("targets") as JsonValue.Arr).values.map(::target),
+        confirmedStrings(row.values.getValue("choiceSelections")),(row.values.getValue("includeTargets") as JsonValue.Bool).value,
+        (row.values.getValue("prerequisiteSelections") as JsonValue.Obj).values.mapValues { (key,targets) ->
+            require(key.isNotBlank());(targets as JsonValue.Arr).values.map(::target) },confirmedExternals(row.values.getValue("externalConfirmations")))
+    require(request.canonical==canonicalJson(jsonStringify(row))) { "Request would lose or normalize persisted values" }
+    return request
+}
+private fun confirmedAmount(value:JsonValue):Amount {
+    val row=value as JsonValue.Obj
+    row.exactKeys("xp","ap")
+    return Amount.fromJson(jsonStringify(row))
+}
+private fun confirmedExternals(value:JsonValue):List<RequirementWitness.External> {
+    require(value is JsonValue.Arr) { "Missing external confirmation array" }
+    val wrapper=canonicalJson(jsonStringify(jsonObject("schema" to jsonString("acquisition-evidence-v1"),"externalConfirmations" to value)))
+    val decoded=decodeAcquisitionConfirmations(wrapper)
+    require(JsonValue.Arr(decoded.map(::externalJson))==value) { "Malformed external confirmations" }
+    return decoded
+}
+private fun confirmedSource(value:JsonValue) {
+    confirmedExternals(JsonValue.Arr(listOf(jsonObject("evidenceKey" to jsonString("source-shape"),"scopeId" to jsonString("source-shape"),
+        "evidenceId" to jsonString("source-shape"),"sourceRef" to value))))
+}
+private fun confirmedRequirementProof(value:JsonValue) {
+    val proof=value as JsonValue.Obj
+    proof.exactKeys("nodeId","status","witnesses","reason","children")
+    proof.nonblank("nodeId");RequirementStatus.valueOf(proof.text("status"))
+    require(proof.values.getValue("reason")==JsonValue.Null || proof.values.getValue("reason") is JsonValue.Str)
+    (proof.values.getValue("children") as JsonValue.Arr).values.forEach(::confirmedRequirementProof)
+    (proof.values.getValue("witnesses") as JsonValue.Arr).values.forEach { value ->
+        val witness=value as JsonValue.Obj
+        if("type" !in witness.values) confirmedExternals(JsonValue.Arr(listOf(witness)))
+        else when(witness.text("type")) {
+            "OwnedInstance" -> { witness.exactKeys("type","packId","entryId","instanceId","rank")
+                witness.nonblank("packId");witness.nonblank("entryId");witness.nonblank("instanceId")
+                require((witness.values.getValue("rank") as JsonValue.Num).raw.toIntOrNull()!=null) }
+            "Branch" -> { witness.exactKeys("type","packId","branchId","accessOptionId")
+                witness.nonblank("packId");witness.nonblank("branchId");witness.nonblank("accessOptionId") }
+            "LearnedSpell" -> { witness.exactKeys("type","packId","entryId")
+                witness.nonblank("packId");witness.nonblank("entryId") }
+            else -> throw IllegalArgumentException("Unknown acquisition proof witness")
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package com.furybook.dubl.acquisition
 
 import com.furybook.dubl.model.*
+import com.furybook.core.json.*
 import com.furybook.dubl.data.SnapshotCodec
 import kotlin.coroutines.*
 import kotlin.test.*
@@ -367,5 +368,120 @@ class AcquisitionMutationTest {
             }
             assertEquals(outcome,assertIs<UndoEligibility.Unavailable>(AcquisitionUndo(backing).eligible("hero")).loadResult)
         }
+    }
+
+    @Test fun resolved_and_already_satisfied_alternatives_preserve_undo_across_noop() = run {
+        for(preowned in listOf(false,true)) {
+            val need=RequirementNode.AnyOf("choose",source,listOf("a","b").map {
+                RequirementNode.OwnedRank(it,source,"test",it,ComparisonOperator.GE,1) })
+            val cat=AcquisitionCatalog(listOf(definition("a"),definition("b"),definition().copy(requirements=need)).associateBy { it.ref },"c1","r1")
+            val backing=store();val service=AcquisitionService(backing,{cat},{"id"})
+            suspend fun apply(id:String,request:AcquisitionRequest) {
+                val p=service.preview(request);assertTrue(p.executable,p.issues.toString())
+                assertIs<ApplyResult.Applied>(service.apply(ConfirmAcquisition(id,"hero",request,p.baseRevision,p.previewToken)))
+            }
+            if(preowned) apply("prerequisite",AcquisitionRequest("hero",listOf(AcquisitionTarget(ref("a"),targetRank=1))))
+            val before=load(backing)
+            val request=AcquisitionRequest("hero",listOf(AcquisitionTarget(ref(),targetRank=1)))
+            val initial=service.preview(request)
+            val selected=if(preowned) { assertTrue(initial.questions.isEmpty());request } else {
+                val question=initial.questions.single()
+                AcquisitionRequest("hero",request.targets,mapOf(question.id to question.options.first().id))
+            }
+            apply("purchase",selected);apply("noop",request)
+            val restarted=store(load(backing));val undo=AcquisitionUndo(restarted)
+            val eligible=assertIs<UndoEligibility.Available>(undo.eligible("hero"))
+            assertEquals("purchase",eligible.operationId)
+            assertIs<ApplyResult.Applied>(undo.undo("hero","inverse",eligible.expectedRevision))
+            assertEquals(before.character,load(restarted).character);assertEquals(before.instances,load(restarted).instances)
+            assertEquals(balance(before.ledger),balance(load(restarted).ledger))
+        }
+    }
+    @Test fun single_family_alternative_resolved_by_planner_needs_no_request_selection_for_undo() = run {
+        val member=definition("member",AcquisitionKind.SKILL).copy(familyIds=setOf("family"),classificationSources=mapOf("family:family" to source))
+        val need=RequirementNode.SkillFamily("family",source,"test","family",ComparisonOperator.GE,1)
+        val cat=AcquisitionCatalog(listOf(member,definition().copy(requirements=need)).associateBy { it.ref },"c1","r1")
+        val backing=store();val service=AcquisitionService(backing,{cat},{"id"})
+        val request=AcquisitionRequest("hero",listOf(AcquisitionTarget(ref(),targetRank=1)))
+        val p=service.preview(request);assertTrue(p.executable,p.issues.toString());assertTrue(p.questions.isEmpty())
+        assertEquals(listOf(ref("member"),ref()),p.changes.map { it.definition })
+        assertIs<ApplyResult.Applied>(service.apply(ConfirmAcquisition("purchase","hero",request,0,p.previewToken)))
+        val noop=service.preview(request)
+        assertIs<ApplyResult.Applied>(service.apply(ConfirmAcquisition("noop","hero",request,1,noop.previewToken)))
+        assertEquals("purchase",assertIs<UndoEligibility.Available>(AcquisitionUndo(backing).eligible("hero")).operationId)
+        assertIs<ApplyResult.Applied>(AcquisitionUndo(backing).undo("hero","inverse",2))
+        assertEquals(state().character,load(backing).character);assertTrue(load(backing).instances.isEmpty());assertEquals(Amount(100,0),balance(load(backing).ledger))
+    }
+    @Test fun confirmed_external_and_conditional_quote_proofs_preserve_exact_undo() = run {
+        val permission=RequirementNode.ExternalEvidence("permission",source,"training","hero")
+        val conditional=RequirementNode.CreationPhase("creating",source,phase)
+        val d=definition().copy(requirements=permission,priceRule=PriceRule.Conditional(conditional,PriceRule.Fixed(15,0,source),PriceRule.Fixed(20,0,source),source))
+        val cat=AcquisitionCatalog(mapOf(ref() to d),"c1","r1")
+        val backing=store();val service=AcquisitionService(backing,{cat},{"id"})
+        val request=AcquisitionRequest("hero",listOf(AcquisitionTarget(ref(),targetRank=1)),externalConfirmations=listOf(
+            RequirementWitness.External("training","hero","confirmed-by-player",source)))
+        for((index,id) in listOf("purchase","noop").withIndex()) {
+            val p=service.preview(request);assertTrue(p.executable,p.issues.toString())
+            assertIs<ApplyResult.Applied>(service.apply(ConfirmAcquisition(id,"hero",request,index.toLong(),p.previewToken)))
+        }
+        assertEquals("purchase",assertIs<UndoEligibility.Available>(AcquisitionUndo(backing).eligible("hero")).operationId)
+        assertIs<ApplyResult.Applied>(AcquisitionUndo(backing).undo("hero","inverse",2))
+        assertEquals(state().character,load(backing).character);assertEquals(Amount(100,0),balance(load(backing).ledger))
+    }
+
+    private suspend fun assertMalformedNoopBlocked(label:String, edit:(JsonValue.Obj,JsonValue.Obj)->Pair<JsonValue.Obj,JsonValue.Obj>) {
+        val backing=store();val purchase=buy(backing);val service=AcquisitionService(backing,::catalog,{"id"})
+        val preview=service.preview(purchase.request)
+        assertIs<ApplyResult.Applied>(service.apply(ConfirmAcquisition("noop","hero",purchase.request,1,preview.previewToken)))
+        val saved=load(backing)
+        val command=JsonReader(saved.receipts.last().requestCanonical).read() as JsonValue.Obj
+        val token=JsonReader((command.values.getValue("previewToken") as JsonValue.Str).value).read() as JsonValue.Obj
+        val (changedCommand,changedToken)=edit(command,token)
+        val malformedCommand=canonicalJson(jsonStringify(JsonValue.Obj(changedCommand.values+
+            ("previewToken" to jsonString(canonicalJson(jsonStringify(changedToken)))))))
+        val malformed=saved.copy(receipts=saved.receipts.dropLast(1)+saved.receipts.last().copy(requestCanonical=malformedCommand),outbox=emptyList())
+        val reopened=store(malformed);var writes=0
+        val tracked=object:AcquisitionStore by reopened {
+            override suspend fun compareAndSet(characterId:String,expectedStorageRevision:Long,next:StoredCharacter):CommitResult { writes++;return reopened.compareAndSet(characterId,expectedStorageRevision,next) }
+        }
+        assertIs<UndoEligibility.Unavailable>(AcquisitionUndo(tracked).eligible("hero"),label)
+        assertIs<ApplyResult.Blocked>(AcquisitionUndo(tracked).undo("hero","inverse",2),label)
+        assertEquals(0,writes,label);assertEquals(malformed,load(reopened),label);assertEquals(Amount(80,0),balance(load(reopened).ledger),label)
+    }
+    @Test fun incomplete_or_invalid_noop_request_is_a_barrier_for_query_and_undo() = run {
+        assertMalformedNoopBlocked("both request fields absent") { command,token -> JsonValue.Obj(command.values-"request") to JsonValue.Obj(token.values-"request") }
+        val invalidRequests=listOf<JsonValue>(JsonValue.Null,jsonString("invalid"),JsonValue.Arr(emptyList()),jsonObject())
+        for(request in invalidRequests) assertMalformedNoopBlocked("invalid request $request") { command,token ->
+            JsonValue.Obj(command.values+("request" to request)) to JsonValue.Obj(token.values+("request" to request)) }
+        for(field in listOf("characterId","targets","choiceSelections","includeTargets","prerequisiteSelections","externalConfirmations")) {
+            assertMalformedNoopBlocked("missing request $field") { command,token ->
+                val request=JsonValue.Obj((command.values.getValue("request") as JsonValue.Obj).values-field)
+                JsonValue.Obj(command.values+("request" to request)) to JsonValue.Obj(token.values+("request" to request)) }
+        }
+        val invalidFields=mapOf("characterId" to jsonString("other"),"targets" to JsonValue.Arr(listOf(jsonObject())),
+            "choiceSelections" to jsonObject("choice" to JsonValue.Null),"includeTargets" to jsonString("true"),
+            "prerequisiteSelections" to jsonObject("scope" to jsonString("bad")),
+            "externalConfirmations" to JsonValue.Arr(listOf(jsonObject())),"unknownField" to jsonString("unsupported"))
+        for((field,value) in invalidFields) assertMalformedNoopBlocked("invalid request field $field") { command,token ->
+            val request=JsonValue.Obj((command.values.getValue("request") as JsonValue.Obj).values+(field to value))
+            JsonValue.Obj(command.values+("request" to request)) to JsonValue.Obj(token.values+("request" to request)) }
+        for(field in listOf("definition","instanceId","targetRank","parameters","optionId")) assertMalformedNoopBlocked("missing target $field") { command,token ->
+            val request=command.values.getValue("request") as JsonValue.Obj
+            val target=(request.values.getValue("targets") as JsonValue.Arr).values.single() as JsonValue.Obj
+            val invalid=JsonValue.Obj(request.values+("targets" to JsonValue.Arr(listOf(JsonValue.Obj(target.values-field)))))
+            JsonValue.Obj(command.values+("request" to invalid)) to JsonValue.Obj(token.values+("request" to invalid)) }
+    }
+    @Test fun incomplete_or_unresolved_noop_token_is_a_barrier_for_query_and_undo() = run {
+        assertMalformedNoopBlocked("missing choices") { command,token -> command to JsonValue.Obj(token.values-"choices") }
+        val invalidFields=mapOf("choices" to JsonValue.Arr(listOf(jsonObject("id" to jsonString("choice"),"selectedId" to JsonValue.Null))),
+            "cost" to jsonObject("xp" to jsonString("0"),"ap" to jsonString("0"),"unknown" to jsonString("extra")),
+            "unknownField" to jsonString("unsupported"))
+        for((field,value) in invalidFields) assertMalformedNoopBlocked("invalid token field $field") { command,token -> command to JsonValue.Obj(token.values+(field to value)) }
+        for(choice in listOf<JsonValue>(JsonValue.Null,jsonString("bad"),jsonObject(),
+            jsonObject("id" to jsonString("choice"),"selectedId" to jsonString("")),
+            jsonObject("id" to jsonString("choice"),"selectedId" to jsonString("not-confirmed")))) {
+            assertMalformedNoopBlocked("invalid choice $choice") { command,token -> command to JsonValue.Obj(token.values+("choices" to JsonValue.Arr(listOf(choice)))) }
+        }
+        assertMalformedNoopBlocked("unknown command field") { command,token -> JsonValue.Obj(command.values+("unknownField" to JsonValue.Null)) to token }
     }
 }
