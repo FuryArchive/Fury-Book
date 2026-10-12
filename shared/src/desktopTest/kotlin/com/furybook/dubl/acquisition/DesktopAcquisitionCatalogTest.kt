@@ -2,6 +2,7 @@ package com.furybook.dubl.acquisition
 
 import com.furybook.content.FcpContentPack
 import com.furybook.content.FcpTextSource
+import com.furybook.dubl.model.DublCharacter
 import kotlin.test.*
 
 class DesktopAcquisitionCatalogTest {
@@ -51,6 +52,56 @@ class DesktopAcquisitionCatalogTest {
             assertEquals(DistinctScope.Definition, distinct.uniqueness)
             assertEquals(11, assertIs<RequirementNode.AnyOf>(distinct.predicate).children.size)
         }
+    }
+
+    @Test fun actual_loaded_perfect_roots_conflict_despite_invalid_rival_prerequisites() {
+        val loaded = loadAcquisitionCatalog(packs(), false)
+        val catalog = loaded.catalog
+        val roots = setOf("feat_1bacaebcd614c5c5", "feat_7c06b44361f99e86", "feat_07a5933de10322e2")
+        fun ref(id: String) = DefinitionRef("dubl-3.69", id)
+        fun exclusive(node: RequirementNode): List<RequirementNode.Exclusive> = when (node) {
+            is RequirementNode.Exclusive -> listOf(node)
+            is RequirementNode.AllOf -> node.children.flatMap(::exclusive)
+            is RequirementNode.AnyOf -> node.children.flatMap(::exclusive)
+            else -> emptyList()
+        }
+        assertEquals(roots, catalog.definitions.values.filter { "perfect-root" in it.categoryIds }.map { it.ref.entryId }.toSet())
+        for (target in roots) {
+            val definition = catalog.definitions.getValue(ref(target))
+            val exclusion = exclusive(definition.requirements).single()
+            assertEquals(13618, exclusion.sourceRef.paragraph)
+            assertEquals("t.hwzq55hph1xp", exclusion.sourceRef.sheet)
+            assertTrue(exclusion.sourceRef.originalText.contains("не более одной"))
+            for (rival in roots - target) {
+                val old = AcquisitionInstance("old/$rival", ref(rival), 1, emptyMap(), null, AcquisitionOrigin.New)
+                val context = AcquisitionContext(DublCharacter("actual"), listOf(old), emptySet(),
+                    RequirementNode.CreationPhase.Phase.Finalized, emptyList(), catalog)
+                // Rival's actual source tree has unresolved/unsatisfied prerequisites; ownership still excludes target.
+                assertNotEquals(RequirementStatus.Satisfied, evaluate(catalog.definitions.getValue(ref(rival)).requirements, context).status)
+                val proof = evaluate(definition.requirements, context)
+                assertEquals(RequirementStatus.Conflict, proof.status)
+                assertTrue(proof.witnesses.any { it is RequirementWitness.OwnedInstance && it.entryId == rival })
+                assertEquals(listOf(old), context.instances)
+                // The unrelated source-confirmed skill's eligibility is independent of the legacy deviation.
+                assertEquals(RequirementStatus.Satisfied, evaluate(catalog.definitions.getValue(ref("athletics")).requirements, context).status)
+            }
+            val own = AcquisitionInstance("old/$target", ref(target), 1, emptyMap(), null, AcquisitionOrigin.New)
+            val context = AcquisitionContext(DublCharacter("actual"), listOf(own), emptySet(),
+                RequirementNode.CreationPhase.Phase.Finalized, emptyList(), catalog)
+            assertEquals(RequirementStatus.Satisfied, evaluate(exclusion, context).status)
+        }
+        assertFalse(loaded.diagnostics.any { it.kind == "dependency-cycle" && it.definition?.entryId in roots })
+    }
+
+    @Test fun actual_loaded_knowledge_four_condition_uses_stable_family() {
+        val catalog = loadAcquisitionCatalog(packs(), false).catalog
+        fun ref(id: String) = DefinitionRef("dubl-3.69", id)
+        val condition = catalog.definitions.getValue(ref("feat_cd965f927a426cc2")).requirements
+        assertEquals(10530, condition.sourceRef.paragraph)
+        val knowledge = AcquisitionInstance("knowledge/academic", ref("knowledge_academic"), 4, emptyMap(), null, AcquisitionOrigin.New)
+        val context = AcquisitionContext(DublCharacter("actual"), listOf(knowledge), emptySet(),
+            RequirementNode.CreationPhase.Phase.Creating, emptyList(), catalog)
+        assertEquals(RequirementStatus.Satisfied, evaluate(condition, context).status)
     }
 
     @Test fun undeclared_payload_is_not_loaded_and_bad_payload_is_diagnostic() {

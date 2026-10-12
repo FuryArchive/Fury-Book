@@ -182,3 +182,26 @@ def test_unknown_weapon_qualifier_does_not_discard_other_conjuncts():
     tree = parse_requirement('Специализация в оружии (непроверенное), Сила 3', 'q', source, list(entries().values()))
     assert tree['type'] == 'AllOf'
     assert [n['type'] for n in tree['children']] == ['Unresolved', 'Attribute']
+
+
+def test_actual_perfect_roots_have_source_backed_exclusion_not_child_classification():
+    es = entries()
+    roots = {'feat_1bacaebcd614c5c5': 13624, 'feat_7c06b44361f99e86': 13655,
+             'feat_07a5933de10322e2': 13708}
+    expected = 'Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности.'
+    for id, paragraph in roots.items():
+        root = es[id]
+        assert 'perfect-root' in root['categoryIds']
+        assert root['classificationSources']['category:perfect-root']['paragraph'] == paragraph
+        exclusions = [n for n in nodes(root['requirements']) if n['type'] == 'Exclusive']
+        assert len(exclusions) == 1
+        exclusion = exclusions[0]
+        assert exclusion['sourceRef']['paragraph'] == 13618
+        assert exclusion['sourceRef']['sheet'] == 't.hwzq55hph1xp'
+        assert exclusion['sourceRef']['originalText'] == expected
+        assert {n['entryId'] for n in exclusion['conflicting']['children']} == roots.keys() - {id}
+        assert all(n['type'] == 'OwnedRank' and n['operator'] == 'GE' and n['operand'] == 1
+                   for n in exclusion['conflicting']['children'])
+    assert {id for id, e in es.items() if 'perfect-root' in e['categoryIds']} == roots.keys()
+    assert not any(d['kind'] == 'dependency-cycle' and d['definitionId'] in roots
+                   for d in build()['dubl-3.69']['diagnostics'])

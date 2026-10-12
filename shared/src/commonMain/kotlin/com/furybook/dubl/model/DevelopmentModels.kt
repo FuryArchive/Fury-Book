@@ -4,6 +4,15 @@ import com.furybook.dubl.acquisition.AcquisitionInstance
 import com.furybook.dubl.acquisition.AcquisitionOrigin
 import com.furybook.dubl.acquisition.DefinitionRef
 import com.furybook.dubl.acquisition.legacyInstanceId
+import com.furybook.dubl.acquisition.AcquisitionContext
+import com.furybook.dubl.acquisition.AcquisitionDefinition
+import com.furybook.dubl.acquisition.RequirementNode
+import com.furybook.dubl.acquisition.RequirementResult
+import com.furybook.dubl.acquisition.RequirementValue
+import com.furybook.dubl.acquisition.RequirementWitness
+import com.furybook.dubl.acquisition.SourceStatus
+import com.furybook.dubl.acquisition.evaluate
+import com.furybook.dubl.acquisition.RequirementStatus as AcquisitionRequirementStatus
 
 enum class DevelopmentCostType {
     XP,
@@ -269,12 +278,92 @@ class DevelopmentRules(
     private val character: DublCharacter,
     private val catalog: DevelopmentCatalog,
     private val progress: DevelopmentProgress,
+    private val acquisitionContext: AcquisitionContext? = null,
 ) {
     private val requirementsMemo = mutableMapOf<String, List<RequirementCheck>>()
     private val allSkills by lazy { character.resolvedSkills(includeHidden = true) }
 
+    /** Context opts this caller into typed rules exclusively; missing IDs never fall back to strings. */
     fun requirements(entry: DevelopmentEntry): List<RequirementCheck> =
-        requirementsInternal(entry, emptySet())
+        if (acquisitionContext != null) typedChecks(entry) else requirementsInternal(entry, emptySet())
+
+    private fun typedDefinition(entry: DevelopmentEntry): AcquisitionDefinition? =
+        acquisitionContext?.catalog?.definitions?.values?.singleOrNull { it.ref.entryId == entry.id }
+
+    private fun typedResult(entry: DevelopmentEntry): RequirementResult {
+        val context = requireNotNull(acquisitionContext)
+        val definition = typedDefinition(entry)
+            ?: return RequirementResult(AcquisitionRequirementStatus.SourceUnresolved, entry.id,
+                reason = "Отсутствует однозначная типизированная запись каталога")
+        if (definition.sourceStatus == SourceStatus.Unavailable) {
+            return RequirementResult(AcquisitionRequirementStatus.SourceUnresolved, definition.requirements.nodeId,
+                reason = "Источник записи не подтверждён")
+        }
+        return evaluate(definition.requirements, context)
+    }
+
+    private fun typedChecks(entry: DevelopmentEntry): List<RequirementCheck> {
+        val root = typedResult(entry)
+        val definition = typedDefinition(entry)
+        // Flatten conjunctions only. An OR is one proof; rejected alternatives do not become failures.
+        val results = if (definition?.requirements is RequirementNode.AllOf && root.children.isNotEmpty()) root.children else listOf(root)
+        val nodes = mutableMapOf<String, RequirementNode>()
+        fun index(node: RequirementNode) {
+            nodes[node.nodeId] = node
+            when (node) {
+                is RequirementNode.AllOf -> node.children.forEach(::index)
+                is RequirementNode.AnyOf -> node.children.forEach(::index)
+                is RequirementNode.DistinctCount -> index(node.predicate)
+                is RequirementNode.Exclusive -> index(node.conflicting)
+                else -> Unit
+            }
+        }
+        definition?.requirements?.let(::index)
+        return results.map { result ->
+            val node = nodes[result.nodeId]
+            val status = when (result.status) {
+                AcquisitionRequirementStatus.Satisfied -> RequirementStatus.OK
+                AcquisitionRequirementStatus.Unsatisfied, AcquisitionRequirementStatus.Conflict -> RequirementStatus.FAIL
+                AcquisitionRequirementStatus.ChoiceRequired, AcquisitionRequirementStatus.SourceUnresolved -> RequirementStatus.MANUAL
+            }
+            val label = when {
+                result.reason != null -> result.reason
+                node is RequirementNode.AllOf && node.children.isEmpty() -> "Без требований"
+                node is RequirementNode.AnyOf -> "Один из вариантов: ${node.sourceRef.originalText}"
+                else -> node?.sourceRef?.originalText?.takeIf { it.isNotBlank() } ?: "Требование"
+            }
+            val actual = result.actualValue as? RequirementValue.Number
+            val required = result.requiredValue as? RequirementValue.Number
+            val text = if (actual != null && required != null) "$label: ${actual.value} / ${required.value}" else label
+            val target = when (node) {
+                is RequirementNode.OwnedRank -> node.entryId
+                is RequirementNode.Specialization -> node.entryId
+                is RequirementNode.BranchAccess -> node.branchId
+                else -> result.witnesses.filterIsInstance<RequirementWitness.OwnedInstance>().firstOrNull()?.entryId
+            }
+            RequirementCheck(status, text, target)
+        }
+    }
+
+    private fun typedAvailability(entry: DevelopmentEntry, optionIndex: Int): DevelopmentAvailability {
+        val context = requireNotNull(acquisitionContext)
+        val definition = typedDefinition(entry)
+        val checks = typedChecks(entry).toMutableList()
+        val currentRank = definition?.let { d -> context.instances.filter { it.definition == d.ref }.maxOfOrNull { it.rank } } ?: 0
+        val maxRank = definition?.maxRank
+        if (maxRank == null) checks += RequirementCheck(RequirementStatus.MANUAL, "Максимальный ранг не подтверждён источником")
+        val maxed = maxRank != null && currentRank >= maxRank
+        val failed = checks.any { it.status == RequirementStatus.FAIL }
+        val manual = checks.any { it.status == RequirementStatus.MANUAL }
+        val reason = when {
+            maxed -> "Максимальный ранг"
+            failed -> "Не выполнены требования"
+            manual -> "Требуется выбор или решение источника"
+            else -> "Можно получить"
+        }
+        return DevelopmentAvailability(checks, currentRank, maxRank ?: entry.maxRank, abilityCost(entry, optionIndex),
+            canIncrease = !maxed && !failed && !manual, canForceIncrease = false, reason = reason)
+    }
 
     fun ownedSheetSections(): List<DevelopmentSheetSection> {
         val ownedEntries = progress.owned.entries.mapNotNull { (id, owned) ->
@@ -407,6 +496,7 @@ class DevelopmentRules(
     }
 
     fun availability(entry: DevelopmentEntry, optionIndex: Int = progress.optionIndex(entry.id)): DevelopmentAvailability {
+        if (acquisitionContext != null) return typedAvailability(entry, optionIndex)
         val currentRank = progress.rank(entry.id)
         val checks = requirements(entry)
         val abilityCost = abilityCost(entry, optionIndex)

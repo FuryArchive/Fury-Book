@@ -47074,6 +47074,16 @@
       "text": "Approved policy: legacy opening100 remains100 through one-time migration/creation completion; future rank1 with Самоучка5 leaves95; receipt20 leaves80 despite future catalog price30; Undo100. Repeats of reached same instance/rank no-op.",
       "authority": "Approved specification §§5,7,8",
       "resolutionVersion": 1
+    },
+    "core:P13618": {
+      "text": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности.",
+      "startIndex": 1,
+      "endIndex": 149,
+      "tabId": "t.hwzq55hph1xp",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 13618,
+      "sha256": "6ca2a0f10846b10f7ec40807c9e453509654e42531520878a4e06339f9eeaa03"
     }
   },
   "sourceOccurrences": [

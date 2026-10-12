@@ -48712,8 +48712,18 @@
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
       "familyIds": [],
-      "categoryIds": [],
-      "classificationSources": {},
+      "categoryIds": [
+        "perfect-root"
+      ],
+      "classificationSources": {
+        "category:perfect-root": {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "sheet": "t.hwzq55hph1xp",
+          "paragraph": 13624,
+          "originalText": "Ассасин"
+        }
+      },
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "NeedsResolution",
@@ -48739,7 +48749,7 @@
       },
       "requirements": {
         "type": "AllOf",
-        "nodeId": "feat_1bacaebcd614c5c5/requirements",
+        "nodeId": "feat_1bacaebcd614c5c5/with-exclusion",
         "sourceRef": {
           "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
           "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
@@ -48749,134 +48759,201 @@
         },
         "children": [
           {
-            "type": "Unresolved",
-            "nodeId": "feat_1bacaebcd614c5c5/requirements/0",
+            "type": "AllOf",
+            "nodeId": "feat_1bacaebcd614c5c5/requirements",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
               "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
               "sheet": "t.hwzq55hph1xp",
               "paragraph": 13628,
-              "originalText": "Подлая атака"
-            },
-            "reason": "ambiguous-reference:Подлая атака"
-          },
-          {
-            "type": "OwnedRank",
-            "nodeId": "feat_1bacaebcd614c5c5/requirements/1",
-            "sourceRef": {
-              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-              "sheet": "t.hwzq55hph1xp",
-              "paragraph": 13628,
-              "originalText": "Невидимка"
-            },
-            "packId": "dubl-3.69",
-            "entryId": "feat_5760bb863f1af790",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "OwnedRank",
-            "nodeId": "feat_1bacaebcd614c5c5/requirements/2",
-            "sourceRef": {
-              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-              "sheet": "t.hwzq55hph1xp",
-              "paragraph": 13628,
-              "originalText": "Скрытный 1"
-            },
-            "packId": "dubl-3.69",
-            "entryId": "feat_31c461aa8f327ced",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "SkillFamily",
-            "nodeId": "feat_1bacaebcd614c5c5/requirements/3",
-            "sourceRef": {
-              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-              "sheet": "t.hwzq55hph1xp",
-              "paragraph": 13628,
-              "originalText": "Медицина 3"
-            },
-            "packId": "dubl-3.69",
-            "familyId": "medicine",
-            "operator": "GE",
-            "operand": 3
-          },
-          {
-            "type": "AnyOf",
-            "nodeId": "feat_1bacaebcd614c5c5/requirements/4",
-            "sourceRef": {
-              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-              "sheet": "t.hwzq55hph1xp",
-              "paragraph": 13628,
-              "originalText": "Холодное оружие 5 или Рукопашный бой 5 или Метание 5 или Стрельба 5"
+              "originalText": "Требование: Подлая атака, Невидимка, Скрытный 1, Медицина 3, Холодное оружие 5 или Рукопашный бой 5 или Метание 5 или Стрельба 5."
             },
             "children": [
               {
-                "type": "SkillFamily",
-                "nodeId": "feat_1bacaebcd614c5c5/requirements/4/0",
+                "type": "Unresolved",
+                "nodeId": "feat_1bacaebcd614c5c5/requirements/0",
                 "sourceRef": {
                   "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
                   "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
                   "sheet": "t.hwzq55hph1xp",
                   "paragraph": 13628,
-                  "originalText": "Холодное оружие 5"
+                  "originalText": "Подлая атака"
+                },
+                "reason": "ambiguous-reference:Подлая атака"
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "feat_1bacaebcd614c5c5/requirements/1",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.hwzq55hph1xp",
+                  "paragraph": 13628,
+                  "originalText": "Невидимка"
                 },
                 "packId": "dubl-3.69",
-                "familyId": "melee_weapon",
+                "entryId": "feat_5760bb863f1af790",
                 "operator": "GE",
-                "operand": 5
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "feat_1bacaebcd614c5c5/requirements/2",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.hwzq55hph1xp",
+                  "paragraph": 13628,
+                  "originalText": "Скрытный 1"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "feat_31c461aa8f327ced",
+                "operator": "GE",
+                "operand": 1
               },
               {
                 "type": "SkillFamily",
-                "nodeId": "feat_1bacaebcd614c5c5/requirements/4/1",
+                "nodeId": "feat_1bacaebcd614c5c5/requirements/3",
                 "sourceRef": {
                   "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
                   "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
                   "sheet": "t.hwzq55hph1xp",
                   "paragraph": 13628,
-                  "originalText": "Рукопашный бой 5"
+                  "originalText": "Медицина 3"
                 },
                 "packId": "dubl-3.69",
-                "familyId": "unarmed",
+                "familyId": "medicine",
                 "operator": "GE",
-                "operand": 5
+                "operand": 3
               },
               {
-                "type": "SkillFamily",
-                "nodeId": "feat_1bacaebcd614c5c5/requirements/4/2",
+                "type": "AnyOf",
+                "nodeId": "feat_1bacaebcd614c5c5/requirements/4",
                 "sourceRef": {
                   "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
                   "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
                   "sheet": "t.hwzq55hph1xp",
                   "paragraph": 13628,
-                  "originalText": "Метание 5"
+                  "originalText": "Холодное оружие 5 или Рукопашный бой 5 или Метание 5 или Стрельба 5"
                 },
-                "packId": "dubl-3.69",
-                "familyId": "throwing",
-                "operator": "GE",
-                "operand": 5
-              },
-              {
-                "type": "SkillFamily",
-                "nodeId": "feat_1bacaebcd614c5c5/requirements/4/3",
-                "sourceRef": {
-                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-                  "sheet": "t.hwzq55hph1xp",
-                  "paragraph": 13628,
-                  "originalText": "Стрельба 5"
-                },
-                "packId": "dubl-3.69",
-                "familyId": "shooting",
-                "operator": "GE",
-                "operand": 5
+                "children": [
+                  {
+                    "type": "SkillFamily",
+                    "nodeId": "feat_1bacaebcd614c5c5/requirements/4/0",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.hwzq55hph1xp",
+                      "paragraph": 13628,
+                      "originalText": "Холодное оружие 5"
+                    },
+                    "packId": "dubl-3.69",
+                    "familyId": "melee_weapon",
+                    "operator": "GE",
+                    "operand": 5
+                  },
+                  {
+                    "type": "SkillFamily",
+                    "nodeId": "feat_1bacaebcd614c5c5/requirements/4/1",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.hwzq55hph1xp",
+                      "paragraph": 13628,
+                      "originalText": "Рукопашный бой 5"
+                    },
+                    "packId": "dubl-3.69",
+                    "familyId": "unarmed",
+                    "operator": "GE",
+                    "operand": 5
+                  },
+                  {
+                    "type": "SkillFamily",
+                    "nodeId": "feat_1bacaebcd614c5c5/requirements/4/2",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.hwzq55hph1xp",
+                      "paragraph": 13628,
+                      "originalText": "Метание 5"
+                    },
+                    "packId": "dubl-3.69",
+                    "familyId": "throwing",
+                    "operator": "GE",
+                    "operand": 5
+                  },
+                  {
+                    "type": "SkillFamily",
+                    "nodeId": "feat_1bacaebcd614c5c5/requirements/4/3",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.hwzq55hph1xp",
+                      "paragraph": 13628,
+                      "originalText": "Стрельба 5"
+                    },
+                    "packId": "dubl-3.69",
+                    "familyId": "shooting",
+                    "operator": "GE",
+                    "operand": 5
+                  }
+                ]
               }
             ]
+          },
+          {
+            "type": "Exclusive",
+            "nodeId": "feat_1bacaebcd614c5c5/exclusive",
+            "sourceRef": {
+              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+              "sheet": "t.hwzq55hph1xp",
+              "paragraph": 13618,
+              "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+            },
+            "conflicting": {
+              "type": "AnyOf",
+              "nodeId": "feat_1bacaebcd614c5c5/exclusive/rivals",
+              "sourceRef": {
+                "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                "sheet": "t.hwzq55hph1xp",
+                "paragraph": 13618,
+                "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+              },
+              "children": [
+                {
+                  "type": "OwnedRank",
+                  "nodeId": "feat_1bacaebcd614c5c5/exclusive/rival/feat_7c06b44361f99e86",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.hwzq55hph1xp",
+                    "paragraph": 13618,
+                    "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+                  },
+                  "packId": "dubl-3.69",
+                  "entryId": "feat_7c06b44361f99e86",
+                  "operator": "GE",
+                  "operand": 1
+                },
+                {
+                  "type": "OwnedRank",
+                  "nodeId": "feat_1bacaebcd614c5c5/exclusive/rival/feat_07a5933de10322e2",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.hwzq55hph1xp",
+                    "paragraph": 13618,
+                    "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+                  },
+                  "packId": "dubl-3.69",
+                  "entryId": "feat_07a5933de10322e2",
+                  "operator": "GE",
+                  "operand": 1
+                }
+              ]
+            }
           }
         ]
       }
@@ -49439,8 +49516,18 @@
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
       "familyIds": [],
-      "categoryIds": [],
-      "classificationSources": {},
+      "categoryIds": [
+        "perfect-root"
+      ],
+      "classificationSources": {
+        "category:perfect-root": {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "sheet": "t.hwzq55hph1xp",
+          "paragraph": 13655,
+          "originalText": "Одержимость"
+        }
+      },
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "NeedsResolution",
@@ -49466,7 +49553,7 @@
       },
       "requirements": {
         "type": "AllOf",
-        "nodeId": "feat_7c06b44361f99e86/requirements",
+        "nodeId": "feat_7c06b44361f99e86/with-exclusion",
         "sourceRef": {
           "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
           "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
@@ -49476,59 +49563,126 @@
         },
         "children": [
           {
-            "type": "Unresolved",
-            "nodeId": "feat_7c06b44361f99e86/requirements/0",
+            "type": "AllOf",
+            "nodeId": "feat_7c06b44361f99e86/requirements",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
               "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
               "sheet": "t.hwzq55hph1xp",
               "paragraph": 13658,
-              "originalText": "Подлая атака"
+              "originalText": "Требование: Подлая атака, Воля 4, Скрытность 4, Восприятие 4"
             },
-            "reason": "ambiguous-reference:Подлая атака"
+            "children": [
+              {
+                "type": "Unresolved",
+                "nodeId": "feat_7c06b44361f99e86/requirements/0",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.hwzq55hph1xp",
+                  "paragraph": 13658,
+                  "originalText": "Подлая атака"
+                },
+                "reason": "ambiguous-reference:Подлая атака"
+              },
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c06b44361f99e86/requirements/1",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.hwzq55hph1xp",
+                  "paragraph": 13658,
+                  "originalText": "Воля 4"
+                },
+                "attributeId": "WIL",
+                "operand": 4,
+                "operator": "GE"
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c06b44361f99e86/requirements/2",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.hwzq55hph1xp",
+                  "paragraph": 13658,
+                  "originalText": "Скрытность 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "stealth",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c06b44361f99e86/requirements/3",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.hwzq55hph1xp",
+                  "paragraph": 13658,
+                  "originalText": "Восприятие 4"
+                },
+                "attributeId": "PER",
+                "operand": 4,
+                "operator": "GE"
+              }
+            ]
           },
           {
-            "type": "Attribute",
-            "nodeId": "feat_7c06b44361f99e86/requirements/1",
+            "type": "Exclusive",
+            "nodeId": "feat_7c06b44361f99e86/exclusive",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
               "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
               "sheet": "t.hwzq55hph1xp",
-              "paragraph": 13658,
-              "originalText": "Воля 4"
+              "paragraph": 13618,
+              "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
             },
-            "attributeId": "WIL",
-            "operand": 4,
-            "operator": "GE"
-          },
-          {
-            "type": "SkillFamily",
-            "nodeId": "feat_7c06b44361f99e86/requirements/2",
-            "sourceRef": {
-              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-              "sheet": "t.hwzq55hph1xp",
-              "paragraph": 13658,
-              "originalText": "Скрытность 4"
-            },
-            "packId": "dubl-3.69",
-            "familyId": "stealth",
-            "operator": "GE",
-            "operand": 4
-          },
-          {
-            "type": "Attribute",
-            "nodeId": "feat_7c06b44361f99e86/requirements/3",
-            "sourceRef": {
-              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-              "sheet": "t.hwzq55hph1xp",
-              "paragraph": 13658,
-              "originalText": "Восприятие 4"
-            },
-            "attributeId": "PER",
-            "operand": 4,
-            "operator": "GE"
+            "conflicting": {
+              "type": "AnyOf",
+              "nodeId": "feat_7c06b44361f99e86/exclusive/rivals",
+              "sourceRef": {
+                "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                "sheet": "t.hwzq55hph1xp",
+                "paragraph": 13618,
+                "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+              },
+              "children": [
+                {
+                  "type": "OwnedRank",
+                  "nodeId": "feat_7c06b44361f99e86/exclusive/rival/feat_1bacaebcd614c5c5",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.hwzq55hph1xp",
+                    "paragraph": 13618,
+                    "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+                  },
+                  "packId": "dubl-3.69",
+                  "entryId": "feat_1bacaebcd614c5c5",
+                  "operator": "GE",
+                  "operand": 1
+                },
+                {
+                  "type": "OwnedRank",
+                  "nodeId": "feat_7c06b44361f99e86/exclusive/rival/feat_07a5933de10322e2",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.hwzq55hph1xp",
+                    "paragraph": 13618,
+                    "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+                  },
+                  "packId": "dubl-3.69",
+                  "entryId": "feat_07a5933de10322e2",
+                  "operator": "GE",
+                  "operand": 1
+                }
+              ]
+            }
           }
         ]
       }
@@ -50045,8 +50199,18 @@
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
       "familyIds": [],
-      "categoryIds": [],
-      "classificationSources": {},
+      "categoryIds": [
+        "perfect-root"
+      ],
+      "classificationSources": {
+        "category:perfect-root": {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "sheet": "t.hwzq55hph1xp",
+          "paragraph": 13708,
+          "originalText": "Энтропия"
+        }
+      },
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "NeedsResolution",
@@ -50084,8 +50248,8 @@
         }
       },
       "requirements": {
-        "type": "Unresolved",
-        "nodeId": "feat_07a5933de10322e2/requirements",
+        "type": "AllOf",
+        "nodeId": "feat_07a5933de10322e2/with-exclusion",
         "sourceRef": {
           "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
           "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
@@ -50093,7 +50257,74 @@
           "paragraph": 13711,
           "originalText": "Требование: Удача 3"
         },
-        "reason": "ambiguous-reference:Удача"
+        "children": [
+          {
+            "type": "Unresolved",
+            "nodeId": "feat_07a5933de10322e2/requirements",
+            "sourceRef": {
+              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+              "sheet": "t.hwzq55hph1xp",
+              "paragraph": 13711,
+              "originalText": "Требование: Удача 3"
+            },
+            "reason": "ambiguous-reference:Удача"
+          },
+          {
+            "type": "Exclusive",
+            "nodeId": "feat_07a5933de10322e2/exclusive",
+            "sourceRef": {
+              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+              "sheet": "t.hwzq55hph1xp",
+              "paragraph": 13618,
+              "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+            },
+            "conflicting": {
+              "type": "AnyOf",
+              "nodeId": "feat_07a5933de10322e2/exclusive/rivals",
+              "sourceRef": {
+                "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                "sheet": "t.hwzq55hph1xp",
+                "paragraph": 13618,
+                "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+              },
+              "children": [
+                {
+                  "type": "OwnedRank",
+                  "nodeId": "feat_07a5933de10322e2/exclusive/rival/feat_1bacaebcd614c5c5",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.hwzq55hph1xp",
+                    "paragraph": 13618,
+                    "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+                  },
+                  "packId": "dubl-3.69",
+                  "entryId": "feat_1bacaebcd614c5c5",
+                  "operator": "GE",
+                  "operand": 1
+                },
+                {
+                  "type": "OwnedRank",
+                  "nodeId": "feat_07a5933de10322e2/exclusive/rival/feat_7c06b44361f99e86",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.hwzq55hph1xp",
+                    "paragraph": 13618,
+                    "originalText": "Совершенные способности могут усиливать, менять и дополнять имеющиеся способности. Один персонаж может иметь не более одной совершенной способности."
+                  },
+                  "packId": "dubl-3.69",
+                  "entryId": "feat_7c06b44361f99e86",
+                  "operator": "GE",
+                  "operand": 1
+                }
+              ]
+            }
+          }
+        ]
       }
     },
     {
@@ -127058,5 +127289,5 @@
       }
     }
   ],
-  "catalogRevision": "bdb9fce670f646498ab3241702796c1432810d3a12a46bf17f23c60005ebed6d"
+  "catalogRevision": "de3afd469885c388cfb9eb0e168fde677713992b97678fbe5c04943f23cc5c9e"
 }

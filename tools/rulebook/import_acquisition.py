@@ -31,6 +31,11 @@ COMBAT_CRY_CATEGORY = 'combat-cry'
 WEAPON_SPECIALIZATION = 'feat_2334f8b24105194c'
 COLD_WEAPON_QUALIFIER = {'key': 'weaponTypeId', 'valueId': 'melee'}
 BRANCH_BINDINGS = {'Боевые крики': 'access_17f99cc35c559d82'}
+# Reviewed source roots in the perfect-ability section, not all descendants or name matches.
+PERFECT_ROOT_CATEGORY = 'perfect-root'
+PERFECT_ROOTS = {'feat_1bacaebcd614c5c5': 13624, 'feat_7c06b44361f99e86': 13655,
+                 'feat_07a5933de10322e2': 13708}
+PERFECT_LIMIT_PARAGRAPH = 13618
 
 
 def conjunction_parts(text):
@@ -147,13 +152,13 @@ def parse_requirement(text, node_id, source, definitions):
     return node('OwnedRank', node_id, local, **ref, operator='GE', operand=rank)
 
 
-def walk(tree):
+def walk(tree, include_exclusions=True):
     yield tree
     for child in tree.get('children', []):
-        yield from walk(child)
+        yield from walk(child, include_exclusions)
     for key in ('predicate', 'conflicting'):
-        if key in tree:
-            yield from walk(tree[key])
+        if key in tree and (key != 'conflicting' or include_exclusions):
+            yield from walk(tree[key], include_exclusions)
 
 
 def diagnose_catalog(definitions):
@@ -172,6 +177,7 @@ def diagnose_catalog(definitions):
     edges = defaultdict(set)
     for d in definitions:
         own = (d['ref']['packId'], d['ref']['entryId'])
+        dependencies = {n['nodeId'] for n in walk(d['requirements'], include_exclusions=False)}
         for n in walk(d['requirements']):
             if n['type'] == 'Unresolved':
                 emit(n['reason'].split(':')[0], d, n, n['reason'])
@@ -186,7 +192,8 @@ def diagnose_catalog(definitions):
                 emit('missing-reference', d, n, ':'.join(key)); continue
             if len(targets) != 1 and not family:
                 emit('ambiguous-reference', d, n, ':'.join(key))
-            edges[own].update((t['ref']['packId'], t['ref']['entryId']) for t in targets)
+            if n['nodeId'] in dependencies:
+                edges[own].update((t['ref']['packId'], t['ref']['entryId']) for t in targets)
             target = targets[0]
             if n['type'] in ('OwnedRank', 'SkillFamily', 'Specialization'):
                 maxima = [t.get('maxRank') for t in targets]
@@ -320,6 +327,14 @@ def build_acquisition_catalogs(repo_root):
         if d['id'] in KNOWLEDGE_MEMBERS:
             item['familyIds'] = [KNOWLEDGE_FAMILY]
             item['classificationSources']['family:'+KNOWLEDGE_FAMILY] = source_ref(evidence, KNOWLEDGE_MEMBERS[d['id']])
+        if d['id'] in PERFECT_ROOTS:
+            root_paragraph = PERFECT_ROOTS[d['id']]
+            root_ref = f'core:P{root_paragraph}'
+            limit_ref = f'core:P{PERFECT_LIMIT_PARAGRAPH}'
+            if not confirmed or root_ref not in o['sourceRef'] or evidence['sourceEvidence'][root_ref]['tabId'] != evidence['sourceEvidence'][limit_ref]['tabId']:
+                raise ValueError(f'Perfect root source binding requires review: {d["id"]}')
+            item['categoryIds'].append(PERFECT_ROOT_CATEGORY)
+            item['classificationSources']['category:'+PERFECT_ROOT_CATEGORY] = source_ref(evidence, root_paragraph)
         if confirmed:
             tag_refs = [ref for ref in o['sourceRef'] if evidence['sourceEvidence'][ref]['text'].strip() == '[Боевой крик]']
             if tag_refs:
@@ -395,6 +410,14 @@ def build_acquisition_catalogs(repo_root):
             tree = node('AllOf', id+'/with-access', src, children=[tree, access])
         if id == 'feat_9012c539238a1e6f':
             tree['children'].append(node('Unresolved', id+'/parent-access', src, reason='Q_EAGLE_PARENT_ACCESS'))
+        if id in PERFECT_ROOTS:
+            limit_source = source_ref(evidence, PERFECT_LIMIT_PARAGRAPH)
+            rivals = [node('OwnedRank', id+'/exclusive/rival/'+rival, limit_source,
+                           packId=CORE, entryId=rival, operator='GE', operand=1)
+                      for rival in PERFECT_ROOTS if rival != id]
+            exclusion = node('Exclusive', id+'/exclusive', limit_source,
+                             conflicting=node('AnyOf', id+'/exclusive/rivals', limit_source, children=rivals))
+            tree = node('AllOf', id+'/with-exclusion', tree['sourceRef'], children=[tree, exclusion])
         item['requirements'] = tree
     diagnostics = diagnose_catalog(definitions)
     definitions = apply_requirement_diagnostics(definitions, diagnostics)

@@ -229,14 +229,14 @@ private fun validateReferences(definitions: MutableMap<DefinitionRef, Acquisitio
             diagnostics += CatalogDiagnostic(kind, message, d.ref, n.nodeId, n.sourceRef)
             return RequirementNode.Unresolved(n.nodeId, n.sourceRef, "$kind:$message")
         }
-        fun validateNode(n: RequirementNode): RequirementNode {
+        fun validateNode(n: RequirementNode, positiveDependency: Boolean = true): RequirementNode {
             // Validation is structural, not semantic evaluation: keep each failure in
             // its exact AND/OR/count/exclusion scope for the future evaluator.
             when (n) {
-                is RequirementNode.AllOf -> return RequirementNode.AllOf(n.nodeId, n.sourceRef, n.children.map(::validateNode), n.noRequirementsEvidence)
-                is RequirementNode.AnyOf -> return RequirementNode.AnyOf(n.nodeId, n.sourceRef, n.children.map(::validateNode))
-                is RequirementNode.DistinctCount -> return n.copy(predicate = validateNode(n.predicate))
-                is RequirementNode.Exclusive -> return n.copy(conflicting = validateNode(n.conflicting))
+                is RequirementNode.AllOf -> return RequirementNode.AllOf(n.nodeId, n.sourceRef, n.children.map { validateNode(it, positiveDependency) }, n.noRequirementsEvidence)
+                is RequirementNode.AnyOf -> return RequirementNode.AnyOf(n.nodeId, n.sourceRef, n.children.map { validateNode(it, positiveDependency) })
+                is RequirementNode.DistinctCount -> return n.copy(predicate = validateNode(n.predicate, positiveDependency))
+                is RequirementNode.Exclusive -> return n.copy(conflicting = validateNode(n.conflicting, positiveDependency = false))
                 else -> Unit
             }
             val ref = when (n) {
@@ -252,7 +252,8 @@ private fun validateReferences(definitions: MutableMap<DefinitionRef, Acquisitio
             val targets = if (family) snapshot.values.filter { it.ref.packId == ref.packId && ref.entryId in it.familyIds }
                 else listOfNotNull(exact)
             if (targets.isEmpty()) return problem(n, "missing-reference", ref.toString())
-            edges.getValue(d.ref).addAll(targets.map { it.ref })
+            // A rival's possession is a negative restriction, not a positive dependency.
+            if (positiveDependency) edges.getValue(d.ref).addAll(targets.map { it.ref })
             if (n is RequirementNode.LearnedSpell && targets.any { it.kind != AcquisitionKind.SPELL })
                 return problem(n, "reference-kind-mismatch", "LearnedSpell must reference a spell")
             if (n is RequirementNode.SkillFamily && targets.any { it.kind != AcquisitionKind.SKILL })
