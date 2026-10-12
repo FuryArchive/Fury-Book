@@ -161,3 +161,60 @@ def test_discounted_cell_requires_trusted_price_rule():
                 'athletics|0|1|DEFAULT|AFTER_CREATION|SELF_TAUGHT|EXISTING|FIXED')
     case['priceRule'] = 'unrelated_rule'
     assert {'code': 'PRICE_RULE_MISMATCH', 'caseId': case['caseId']} in validate(matrix, manifest)
+
+
+def test_literal_source_expansion_is_independent_and_exact():
+    matrix, manifest = corpus()
+    prices = manifest['reviewedRules']['developmentFirstRanks']
+    assert len(prices) == 517
+    assert prices['feat_a4724bc98b972fd7']['xp'] == 100
+    for ident, expected in [('feat_fcdd74622d21435d', 20), ('feat_3233f2da5c693e34', 40)]:
+        row = next(c for c in matrix['cases'] if c['caseId'] ==
+                   f'{ident}|0|1|DEFAULT|AFTER_CREATION|NONE|EXISTING|FIXED')
+        assert row['evidenceStatus'] == 'CONFIRMED'
+        assert row['expectedCostXP'] == expected
+    prices['feat_a4724bc98b972fd7']['xp'] = 99
+    assert any(e['code'] == 'REVIEWED_SOURCE_PRICE_MISMATCH' for e in validate(matrix, manifest))
+
+
+def test_release_gate_is_strict_without_weakening_integrity():
+    import subprocess
+    import sys
+    result = subprocess.run([sys.executable, '-m', 'tools.rulebook.validate_acquisition_matrix',
+                             '--require-confirmed'], cwd=ROOT, capture_output=True, text=True)
+    assert result.returncode == 1
+    summary = json.loads(result.stdout.splitlines()[0])
+    assert summary['integrityErrors'] == 0
+    assert summary['releaseReady'] is False
+    assert summary['blocked'] > 0
+
+
+def test_oracle_never_invents_discount_rounding():
+    from tools.rulebook.validate_acquisition_matrix import oracle_cost
+    _, manifest = corpus()
+    definition = next(d for d in manifest['definitions'] if d['id'] == 'athletics')
+    rules = copy.deepcopy(manifest['reviewedRules'])
+    rules['skillSteps']['1'] = 11
+    context = dict(fromRank=0, toRank=1, creationPhase='AFTER_CREATION',
+                   discountConditions='SELF_TAUGHT', instance='EXISTING', parameters={'semanticClass': 'FIXED'})
+    assert oracle_cost(definition, context, rules) is None
+
+
+def test_template_skill_quotes_retain_price_only_scope_and_source_identity():
+    matrix, manifest = corpus()
+    for ident, paragraph, name in [('knowledge_template', 278, 'Знание (Любое)'),
+                                   ('performance_template', 291, 'Исполнение (Любое)'),
+                                   ('profession_template', 320, 'Профессия'),
+                                   ('craft_template', 324, 'Ремесло')]:
+        assert manifest['sourceEvidence'][f'core:P{paragraph}']['text'] == name
+        assert ident in manifest['reviewedRules']['reviewedSkillIds']
+        for parameter in ['SAME_ID', 'RENAMED_SAME_ID', 'OTHER_ID', 'EMPTY', 'UNKNOWN', 'TWO_DISTINCT']:
+            case = next(c for c in matrix['cases'] if c['caseId'] ==
+                        f'{ident}|0|1|DEFAULT|AFTER_CREATION|SELF_TAUGHT|FIRST|{parameter}')
+            assert case['evidenceStatus'] == 'CONFIRMED'
+            assert case['evidenceScope'] == 'PRICE_ONLY'
+            assert case['expectedApply'] == 'CONDITIONAL_ON_CONFIRMED_ADMISSION_AND_IDENTITY'
+            assert case['expectedCostXP'] == 5
+            assert case['expectedRemainingXP'] == 9995
+    case['evidenceScope'] = 'APPLY_ELIGIBLE'
+    assert any(e['code'] == 'PRICE_SCOPE_MISMATCH' for e in validate(matrix, manifest))

@@ -11,6 +11,7 @@ import hashlib
 from collections import Counter
 import itertools
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -56,14 +57,23 @@ def oracle_cost(definition: dict, context: dict, rules: dict):
         return None
     if not isinstance(a, int) or not isinstance(b, int):
         return None
-    if context['instance'] != 'EXISTING' or context['parameters']['semanticClass'] != 'FIXED':
-        return None
     kind = definition['kind']
+    literal = rules.get('developmentFirstRanks', {}).get(definition['id'])
+    if kind == 'development' and literal:
+        # These are price-only contexts; identity/admission is a separate gate.
+        # No higher-rank formula follows from a listed first purchase price.
+        if a == b:
+            return 0, 0, 'source_no_change'
+        if a == 0 and b == 1:
+            return literal['xp'], 0, 'reviewed_development_first_rank'
+        return None
     if kind == 'attribute' and b >= a:
         return sum(rules['attributeSteps'][str(r)] for r in range(a + 1, b + 1)), 0, 'attribute_table'
     if kind == 'skill' and definition['id'] in rules['reviewedSkillIds']:
         steps = [rules['skillSteps'][str(r)] for r in range(a + 1, b + 1)]
         if context['creationPhase'] == 'AFTER_CREATION' and context['discountConditions'] == 'SELF_TAUGHT':
+            if any(price % 2 for rank, price in zip(range(a + 1, b + 1), steps) if rank <= 2):
+                return None  # No source rounding convention permits an integer oracle.
             steps = [price // 2 if rank <= 2 else price
                      for rank, price in zip(range(a + 1, b + 1), steps)]
         return sum(steps), 0, 'skill_table_and_self_taught'
@@ -99,6 +109,9 @@ def build_corpus(source: dict):
                 record.update(expectedCostXP=xp, expectedCostAP=ap,
                               expectedRemainingXP=10000-xp, expectedRemainingAP=100-ap,
                               expectedUndoXP=10000, expectedUndoAP=100)
+                # Quote confidence never certifies acquisition identity or permission.
+                record.update(evidenceScope='PRICE_ONLY',
+                              expectedApply='CONDITIONAL_ON_CONFIRMED_ADMISSION_AND_IDENTITY')
             cases.append(record)
     cases.extend(source['anchors'])
     manifest = dict(schemaVersion=1, devOnly=True, counts=COUNTS,
@@ -162,6 +175,15 @@ def validate_matrix(matrix: dict, manifest: dict) -> list[dict]:
             error('MISSING_BLOCKING_QUESTION', occurrence['sourceId'])
     evidence_records = manifest.get('sourceEvidence', {})
     evidence = set(evidence_records)
+    for ident, literal in manifest.get('reviewedRules', {}).get('developmentFirstRanks', {}).items():
+        refs = literal.get('sourceRefs', [])
+        amounts = []
+        for ref in refs:
+            match = re.fullmatch(r'Стоимость:\s*(\d+)\s*', evidence_records.get(ref, {}).get('text', ''))
+            if match:
+                amounts.append(int(match[1]))
+        if not refs or len(amounts) != len(refs) or set(amounts) != {literal.get('xp')}:
+            error('REVIEWED_SOURCE_PRICE_MISMATCH', ident)
     for ref, excerpt in evidence_records.items():
         if 'sha256' in excerpt and hashlib.sha256(excerpt['text'].encode()).hexdigest() != excerpt['sha256']:
             error('SOURCE_EVIDENCE_DRIFT', ref)
@@ -188,6 +210,9 @@ def validate_matrix(matrix: dict, manifest: dict) -> list[dict]:
                 error('PREREQUISITE_EVIDENCE_MISMATCH', ident)
             if case.get('priceRule') != (price[2] if price else None):
                 error('PRICE_RULE_MISMATCH', ident)
+            if price and (case.get('evidenceScope') != 'PRICE_ONLY' or
+                          case.get('expectedApply') != 'CONDITIONAL_ON_CONFIRMED_ADMISSION_AND_IDENTITY'):
+                error('PRICE_SCOPE_MISMATCH', ident)
             if any(case.get(k) != v for k, v in context.items()) or case.get('definitionRef') != definition['id']:
                 error('CONTEXT_MISMATCH', ident)
             if case.get('sourceRef') != definition['sourceRefs'] or case.get('sourceId') != definition['sourceIds']:
@@ -251,6 +276,7 @@ def main():
     parser.add_argument('--matrix', type=Path, default=DATA / 'expected_prices.json')
     parser.add_argument('--manifest', type=Path, default=DATA / 'coverage_manifest.json')
     parser.add_argument('--rebuild', action='store_true', help='use committed source_questions.json only')
+    parser.add_argument('--require-confirmed', action='store_true', help='fail while any required case or source mapping is unresolved')
     args = parser.parse_args()
     if args.rebuild:
         matrix, manifest = build_corpus(json.loads((DATA / 'source_questions.json').read_text()))
@@ -260,11 +286,15 @@ def main():
     errors = validate_matrix(matrix, manifest) + catalog_drift(manifest)
     confirmed = sum(c['evidenceStatus'] == 'CONFIRMED' for c in matrix['cases'])
     blocked = len(matrix['cases']) - confirmed
+    unmapped = sum(not row.get('runtimeId') for row in manifest['sourceOccurrences'])
+    open_questions = sum(q['status'] == 'OPEN' for q in manifest['questions'])
+    ready = not errors and blocked == 0 and unmapped == 0 and open_questions == 0
     print(json.dumps(dict(counts=manifest['counts'], cases=len(matrix['cases']), confirmed=confirmed,
-                          blocked=blocked, integrityErrors=len(errors), releaseReady=False), ensure_ascii=False))
+                          blocked=blocked, unmapped=unmapped, openQuestions=open_questions,
+                          integrityErrors=len(errors), releaseReady=ready), ensure_ascii=False))
     for error in errors:
         print(json.dumps(error, ensure_ascii=False))
-    return 1 if errors else 0
+    return 1 if errors or (args.require_confirmed and not ready) else 0
 
 
 if __name__ == '__main__':

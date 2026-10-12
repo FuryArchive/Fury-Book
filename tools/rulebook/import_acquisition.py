@@ -277,6 +277,29 @@ def correct_development_payload(payload, repo_root):
     return result
 
 
+def duplicate_price_evidence(occurrences: list, evidence: dict):
+    """Only agree on the price; never select one duplicate's inherited admission context."""
+    if len(occurrences) < 2:
+        return None
+    sources, amounts, ranks = [], [], []
+    for occurrence in occurrences:
+        if occurrence['matchStatus'] != 'matched' or any(ref not in evidence['sourceEvidence'] for ref in occurrence['sourceRef']):
+            return None
+        rows = [(ref, evidence['sourceEvidence'][ref]['text']) for ref in occurrence['sourceRef']]
+        prices = [(ref, re.fullmatch(r'Стоимость:\s*(\d+)\s*', text)) for ref, text in rows]
+        prices = [(ref, match) for ref, match in prices if match]
+        if len(prices) != 1:
+            return None
+        sources.append(prices[0][0]); amounts.append(int(prices[0][1][1]))
+        caps = [re.fullmatch(r'Ранг(?:и)?:\s*(\d+)\s*', text) for _, text in rows]
+        caps = [int(match[1]) for match in caps if match]
+        ranks.append(caps[0] if len(caps) == 1 else None)
+    if len(set(amounts)) != 1:
+        return None
+    return {'xp': str(amounts[0]), 'sources': sources,
+            'maxRank': ranks[0] if len(set(ranks)) == 1 else None}
+
+
 def build_acquisition_catalogs(repo_root):
     repo_root = Path(repo_root)
     evidence = read(repo_root/'rulesets/dubl-3.69/acquisition/source_questions.json')
@@ -324,6 +347,18 @@ def build_acquisition_catalogs(repo_root):
                 'sourceStatus': 'NeedsResolution' if confirmed else 'Unavailable', 'sourceRef': source,
                 'requirementsText': r.get('requirements', ''),
                 'priceRule': {'type': 'Unknown', 'reason': 'source-unverified' if not confirmed else 'Q_SOURCE_PRICE_CONTEXT', 'sourceRef': source}}
+        duplicate_price = duplicate_price_evidence(occurrences, evidence)
+        if duplicate_price:
+            # All numerical citations survive. Branch/admission context has not
+            # been reconciled here and remains an explicit local extraction gap.
+            citations = {ref: source_ref(evidence, int(ref.split('P')[1])) for ref in duplicate_price['sources']}
+            first = next(iter(citations.values()))
+            item.update(sourceStatus='NeedsResolution', sourceRef=first, maxRank=duplicate_price['maxRank'],
+                        duplicateSourceContext=True, requirementsText='')
+            item['classificationSources'].update({'price:'+ref: value for ref, value in citations.items()})
+            literal = {'xp': duplicate_price['xp'], 'ap': '0', 'sourceRef': first}
+            item['priceRule'] = ({'type': 'Fixed', **literal} if duplicate_price['maxRank'] == 1 else
+                {'type': 'TransitionTable', 'sourceRef': first, 'transitions': [{'fromRank': 0, 'toRank': 1, **literal}]})
         if d['id'] in KNOWLEDGE_MEMBERS:
             item['familyIds'] = [KNOWLEDGE_FAMILY]
             item['classificationSources']['family:'+KNOWLEDGE_FAMILY] = source_ref(evidence, KNOWLEDGE_MEMBERS[d['id']])
@@ -345,7 +380,7 @@ def build_acquisition_catalogs(repo_root):
                 item['requirementsText'] = ''
             if len(reqs) == 1:
                 p, text = reqs[0]; item['requirementsText'] = text.split(':', 1)[1].strip(); item['requirementSource'] = source_ref(evidence, p)
-            prices = [(int(ref.split('P')[1]), evidence['sourceEvidence'][ref]['text']) for ref in o['sourceRef'] if re.fullmatch(r'Стоимость:\s*\d+', evidence['sourceEvidence'][ref]['text'])]
+            prices = [(int(ref.split('P')[1]), evidence['sourceEvidence'][ref]['text']) for ref in o['sourceRef'] if re.fullmatch(r'Стоимость:\s*\d+\s*', evidence['sourceEvidence'][ref]['text'])]
             if len(prices) == 1:
                 p, text = prices[0]; price = {'xp': str(int(text.split(':',1)[1])), 'ap': '0', 'sourceRef': source_ref(evidence, p)}
                 if maximum == 1:
@@ -370,6 +405,36 @@ def build_acquisition_catalogs(repo_root):
                     'xp': cost_text, 'ap': '0', 'sourceRef': source_ref(evidence, paragraph + 1)})
             item['priceRule'] = {'type': 'TransitionTable', 'transitions': transitions,
                                  'sourceRef': source_ref(evidence, heading)}
+            if d['kind'] == 'skill':
+                # Source P11655 halves ranks <=2; P11656 excludes creation. These
+                # are explicit predicates for the shared evaluator, not runtime IDs
+                # or expected prices obtained from the test oracle.
+                discount_source = source_ref(evidence, 11655)
+                phase_source = source_ref(evidence, 11656)
+                assert 'до 2 ранга включительно' in discount_source['originalText']
+                assert 'Не работает при создании персонажа' in phase_source['originalText']
+                discounted = []
+                for row in transitions:
+                    if row['toRank'] <= 2:
+                        xp = int(row['xp'])
+                        if xp % 2:
+                            # No rounding convention is stated. Omit only this
+                            # discounted row so its quote is Unknown; retain the
+                            # base price and all exactly representable rows.
+                            continue
+                        discounted.append({**row, 'xp': str(xp // 2), 'sourceRef': discount_source})
+                    else:
+                        discounted.append(row)
+                base = item['priceRule']
+                owned = node('OwnedRank', d['id']+'/price/self-taught', discount_source,
+                    packId=CORE, entryId='feat_dd0ba74aedebce10', operator='GE', operand=1)
+                item['priceRule'] = {'type': 'Conditional', 'sourceRef': phase_source,
+                    'condition': node('CreationPhase', d['id']+'/price/creation', phase_source,
+                                      operator='EQ', operand='Creating'),
+                    'whenTrue': base,
+                    'whenFalse': {'type': 'Conditional', 'condition': owned, 'sourceRef': discount_source,
+                        'whenTrue': {'type': 'TransitionTable', 'transitions': discounted, 'sourceRef': discount_source},
+                        'whenFalse': base}}
             item['sourceRef'] = source_ref(evidence, heading)
             item['sourceStatus'] = 'NeedsResolution'
             # Explicit general purchase permission, not an absent display field.
@@ -389,7 +454,10 @@ def build_acquisition_catalogs(repo_root):
         definitions.append(item)
     for item in definitions:
         id = item['ref']['entryId']; src = item.pop('requirementSource', item['sourceRef'])
-        if item.pop('generalPurchasePermission', False):
+        if item.pop('duplicateSourceContext', False):
+            tree = node('Unresolved', id+'/duplicate-context', src,
+                        reason='unmapped-duplicate-source-context: inherited admission/branch context requires reconciliation')
+        elif item.pop('generalPurchasePermission', False):
             tree = node('AllOf', id+'/requirements', src, children=[],
                 noRequirementsStatement='The cited general rule explicitly permits purchase of this fixed attribute/skill rank for XP; no additional entry prerequisite is stated.')
         elif item.get('identityQuestion'):

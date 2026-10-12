@@ -74855,7 +74855,11 @@
       "melee_weapon",
       "throwing",
       "unarmed",
-      "computers"
+      "computers",
+      "knowledge_template",
+      "performance_template",
+      "profession_template",
+      "craft_template"
     ],
     "attributeTableRefs": [
       "core:P51",
@@ -75106,7 +75110,3126 @@
       "core:P10564"
     ],
     "reviewNote": "P67–111 attribute and P359–388 skill incremental values independently read against indexed corebook; skill discount P11655 halves only future ranks≤2 outside creation. Rank table limits are finite source table coverage, not universal effective-attribute limits.",
-    "unresolvedDiscountQuestion": "Q_SOURCE_DISCOUNT_COMBINATIONS"
+    "unresolvedDiscountQuestion": "Q_SOURCE_DISCOUNT_COMBINATIONS",
+    "developmentFirstRanks": {
+      "feat_1fb86899adeb5527": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P15410"
+        ]
+      },
+      "feat_11d6af703d7ebee9": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P15415"
+        ]
+      },
+      "feat_6f7441d04e880130": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P15427"
+        ]
+      },
+      "feat_b364b25cb13664c0": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P15433"
+        ]
+      },
+      "feat_4576268c38fcd5f7": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P15439"
+        ]
+      },
+      "feat_7bc39bc9c44dd41e": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P15445"
+        ]
+      },
+      "feat_e05a30e954c90cd6": {
+        "xp": 10,
+        "sourceRefs": [
+          "core:P10253"
+        ]
+      },
+      "feat_6bf79551af3d6ea8": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10259"
+        ]
+      },
+      "feat_2f94d2294be7d3fa": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10264"
+        ]
+      },
+      "feat_0682bdd416ebe1c5": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10269"
+        ]
+      },
+      "feat_dc74b3f6c0ff922f": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10274"
+        ]
+      },
+      "feat_128c2860a292efef": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10279"
+        ]
+      },
+      "feat_7a05da069e5a5667": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10285"
+        ]
+      },
+      "feat_a1b2117d80ed94e3": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10290",
+          "core:P10712"
+        ]
+      },
+      "feat_cb77652b78152667": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10295"
+        ]
+      },
+      "feat_dfb7c30574749cae": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10300"
+        ]
+      },
+      "feat_7a1583e54ea2e49e": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10307"
+        ]
+      },
+      "feat_8953366282803d89": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10312"
+        ]
+      },
+      "feat_6d1ba374b1aa80c9": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10317"
+        ]
+      },
+      "feat_b08dfb27a33fde8e": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10322"
+        ]
+      },
+      "feat_f31167dd6c68876a": {
+        "xp": 60,
+        "sourceRefs": [
+          "core:P10327"
+        ]
+      },
+      "feat_ef01c79bad95bc11": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10332",
+          "core:P10424"
+        ]
+      },
+      "feat_b9596e9fcf4783f2": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10337"
+        ]
+      },
+      "feat_981e1615ce27501f": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10342"
+        ]
+      },
+      "feat_9c23c19465114ae6": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10348"
+        ]
+      },
+      "feat_fe40de7bd9514242": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10354"
+        ]
+      },
+      "feat_3502559c63707e6a": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10362"
+        ]
+      },
+      "feat_0be07734fc944da9": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10369"
+        ]
+      },
+      "feat_418a6ebb03769dc0": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10376"
+        ]
+      },
+      "feat_b5e7b6d832cf689f": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10383"
+        ]
+      },
+      "feat_4add442b30aea005": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10398"
+        ]
+      },
+      "feat_7fa988dc9e4fc7c7": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10403"
+        ]
+      },
+      "feat_2d8bf7cb47ca0d8c": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10408"
+        ]
+      },
+      "feat_9168c5a0d0e27491": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10413"
+        ]
+      },
+      "feat_3233f2da5c693e34": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10419"
+        ]
+      },
+      "feat_19343b11022a5be4": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10429"
+        ]
+      },
+      "feat_d69c0d77fdf1d016": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10435"
+        ]
+      },
+      "feat_c69b491a98862c61": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10440"
+        ]
+      },
+      "feat_d9393b7bcd8910dd": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10446"
+        ]
+      },
+      "feat_7724f739e5fd73c0": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10451"
+        ]
+      },
+      "feat_48d67bcbe8fc28c8": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10456"
+        ]
+      },
+      "feat_fcdea7663f0b9383": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10461"
+        ]
+      },
+      "feat_098eff5ce64b5b87": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10466"
+        ]
+      },
+      "feat_a5d3b291d6db6600": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10471"
+        ]
+      },
+      "feat_fe9c83a15d2010bd": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10477"
+        ]
+      },
+      "feat_c3e4dc88d2e69e5a": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10482"
+        ]
+      },
+      "feat_72094d2dcfe2baa4": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10487"
+        ]
+      },
+      "feat_60747f5c420d79ee": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10493"
+        ]
+      },
+      "feat_06cb5943b77c50e3": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P10499"
+        ]
+      },
+      "feat_8456202e99da5796": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10504"
+        ]
+      },
+      "feat_9f477ab40687062a": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10509"
+        ]
+      },
+      "feat_4e8ea7dbf3fb9784": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10515"
+        ]
+      },
+      "feat_fde4317b9b9ab7cd": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10522"
+        ]
+      },
+      "feat_cd965f927a426cc2": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10528"
+        ]
+      },
+      "feat_b8989e97e58accba": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10534"
+        ]
+      },
+      "feat_f33c232811919ee5": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10540"
+        ]
+      },
+      "feat_0bf4bbf1c46717a4": {
+        "xp": 60,
+        "sourceRefs": [
+          "core:P10545"
+        ]
+      },
+      "feat_7765fc49273697b2": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10550"
+        ]
+      },
+      "feat_d1199253868da3e5": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10555"
+        ]
+      },
+      "feat_9cdb23c3843b6b4c": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10561"
+        ]
+      },
+      "feat_002f961bc98825c0": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10566",
+          "core:P16775"
+        ]
+      },
+      "feat_b47552f7d1361f33": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10571"
+        ]
+      },
+      "feat_3afeef51c7dbedf6": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10576"
+        ]
+      },
+      "feat_3a3d5913f1f15d8d": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10583"
+        ]
+      },
+      "feat_bd8f99a63d357307": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10588",
+          "core:P16810"
+        ]
+      },
+      "feat_4c5b39c1c2c1e293": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10595"
+        ]
+      },
+      "feat_139d983dfaa45730": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10600",
+          "core:P16820"
+        ]
+      },
+      "feat_475503b5c4d7e32b": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10607"
+        ]
+      },
+      "feat_b28ef4152e26995a": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10620"
+        ]
+      },
+      "feat_212be8e87097059f": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P10625",
+          "core:P10681"
+        ]
+      },
+      "feat_b050cfaca797b797": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10631"
+        ]
+      },
+      "feat_7dcc2dd2d6ae0123": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10636"
+        ]
+      },
+      "feat_f72b932f269c5468": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10644"
+        ]
+      },
+      "feat_37d28406e9448153": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10654"
+        ]
+      },
+      "feat_98544c0129d9b2a7": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10659"
+        ]
+      },
+      "feat_21433433e4647c82": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10666",
+          "core:P10878"
+        ]
+      },
+      "feat_c52dfd8ac23e2850": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10671"
+        ]
+      },
+      "feat_c5bfe7442840e108": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10676"
+        ]
+      },
+      "feat_9c621454cfd259d9": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10687"
+        ]
+      },
+      "feat_a350031b6ae7f9e8": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10692"
+        ]
+      },
+      "feat_bb4aa34c8361c971": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P10697"
+        ]
+      },
+      "feat_659bd74345ebd251": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10702"
+        ]
+      },
+      "feat_5fdb014afbcc0807": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10707"
+        ]
+      },
+      "feat_80cb914af7c6df13": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10717"
+        ]
+      },
+      "feat_0a550ee38a5200a4": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10723"
+        ]
+      },
+      "feat_a700b29906107b2b": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P10729"
+        ]
+      },
+      "feat_b4c4cb83cb4afccd": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P10735"
+        ]
+      },
+      "feat_c0c6df625b29ac22": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10741"
+        ]
+      },
+      "feat_e08febc698c8a953": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10746"
+        ]
+      },
+      "feat_fc2eb28bbec2ed20": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10752"
+        ]
+      },
+      "feat_87a9d840d06ed240": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10758"
+        ]
+      },
+      "feat_220ac3fadc71fca8": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10764"
+        ]
+      },
+      "feat_409935660e906b58": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10770"
+        ]
+      },
+      "feat_78ad2819f5eab021": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10776"
+        ]
+      },
+      "feat_4691820ebdfd5957": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10781"
+        ]
+      },
+      "feat_5da49e15b0b6c3dc": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P10786"
+        ]
+      },
+      "feat_41a4981c51a12c6c": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10791"
+        ]
+      },
+      "feat_8bdb33ad5ad600d8": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10797"
+        ]
+      },
+      "feat_4bcd83f25311ccbd": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10803"
+        ]
+      },
+      "feat_e63bcf4c87dd83e1": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10811"
+        ]
+      },
+      "feat_7f31a14fc242f532": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10820"
+        ]
+      },
+      "feat_23d838794c2ccdc5": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P10828"
+        ]
+      },
+      "feat_cfa9aa3e8740f026": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10833"
+        ]
+      },
+      "feat_dad6c142bda7893e": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P10839"
+        ]
+      },
+      "feat_31c461aa8f327ced": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10846"
+        ]
+      },
+      "feat_f8d4f6fe3eff1c38": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10852"
+        ]
+      },
+      "feat_1e4f2d8d4bab0107": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P10857"
+        ]
+      },
+      "feat_e4fca8944cd56257": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10862"
+        ]
+      },
+      "feat_8513312a57bbbaeb": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10867"
+        ]
+      },
+      "feat_5760bb863f1af790": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10872"
+        ]
+      },
+      "feat_e15334b93796d854": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10883"
+        ]
+      },
+      "feat_d9c77ea8aa836686": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10888"
+        ]
+      },
+      "feat_255d30b26489a033": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10895"
+        ]
+      },
+      "feat_212358bf2539330f": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10900"
+        ]
+      },
+      "feat_302c8b08b74bf8c4": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10905"
+        ]
+      },
+      "feat_2fa9ffd9f7a53e01": {
+        "xp": 10,
+        "sourceRefs": [
+          "core:P10911"
+        ]
+      },
+      "feat_42473bc0735b2186": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P10917"
+        ]
+      },
+      "feat_feaff1b3972ffac9": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P10923"
+        ]
+      },
+      "feat_abd8f5efdc2566f7": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P10928"
+        ]
+      },
+      "feat_36bc41ab9ab77351": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10933"
+        ]
+      },
+      "feat_4871a5fecd90e549": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10941"
+        ]
+      },
+      "feat_203565fe3e4177aa": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10946"
+        ]
+      },
+      "feat_2334f8b24105194c": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10952"
+        ]
+      },
+      "feat_54bec8a33d2f92ba": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10958"
+        ]
+      },
+      "feat_b2b5f208d7adf9a0": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P10964"
+        ]
+      },
+      "feat_195750d39f11cfba": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P10969"
+        ]
+      },
+      "feat_9f3b0ed0ec3c3dc3": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10974"
+        ]
+      },
+      "feat_1e5dba9becf1a19d": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P10983"
+        ]
+      },
+      "feat_7f8d6491bd3e5254": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P10988"
+        ]
+      },
+      "feat_c447a33cd2f7e59b": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10993"
+        ]
+      },
+      "feat_d0e8baba7a5863c9": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P10998"
+        ]
+      },
+      "feat_10b53a383254a7f1": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11003"
+        ]
+      },
+      "feat_fcdd74622d21435d": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11010"
+        ]
+      },
+      "feat_e22fc0ae2cd61f3a": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11015"
+        ]
+      },
+      "feat_2c250def3ebd2349": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11020"
+        ]
+      },
+      "feat_3956c6e4b0cc08c1": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P11025"
+        ]
+      },
+      "feat_1a8fec9f8ab56cc0": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11030"
+        ]
+      },
+      "feat_727b422d0227dbac": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11035"
+        ]
+      },
+      "feat_9d25a6d251e7a7a7": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11043"
+        ]
+      },
+      "feat_1c923fa61f82ded6": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11048"
+        ]
+      },
+      "feat_3b7ebbf3d76578ab": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11053"
+        ]
+      },
+      "feat_9810dc6144d25d9b": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11058"
+        ]
+      },
+      "feat_e63dcbbf9b7dda01": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11063"
+        ]
+      },
+      "feat_349c8435b5b4e0f4": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11068"
+        ]
+      },
+      "feat_608bfc2a52637b13": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11073"
+        ]
+      },
+      "feat_e5d4ab23e63d4ad8": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11081"
+        ]
+      },
+      "feat_2b0b27e7c578caeb": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11086"
+        ]
+      },
+      "feat_2f6cc2a6bb5fbef5": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11091"
+        ]
+      },
+      "feat_4b9639e339d94ec6": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11096"
+        ]
+      },
+      "feat_9a80687ab37883e7": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11102"
+        ]
+      },
+      "feat_455c5ac6d380a58a": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11111"
+        ]
+      },
+      "feat_3e8aadc453bb432d": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11119"
+        ]
+      },
+      "feat_16673555e425c3cb": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11124"
+        ]
+      },
+      "feat_555de96ef1d0ca7c": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11129"
+        ]
+      },
+      "feat_7767abfc9b7aed0c": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11134"
+        ]
+      },
+      "feat_c373dce5e5a51fa1": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11140"
+        ]
+      },
+      "feat_3cd8e00bb937a5d1": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11145"
+        ]
+      },
+      "feat_9a0dbfed2efa56b7": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11150"
+        ]
+      },
+      "feat_f7202f148aa21fe3": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11158"
+        ]
+      },
+      "feat_f08ff2b7e182ef11": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11164"
+        ]
+      },
+      "feat_4db45c02ba4e49c9": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11169"
+        ]
+      },
+      "feat_f577ae1aa69e62ad": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P11177"
+        ]
+      },
+      "feat_400a0c31ef69a403": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P11182"
+        ]
+      },
+      "feat_ed8b4da6b63c16cb": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11187"
+        ]
+      },
+      "feat_b933cd25efd7c5d5": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11192"
+        ]
+      },
+      "feat_552acbbd41a96ccb": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11197"
+        ]
+      },
+      "feat_233fec5c9b1c56ca": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11203"
+        ]
+      },
+      "feat_108ac1d6e40fa059": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11210"
+        ]
+      },
+      "feat_c615c7ed90b1c8f0": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P11215"
+        ]
+      },
+      "feat_950e1ef9ad8bcf77": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11224"
+        ]
+      },
+      "feat_bec7aa2959058aa7": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P11233"
+        ]
+      },
+      "feat_f80d6ec156e94fef": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P11238"
+        ]
+      },
+      "feat_208b697799296d8e": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P11243"
+        ]
+      },
+      "feat_315682b861458eaf": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11248"
+        ]
+      },
+      "feat_73b6672717f97e05": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P11254"
+        ]
+      },
+      "feat_2cda0df5bcdba24b": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11259"
+        ]
+      },
+      "feat_06a609b99de2fd12": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P11264"
+        ]
+      },
+      "feat_4742b164fa432c4a": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11269"
+        ]
+      },
+      "feat_9428ec86bbf55ed7": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11274"
+        ]
+      },
+      "feat_c5729fed94001b26": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11280"
+        ]
+      },
+      "feat_9dacf0fb17bfb9a0": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11285"
+        ]
+      },
+      "feat_754f3ea1e0258f48": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11293"
+        ]
+      },
+      "feat_2eecb213f09ba1f4": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11298"
+        ]
+      },
+      "feat_efb63c726c416845": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11305"
+        ]
+      },
+      "feat_c12203ae67663fa7": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P11311"
+        ]
+      },
+      "feat_81f18b432b42b1d3": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P11316"
+        ]
+      },
+      "feat_ae9c471fa1b91ead": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11324"
+        ]
+      },
+      "feat_7b289fcac02bd296": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11330"
+        ]
+      },
+      "feat_3449f79cc7ed79d1": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11339"
+        ]
+      },
+      "feat_a7146989bac98b62": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11349"
+        ]
+      },
+      "feat_a142d59b050b7eaf": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11357"
+        ]
+      },
+      "feat_499c7b7514d659a2": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11366"
+        ]
+      },
+      "feat_10c5f8c3a4819723": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11375"
+        ]
+      },
+      "feat_14c8ada4f92269a4": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11383"
+        ]
+      },
+      "feat_98dfd58c101b4b3e": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11392"
+        ]
+      },
+      "feat_5b3b68dd9e06774a": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11400"
+        ]
+      },
+      "feat_acaae543140e026c": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11406"
+        ]
+      },
+      "feat_ad417e0f012d5be8": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P11411"
+        ]
+      },
+      "feat_09f12301d807aab2": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11417"
+        ]
+      },
+      "feat_2ef079bc6f8a0d1c": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11423"
+        ]
+      },
+      "feat_2f319e24e5b66f8e": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11429"
+        ]
+      },
+      "feat_704ada7214283321": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P11435"
+        ]
+      },
+      "feat_b8d6db87afe2bb22": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11441"
+        ]
+      },
+      "feat_1132fdededf8c020": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11447"
+        ]
+      },
+      "feat_452fc8a96034acc2": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11454"
+        ]
+      },
+      "feat_f1f51dd351f60437": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11460"
+        ]
+      },
+      "feat_00fbe2c5478ae7f2": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11465"
+        ]
+      },
+      "feat_9ccf0ae0abbebaff": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11470"
+        ]
+      },
+      "feat_4992bb9a566aab44": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P11476"
+        ]
+      },
+      "feat_40f68755993247cb": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P11481"
+        ]
+      },
+      "feat_2e91e66aac3641d8": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11488"
+        ]
+      },
+      "feat_8ca6e75b2d38b883": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11493"
+        ]
+      },
+      "feat_f9c1b97d8bbfd801": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11498"
+        ]
+      },
+      "feat_3d1889747491f3b2": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11504"
+        ]
+      },
+      "feat_55a00ef5ebec7832": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11509"
+        ]
+      },
+      "feat_c8e0271c9bd8bb91": {
+        "xp": 5,
+        "sourceRefs": [
+          "core:P11516"
+        ]
+      },
+      "feat_f9945bc403603794": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11522"
+        ]
+      },
+      "feat_b4154deb78a0bc28": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11527"
+        ]
+      },
+      "feat_0b87a0d73c606eba": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11533"
+        ]
+      },
+      "feat_cdc11250493cd59c": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11539"
+        ]
+      },
+      "feat_3219b2220a1a0926": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11544"
+        ]
+      },
+      "feat_53c01e07fb18b541": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11549"
+        ]
+      },
+      "feat_21e3ab4eab1e48a0": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11554"
+        ]
+      },
+      "feat_dc1ba6e9fa849dda": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11559"
+        ]
+      },
+      "feat_8fe4e0dfcbedb063": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11564"
+        ]
+      },
+      "feat_6016e267aa329ca7": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11570"
+        ]
+      },
+      "feat_b3ff357b33dc8af1": {
+        "xp": 60,
+        "sourceRefs": [
+          "core:P11575"
+        ]
+      },
+      "feat_9c36241711bd0b74": {
+        "xp": 75,
+        "sourceRefs": [
+          "core:P11580"
+        ]
+      },
+      "feat_1c545028041ae4e3": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11587"
+        ]
+      },
+      "feat_bea2470f5623c41c": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11592"
+        ]
+      },
+      "feat_a144256fd7c09aeb": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11597"
+        ]
+      },
+      "feat_5a681a34327a203e": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11603"
+        ]
+      },
+      "feat_c89f5f7ad5d8c28e": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11609"
+        ]
+      },
+      "feat_8cd438317819c497": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11614"
+        ]
+      },
+      "feat_7fc6fc6e63da9688": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11620"
+        ]
+      },
+      "feat_c89ec0dfba8408f9": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11626"
+        ]
+      },
+      "feat_bf787e3a3ea38310": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11632"
+        ]
+      },
+      "feat_9e9679c9c13db810": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11637"
+        ]
+      },
+      "feat_600fc03329750988": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11642"
+        ]
+      },
+      "feat_95b19d58202e83b8": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11647"
+        ]
+      },
+      "feat_dd0ba74aedebce10": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11652"
+        ]
+      },
+      "feat_cf54ca9a173993e0": {
+        "xp": 10,
+        "sourceRefs": [
+          "core:P11658"
+        ]
+      },
+      "feat_fd3d473bd5f717e0": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11663"
+        ]
+      },
+      "feat_65e4315227fdc855": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11668"
+        ]
+      },
+      "feat_57d649cda0182656": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11675"
+        ]
+      },
+      "feat_d2afd80ad8e35bd6": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11680"
+        ]
+      },
+      "feat_c735a6b0ec8f2905": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11685"
+        ]
+      },
+      "feat_c35ba86389f61a11": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11690"
+        ]
+      },
+      "feat_110ba1f8a1617966": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11695"
+        ]
+      },
+      "feat_8b2a26fd84370ee1": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11701"
+        ]
+      },
+      "feat_7c23e3fc59ae4202": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11706"
+        ]
+      },
+      "feat_032d06fb9a4118ce": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11713"
+        ]
+      },
+      "feat_80a24decd57bf883": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P11718"
+        ]
+      },
+      "feat_dbc58e54dc9d28d9": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11723"
+        ]
+      },
+      "feat_b6173be4e251982d": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11728"
+        ]
+      },
+      "feat_6e608cd8acbb7b2f": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11733"
+        ]
+      },
+      "feat_8df5e1aefda2a020": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11739"
+        ]
+      },
+      "feat_ecf606af6554155a": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11744"
+        ]
+      },
+      "feat_ecb87902348a50c9": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11749"
+        ]
+      },
+      "feat_58a6e44bcad8d490": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P11756"
+        ]
+      },
+      "feat_a5fd203a26fdf5f5": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11762"
+        ]
+      },
+      "feat_b8328250c5443569": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11767"
+        ]
+      },
+      "feat_03bdd05045737de9": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11772"
+        ]
+      },
+      "feat_2d6d89e4371fda60": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P11778"
+        ]
+      },
+      "feat_7321f6d55d019f93": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11784"
+        ]
+      },
+      "feat_eaa70b65b370825b": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11789"
+        ]
+      },
+      "feat_bc96393fb969a8e3": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11795"
+        ]
+      },
+      "feat_46ef062387e0840a": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11800"
+        ]
+      },
+      "feat_90e4fd02d41d0574": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11806"
+        ]
+      },
+      "feat_e66e4cd15ec825ba": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11818"
+        ]
+      },
+      "feat_87a1b741e4b9744f": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11824"
+        ]
+      },
+      "feat_410d23864293c612": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11830"
+        ]
+      },
+      "feat_df83efb85dea39dc": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11836"
+        ]
+      },
+      "feat_6e3be80e0addf8d3": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11842"
+        ]
+      },
+      "feat_a453558bdabf61ca": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11851"
+        ]
+      },
+      "feat_cab3a5a79c730185": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11859"
+        ]
+      },
+      "feat_e3e8b7293fffe302": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11865"
+        ]
+      },
+      "feat_69a42f2a4d54a3ba": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P11871"
+        ]
+      },
+      "feat_46b1a206cb799537": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11880"
+        ]
+      },
+      "feat_1d81f7f83aedf9f9": {
+        "xp": 70,
+        "sourceRefs": [
+          "core:P11886"
+        ]
+      },
+      "feat_e51286dcfb04695d": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11895"
+        ]
+      },
+      "feat_fe005b143b217b52": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11936"
+        ]
+      },
+      "feat_3f69c42fe3a960dd": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11942"
+        ]
+      },
+      "feat_5d529855eb3823a5": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11948"
+        ]
+      },
+      "feat_09439655443ed30b": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P11954"
+        ]
+      },
+      "feat_883e5b9db927ce07": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P11960"
+        ]
+      },
+      "feat_846d6cff41343664": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11966"
+        ]
+      },
+      "feat_247d51073cc98454": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11972"
+        ]
+      },
+      "feat_6cca0978934dc66e": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P11978"
+        ]
+      },
+      "feat_4c85aa747f319702": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P11989"
+        ]
+      },
+      "feat_e76043d374b62744": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P11995"
+        ]
+      },
+      "feat_872647ceee8f38bc": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P12001"
+        ]
+      },
+      "feat_8c378751d5c718d3": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12007"
+        ]
+      },
+      "feat_c01feca8f72f9267": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12013"
+        ]
+      },
+      "feat_7c1e70b92a60c750": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12020"
+        ]
+      },
+      "feat_ca870f0e40a87ae0": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12026"
+        ]
+      },
+      "feat_4e7d79f21936a142": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12034"
+        ]
+      },
+      "feat_359840fe43838f10": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12040"
+        ]
+      },
+      "feat_e000383baa5b3afa": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12112"
+        ]
+      },
+      "feat_ff626e2585de2dc7": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12121"
+        ]
+      },
+      "feat_9813ba6aff7624ad": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12127"
+        ]
+      },
+      "feat_20333bb586348ab8": {
+        "xp": 60,
+        "sourceRefs": [
+          "core:P12137"
+        ]
+      },
+      "feat_7de562d7f8525f6e": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12146"
+        ]
+      },
+      "feat_9c39a48b5a63feb0": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12152"
+        ]
+      },
+      "feat_93a350961a4ba331": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P12159"
+        ]
+      },
+      "feat_9710046dc000748a": {
+        "xp": 55,
+        "sourceRefs": [
+          "core:P12165"
+        ]
+      },
+      "feat_8437874ad6d99cf1": {
+        "xp": 55,
+        "sourceRefs": [
+          "core:P12171"
+        ]
+      },
+      "feat_8b6f3261d7c5c8ea": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12177"
+        ]
+      },
+      "feat_127f2d478d76e66d": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12183"
+        ]
+      },
+      "feat_60f7c4ca067ff0a5": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12204"
+        ]
+      },
+      "feat_43a03b64a656118f": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12214"
+        ]
+      },
+      "feat_c48bad1e2f79cc02": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P12220"
+        ]
+      },
+      "feat_844174f5261d6d85": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12226"
+        ]
+      },
+      "feat_8f96ece73f65bcfa": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12232"
+        ]
+      },
+      "feat_9c9bfb5f33d0ff77": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P12238"
+        ]
+      },
+      "feat_e3202d8c160eb2f4": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12244"
+        ]
+      },
+      "feat_85e6bef68fce8139": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12260"
+        ]
+      },
+      "feat_cf016fbcb5694bb9": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12266"
+        ]
+      },
+      "feat_ef30600d1a509341": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12272"
+        ]
+      },
+      "feat_00d27f4a83e142da": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12278"
+        ]
+      },
+      "feat_8375cdb3022db2f6": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12284"
+        ]
+      },
+      "feat_f3a95cbf618f3f7a": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12290"
+        ]
+      },
+      "feat_eef2c7391e1bfbe0": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12308"
+        ]
+      },
+      "feat_72e1af25e3a0cea4": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12314"
+        ]
+      },
+      "feat_495b4a88fcac7d3f": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P12320"
+        ]
+      },
+      "feat_d311a68493a4872f": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P12326"
+        ]
+      },
+      "feat_9c65548e75013f0f": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12340"
+        ]
+      },
+      "feat_4e70134ae23c95d0": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12346"
+        ]
+      },
+      "feat_73777bba1763b63b": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P12352"
+        ]
+      },
+      "feat_74ece586d9352abd": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12358"
+        ]
+      },
+      "feat_b24f9be358a16b43": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12364"
+        ]
+      },
+      "feat_0c3e0521c4c5e668": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P12370"
+        ]
+      },
+      "feat_a0ce124c38f9babb": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12381"
+        ]
+      },
+      "feat_331997d79309902d": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12387"
+        ]
+      },
+      "feat_ee6b8ee7b9c444ed": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12393"
+        ]
+      },
+      "feat_5845641bc1d17c2b": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12399"
+        ]
+      },
+      "feat_38b4526ff5a4dedf": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12405"
+        ]
+      },
+      "feat_7fa4257aad0f3ea5": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12411"
+        ]
+      },
+      "feat_50d020a12998c83b": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12427"
+        ]
+      },
+      "feat_c674564a9eb4b6e3": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12435"
+        ]
+      },
+      "feat_ec0aff06046c7a07": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12441"
+        ]
+      },
+      "feat_84b3a80d34561387": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12447"
+        ]
+      },
+      "feat_26281a4ec2b227d1": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12453"
+        ]
+      },
+      "feat_2d29b4e21c5aa360": {
+        "xp": 60,
+        "sourceRefs": [
+          "core:P12459"
+        ]
+      },
+      "feat_c657786350e001d2": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12472"
+        ]
+      },
+      "feat_0bd10c31b772990f": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12478"
+        ]
+      },
+      "feat_a231ab1257c3cc30": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12484"
+        ]
+      },
+      "feat_371b671fb37a1c5f": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12490"
+        ]
+      },
+      "feat_fa8514b126e00d4d": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12497"
+        ]
+      },
+      "feat_49c5ba9431ae4768": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12510"
+        ]
+      },
+      "feat_428ff552e965ddaa": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12516"
+        ]
+      },
+      "feat_e87634186101633f": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P12524"
+        ]
+      },
+      "feat_48b024e36a3ddd21": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12530"
+        ]
+      },
+      "feat_9d23b672153f2252": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P12540"
+        ]
+      },
+      "feat_9d9fa39f4efe7e95": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12546"
+        ]
+      },
+      "feat_cd204c9214ce5117": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12552"
+        ]
+      },
+      "feat_b2af3d6d79460623": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12568"
+        ]
+      },
+      "feat_ccc1b9121b75324b": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P12574"
+        ]
+      },
+      "feat_352940bbbadf77ef": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12580"
+        ]
+      },
+      "feat_b5a820a8ed0a5cda": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12588"
+        ]
+      },
+      "feat_efa686df6f600015": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12594"
+        ]
+      },
+      "feat_819cf3b062b1c18f": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12600"
+        ]
+      },
+      "feat_86f62a72aaf0c495": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12643"
+        ]
+      },
+      "feat_ff2b2532be3cc900": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12661"
+        ]
+      },
+      "feat_b802afc2806c5b17": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12667"
+        ]
+      },
+      "feat_98e957beddccda22": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P12673"
+        ]
+      },
+      "feat_cdfdef5260d67af8": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12679"
+        ]
+      },
+      "feat_f5fbd495f377c688": {
+        "xp": 60,
+        "sourceRefs": [
+          "core:P12685"
+        ]
+      },
+      "feat_a8e37ecb25f5209d": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12693"
+        ]
+      },
+      "feat_f42b45eaf3762d1e": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12706"
+        ]
+      },
+      "feat_e31b759598801a91": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12712"
+        ]
+      },
+      "feat_8338973515df67d3": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12718"
+        ]
+      },
+      "feat_fd640cfbf8eacd26": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12724"
+        ]
+      },
+      "feat_b7ac269653868a6c": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12737"
+        ]
+      },
+      "feat_259bc0767ad933b6": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12743"
+        ]
+      },
+      "feat_5128e48484e7288d": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12749"
+        ]
+      },
+      "feat_d006c816fda09f9d": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12755"
+        ]
+      },
+      "feat_db9b807fcd82d51a": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12761"
+        ]
+      },
+      "feat_46e2ff001afc53b3": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12767"
+        ]
+      },
+      "feat_56af9236580961b8": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12773"
+        ]
+      },
+      "feat_a834e752f2e3132b": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12787"
+        ]
+      },
+      "feat_29f20ae454f0d8ba": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12793"
+        ]
+      },
+      "feat_617d68d2452a5525": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12799"
+        ]
+      },
+      "feat_bdd0ea160eb40c9f": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12805"
+        ]
+      },
+      "feat_3b52a8ca2fb9ac31": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12811"
+        ]
+      },
+      "feat_b13c4d437b322235": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12817"
+        ]
+      },
+      "feat_05158a62e80115da": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12824"
+        ]
+      },
+      "feat_bda60ae45d55e458": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12831"
+        ]
+      },
+      "feat_1e917fbfcb30bcbb": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12838"
+        ]
+      },
+      "feat_dd748c7e0d83140f": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12845"
+        ]
+      },
+      "feat_c5ca770b130c02b4": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12852"
+        ]
+      },
+      "feat_6e4368a28a083301": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12859"
+        ]
+      },
+      "feat_963c20ec0c14be88": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12866"
+        ]
+      },
+      "feat_a06e094956b0c61e": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P12882"
+        ]
+      },
+      "feat_424f406f5b45ddcd": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12891"
+        ]
+      },
+      "feat_87eb2e3627c352bf": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12896"
+        ]
+      },
+      "feat_7519826d733a38a9": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P12903"
+        ]
+      },
+      "feat_c6bde9f113a4dedf": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12908"
+        ]
+      },
+      "feat_396c18da9410a823": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12918"
+        ]
+      },
+      "feat_1fc8a228447e1916": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12923"
+        ]
+      },
+      "feat_51ef96ff892ba12c": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P12929"
+        ]
+      },
+      "feat_be8ff81aff2e4b4d": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12933"
+        ]
+      },
+      "feat_834a9fdca2efe82c": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12938"
+        ]
+      },
+      "feat_8ad9a2e3fa3ad25b": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12943"
+        ]
+      },
+      "feat_fbbc019dfe96dbf5": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12949"
+        ]
+      },
+      "feat_71a6d3461154cdde": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P12953"
+        ]
+      },
+      "feat_253522fa4d04dba5": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12958"
+        ]
+      },
+      "feat_28ad9701e25f2a0e": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12963"
+        ]
+      },
+      "feat_d91980d08153d6c8": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P12967"
+        ]
+      },
+      "feat_c4f198a722bc93b7": {
+        "xp": 25,
+        "sourceRefs": [
+          "core:P12971"
+        ]
+      },
+      "feat_5bb9b7c6c6694812": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12976"
+        ]
+      },
+      "feat_9ef8c9a50d4f6e28": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P12981"
+        ]
+      },
+      "feat_8eb6bfc7b8b5a074": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P12986"
+        ]
+      },
+      "feat_8a7eff97954e63db": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P12990"
+        ]
+      },
+      "feat_906f8131263d3eb9": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P12995"
+        ]
+      },
+      "feat_575d1fae7950346b": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13004"
+        ]
+      },
+      "feat_b8591cfd7b812248": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13008"
+        ]
+      },
+      "feat_165e749b6f396cb8": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13012"
+        ]
+      },
+      "feat_3bc071e63be82bea": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13022"
+        ]
+      },
+      "feat_e9f4c4b95c5df11c": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13028"
+        ]
+      },
+      "feat_81c34f5d3e7fb8d9": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13034"
+        ]
+      },
+      "feat_9cb9560c36089240": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13040"
+        ]
+      },
+      "feat_6b6b3a102996ca6e": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13046"
+        ]
+      },
+      "feat_0e301e6de206aab4": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13052"
+        ]
+      },
+      "feat_adc845dc51d012a0": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13058"
+        ]
+      },
+      "feat_e980eea9d31969a8": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13074"
+        ]
+      },
+      "feat_04d78e47808ea3eb": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13084"
+        ]
+      },
+      "feat_7b621212f99495dd": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P13090"
+        ]
+      },
+      "feat_48e7c69389fdcd3c": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13096"
+        ]
+      },
+      "feat_444466165b290ced": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P13104"
+        ]
+      },
+      "feat_dee6d91d0a987242": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13124"
+        ]
+      },
+      "feat_00967fb67f915b15": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13130"
+        ]
+      },
+      "feat_f9c1caf4ec09ee8d": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13136"
+        ]
+      },
+      "feat_d4df49bd218a6103": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13142"
+        ]
+      },
+      "feat_91d56fec47d2502f": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13148"
+        ]
+      },
+      "feat_923d021a2e9e6abf": {
+        "xp": 75,
+        "sourceRefs": [
+          "core:P13161"
+        ]
+      },
+      "feat_07b1246112e3ad75": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13170"
+        ]
+      },
+      "feat_acd52652bbd1576c": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13176"
+        ]
+      },
+      "feat_d25f034a5cf3af31": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P13182"
+        ]
+      },
+      "feat_b2421ab5cfc14e1b": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13190"
+        ]
+      },
+      "feat_1beadb2cd06442f9": {
+        "xp": 60,
+        "sourceRefs": [
+          "core:P13196"
+        ]
+      },
+      "feat_58c9a78e46ea0cb3": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13212"
+        ]
+      },
+      "feat_49f28660561b1ae5": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13219"
+        ]
+      },
+      "feat_4084ca6aab6d811c": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13226"
+        ]
+      },
+      "feat_f2cc6f0c80305336": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13233"
+        ]
+      },
+      "feat_f6cae65c38d93465": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13239"
+        ]
+      },
+      "feat_b41bff6e836781b5": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13246"
+        ]
+      },
+      "feat_9b015d25afd296fd": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13252"
+        ]
+      },
+      "feat_97d1239b7e0eb28b": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13258"
+        ]
+      },
+      "feat_44e8ec54f23aee13": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13269"
+        ]
+      },
+      "feat_12c463f7f4fa00a1": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P13278"
+        ]
+      },
+      "feat_c2ada6713f1e3cf2": {
+        "xp": 65,
+        "sourceRefs": [
+          "core:P13284"
+        ]
+      },
+      "feat_130a086aaa590429": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13290"
+        ]
+      },
+      "feat_841c5e52936bfc31": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13308"
+        ]
+      },
+      "feat_15d561fae0c769f7": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13314"
+        ]
+      },
+      "feat_633c5e6eaf0e636b": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13321"
+        ]
+      },
+      "feat_e15a39ad2d1a7aaa": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13332"
+        ]
+      },
+      "feat_3029ebbd8ea09714": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13347"
+        ]
+      },
+      "feat_d1885db7edd2680f": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13356"
+        ]
+      },
+      "feat_ffcecfc06b94e592": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13362"
+        ]
+      },
+      "feat_a4724bc98b972fd7": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13375"
+        ]
+      },
+      "feat_c2c2cbfa84405060": {
+        "xp": 65,
+        "sourceRefs": [
+          "core:P13381"
+        ]
+      },
+      "feat_9012c539238a1e6f": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P13387"
+        ]
+      },
+      "feat_482ee0f8c87f4398": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P13393"
+        ]
+      },
+      "feat_6a65e51f4aea6c5a": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13399"
+        ]
+      },
+      "feat_4187a51aa75de184": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13410"
+        ]
+      },
+      "feat_d5ebf88eb7adac06": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13419"
+        ]
+      },
+      "feat_42dbac6721383f7e": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13425"
+        ]
+      },
+      "feat_556b5908ef65b396": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13431"
+        ]
+      },
+      "feat_58cf8d0d57421411": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13447"
+        ]
+      },
+      "feat_e2631d55515e1934": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13456"
+        ]
+      },
+      "feat_863079b74884d9cd": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13462"
+        ]
+      },
+      "feat_0c7de953ad25243b": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13468"
+        ]
+      },
+      "feat_a77f41fb4282c3ff": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13474"
+        ]
+      },
+      "feat_68354cc3084013a8": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P13480"
+        ]
+      },
+      "feat_a7e9bdcd561a533e": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13493"
+        ]
+      },
+      "feat_55fd28acf50f38b2": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13499"
+        ]
+      },
+      "feat_2bac7eb5e4b3f4b3": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13505"
+        ]
+      },
+      "feat_93272c756bf69ad7": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13511"
+        ]
+      },
+      "feat_ec796c364e0b6c90": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13520"
+        ]
+      },
+      "feat_86b0beb374b3fe3c": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13526"
+        ]
+      },
+      "feat_9f726e10aeb9a7bd": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13532"
+        ]
+      },
+      "feat_6ad2c4fd41382160": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13538"
+        ]
+      },
+      "feat_ed4817368e82ceb8": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13549"
+        ]
+      },
+      "feat_6add0384614ae863": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13555"
+        ]
+      },
+      "feat_629ab1201dd31841": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13561"
+        ]
+      },
+      "feat_2c8d9330b0526884": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13569"
+        ]
+      },
+      "feat_604cb2eab849f95f": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13575"
+        ]
+      },
+      "feat_059f2cc3cccea373": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13588"
+        ]
+      },
+      "feat_6eb0fafdd61cdc20": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13594"
+        ]
+      },
+      "feat_94dad25d7888869e": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P13603"
+        ]
+      },
+      "feat_70e7a1ab4d5749ec": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13609"
+        ]
+      },
+      "feat_a35cd71644363fca": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P13614"
+        ]
+      },
+      "feat_1bacaebcd614c5c5": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13626"
+        ]
+      },
+      "feat_f6dab14054b3c25e": {
+        "xp": 75,
+        "sourceRefs": [
+          "core:P13632"
+        ]
+      },
+      "feat_52a4d6cee2756b48": {
+        "xp": 75,
+        "sourceRefs": [
+          "core:P13638"
+        ]
+      },
+      "feat_5abb4936ea815213": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13644"
+        ]
+      },
+      "feat_7c06b44361f99e86": {
+        "xp": 90,
+        "sourceRefs": [
+          "core:P13656"
+        ]
+      },
+      "feat_f798eee5d98707fa": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13665"
+        ]
+      },
+      "feat_77268d0a98b0bbe3": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P13670"
+        ]
+      },
+      "feat_18e8d25ae033d3cc": {
+        "xp": 45,
+        "sourceRefs": [
+          "core:P13678"
+        ]
+      },
+      "feat_4aec953f86c6ab7f": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13684"
+        ]
+      },
+      "feat_7ad04d9ea0a3d418": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P13689"
+        ]
+      },
+      "feat_07a5933de10322e2": {
+        "xp": 50,
+        "sourceRefs": [
+          "core:P13709"
+        ]
+      },
+      "feat_dae0c005f43cc4c0": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P13714"
+        ]
+      },
+      "feat_c1cbac9f98bbe854": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P13719"
+        ]
+      },
+      "feat_b7eadf64d2b256fd": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13726"
+        ]
+      },
+      "feat_a450ed487b601d42": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13731"
+        ]
+      },
+      "feat_e04b4d619a503480": {
+        "xp": 35,
+        "sourceRefs": [
+          "core:P13743"
+        ]
+      },
+      "feat_90b805aa3a1836de": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P16770"
+        ]
+      },
+      "feat_43ee7fbb9399c5ef": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P16780"
+        ]
+      },
+      "feat_2d8325b14c4dc6c9": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P16785"
+        ]
+      },
+      "feat_a28c8ad099f43b13": {
+        "xp": 30,
+        "sourceRefs": [
+          "core:P16790"
+        ]
+      },
+      "feat_9ec7c929c84ff6ae": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P16795"
+        ]
+      },
+      "feat_8ce817b9fcd29219": {
+        "xp": 100,
+        "sourceRefs": [
+          "core:P16805"
+        ]
+      },
+      "feat_65ea8eac0fbac756": {
+        "xp": 20,
+        "sourceRefs": [
+          "core:P16815"
+        ]
+      },
+      "feat_d3e0b8906bd105f2": {
+        "xp": 40,
+        "sourceRefs": [
+          "core:P16825"
+        ]
+      }
+    },
+    "developmentReviewNote": "T06: independently inspected raw corebook paragraphs (zero-based P identifiers), all 524 mapped occurrences / 517 stable definitions have one agreeing nonnegative listed XP price. Literal is confirmed only for first purchase; no later rank formula, AP option, eligibility or repeat permission is inferred. Whitespace retained verbatim in cited evidence.",
+    "templateSkillSources": {
+      "knowledge_template": "core:P278",
+      "performance_template": "core:P291",
+      "profession_template": "core:P320",
+      "craft_template": "core:P324"
+    },
+    "templateSkillReviewNote": "T06: raw P278/P291/P320/P324 identify four ordinary skill templates. Generic P203/P359–388 skill purchase table and P11655–11656 Self-Taught rule apply to their prices regardless of specialization identity. Quotes alone do not establish valid parameter domain, repeat identity, or admission; all generated confirmed cells are explicitly PRICE_ONLY and conditional on separately confirmed admission/identity."
   },
   "sourceEvidence": {
     "core:P15409": {
@@ -122277,7 +125400,20 @@
       "id": "Q_feat_a1b2117d80ed94e3",
       "status": "OPEN",
       "definitionId": "feat_a1b2117d80ed94e3",
-      "text": "Independently review source price contexts; current corebook source links retained."
+      "text": "T06 independently confirms agreeing first-rank XP prices in every cited occurrence. Inherited admission/branch context across these duplicate occurrences still requires source mapping; effect prose is outside pricing scope. This is an extraction/reconciliation gap, not an established author contradiction.",
+      "category": "MISSING_EXTRACTION",
+      "sourceRefs": [
+        "core:P10289",
+        "core:P10290",
+        "core:P10291",
+        "core:P10292",
+        "core:P10293",
+        "core:P10711",
+        "core:P10712",
+        "core:P10713",
+        "core:P10714",
+        "core:P10715"
+      ]
     },
     {
       "id": "Q_feat_cb77652b78152667",
@@ -122325,7 +125461,20 @@
       "id": "Q_feat_ef01c79bad95bc11",
       "status": "OPEN",
       "definitionId": "feat_ef01c79bad95bc11",
-      "text": "Independently review source price contexts; current corebook source links retained."
+      "text": "T06 independently confirms agreeing first-rank XP prices in every cited occurrence. Inherited admission/branch context across these duplicate occurrences still requires source mapping; effect prose is outside pricing scope. This is an extraction/reconciliation gap, not an established author contradiction.",
+      "category": "MISSING_EXTRACTION",
+      "sourceRefs": [
+        "core:P10331",
+        "core:P10332",
+        "core:P10333",
+        "core:P10334",
+        "core:P10335",
+        "core:P10423",
+        "core:P10424",
+        "core:P10425",
+        "core:P10426",
+        "core:P10427"
+      ]
     },
     {
       "id": "Q_feat_b9596e9fcf4783f2",
@@ -122559,7 +125708,20 @@
       "id": "Q_feat_002f961bc98825c0",
       "status": "OPEN",
       "definitionId": "feat_002f961bc98825c0",
-      "text": "Independently review source price contexts; current corebook source links retained."
+      "text": "T06 independently confirms agreeing first-rank XP prices in every cited occurrence. Inherited admission/branch context across these duplicate occurrences still requires source mapping; effect prose is outside pricing scope. This is an extraction/reconciliation gap, not an established author contradiction.",
+      "category": "MISSING_EXTRACTION",
+      "sourceRefs": [
+        "core:P10565",
+        "core:P10566",
+        "core:P10567",
+        "core:P10568",
+        "core:P10569",
+        "core:P16774",
+        "core:P16775",
+        "core:P16776",
+        "core:P16777",
+        "core:P16778"
+      ]
     },
     {
       "id": "Q_feat_b47552f7d1361f33",
@@ -122583,7 +125745,22 @@
       "id": "Q_feat_bd8f99a63d357307",
       "status": "OPEN",
       "definitionId": "feat_bd8f99a63d357307",
-      "text": "Independently review source price contexts; current corebook source links retained."
+      "text": "T06 independently confirms agreeing first-rank XP prices in every cited occurrence. Inherited admission/branch context across these duplicate occurrences still requires source mapping; effect prose is outside pricing scope. This is an extraction/reconciliation gap, not an established author contradiction.",
+      "category": "MISSING_EXTRACTION",
+      "sourceRefs": [
+        "core:P10587",
+        "core:P10588",
+        "core:P10589",
+        "core:P10590",
+        "core:P10591",
+        "core:P10592",
+        "core:P10593",
+        "core:P16809",
+        "core:P16810",
+        "core:P16811",
+        "core:P16812",
+        "core:P16813"
+      ]
     },
     {
       "id": "Q_feat_4c5b39c1c2c1e293",
@@ -122595,7 +125772,22 @@
       "id": "Q_feat_139d983dfaa45730",
       "status": "OPEN",
       "definitionId": "feat_139d983dfaa45730",
-      "text": "Independently review source price contexts; current corebook source links retained."
+      "text": "T06 independently confirms agreeing first-rank XP prices in every cited occurrence. Inherited admission/branch context across these duplicate occurrences still requires source mapping; effect prose is outside pricing scope. This is an extraction/reconciliation gap, not an established author contradiction.",
+      "category": "MISSING_EXTRACTION",
+      "sourceRefs": [
+        "core:P10599",
+        "core:P10600",
+        "core:P10601",
+        "core:P10602",
+        "core:P10603",
+        "core:P10604",
+        "core:P10605",
+        "core:P16819",
+        "core:P16820",
+        "core:P16821",
+        "core:P16822",
+        "core:P16823"
+      ]
     },
     {
       "id": "Q_feat_475503b5c4d7e32b",
@@ -122619,7 +125811,20 @@
       "id": "Q_feat_212be8e87097059f",
       "status": "OPEN",
       "definitionId": "feat_212be8e87097059f",
-      "text": "Independently review source price contexts; current corebook source links retained."
+      "text": "T06 independently confirms agreeing first-rank XP prices in every cited occurrence. Inherited admission/branch context across these duplicate occurrences still requires source mapping; effect prose is outside pricing scope. This is an extraction/reconciliation gap, not an established author contradiction.",
+      "category": "MISSING_EXTRACTION",
+      "sourceRefs": [
+        "core:P10624",
+        "core:P10625",
+        "core:P10626",
+        "core:P10627",
+        "core:P10628",
+        "core:P10680",
+        "core:P10681",
+        "core:P10682",
+        "core:P10683",
+        "core:P10684"
+      ]
     },
     {
       "id": "Q_feat_b050cfaca797b797",
@@ -122655,7 +125860,20 @@
       "id": "Q_feat_21433433e4647c82",
       "status": "OPEN",
       "definitionId": "feat_21433433e4647c82",
-      "text": "Independently review source price contexts; current corebook source links retained."
+      "text": "T06 independently confirms agreeing first-rank XP prices in every cited occurrence. Inherited admission/branch context across these duplicate occurrences still requires source mapping; effect prose is outside pricing scope. This is an extraction/reconciliation gap, not an established author contradiction.",
+      "category": "MISSING_EXTRACTION",
+      "sourceRefs": [
+        "core:P10665",
+        "core:P10666",
+        "core:P10667",
+        "core:P10668",
+        "core:P10669",
+        "core:P10877",
+        "core:P10878",
+        "core:P10879",
+        "core:P10880",
+        "core:P10881"
+      ]
     },
     {
       "id": "Q_feat_c52dfd8ac23e2850",

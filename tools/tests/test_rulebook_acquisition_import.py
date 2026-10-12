@@ -115,7 +115,7 @@ def test_tables_are_imported_from_source_rows_without_using_expected_price_oracl
     table = strength['priceRule']['transitions']
     assert next(t for t in table if t['fromRank'] == 0 and t['toRank'] == 1)['xp'] == '55'
     assert next(t for t in table if t['fromRank'] == -1 and t['toRank'] == 0)['xp'] == '50'
-    skill = es['athletics']['priceRule']
+    skill = es['athletics']['priceRule']['whenTrue']
     assert next(t for t in skill['transitions'] if t['toRank'] == 2)['xp'] == '20'
     assert skill['sourceRef']['paragraph'] == 355
 
@@ -127,7 +127,7 @@ def test_general_skill_and_attribute_purchase_rules_do_not_invent_missing_prereq
         assert req['type'] == 'AllOf' and req['children'] == []
         assert req['noRequirementsStatement']
         assert req['sourceRef']['paragraph'] == paragraph
-        assert es[id]['priceRule']['type'] == 'TransitionTable'
+        assert es[id]['priceRule']['type'] == ('Conditional' if id == 'athletics' else 'TransitionTable')
 
 
 def test_invalid_or_alternative_stays_local_and_potential_scc_does_not_block():
@@ -205,3 +205,93 @@ def test_actual_perfect_roots_have_source_backed_exclusion_not_child_classificat
     assert {id for id, e in es.items() if 'perfect-root' in e['categoryIds']} == roots.keys()
     assert not any(d['kind'] == 'dependency-cycle' and d['definitionId'] in roots
                    for d in build()['dubl-3.69']['diagnostics'])
+
+
+def test_price_whitespace_preserves_literal_and_raw_provenance():
+    es = entries()
+    for ident, price, paragraph in [('feat_3233f2da5c693e34', '40', 10419),
+                                   ('feat_a4724bc98b972fd7', '100', 13374),
+                                   ('feat_ff626e2585de2dc7', '30', 12121)]:
+        rule = es[ident]['priceRule']
+        assert rule['type'] != 'Unknown'
+        row = rule['transitions'][0] if rule['type'] == 'TransitionTable' else rule
+        assert row['xp'] == price
+        assert row['sourceRef']['originalText'].endswith(' ')
+
+
+def test_self_taught_is_explicit_source_backed_conditional_price():
+    rule = entries()['athletics']['priceRule']
+    assert rule['type'] == 'Conditional'
+    assert rule['condition']['type'] == 'CreationPhase'
+    assert rule['condition']['operand'] == 'Creating'
+    assert rule['whenTrue']['transitions'][0]['xp'] == '10'
+    discounted = rule['whenFalse']
+    assert discounted['condition']['entryId'] == 'feat_dd0ba74aedebce10'
+    assert [t['xp'] for t in discounted['whenTrue']['transitions'][:3]] == ['5', '10', '30']
+    assert discounted['sourceRef']['paragraph'] == 11655
+
+
+def test_duplicate_occurrences_confirm_price_without_choosing_admission_context():
+    import copy
+    from tools.rulebook.import_acquisition import duplicate_price_evidence
+    source = json.loads((ROOT / 'rulesets/dubl-3.69/acquisition/source_questions.json').read_text())
+    occurrences = [o for o in source['sourceOccurrences'] if o['runtimeId'] == 'feat_a1b2117d80ed94e3']
+    price = duplicate_price_evidence(occurrences, source)
+    assert price['xp'] == '40'
+    assert len(price['sources']) == 2
+    assert price['maxRank'] == 1
+    es = entries()
+    definition = es['feat_a1b2117d80ed94e3']
+    assert definition['sourceStatus'] == 'NeedsResolution'
+    assert definition['priceRule']['xp'] == '40'
+    assert definition['requirements']['type'] == 'Unresolved'
+    assert 'duplicate-source-context' in definition['requirements']['reason']
+    assert len([key for key in definition['classificationSources'] if key.startswith('price:')]) == 2
+    mutated = copy.deepcopy(source)
+    price_ref = price['sources'][1]
+    mutated['sourceEvidence'][price_ref]['text'] = 'Стоимость: 41'
+    assert duplicate_price_evidence(occurrences, mutated) is None
+    mutated = copy.deepcopy(source)
+    rank_ref = next(ref for ref in occurrences[1]['sourceRef'] if mutated['sourceEvidence'][ref]['text'].startswith('Ранги:'))
+    mutated['sourceEvidence'][rank_ref]['text'] = 'Ранги: 2'
+    assert duplicate_price_evidence(occurrences, mutated)['maxRank'] is None
+    # Requirement/branch differences cannot become silently chosen admission rules.
+    altered = copy.deepcopy(occurrences)
+    altered[1]['fullRule'] += '\n[Different branch]\nТребование: another condition'
+    assert duplicate_price_evidence(altered, source)['xp'] == '40'
+
+
+def test_runtime_import_is_independent_of_oracle_expectations(monkeypatch):
+    import copy
+    import tools.rulebook.import_acquisition as importer
+    baseline = build()
+    original_read = importer.read
+    def altered(path):
+        value = original_read(path)
+        if Path(path).name == 'source_questions.json':
+            value = copy.deepcopy(value)
+            value['reviewedRules'] = {'inventedExpectedXP': 999999}
+            value['anchors'] = []
+        return value
+    monkeypatch.setattr(importer, 'read', altered)
+    assert build() == baseline
+
+
+def test_undefined_discount_rounding_only_omits_affected_transition(monkeypatch):
+    import copy
+    import tools.rulebook.import_acquisition as importer
+    original_read = importer.read
+    def altered(path):
+        value = original_read(path)
+        if Path(path).name == 'source_questions.json':
+            value = copy.deepcopy(value)
+            value['sourceEvidence']['core:P360']['text'] = '11'
+            import hashlib
+            value['sourceEvidence']['core:P360']['sha256'] = hashlib.sha256(b'11').hexdigest()
+        return value
+    monkeypatch.setattr(importer, 'read', altered)
+    rule = entries()['athletics']['priceRule']
+    assert rule['whenTrue']['transitions'][0]['xp'] == '11'
+    discounted = rule['whenFalse']['whenTrue']['transitions']
+    assert not any(t['toRank'] == 1 for t in discounted)
+    assert next(t for t in discounted if t['toRank'] == 2)['xp'] == '10'
