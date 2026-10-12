@@ -225,9 +225,9 @@ internal fun desktopStoreTestClasspath(): String {
 /** Separate JVM entry point deliberately uses production OS locking and CAS. */
 object DesktopAcquisitionProcessProbe {
     @JvmStatic fun main(args: Array<String>) = runBlocking {
-        if (args.getOrNull(2) == "halt-after-durable-commit") {
+        if (args.getOrNull(2) in listOf("halt-after-durable-commit", "halt-after-replace")) {
             val store=DesktopAcquisitionStore(Path.of(args[0])) { stage ->
-                if(stage==DesktopAcquisitionWriteStage.AfterDirectoryFlush) Runtime.getRuntime().halt(17)
+                if(stage == (if(args[2] == "halt-after-replace") DesktopAcquisitionWriteStage.AfterReplace else DesktopAcquisitionWriteStage.AfterDirectoryFlush)) Runtime.getRuntime().halt(17)
             }
             val service=AcquisitionService(store,::desktopStoreTestCatalog) { "instance" }
             val request=AcquisitionRequest("real",listOf(AcquisitionTarget(DefinitionRef("dubl-3.69","test-store-purchase"),"instance",1)))

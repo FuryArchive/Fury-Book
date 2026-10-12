@@ -2,6 +2,7 @@ package com.furybook.dubl.acquisition
 
 import com.furybook.core.json.*
 import com.furybook.dubl.data.SnapshotCodec
+import com.furybook.dubl.data.validateLegacySnapshot
 import com.furybook.dubl.model.*
 
 private class LegacyMappingEntry(override val key:String,override val value:DefinitionRef):Map.Entry<String,DefinitionRef> {
@@ -181,6 +182,7 @@ internal fun validateLegacyOrigin(origin:LegacyOrigin):DublCharacter {
     require(origin.activePackIds.isNotEmpty() && origin.activePackIds.all(String::isNotBlank) && origin.activePackIds.distinct().size==origin.activePackIds.size)
     val root=JsonReader(origin.raw,strict=true).read() as JsonValue.Obj
     require(!root.has("formatVersion") && root.int("schema")==origin.schema)
+    validateLegacySnapshot(root, origin.schema)
     require(root.array("characters").count { it.asObject()?.string("id")==origin.characterId }==1)
     var sequence=0
     val character=SnapshotCodec.decode(origin.raw) { "legacy-generated:"+legacyMigrationId(origin)+":"+(sequence++).toString() }

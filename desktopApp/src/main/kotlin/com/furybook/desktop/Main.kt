@@ -214,12 +214,17 @@ private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
             }
             is LoadResult.MigrationRequired -> {
                 Text("Укажите известный состав исходного листа. Старые покупки не переоцениваются новым каталогом.")
-                OutlinedTextField(packs, { packs = it }, label = { Text("Пакеты исходного листа, через запятую") })
+                OutlinedTextField(packs, {
+                    packs = it
+                    state.declareLegacyComposition(it.split(',').map(String::trim).filter(String::isNotBlank))
+                    localError = null
+                }, label = { Text("Пакеты исходного листа, через запятую") })
                 Button(onClick = {
                     localError = runCatching { state.prepareLocalMigration(packs.split(',').map(String::trim).filter(String::isNotBlank)) }
                         .exceptionOrNull()?.message
                 }) { Text("Подготовить миграцию") }
                 state.preparedLegacyMigration?.let { prepared ->
+                    Text("Подготовленный состав: ${prepared.ledger.opening.legacyMigration?.origin?.activePackIds?.joinToString()}")
                     val opening = balance(prepared.ledger)
                     Text("Остаток по сохранённым старым правилам: ${opening.xp} XP / ${opening.ap} ОСп")
                     Button(onClick = {
@@ -227,6 +232,7 @@ private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
                     }) { Text("Подтверждаю исходные пакеты и перенос") }
                 }
                 if (state.pendingLegacyMigration != null) {
+                    Text("Подготовленный состав: ${state.pendingLegacyMigration!!.origin.activePackIds.joinToString()}")
                     OutlinedTextField(xp, { xp = it }, label = { Text("Известный остаток XP") })
                     OutlinedTextField(ap, { ap = it }, label = { Text("Известный остаток ОСп") })
                     OutlinedTextField(reason, { reason = it }, label = { Text("Основание подтверждения") })

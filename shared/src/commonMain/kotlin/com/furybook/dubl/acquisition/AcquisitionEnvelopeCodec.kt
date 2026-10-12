@@ -3,6 +3,7 @@ package com.furybook.dubl.acquisition
 import com.furybook.core.json.*
 import com.furybook.dubl.data.CharacterTransferCodec
 import com.furybook.dubl.data.SnapshotCodec
+import com.furybook.dubl.data.validateLegacySnapshot
 import com.furybook.dubl.model.*
 
 /**
@@ -45,8 +46,7 @@ fun decodeEnvelope(raw: String): LoadResult = try {
             val schema = root.number("schema")
             if (schema !in 1..SnapshotCodec.SCHEMA) LoadResult.Unsupported(raw, "Unsupported legacy schema")
             else {
-                require(root.list("characters").isNotEmpty()) { "Empty legacy snapshot" }
-                root.list("characters").forEach { it.obj() }
+                validateLegacySnapshot(root, schema)
                 LoadResult.MigrationRequired(raw)
             }
         } else LoadResult.Corrupt(raw, "Missing format version")

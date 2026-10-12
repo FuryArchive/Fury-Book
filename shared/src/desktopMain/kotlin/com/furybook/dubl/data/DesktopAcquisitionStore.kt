@@ -15,7 +15,11 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-enum class DesktopAcquisitionWriteStage { AfterTempFlush, BeforeReplace, AfterReplace, AfterDirectoryFlush }
+enum class DesktopAcquisitionWriteStage {
+    AfterTempFlush, BeforeReplace, AfterReplace, AfterDirectoryFlush,
+    AfterDirectoryCreate, BeforeAncestorDirectoryFlush,
+    BeforeRecoveryFileFlush, BeforeRecoveryDirectoryFlush, AfterRecoveryDurability,
+}
 
 /**
  * Separate versioned container. Atomic replace is mandatory; unsupported filesystems fail closed.
@@ -113,6 +117,15 @@ class DesktopAcquisitionStore(
                         readIfExists(legacyCharacters), readIfExists(legacyExtras),
                         "Legacy source changed after migration; choose an import branch before writing")
                 }
+                // A visible rename may be an interrupted commit, including one from another JVM.
+                // Never acknowledge/replay its receipt until the head and every directory entry
+                // have checked durability. An unavailable recovery force propagates as an error.
+                fault(DesktopAcquisitionWriteStage.BeforeRecoveryFileFlush)
+                FileChannel.open(path, WRITE).use { it.force(true) }
+                createDirectoriesDurably(container) // Under the same per-character OS lock.
+                fault(DesktopAcquisitionWriteStage.BeforeRecoveryDirectoryFlush)
+                forceDirectory(container)
+                fault(DesktopAcquisitionWriteStage.AfterRecoveryDurability)
             }
             return loaded
         }
@@ -164,13 +177,22 @@ class DesktopAcquisitionStore(
         catch (_: java.nio.file.NoSuchFileException) { null }
 
     private fun createDirectoriesDurably(path: Path) {
-        if (Files.isDirectory(path)) return
-        val parent = requireNotNull(path.parent) { "Missing filesystem root" }
-        createDirectoriesDurably(parent)
-        try { Files.createDirectory(path) } catch (_: java.nio.file.FileAlreadyExistsException) {
-            require(Files.isDirectory(path)) { "Storage path is not a directory" }
+        val parent = path.parent
+        if (parent != null) createDirectoriesDurably(parent)
+        if (!Files.isDirectory(path)) {
+            try {
+                Files.createDirectory(path)
+                fault(DesktopAcquisitionWriteStage.AfterDirectoryCreate)
+            } catch (_: java.nio.file.FileAlreadyExistsException) {
+                require(Files.isDirectory(path)) { "Storage path is not a directory" }
+            }
         }
-        forceDirectory(parent)
+        // Existence is not proof: another writer or an earlier failed attempt may have created
+        // this entry without flushing its parent. Retry the full ancestor chain unconditionally.
+        if (parent != null) {
+            fault(DesktopAcquisitionWriteStage.BeforeAncestorDirectoryFlush)
+            forceDirectory(parent)
+        }
     }
     private fun read(path: Path): String = StandardCharsets.UTF_8.newDecoder()
         .onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)

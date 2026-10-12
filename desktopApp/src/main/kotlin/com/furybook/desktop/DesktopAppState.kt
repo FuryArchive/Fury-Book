@@ -50,6 +50,8 @@ class DesktopAppState(
         private set
     var preparedLegacyMigration: StoredCharacter? by mutableStateOf(null)
         private set
+    var declaredLegacyComposition: List<String> by mutableStateOf(emptyList())
+        private set
     private val acquisitionService by lazy { AcquisitionService(requireNotNull(acquisitionStore), ::acquisitionCatalog) { UUID.randomUUID().toString() } }
     private var application = createApplication()
     private var legacyStorageBlocked = false
@@ -279,15 +281,32 @@ class DesktopAppState(
     }
 
     fun localStoredCharacter(): LoadResult = runBlocking { requireNotNull(acquisitionStore).load(snapshot.activeCharacterId) }
+    /** Declaration edits invalidate both confirmation paths, including unsupported compositions. */
+    fun declareLegacyComposition(activePackIds: List<String>) {
+        check(localAcquisitionEnabled)
+        pendingLegacyMigration = null
+        preparedLegacyMigration = null
+        storageError = "Состав исходного листа изменён. Подготовьте миграцию заново."
+        declaredLegacyComposition = activePackIds.toList()
+    }
     fun prepareLocalMigration(activePackIds: List<String>): MigrationResult {
         check(localAcquisitionEnabled)
+        // Clear before anything that can throw. A failed new attempt never leaves an old result.
+        pendingLegacyMigration = null
+        preparedLegacyMigration = null
+        declareLegacyComposition(activePackIds)
         // The caller explicitly declares the source composition. Current preferences are not evidence.
         // Only the hash-verified frozen old payload may calculate an opening; today's catalog is never used.
         val source = FcpTextSource { path -> javaClass.classLoader.getResource(path)?.readText() }
         val oldCatalog = runCatching {
-            loadLegacyCatalogSnapshot(FcpContentPack.load("fcp/${DublFcp.PACK_ID}", source), activePackIds)
+            loadLegacyCatalogSnapshot(FcpContentPack.load("fcp/${DublFcp.PACK_ID}", source), declaredLegacyComposition)
         }.getOrNull()
-        val result = requireNotNull(acquisitionStore).prepareMigration(snapshot.activeCharacterId, activePackIds, oldCatalog)
+        val result = try {
+            requireNotNull(acquisitionStore).prepareMigration(snapshot.activeCharacterId, declaredLegacyComposition, oldCatalog)
+        } catch (failure: Exception) {
+            storageError = "Ошибка подготовки миграции: ${failure.message}. Подготовьте исходный лист заново."
+            throw failure
+        }
         pendingLegacyMigration = (result as? MigrationResult.NeedsBalanceConfirmation)?.pending
         preparedLegacyMigration = (result as? MigrationResult.Ready)?.state
         storageError = when (result) {
@@ -301,6 +320,7 @@ class DesktopAppState(
     fun confirmLocalOpeningBalance(xp: Long, ap: Long, reason: String): CommitResult {
         check(localAcquisitionEnabled)
         val pending = requireNotNull(pendingLegacyMigration) { "Prepare and review the exact legacy source first" }
+        require(pending.origin.activePackIds == declaredLegacyComposition) { "Source composition changed; prepare again" }
         val state = confirmLegacyBalance(pending, Amount(xp, ap), reason)
         return commitLocalMigration(state)
     }
@@ -309,6 +329,10 @@ class DesktopAppState(
         return commitLocalMigration(requireNotNull(preparedLegacyMigration) { "Prepare and review the legacy migration first" })
     }
     private fun commitLocalMigration(state: StoredCharacter): CommitResult {
+        val origin = requireNotNull(state.ledger.opening.legacyMigration?.origin) { "Prepared migration lacks source composition" }
+        require(origin.activePackIds == declaredLegacyComposition && origin.characterId == snapshot.activeCharacterId) {
+            "Source composition or character changed; prepare again"
+        }
         val result = runBlocking { requireNotNull(acquisitionStore).compareAndSet(state.character.id, -1, state) }
         storageError = when (result) {
             CommitResult.Committed -> null

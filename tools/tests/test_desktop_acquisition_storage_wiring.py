@@ -15,3 +15,10 @@ def test_storage_failures_are_visible_and_startup_never_substitutes_fresh():
     assert 'Не удалось открыть данные' in main
     assert 'state.storageError' in main
     assert 'SnapshotCodec.fresh' not in main
+
+def test_migration_declaration_edit_invalidates_confirmation_and_captured_packs_are_shown():
+    main = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/Main.kt').read_text()
+    field = main[main.index('OutlinedTextField(packs'):main.index('Text("Подготовить миграцию")')]
+    assert 'state.declareLegacyComposition(' in field
+    assert 'prepared.ledger.opening.legacyMigration?.origin?.activePackIds?.joinToString()' in main
+    assert 'state.pendingLegacyMigration!!.origin.activePackIds.joinToString()' in main
