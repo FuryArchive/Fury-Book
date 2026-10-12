@@ -14,6 +14,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -87,6 +90,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -121,7 +127,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_d516094876012090/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -130,10 +136,7 @@
               "sheet": "melee:p-004591",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -160,18 +163,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_d516094876012090/diagnostic/4",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004591",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -188,6 +179,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "Unavailable",
@@ -211,7 +205,7 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
+        "type": "Unresolved",
         "nodeId": "chi_development_64b4278b87d8af72/requirements",
         "sourceRef": {
           "documentId": "unverified:dubl-chi-3.69",
@@ -220,47 +214,7 @@
           "sheet": "melee:p-004592",
           "paragraph": null
         },
-        "children": [
-          {
-            "type": "OwnedRank",
-            "nodeId": "chi_development_64b4278b87d8af72/requirements",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004592",
-              "paragraph": null
-            },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_64b4278b87d8af72/source",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004592",
-              "paragraph": null
-            },
-            "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_64b4278b87d8af72/diagnostic/3",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004592",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          }
-        ]
+        "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
       }
     },
     {
@@ -275,6 +229,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "Unavailable",
@@ -298,7 +255,7 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
+        "type": "Unresolved",
         "nodeId": "chi_development_df49774e7f04b06c/requirements",
         "sourceRef": {
           "documentId": "unverified:dubl-chi-3.69",
@@ -307,47 +264,7 @@
           "sheet": "melee:p-004598,melee:p-004599,melee:p-004600,melee:p-004601,melee:p-004602",
           "paragraph": null
         },
-        "children": [
-          {
-            "type": "OwnedRank",
-            "nodeId": "chi_development_df49774e7f04b06c/requirements",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004598,melee:p-004599,melee:p-004600,melee:p-004601,melee:p-004602",
-              "paragraph": null
-            },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_df49774e7f04b06c/source",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004598,melee:p-004599,melee:p-004600,melee:p-004601,melee:p-004602",
-              "paragraph": null
-            },
-            "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_df49774e7f04b06c/diagnostic/3",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004598,melee:p-004599,melee:p-004600,melee:p-004601,melee:p-004602",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          }
-        ]
+        "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
       }
     },
     {
@@ -362,6 +279,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "Unavailable",
@@ -385,7 +305,7 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
+        "type": "Unresolved",
         "nodeId": "chi_development_202ce9f34238f2a8/requirements",
         "sourceRef": {
           "documentId": "unverified:dubl-chi-3.69",
@@ -394,47 +314,7 @@
           "sheet": "melee:p-004604,melee:p-004605,melee:p-004606,melee:p-004607,melee:p-004608",
           "paragraph": null
         },
-        "children": [
-          {
-            "type": "OwnedRank",
-            "nodeId": "chi_development_202ce9f34238f2a8/requirements",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004604,melee:p-004605,melee:p-004606,melee:p-004607,melee:p-004608",
-              "paragraph": null
-            },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_202ce9f34238f2a8/source",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004604,melee:p-004605,melee:p-004606,melee:p-004607,melee:p-004608",
-              "paragraph": null
-            },
-            "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_202ce9f34238f2a8/diagnostic/3",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004604,melee:p-004605,melee:p-004606,melee:p-004607,melee:p-004608",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          }
-        ]
+        "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
       }
     },
     {
@@ -449,6 +329,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "Unavailable",
@@ -472,7 +355,7 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
+        "type": "Unresolved",
         "nodeId": "chi_development_01408208e61871b2/requirements",
         "sourceRef": {
           "documentId": "unverified:dubl-chi-3.69",
@@ -481,47 +364,7 @@
           "sheet": "melee:p-004610,melee:p-004611,melee:p-004612,melee:p-004613,melee:p-004614,melee:p-004615",
           "paragraph": null
         },
-        "children": [
-          {
-            "type": "OwnedRank",
-            "nodeId": "chi_development_01408208e61871b2/requirements",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004610,melee:p-004611,melee:p-004612,melee:p-004613,melee:p-004614,melee:p-004615",
-              "paragraph": null
-            },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_01408208e61871b2/source",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004610,melee:p-004611,melee:p-004612,melee:p-004613,melee:p-004614,melee:p-004615",
-              "paragraph": null
-            },
-            "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_01408208e61871b2/diagnostic/3",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004610,melee:p-004611,melee:p-004612,melee:p-004613,melee:p-004614,melee:p-004615",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          }
-        ]
+        "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
       }
     },
     {
@@ -536,6 +379,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "Unavailable",
@@ -559,7 +405,7 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
+        "type": "Unresolved",
         "nodeId": "chi_development_d0a96422f39e457d/requirements",
         "sourceRef": {
           "documentId": "unverified:dubl-chi-3.69",
@@ -568,47 +414,7 @@
           "sheet": "melee:p-004617,melee:p-004618,melee:p-004619,melee:p-004620,melee:p-004621",
           "paragraph": null
         },
-        "children": [
-          {
-            "type": "OwnedRank",
-            "nodeId": "chi_development_d0a96422f39e457d/requirements",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004617,melee:p-004618,melee:p-004619,melee:p-004620,melee:p-004621",
-              "paragraph": null
-            },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_d0a96422f39e457d/source",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004617,melee:p-004618,melee:p-004619,melee:p-004620,melee:p-004621",
-              "paragraph": null
-            },
-            "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_d0a96422f39e457d/diagnostic/3",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004617,melee:p-004618,melee:p-004619,melee:p-004620,melee:p-004621",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          }
-        ]
+        "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
       }
     },
     {
@@ -623,6 +429,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "Unavailable",
@@ -646,7 +455,7 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
+        "type": "Unresolved",
         "nodeId": "chi_development_6c5146eb9116cc9e/requirements",
         "sourceRef": {
           "documentId": "unverified:dubl-chi-3.69",
@@ -655,47 +464,7 @@
           "sheet": "melee:p-004623,melee:p-004624,melee:p-004625,melee:p-004626,melee:p-004627",
           "paragraph": null
         },
-        "children": [
-          {
-            "type": "OwnedRank",
-            "nodeId": "chi_development_6c5146eb9116cc9e/requirements",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004623,melee:p-004624,melee:p-004625,melee:p-004626,melee:p-004627",
-              "paragraph": null
-            },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_6c5146eb9116cc9e/source",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004623,melee:p-004624,melee:p-004625,melee:p-004626,melee:p-004627",
-              "paragraph": null
-            },
-            "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_6c5146eb9116cc9e/diagnostic/3",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004623,melee:p-004624,melee:p-004625,melee:p-004626,melee:p-004627",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          }
-        ]
+        "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
       }
     },
     {
@@ -710,6 +479,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -744,7 +516,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_69efc0e4b6b8f49b/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -753,10 +525,7 @@
               "sheet": "melee:p-004680",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -783,18 +552,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_69efc0e4b6b8f49b/diagnostic/4",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004680",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -811,6 +568,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -845,7 +605,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_65e6b7802cee8108/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -854,10 +614,7 @@
               "sheet": "melee:p-004681",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -884,18 +641,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_65e6b7802cee8108/diagnostic/4",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004681",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -912,6 +657,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -946,7 +694,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_669564ab4fae3c64/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -955,10 +703,7 @@
               "sheet": "melee:p-004682",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -975,7 +720,7 @@
             "operator": "GE"
           },
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_669564ab4fae3c64/requirements/2",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -984,10 +729,7 @@
               "sheet": "melee:p-004682",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_65e6b7802cee8108",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_65e6b7802cee8108"
           },
           {
             "type": "Unresolved",
@@ -1000,30 +742,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_669564ab4fae3c64/diagnostic/5",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004682",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_669564ab4fae3c64/diagnostic/6",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Ци и оружие",
-              "sheet": "melee:p-004682",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_65e6b7802cee8108"
           }
         ]
       }
@@ -1040,6 +758,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -1074,7 +795,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_61bd073cde1b17e1/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1083,10 +804,7 @@
               "sheet": "melee:p-004683",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -1127,18 +845,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_61bd073cde1b17e1/diagnostic/5",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004683",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -1155,6 +861,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -1189,7 +898,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_190fbda767ca64be/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1198,10 +907,7 @@
               "sheet": "melee:p-004684",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -1228,18 +934,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_190fbda767ca64be/diagnostic/4",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004684",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -1256,6 +950,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -1290,7 +987,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_df819473c66bcb28/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1299,10 +996,7 @@
               "sheet": "melee:p-004751",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_d516094876012090",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_d516094876012090"
           },
           {
             "type": "Attribute",
@@ -1329,18 +1023,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_df819473c66bcb28/diagnostic/4",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Мастер Ци",
-              "sheet": "melee:p-004751",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_d516094876012090"
           }
         ]
       }
@@ -1357,6 +1039,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -1391,7 +1076,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_c1ef116a341f5f14/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1400,10 +1085,7 @@
               "sheet": "melee:p-004752",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -1430,18 +1112,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_c1ef116a341f5f14/diagnostic/4",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004752",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -1458,6 +1128,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -1492,7 +1165,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_65ee84fe0cfe4f01/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1501,10 +1174,7 @@
               "sheet": "melee:p-004753",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -1531,18 +1201,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_65ee84fe0cfe4f01/diagnostic/4",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004753",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -1559,6 +1217,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -1593,7 +1254,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_d41750e199dfcd9c/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1602,10 +1263,7 @@
               "sheet": "melee:p-004754",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "AnyOf",
@@ -1619,7 +1277,7 @@
             },
             "children": [
               {
-                "type": "OwnedRank",
+                "type": "Unresolved",
                 "nodeId": "chi_development_d41750e199dfcd9c/requirements/1/0",
                 "sourceRef": {
                   "documentId": "unverified:dubl-chi-3.69",
@@ -1628,10 +1286,7 @@
                   "sheet": "melee:p-004754",
                   "paragraph": null
                 },
-                "packId": "dubl-chi-3.69",
-                "entryId": "chi_development_d92a6b832ac58852",
-                "operator": "GE",
-                "operand": 1
+                "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_d92a6b832ac58852"
               },
               {
                 "type": "Unresolved",
@@ -1658,42 +1313,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_d41750e199dfcd9c/diagnostic/6",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004754",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_d41750e199dfcd9c/diagnostic/7",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Школа Дыхания Пустоты",
-              "sheet": "melee:p-004754",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_d92a6b832ac58852"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_d41750e199dfcd9c/diagnostic/8",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Открытая Ладонь",
-              "sheet": "melee:p-004754",
-              "paragraph": null
-            },
-            "reason": "missing-reference:missing-reference:Открытая Ладонь"
           }
         ]
       }
@@ -1710,6 +1329,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -1744,7 +1366,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_2902fdd258da1b91/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1753,13 +1375,10 @@
               "sheet": "melee:p-004755",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_2902fdd258da1b91/requirements/1",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1768,10 +1387,7 @@
               "sheet": "melee:p-004755",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_bb88ecd53c51687e",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_bb88ecd53c51687e"
           },
           {
             "type": "Unresolved",
@@ -1784,30 +1400,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_2902fdd258da1b91/diagnostic/4",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004755",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_2902fdd258da1b91/diagnostic/5",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Школа Дракона",
-              "sheet": "melee:p-004755",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_bb88ecd53c51687e"
           }
         ]
       }
@@ -1824,6 +1416,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -1858,7 +1453,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_2f419ee9349e490e/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1867,10 +1462,7 @@
               "sheet": "melee:p-004629,melee:p-004631,melee:p-004632,melee:p-004635,melee:p-004633,melee:p-004634",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -1925,18 +1517,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_2f419ee9349e490e/diagnostic/6",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004629,melee:p-004631,melee:p-004632,melee:p-004635,melee:p-004633,melee:p-004634",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -1953,6 +1533,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -1987,7 +1570,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_c76b37e5c5f558a0/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -1996,10 +1579,7 @@
               "sheet": "melee:p-004638,melee:p-004640,melee:p-004641,melee:p-004644,melee:p-004642,melee:p-004643",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -2054,18 +1634,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_c76b37e5c5f558a0/diagnostic/6",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004638,melee:p-004640,melee:p-004641,melee:p-004644,melee:p-004642,melee:p-004643",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -2082,6 +1650,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -2116,7 +1687,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_b0cb7f68cfffa0af/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -2125,10 +1696,7 @@
               "sheet": "melee:p-004647,melee:p-004649,melee:p-004650,melee:p-004653,melee:p-004651,melee:p-004652",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -2183,18 +1751,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_b0cb7f68cfffa0af/diagnostic/6",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004647,melee:p-004649,melee:p-004650,melee:p-004653,melee:p-004651,melee:p-004652",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -2211,6 +1767,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -2245,7 +1804,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_42f062aba6715840/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -2254,10 +1813,7 @@
               "sheet": "melee:p-004656,melee:p-004658,melee:p-004659,melee:p-004662,melee:p-004660,melee:p-004661",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -2313,18 +1869,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_42f062aba6715840/diagnostic/6",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004656,melee:p-004658,melee:p-004659,melee:p-004662,melee:p-004660,melee:p-004661",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -2341,6 +1885,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -2376,15 +1923,83 @@
         "children": [
           {
             "type": "Unresolved",
-            "nodeId": "chi_development_d92a6b832ac58852/requirements",
+            "nodeId": "chi_development_d92a6b832ac58852/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
               "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци, Воля 5, Интеллект 3, Медитация (навык) или Внимательность 4",
+              "originalText": "Внутренняя Ци",
               "sheet": "melee:p-004665,melee:p-004667,melee:p-004668,melee:p-004671,melee:p-004669,melee:p-004670",
               "paragraph": null
             },
-            "reason": "unresolved-qualified-or-compound-requirement"
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
+          },
+          {
+            "type": "Attribute",
+            "nodeId": "chi_development_d92a6b832ac58852/requirements/1",
+            "sourceRef": {
+              "documentId": "unverified:dubl-chi-3.69",
+              "documentVersion": "3.69",
+              "originalText": "Воля 5",
+              "sheet": "melee:p-004665,melee:p-004667,melee:p-004668,melee:p-004671,melee:p-004669,melee:p-004670",
+              "paragraph": null
+            },
+            "attributeId": "WIL",
+            "operand": 5,
+            "operator": "GE"
+          },
+          {
+            "type": "Attribute",
+            "nodeId": "chi_development_d92a6b832ac58852/requirements/2",
+            "sourceRef": {
+              "documentId": "unverified:dubl-chi-3.69",
+              "documentVersion": "3.69",
+              "originalText": "Интеллект 3",
+              "sheet": "melee:p-004665,melee:p-004667,melee:p-004668,melee:p-004671,melee:p-004669,melee:p-004670",
+              "paragraph": null
+            },
+            "attributeId": "INT",
+            "operand": 3,
+            "operator": "GE"
+          },
+          {
+            "type": "AnyOf",
+            "nodeId": "chi_development_d92a6b832ac58852/requirements/3",
+            "sourceRef": {
+              "documentId": "unverified:dubl-chi-3.69",
+              "documentVersion": "3.69",
+              "originalText": "Медитация (навык) или Внимательность 4",
+              "sheet": "melee:p-004665,melee:p-004667,melee:p-004668,melee:p-004671,melee:p-004669,melee:p-004670",
+              "paragraph": null
+            },
+            "children": [
+              {
+                "type": "Unresolved",
+                "nodeId": "chi_development_d92a6b832ac58852/requirements/3/0",
+                "sourceRef": {
+                  "documentId": "unverified:dubl-chi-3.69",
+                  "documentVersion": "3.69",
+                  "originalText": "Медитация (навык)",
+                  "sheet": "melee:p-004665,melee:p-004667,melee:p-004668,melee:p-004671,melee:p-004669,melee:p-004670",
+                  "paragraph": null
+                },
+                "reason": "unresolved-qualified-or-compound-requirement"
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "chi_development_d92a6b832ac58852/requirements/3/1",
+                "sourceRef": {
+                  "documentId": "unverified:dubl-chi-3.69",
+                  "documentVersion": "3.69",
+                  "originalText": "Внимательность 4",
+                  "sheet": "melee:p-004665,melee:p-004667,melee:p-004668,melee:p-004671,melee:p-004669,melee:p-004670",
+                  "paragraph": null
+                },
+                "packId": "dubl-3.69",
+                "familyId": "awareness",
+                "operator": "GE",
+                "operand": 4
+              }
+            ]
           },
           {
             "type": "Unresolved",
@@ -2413,6 +2028,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -2447,7 +2065,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_bb88ecd53c51687e/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -2456,10 +2074,7 @@
               "sheet": "melee:p-004694,melee:p-004696,melee:p-004697,melee:p-004701,melee:p-004698,melee:p-004699,melee:p-004700",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -2542,18 +2157,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_bb88ecd53c51687e/diagnostic/8",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004694,melee:p-004696,melee:p-004697,melee:p-004701,melee:p-004698,melee:p-004699,melee:p-004700",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -2570,6 +2173,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -2604,7 +2210,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_a9a363b5d9403f94/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -2613,10 +2219,7 @@
               "sheet": "melee:p-004708,melee:p-004710,melee:p-004711,melee:p-004715,melee:p-004712,melee:p-004713,melee:p-004714",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "Attribute",
@@ -2711,30 +2314,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_a9a363b5d9403f94/diagnostic/9",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004708,melee:p-004710,melee:p-004711,melee:p-004715,melee:p-004712,melee:p-004713,melee:p-004714",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_a9a363b5d9403f94/diagnostic/10",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "умение Метание",
-              "sheet": "melee:p-004708,melee:p-004710,melee:p-004711,melee:p-004715,melee:p-004712,melee:p-004713,melee:p-004714",
-              "paragraph": null
-            },
-            "reason": "missing-reference:missing-reference:умение Метание"
           }
         ]
       }
@@ -2751,6 +2330,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -2786,15 +2368,80 @@
         "children": [
           {
             "type": "Unresolved",
-            "nodeId": "chi_development_dd726932c61186b3/requirements",
+            "nodeId": "chi_development_dd726932c61186b3/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
               "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци, Воля 4, Интеллект 3, одно из умений: Знание (Астрология) или Исполнение (Танец/Медитация)",
+              "originalText": "Внутренняя Ци",
               "sheet": "melee:p-004720,melee:p-004722,melee:p-004723,melee:p-004728,melee:p-004724,melee:p-004725,melee:p-004726,melee:p-004727",
               "paragraph": null
             },
-            "reason": "unresolved-qualified-or-compound-requirement"
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
+          },
+          {
+            "type": "Attribute",
+            "nodeId": "chi_development_dd726932c61186b3/requirements/1",
+            "sourceRef": {
+              "documentId": "unverified:dubl-chi-3.69",
+              "documentVersion": "3.69",
+              "originalText": "Воля 4",
+              "sheet": "melee:p-004720,melee:p-004722,melee:p-004723,melee:p-004728,melee:p-004724,melee:p-004725,melee:p-004726,melee:p-004727",
+              "paragraph": null
+            },
+            "attributeId": "WIL",
+            "operand": 4,
+            "operator": "GE"
+          },
+          {
+            "type": "Attribute",
+            "nodeId": "chi_development_dd726932c61186b3/requirements/2",
+            "sourceRef": {
+              "documentId": "unverified:dubl-chi-3.69",
+              "documentVersion": "3.69",
+              "originalText": "Интеллект 3",
+              "sheet": "melee:p-004720,melee:p-004722,melee:p-004723,melee:p-004728,melee:p-004724,melee:p-004725,melee:p-004726,melee:p-004727",
+              "paragraph": null
+            },
+            "attributeId": "INT",
+            "operand": 3,
+            "operator": "GE"
+          },
+          {
+            "type": "AnyOf",
+            "nodeId": "chi_development_dd726932c61186b3/requirements/3",
+            "sourceRef": {
+              "documentId": "unverified:dubl-chi-3.69",
+              "documentVersion": "3.69",
+              "originalText": "одно из умений: Знание (Астрология) или Исполнение (Танец/Медитация)",
+              "sheet": "melee:p-004720,melee:p-004722,melee:p-004723,melee:p-004728,melee:p-004724,melee:p-004725,melee:p-004726,melee:p-004727",
+              "paragraph": null
+            },
+            "children": [
+              {
+                "type": "Unresolved",
+                "nodeId": "chi_development_dd726932c61186b3/requirements/3/0",
+                "sourceRef": {
+                  "documentId": "unverified:dubl-chi-3.69",
+                  "documentVersion": "3.69",
+                  "originalText": "одно из умений: Знание (Астрология)",
+                  "sheet": "melee:p-004720,melee:p-004722,melee:p-004723,melee:p-004728,melee:p-004724,melee:p-004725,melee:p-004726,melee:p-004727",
+                  "paragraph": null
+                },
+                "reason": "unresolved-qualified-or-compound-requirement"
+              },
+              {
+                "type": "Unresolved",
+                "nodeId": "chi_development_dd726932c61186b3/requirements/3/1",
+                "sourceRef": {
+                  "documentId": "unverified:dubl-chi-3.69",
+                  "documentVersion": "3.69",
+                  "originalText": "Исполнение (Танец/Медитация)",
+                  "sheet": "melee:p-004720,melee:p-004722,melee:p-004723,melee:p-004728,melee:p-004724,melee:p-004725,melee:p-004726,melee:p-004727",
+                  "paragraph": null
+                },
+                "reason": "unresolved-qualified-or-compound-requirement"
+              }
+            ]
           },
           {
             "type": "Unresolved",
@@ -2823,6 +2470,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": null,
       "sourceStatus": "Unavailable",
@@ -2857,7 +2507,7 @@
         },
         "children": [
           {
-            "type": "OwnedRank",
+            "type": "Unresolved",
             "nodeId": "chi_development_ec74a7b12b0a102a/requirements/0",
             "sourceRef": {
               "documentId": "unverified:dubl-chi-3.69",
@@ -2866,10 +2516,7 @@
               "sheet": "melee:p-004731,melee:p-004733,melee:p-004734,melee:p-004738,melee:p-004735,melee:p-004736,melee:p-004737",
               "paragraph": null
             },
-            "packId": "dubl-chi-3.69",
-            "entryId": "chi_development_6b44546d9d5fa11b",
-            "operator": "GE",
-            "operand": 1
+            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           },
           {
             "type": "SkillFamily",
@@ -2925,18 +2572,6 @@
               "paragraph": null
             },
             "reason": "source-unverified"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "chi_development_ec74a7b12b0a102a/diagnostic/6",
-            "sourceRef": {
-              "documentId": "unverified:dubl-chi-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Внутренняя Ци",
-              "sheet": "melee:p-004731,melee:p-004733,melee:p-004734,melee:p-004738,melee:p-004735,melee:p-004736,melee:p-004737",
-              "paragraph": null
-            },
-            "reason": "unresolved-reference-rank:dubl-chi-3.69:chi_development_6b44546d9d5fa11b"
           }
         ]
       }
@@ -2953,6 +2588,9 @@
         "type": "Unresolved",
         "reason": "Q_SOURCE_PARAMETER_IDENTITY"
       },
+      "familyIds": [],
+      "categoryIds": [],
+      "classificationSources": {},
       "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "Unavailable",
@@ -3674,15 +3312,29 @@
       }
     },
     {
+      "kind": "unresolved-reference-rank",
+      "definitionId": "chi_development_d92a6b832ac58852",
+      "packId": "dubl-chi-3.69",
+      "nodeId": "chi_development_d92a6b832ac58852/requirements/0",
+      "message": "dubl-chi-3.69:chi_development_6b44546d9d5fa11b",
+      "sourceRef": {
+        "documentId": "unverified:dubl-chi-3.69",
+        "documentVersion": "3.69",
+        "originalText": "Внутренняя Ци",
+        "sheet": "melee:p-004665,melee:p-004667,melee:p-004668,melee:p-004671,melee:p-004669,melee:p-004670",
+        "paragraph": null
+      }
+    },
+    {
       "kind": "unresolved-qualified-or-compound-requirement",
       "definitionId": "chi_development_d92a6b832ac58852",
       "packId": "dubl-chi-3.69",
-      "nodeId": "chi_development_d92a6b832ac58852/requirements",
+      "nodeId": "chi_development_d92a6b832ac58852/requirements/3/0",
       "message": "unresolved-qualified-or-compound-requirement",
       "sourceRef": {
         "documentId": "unverified:dubl-chi-3.69",
         "documentVersion": "3.69",
-        "originalText": "Внутренняя Ци, Воля 5, Интеллект 3, Медитация (навык) или Внимательность 4",
+        "originalText": "Медитация (навык)",
         "sheet": "melee:p-004665,melee:p-004667,melee:p-004668,melee:p-004671,melee:p-004669,melee:p-004670",
         "paragraph": null
       }
@@ -3772,15 +3424,43 @@
       }
     },
     {
+      "kind": "unresolved-reference-rank",
+      "definitionId": "chi_development_dd726932c61186b3",
+      "packId": "dubl-chi-3.69",
+      "nodeId": "chi_development_dd726932c61186b3/requirements/0",
+      "message": "dubl-chi-3.69:chi_development_6b44546d9d5fa11b",
+      "sourceRef": {
+        "documentId": "unverified:dubl-chi-3.69",
+        "documentVersion": "3.69",
+        "originalText": "Внутренняя Ци",
+        "sheet": "melee:p-004720,melee:p-004722,melee:p-004723,melee:p-004728,melee:p-004724,melee:p-004725,melee:p-004726,melee:p-004727",
+        "paragraph": null
+      }
+    },
+    {
       "kind": "unresolved-qualified-or-compound-requirement",
       "definitionId": "chi_development_dd726932c61186b3",
       "packId": "dubl-chi-3.69",
-      "nodeId": "chi_development_dd726932c61186b3/requirements",
+      "nodeId": "chi_development_dd726932c61186b3/requirements/3/0",
       "message": "unresolved-qualified-or-compound-requirement",
       "sourceRef": {
         "documentId": "unverified:dubl-chi-3.69",
         "documentVersion": "3.69",
-        "originalText": "Внутренняя Ци, Воля 4, Интеллект 3, одно из умений: Знание (Астрология) или Исполнение (Танец/Медитация)",
+        "originalText": "одно из умений: Знание (Астрология)",
+        "sheet": "melee:p-004720,melee:p-004722,melee:p-004723,melee:p-004728,melee:p-004724,melee:p-004725,melee:p-004726,melee:p-004727",
+        "paragraph": null
+      }
+    },
+    {
+      "kind": "unresolved-qualified-or-compound-requirement",
+      "definitionId": "chi_development_dd726932c61186b3",
+      "packId": "dubl-chi-3.69",
+      "nodeId": "chi_development_dd726932c61186b3/requirements/3/1",
+      "message": "unresolved-qualified-or-compound-requirement",
+      "sourceRef": {
+        "documentId": "unverified:dubl-chi-3.69",
+        "documentVersion": "3.69",
+        "originalText": "Исполнение (Танец/Медитация)",
         "sheet": "melee:p-004720,melee:p-004722,melee:p-004723,melee:p-004728,melee:p-004724,melee:p-004725,melee:p-004726,melee:p-004727",
         "paragraph": null
       }
@@ -3856,5 +3536,5 @@
       }
     }
   ],
-  "catalogRevision": "55f86f161bc4a22e7a2ba3d639f3654e6e7d2c7453e6b35b40e49801fe21607b"
+  "catalogRevision": "bfcda3daa7aeec77680fff94b2218e83f2b89dedc066e12a432e9b0dc7cf652b"
 }

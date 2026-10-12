@@ -24,6 +24,29 @@ CORRECTIONS = {'feat_fcdd74622d21435d': 11012, 'feat_eaa70b65b370825b': 11791,
                'feat_bc96393fb969a8e3': 11797}
 
 
+# Explicit stable semantic IDs, independent of display-name spelling.
+KNOWLEDGE_FAMILY = 'knowledge'
+KNOWLEDGE_MEMBERS = {'knowledge_academic': 274, 'knowledge_template': 278}
+COMBAT_CRY_CATEGORY = 'combat-cry'
+WEAPON_SPECIALIZATION = 'feat_2334f8b24105194c'
+COLD_WEAPON_QUALIFIER = {'key': 'weaponTypeId', 'valueId': 'melee'}
+BRANCH_BINDINGS = {'Боевые крики': 'access_17f99cc35c559d82'}
+
+
+def conjunction_parts(text):
+    parts = []; start = 0; depth = 0
+    for i, char in enumerate(text):
+        if char == '(': depth += 1
+        elif char == ')':
+            depth -= 1
+            if depth < 0: return [text]
+        elif char in ',;' and depth == 0:
+            parts.append(text[start:i]); start = i + 1
+    if depth: return [text]
+    parts.append(text[start:])
+    return parts
+
+
 def read(path):
     return json.loads(Path(path).read_text(encoding='utf-8'))
 
@@ -68,14 +91,39 @@ def parse_requirement(text, node_id, source, definitions):
             return node('Unresolved', node_id, local, reason='ambiguous-martial-list-boundary')
         choices = [sub(x, f'style/{i}') for i, x in enumerate(re.split(r',| или ', styles))]
         return node('AllOf', node_id, local, children=[node('AnyOf', node_id+'/styles', local, children=choices)] + [sub(x, f'tail/{i}') for i, x in enumerate(tails)])
-    # Do not split commas inside qualifiers, or invent a meaning for и/или / typo ил.
-    if '(' in raw or ')' in raw or 'и/или' in raw:
-        return node('Unresolved', node_id, local, reason='unresolved-qualified-or-compound-requirement')
-    parts = re.split(r'[,;]', raw)
+    # Split only outside qualifiers; one unsupported atom never discards siblings.
+    parts = conjunction_parts(raw)
     if len(parts) > 1:
         return node('AllOf', node_id, local, children=[sub(x, i) for i, x in enumerate(parts)])
+    if 'и/или' in raw:
+        return node('Unresolved', node_id, local, reason='unresolved-qualified-or-compound-requirement')
     if ' или ' in raw:
         return node('AnyOf', node_id, local, children=[sub(x, i) for i, x in enumerate(raw.split(' или '))])
+    knowledge = re.fullmatch(r'Знание\s+(\d+)\s*\(Любое\)', raw, re.I)
+    if knowledge:
+        return node('SkillFamily', node_id, local, packId=CORE, familyId=KNOWLEDGE_FAMILY,
+                    operator='GE', operand=int(knowledge[1]))
+    specialization = re.fullmatch(r'Специализация в оружии(?:\s*\(([^)]+)\))?', raw, re.I)
+    if specialization:
+        qualifier = specialization[1]
+        if qualifier is not None and qualifier.lower() != 'холодное':
+            return node('Unresolved', node_id, local, reason='unverified-weapon-qualifier:'+qualifier)
+        return node('Specialization', node_id, local, packId=CORE, entryId=WEAPON_SPECIALIZATION,
+                    operator='GE', operand=1, qualifier=COLD_WEAPON_QUALIFIER if qualifier else None)
+    cries = re.fullmatch(r'Любые (два|три) боевых крика', raw, re.I)
+    if cries:
+        members = [d for d in definitions if COMBAT_CRY_CATEGORY in d.get('categoryIds', [])]
+        if not members:
+            return node('Unresolved', node_id, local, reason='missing-category-members:'+COMBAT_CRY_CATEGORY)
+        predicate = node('AnyOf', node_id+'/candidates', local, children=[
+            node('OwnedRank', node_id+'/candidate/'+d['ref']['entryId'], local, **d['ref'], operator='GE', operand=1)
+            for d in members])
+        return node('DistinctCount', node_id, local, predicate=predicate, uniqueness='Definition',
+                    operator='GE', operand={'два': 2, 'три': 3}[cries[1].lower()])
+    if raw in BRANCH_BINDINGS:
+        return node('BranchAccess', node_id, local, packId=CORE, branchId=BRANCH_BINDINGS[raw], operator='EQ', operand=True)
+    if '(' in raw or ')' in raw:
+        return node('Unresolved', node_id, local, reason='unresolved-qualified-or-compound-requirement')
     if raw == 'Только при создании персонажа':
         return node('CreationPhase', node_id, local, operand='Creating', operator='EQ')
     explicit_spell = raw.lower().startswith('заклинание ')
@@ -131,15 +179,21 @@ def diagnose_catalog(definitions):
             if not field:
                 continue
             key = (n['packId'], n[field]); targets = index.get(key, [])
+            family = n['type'] == 'SkillFamily' and not targets
+            if family:
+                targets = [d for d in definitions if d['ref']['packId'] == n['packId'] and n[field] in d.get('familyIds', [])]
             if not targets:
                 emit('missing-reference', d, n, ':'.join(key)); continue
-            if len(targets) != 1:
+            if len(targets) != 1 and not family:
                 emit('ambiguous-reference', d, n, ':'.join(key))
-            edges[own].add(key)
+            edges[own].update((t['ref']['packId'], t['ref']['entryId']) for t in targets)
             target = targets[0]
             if n['type'] in ('OwnedRank', 'SkillFamily', 'Specialization'):
-                maximum = target.get('maxRank')
-                if maximum is None:
+                maxima = [t.get('maxRank') for t in targets]
+                maximum = max((v for v in maxima if v is not None), default=None)
+                if family and any(v is not None and 0 <= n['operand'] <= v for v in maxima):
+                    continue
+                if maximum is None or (family and None in maxima):
                     emit('unresolved-reference-rank', d, n, ':'.join(key))
                 elif n['operand'] < 0 or n['operand'] > maximum:
                     emit('rank-out-of-range', d, n, f"{n['operand']} outside 0..{maximum}: {key}")
@@ -168,6 +222,34 @@ def diagnose_catalog(definitions):
     for key in sorted(index):
         if key not in indices: visit(key)
     return diagnostics
+
+
+def apply_requirement_diagnostics(definitions, diagnostics):
+    """Replace only the invalid atom. Potential SCCs do not prove infeasibility."""
+    result = copy.deepcopy(definitions)
+    local_kinds = {'missing-reference', 'ambiguous-reference', 'rank-out-of-range',
+                   'option-out-of-range', 'unresolved-reference-rank'}
+    for d in result:
+        related = [x for x in diagnostics if (x['packId'], x['definitionId']) == (d['ref']['packId'], d['ref']['entryId'])]
+        by_node = defaultdict(list)
+        for diagnostic in related:
+            if diagnostic['kind'] in local_kinds:
+                by_node[diagnostic['nodeId']].append(diagnostic)
+        def transform(n):
+            if n['nodeId'] in by_node and n['type'] != 'Unresolved':
+                return node('Unresolved', n['nodeId'], n['sourceRef'], reason='; '.join(
+                    x['kind']+':'+x['message'] for x in by_node[n['nodeId']]))
+            for field in ('children',):
+                if field in n: n[field] = [transform(child) for child in n[field]]
+            for field in ('predicate', 'conflicting'):
+                if field in n: n[field] = transform(n[field])
+            return n
+        d['requirements'] = transform(d['requirements'])
+        if any(x['kind'] == 'duplicate-definition' for x in related):
+            src = d['requirements']['sourceRef']; id = d['ref']['entryId']
+            d['requirements'] = node('AllOf', id+'/duplicate', src, children=[d['requirements'],
+                node('Unresolved', id+'/duplicate-blocker', src, reason='duplicate-definition')])
+    return result
 
 
 def correct_development_payload(payload, repo_root):
@@ -230,11 +312,19 @@ def build_acquisition_catalogs(repo_root):
             if m: maximum = int(m[1])
         item = {'ref': {'packId': pack, 'entryId': d['id']}, 'name': d['name'], 'kind': KINDS[d['kind']],
                 'maxRank': maximum, 'repeatPolicy': {'type': 'Unresolved', 'reason': 'Q_SOURCE_PARAMETER_IDENTITY'},
+                'familyIds': [], 'categoryIds': [], 'classificationSources': {},
                 'parameterDefinitions': [], 'abilityOptionIds': None if r.get('abilityOptions') else [],
                 'sourceStatus': 'NeedsResolution' if confirmed else 'Unavailable', 'sourceRef': source,
                 'requirementsText': r.get('requirements', ''),
                 'priceRule': {'type': 'Unknown', 'reason': 'source-unverified' if not confirmed else 'Q_SOURCE_PRICE_CONTEXT', 'sourceRef': source}}
+        if d['id'] in KNOWLEDGE_MEMBERS:
+            item['familyIds'] = [KNOWLEDGE_FAMILY]
+            item['classificationSources']['family:'+KNOWLEDGE_FAMILY] = source_ref(evidence, KNOWLEDGE_MEMBERS[d['id']])
         if confirmed:
+            tag_refs = [ref for ref in o['sourceRef'] if evidence['sourceEvidence'][ref]['text'].strip() == '[Боевой крик]']
+            if tag_refs:
+                item['categoryIds'] = [COMBAT_CRY_CATEGORY]
+                item['classificationSources']['category:'+COMBAT_CRY_CATEGORY] = source_ref(evidence, int(tag_refs[0].split('P')[1]))
             reqs = [(int(ref.split('P')[1]), evidence['sourceEvidence'][ref]['text']) for ref in o['sourceRef'] if re.match(r'^Требовани[ея]:', evidence['sourceEvidence'][ref]['text'])]
             if len(reqs) != 1:
                 item['requirementsText'] = ''
@@ -307,18 +397,7 @@ def build_acquisition_catalogs(repo_root):
             tree['children'].append(node('Unresolved', id+'/parent-access', src, reason='Q_EAGLE_PARENT_ACCESS'))
         item['requirements'] = tree
     diagnostics = diagnose_catalog(definitions)
-    # Invalid graph constraints are executable blockers too, not diagnostics that a
-    # future evaluator could accidentally ignore. Preserve the original subtree.
-    by_ref = {(d['ref']['packId'], d['ref']['entryId']): d for d in definitions}
-    blocking = {'duplicate-definition', 'missing-reference', 'ambiguous-reference', 'rank-out-of-range', 'option-out-of-range', 'unresolved-reference-rank', 'dependency-cycle'}
-    for diagnostic in diagnostics:
-        if diagnostic['kind'] not in blocking: continue
-        d = by_ref[(diagnostic['packId'], diagnostic['definitionId'])]
-        blocker = node('Unresolved', d['ref']['entryId']+'/diagnostic/'+str(len(list(walk(d['requirements'])))), diagnostic['sourceRef'], reason=diagnostic['kind']+':'+diagnostic['message'])
-        if d['requirements']['type'] == 'AllOf' and d['requirements'].get('children'):
-            d['requirements']['children'].append(blocker)
-        else:
-            d['requirements'] = node('AllOf', d['ref']['entryId']+'/validated', d['sourceRef'], children=[d['requirements'], blocker])
+    definitions = apply_requirement_diagnostics(definitions, diagnostics)
     resolution = hashlib.sha256((repo_root/'rulesets/dubl-3.69/resolutions.json').read_bytes()).hexdigest()
     result = {}
     for pack in (CORE, CHI):

@@ -37,6 +37,10 @@ data class AcquisitionDefinition(
     val parameterDefinitions: List<ParameterDefinition> = emptyList(),
     val abilityOptionIds: Set<String>? = emptySet(),
     val requirementsText: String = "",
+    /** Stable semantic membership; evaluators must not infer this from display names. */
+    val familyIds: Set<String> = emptySet(),
+    val categoryIds: Set<String> = emptySet(),
+    val classificationSources: Map<String, RuleSourceRef> = emptyMap(),
 )
 
 data class AcquisitionCatalog(
@@ -150,6 +154,9 @@ private fun parseDefinition(o: JsonValue.Obj): AcquisitionDefinition {
         o.requiredString("name"), source, parameters,
         if (o.isNull("abilityOptionIds")) null else o.requiredArray("abilityOptionIds").map { it.requiredText() }.toSet(),
         o.requiredString("requirementsText", allowEmpty = true),
+        o.array("familyIds").map { it.requiredText() }.toSet(),
+        o.array("categoryIds").map { it.requiredText() }.toSet(),
+        o.objectValue("classificationSources")?.values?.mapValues { parseSource(it.value.requiredObject()) }.orEmpty(),
     )
     require(definition.maxRank == null || definition.maxRank >= 0) { "Invalid rank cap" }
     // Missing source authority must remain a root conjunction blocker even if a
@@ -214,71 +221,82 @@ private fun parsePrice(o: JsonValue.Obj): PriceRule {
     }
 }
 
-private fun nodes(node: RequirementNode): List<RequirementNode> = listOf(node) + when (node) {
-    is RequirementNode.AllOf -> node.children.flatMap(::nodes)
-    is RequirementNode.AnyOf -> node.children.flatMap(::nodes)
-    is RequirementNode.DistinctCount -> nodes(node.predicate)
-    is RequirementNode.Exclusive -> nodes(node.conflicting)
-    else -> emptyList()
-}
-
-private fun priceRequirementNodes(price: PriceRule): List<RequirementNode> = when (price) {
-    is PriceRule.Conditional -> nodes(price.condition) + priceRequirementNodes(price.whenTrue) + priceRequirementNodes(price.whenFalse)
-    is PriceRule.ByOption -> price.options.values.flatMap(::priceRequirementNodes)
-    else -> emptyList()
-}
-
 private fun validateReferences(definitions: MutableMap<DefinitionRef, AcquisitionDefinition>, diagnostics: MutableList<CatalogDiagnostic>) {
-    val edges = linkedMapOf<DefinitionRef, MutableSet<DefinitionRef>>()
-    fun problem(d: AcquisitionDefinition, n: RequirementNode, kind: String, message: String) {
-        diagnostics += CatalogDiagnostic(kind, message, d.ref, n.nodeId, n.sourceRef)
-        definitions[d.ref] = block(definitions.getValue(d.ref), "$kind:${n.nodeId}")
-    }
-    for (d in definitions.values.toList()) {
-        edges[d.ref] = linkedSetOf()
-        for (n in nodes(d.requirements) + priceRequirementNodes(d.priceRule)) {
+    val snapshot = definitions.toMap()
+    val edges = snapshot.keys.associateWith { linkedSetOf<DefinitionRef>() }
+    for (d in snapshot.values) {
+        fun problem(n: RequirementNode, kind: String, message: String): RequirementNode.Unresolved {
+            diagnostics += CatalogDiagnostic(kind, message, d.ref, n.nodeId, n.sourceRef)
+            return RequirementNode.Unresolved(n.nodeId, n.sourceRef, "$kind:$message")
+        }
+        fun validateNode(n: RequirementNode): RequirementNode {
+            // Validation is structural, not semantic evaluation: keep each failure in
+            // its exact AND/OR/count/exclusion scope for the future evaluator.
+            when (n) {
+                is RequirementNode.AllOf -> return RequirementNode.AllOf(n.nodeId, n.sourceRef, n.children.map(::validateNode), n.noRequirementsEvidence)
+                is RequirementNode.AnyOf -> return RequirementNode.AnyOf(n.nodeId, n.sourceRef, n.children.map(::validateNode))
+                is RequirementNode.DistinctCount -> return n.copy(predicate = validateNode(n.predicate))
+                is RequirementNode.Exclusive -> return n.copy(conflicting = validateNode(n.conflicting))
+                else -> Unit
+            }
             val ref = when (n) {
                 is RequirementNode.OwnedRank -> DefinitionRef(n.packId, n.entryId)
                 is RequirementNode.SkillFamily -> DefinitionRef(n.packId, n.familyId)
                 is RequirementNode.Specialization -> DefinitionRef(n.packId, n.entryId)
                 is RequirementNode.BranchAccess -> DefinitionRef(n.packId, n.branchId)
                 is RequirementNode.LearnedSpell -> DefinitionRef(n.packId, n.entryId)
-                else -> continue
+                else -> return n
             }
-            val target = definitions[ref]
-            if (target == null) { problem(d, n, "missing-reference", ref.toString()); continue }
-            edges.getValue(d.ref) += ref
+            val exact = snapshot[ref]
+            val family = n is RequirementNode.SkillFamily && exact == null
+            val targets = if (family) snapshot.values.filter { it.ref.packId == ref.packId && ref.entryId in it.familyIds }
+                else listOfNotNull(exact)
+            if (targets.isEmpty()) return problem(n, "missing-reference", ref.toString())
+            edges.getValue(d.ref).addAll(targets.map { it.ref })
+            if (n is RequirementNode.LearnedSpell && targets.any { it.kind != AcquisitionKind.SPELL })
+                return problem(n, "reference-kind-mismatch", "LearnedSpell must reference a spell")
+            if (n is RequirementNode.SkillFamily && targets.any { it.kind != AcquisitionKind.SKILL })
+                return problem(n, "reference-kind-mismatch", "SkillFamily must reference skills")
             val rank = when (n) {
                 is RequirementNode.OwnedRank -> n.operand
                 is RequirementNode.SkillFamily -> n.operand
                 is RequirementNode.Specialization -> n.operand
                 else -> null
             }
-            if (rank != null && (target.maxRank == null || rank < 0 || rank > target.maxRank))
-                problem(d, n, if (target.maxRank == null) "unresolved-reference-rank" else "rank-out-of-range", "$rank / ${target.maxRank}")
-            if (n is RequirementNode.LearnedSpell && target.kind != AcquisitionKind.SPELL)
-                problem(d, n, "reference-kind-mismatch", "LearnedSpell must reference a spell")
-            if (n is RequirementNode.SkillFamily && target.kind != AcquisitionKind.SKILL)
-                problem(d, n, "reference-kind-mismatch", "SkillFamily must reference a skill")
-            if (n is RequirementNode.BranchAccess && n.accessOptionId != null && target.abilityOptionIds?.contains(n.accessOptionId) != true)
-                problem(d, n, "option-out-of-range", n.accessOptionId)
+            // A family is an existential choice: one verified member can witness
+            // the rank even when another member's maximum is unknown.
+            if (rank != null && targets.none { it.maxRank != null && rank >= 0 && rank <= it.maxRank })
+                return problem(n, if (targets.any { it.maxRank == null }) "unresolved-reference-rank" else "rank-out-of-range", "$rank / ${targets.map { it.maxRank }}")
+            if (n is RequirementNode.BranchAccess && n.accessOptionId != null && targets.none { it.abilityOptionIds?.contains(n.accessOptionId) == true })
+                return problem(n, "option-out-of-range", n.accessOptionId)
+            return n
         }
-        fun validatePrice(price: PriceRule) {
-            when (price) {
-                is PriceRule.TransitionTable -> if (price.transitions.any { d.maxRank == null || it.toRank > d.maxRank })
-                    problem(d, d.requirements, "price-rank-out-of-range", "Transition requires confirmed rank cap")
-                is PriceRule.ByOption -> {
-                    if (price.options.keys.any { d.abilityOptionIds?.contains(it) != true })
-                        problem(d, d.requirements, "price-option-out-of-range", "Unknown price option")
-                    price.options.values.forEach(::validatePrice)
-                }
-                is PriceRule.Conditional -> { validatePrice(price.whenTrue); validatePrice(price.whenFalse) }
-                else -> Unit
+        fun validatePrice(price: PriceRule, path: String): PriceRule {
+            fun priceProblem(kind: String, message: String, source: RuleSourceRef): PriceRule.Unknown {
+                diagnostics += CatalogDiagnostic(kind, message, d.ref, path, source)
+                return PriceRule.Unknown("$kind:$message", source)
+            }
+            return when (price) {
+                is PriceRule.TransitionTable -> price.copy(transitions = price.transitions.filter { row ->
+                    if (d.maxRank == null || row.toRank > d.maxRank) {
+                        priceProblem("price-rank-out-of-range", "${row.fromRank}->${row.toRank} / ${d.maxRank}", row.sourceRef)
+                        false // This exact absent transition is Unknown, not a zero or a fallback row.
+                    } else true
+                })
+                is PriceRule.ByOption -> price.copy(options = price.options.mapValues { (option, rule) ->
+                    if (d.abilityOptionIds?.contains(option) != true)
+                        priceProblem("price-option-out-of-range", option, rule.sourceRef)
+                    else validatePrice(rule, "$path/option/$option")
+                })
+                is PriceRule.Conditional -> price.copy(condition = validateNode(price.condition),
+                    whenTrue = validatePrice(price.whenTrue, "$path/true"), whenFalse = validatePrice(price.whenFalse, "$path/false"))
+                else -> price
             }
         }
-        validatePrice(d.priceRule)
+        definitions[d.ref] = d.copy(requirements = validateNode(d.requirements), priceRule = validatePrice(d.priceRule, d.ref.entryId + "/price"))
     }
-    // Tarjan SCC: preserve OR grouping, report cycles without selecting an alternative.
+    // An SCC across OR/count/price branches is only a potential cycle. T05 must
+    // detect recursion on the selected proof path; do not rewrite these nodes.
     var index = 0
     val indices = mutableMapOf<DefinitionRef, Int>(); val low = mutableMapOf<DefinitionRef, Int>()
     val stack = mutableListOf<DefinitionRef>(); val active = mutableSetOf<DefinitionRef>()
@@ -292,8 +310,8 @@ private fun validateReferences(definitions: MutableMap<DefinitionRef, Acquisitio
             val component = mutableListOf<DefinitionRef>()
             do { val w = stack.removeAt(stack.lastIndex); active -= w; component += w } while (w != v)
             if (component.size > 1 || v in edges[v].orEmpty()) component.forEach { ref ->
-                val d = definitions.getValue(ref)
-                problem(d, d.requirements, "dependency-cycle", component.joinToString())
+                val d = snapshot.getValue(ref)
+                diagnostics += CatalogDiagnostic("dependency-cycle", "Potential dependency cycle: ${component.joinToString()}", ref, d.requirements.nodeId, d.sourceRef)
             }
         }
     }

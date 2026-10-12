@@ -48,7 +48,7 @@ class AcquisitionCatalogTest {
         val result = load(definition("a", owned("a/b", "b")), definition("b", owned("b/a", "a")),
             definition("missing", owned("m/z", "z")), definition("badRank", owned("r/a", "a", 3)), definition("a"))
         assertTrue(result.diagnostics.map { it.kind }.containsAll(listOf("duplicate-definition", "missing-reference", "rank-out-of-range", "dependency-cycle")))
-        for (id in listOf("a", "b", "missing", "badRank"))
+        for (id in listOf("a", "missing", "badRank"))
             assertTrue(allNodes(resultDefinition(result, id).requirements).any { it is RequirementNode.Unresolved })
     }
 
@@ -82,6 +82,42 @@ class AcquisitionCatalogTest {
         val conditional = """{"type":"Conditional","sourceRef":$src,"condition":${owned("price/ref", "missing")},"whenTrue":${fixed()},"whenFalse":${fixed()}}"""
         val result = load(definition("a", price=conditional))
         assertTrue(result.diagnostics.any { it.kind == "missing-reference" && it.nodeId == "price/ref" })
+    }
+
+    private fun any(vararg children: String) = """{"type":"AnyOf","nodeId":"or","sourceRef":$src,"children":[${children.joinToString()}]}"""
+    private val strength = """{"type":"Attribute","nodeId":"str","sourceRef":$src,"attributeId":"STR","operator":"GE","operand":1}"""
+
+    @Test fun invalid_or_sibling_does_not_add_mandatory_root_condition() {
+        val d = resultDefinition(load(definition("a", any(strength, owned("missing", "z")))))
+        val tree = assertIs<RequirementNode.AnyOf>(d.requirements)
+        assertIs<RequirementNode.Attribute>(tree.children[0])
+        assertIs<RequirementNode.Unresolved>(tree.children[1])
+    }
+
+    @Test fun static_scc_preserves_valid_alternative_and_dependency() {
+        val result = load(definition("a", any(strength, owned("a/b", "b"))), definition("b", owned("b/a", "a")))
+        assertIs<RequirementNode.AnyOf>(resultDefinition(result).requirements)
+        assertIs<RequirementNode.OwnedRank>(resultDefinition(result, "b").requirements)
+        assertTrue(result.diagnostics.any { it.kind == "dependency-cycle" })
+    }
+
+    @Test fun invalid_price_branches_and_rows_leave_other_prices_and_requirements_usable() {
+        val table = """{"type":"TransitionTable","sourceRef":$src,"transitions":[{"fromRank":0,"toRank":1,"xp":"20","ap":"0","sourceRef":$src},{"fromRank":2,"toRank":3,"xp":"40","ap":"0","sourceRef":$src}]}"""
+        val options = """{"type":"ByOption","sourceRef":$src,"options":{"valid":$table,"unknown":${fixed()}}}"""
+        val conditional = """{"type":"Conditional","sourceRef":$src,"condition":${owned("price-condition", "absent")},"whenTrue":${fixed()},"whenFalse":$options}"""
+        val input = definition("a", strength, conditional).replace("\"abilityOptionIds\":[]", "\"abilityOptionIds\":[\"valid\"]")
+        val result = load(input)
+        val d = resultDefinition(result)
+        assertIs<RequirementNode.Attribute>(d.requirements)
+        val price = assertIs<PriceRule.Conditional>(d.priceRule)
+        assertIs<RequirementNode.Unresolved>(price.condition)
+        assertIs<PriceRule.Fixed>(price.whenTrue)
+        val byOption = assertIs<PriceRule.ByOption>(price.whenFalse)
+        assertIs<PriceRule.Unknown>(byOption.options.getValue("unknown"))
+        val rows = assertIs<PriceRule.TransitionTable>(byOption.options.getValue("valid")).transitions
+        assertEquals(listOf(1), rows.map { it.toRank })
+        assertTrue(result.diagnostics.any { it.kind == "price-rank-out-of-range" })
+        assertTrue(result.diagnostics.any { it.kind == "price-option-out-of-range" })
     }
 
     @Test fun canonical_phase_type_and_no_empty_conjunction_fallback() {

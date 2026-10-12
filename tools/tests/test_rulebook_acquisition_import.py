@@ -128,3 +128,57 @@ def test_general_skill_and_attribute_purchase_rules_do_not_invent_missing_prereq
         assert req['noRequirementsStatement']
         assert req['sourceRef']['paragraph'] == paragraph
         assert es[id]['priceRule']['type'] == 'TransitionTable'
+
+
+def test_invalid_or_alternative_stays_local_and_potential_scc_does_not_block():
+    from tools.rulebook.import_acquisition import apply_requirement_diagnostics, diagnose_catalog
+    source = {'documentId': 'book', 'documentVersion': '1', 'originalText': 'A or B'}
+    def owned(node, entry):
+        return {'type': 'OwnedRank', 'nodeId': node, 'sourceRef': source, 'packId': 'p', 'entryId': entry, 'operator': 'GE', 'operand': 1}
+    a = {'ref': {'packId': 'p', 'entryId': 'a'}, 'maxRank': 1, 'requirements': {
+        'type': 'AnyOf', 'nodeId': 'a', 'sourceRef': source, 'children': [
+            {'type': 'Attribute', 'nodeId': 'str', 'sourceRef': source, 'attributeId': 'STR', 'operator': 'GE', 'operand': 1}, owned('bad', 'missing'), owned('a/b', 'b')]}}
+    b = {'ref': {'packId': 'p', 'entryId': 'b'}, 'maxRank': 1, 'requirements': owned('b/a', 'a')}
+    diagnostics = diagnose_catalog([a, b])
+    fixed = apply_requirement_diagnostics([a, b], diagnostics)
+    assert fixed[0]['requirements']['type'] == 'AnyOf'
+    assert [n['type'] for n in fixed[0]['requirements']['children']] == ['Attribute', 'Unresolved', 'OwnedRank']
+    assert fixed[1]['requirements']['type'] == 'OwnedRank'
+    assert any(d['kind'] == 'dependency-cycle' for d in diagnostics)
+    actual = entries()['feat_963c20ec0c14be88']['requirements']
+    heavy = [n for n in nodes(actual) if n['type'] == 'AnyOf' and any('Мастер тяжелого оружия' in x.get('reason', '') for x in n['children'])]
+    assert len(heavy) == 1
+    assert not any('Мастер тяжелого оружия' in n.get('reason', '') for n in actual.get('children', []))
+
+
+def test_source_knowledge_weapon_qualifier_and_distinct_cries_are_typed():
+    es = entries()
+    knowledge = es['feat_cd965f927a426cc2']['requirements']
+    assert knowledge['type'] == 'SkillFamily'
+    assert (knowledge['familyId'], knowledge['operand']) == ('knowledge', 4)
+    assert knowledge['sourceRef']['paragraph'] == 10530
+    assert 'knowledge' in es['knowledge_academic']['familyIds']
+    assert 'knowledge' in es['knowledge_template']['familyIds']
+    master = es['feat_a834e752f2e3132b']['requirements']
+    atoms = list(nodes(master))
+    spec = next(n for n in atoms if n['type'] == 'Specialization')
+    assert spec['entryId'] == 'feat_2334f8b24105194c'
+    assert spec['qualifier'] == {'key': 'weaponTypeId', 'valueId': 'melee'}
+    assert {'feat_e22fc0ae2cd61f3a', 'feat_fcdd74622d21435d'} <= {n.get('entryId') for n in atoms}
+    assert any(n['type'] == 'SkillFamily' and n['familyId'] == 'melee_weapon' and n['operand'] == 6 for n in atoms)
+    cry_ids = {e['ref']['entryId'] for e in es.values() if 'combat-cry' in e['categoryIds']}
+    assert len(cry_ids) == 11
+    for id, count in [('feat_8b6f3261d7c5c8ea', 2), ('feat_127f2d478d76e66d', 3)]:
+        counter = next(n for n in nodes(es[id]['requirements']) if n['type'] == 'DistinctCount')
+        assert (counter['uniqueness'], counter['operator'], counter['operand']) == ('Definition', 'GE', count)
+        assert counter['predicate']['type'] == 'AnyOf'
+        assert {n['entryId'] for n in counter['predicate']['children']} == cry_ids
+        assert all(n['operator'] == 'GE' and n['operand'] == 1 for n in counter['predicate']['children'])
+
+
+def test_unknown_weapon_qualifier_does_not_discard_other_conjuncts():
+    from tools.rulebook.import_acquisition import parse_requirement
+    source = {'documentId': 'book', 'documentVersion': '1', 'originalText': 'qualifier'}
+    tree = parse_requirement('Специализация в оружии (непроверенное), Сила 3', 'q', source, list(entries().values()))
+    assert tree['type'] == 'AllOf'
+    assert [n['type'] for n in tree['children']] == ['Unresolved', 'Attribute']
