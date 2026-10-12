@@ -30,6 +30,35 @@ sealed interface CharacterTransferDecodeResult {
 object CharacterTransferCodec {
     const val FORMAT = "dubl.character"
     const val VERSION = 1
+    const val ENVELOPE_VERSION = 2
+
+    /** Lossless acquisition export; legacy decode deliberately rejects this version. */
+    fun encodeEnvelope(state: com.furybook.dubl.acquisition.StoredCharacter): String =
+        com.furybook.dubl.acquisition.canonicalJson(jsonStringify(jsonObject(
+            "format" to jsonString(FORMAT), "version" to jsonNumber(ENVELOPE_VERSION),
+            "envelope" to parseRoot(com.furybook.dubl.acquisition.encodeEnvelope(state)),
+        )))
+
+    /** Explicit v2 route. Failures retain the entire original transfer, not just its inner JSON. */
+    fun decodeEnvelope(raw: String): com.furybook.dubl.acquisition.LoadResult {
+        val result = try {
+            val root = JsonReader(raw, strict = true).read() as? JsonValue.Obj
+                ?: throw IllegalArgumentException("Expected transfer object")
+            require(root.values["format"] == jsonString(FORMAT)) { "Invalid transfer format" }
+            if (root.values["version"] != jsonNumber(ENVELOPE_VERSION))
+                return com.furybook.dubl.acquisition.LoadResult.Unsupported(raw, "Unsupported envelope transfer version")
+            if (root.values.keys != setOf("format", "version", "envelope"))
+                return com.furybook.dubl.acquisition.LoadResult.Unsupported(raw, "Unknown transfer fields")
+            com.furybook.dubl.acquisition.decodeEnvelope(jsonStringify(root.values.getValue("envelope")))
+        } catch (failure: Exception) {
+            return com.furybook.dubl.acquisition.LoadResult.Corrupt(raw, failure.message ?: "Invalid transfer")
+        }
+        return when (result) {
+            is com.furybook.dubl.acquisition.LoadResult.Loaded -> result
+            is com.furybook.dubl.acquisition.LoadResult.Unsupported -> result.copy(raw = raw)
+            else -> com.furybook.dubl.acquisition.LoadResult.Corrupt(raw, "Transfer does not contain a valid acquisition envelope")
+        }
+    }
 
     fun encode(character: DublCharacter, extras: CharacterSheetExtras): String {
         val snapshot = SnapshotCodec.encode(AppSnapshot(listOf(character), character.id))
@@ -82,7 +111,7 @@ object CharacterTransferCodec {
         CharacterTransferDecodeResult.Failure(CharacterTransferRejectReason.INVALID_FILE)
     }
 
-    private fun encodeExtras(extras: CharacterSheetExtras): JsonValue.Obj = jsonObject(
+    internal fun encodeExtras(extras: CharacterSheetExtras): JsonValue.Obj = jsonObject(
         "activeConditions" to jsonArray(extras.activeConditions.map { it.name }.sorted().map(::jsonString)),
         "hiddenResourceIds" to jsonArray(extras.hiddenResourceIds.map { it.name }.sorted().map(::jsonString)),
         "preferredSkillAttributes" to JsonValue.Obj(linkedMapOf<String, JsonValue>().apply {
@@ -97,7 +126,7 @@ object CharacterTransferCodec {
         "notes" to jsonString(extras.notes),
     )
 
-    private fun decodeExtras(root: JsonValue.Obj): CharacterSheetExtras = CharacterSheetExtras(
+    internal fun decodeExtras(root: JsonValue.Obj): CharacterSheetExtras = CharacterSheetExtras(
         portraitUri = null,
         activeConditions = root.stringList("activeConditions")
             .mapNotNull { name -> CharacterConditionId.entries.firstOrNull { it.name == name } }

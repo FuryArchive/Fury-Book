@@ -39,7 +39,9 @@ object SnapshotCodec {
 
     fun decode(raw: String, idFactory: () -> String): AppSnapshot {
         val root = parseRoot(raw)
+        require(!root.has("formatVersion") && !root.has("format")) { "Versioned envelopes require explicit format routing" }
         val schema = root.int("schema", 1)
+        require(schema in 1..SCHEMA) { "Unsupported snapshot schema" }
         val characters = root.array("characters").mapNotNull { item ->
             item.asObject()?.let { decodeCharacter(it, schema, idFactory) }
         }
@@ -47,6 +49,17 @@ object SnapshotCodec {
         val requested = root.string("activeCharacterId")
         val active = characters.firstOrNull { it.id == requested }?.id ?: characters.first().id
         return AppSnapshot(characters, active)
+    }
+
+    /** Envelope-only projection parser. It preserves manual values and never supplies a fresh
+     * character. The envelope codec strictly round-trips this projection to reject omitted,
+     * malformed or unknown fields. Public legacy decoding retains its historical normalization.
+     */
+    internal fun decodeEnvelopeProjection(root: JsonValue.Obj): DublCharacter {
+        require(root.int("schema", -1) == SCHEMA) { "Unsupported character projection" }
+        val character = root.array("characters").single().asObject()
+            ?: throw IllegalArgumentException("Expected character projection")
+        return decodeCharacter(character, SCHEMA, { error("Missing stored identity") }, preserveValues = true)
     }
 
     private fun encodeCharacter(character: DublCharacter): JsonValue.Obj = jsonObject(
@@ -196,7 +209,7 @@ object SnapshotCodec {
         }),
     )
 
-    private fun decodeCharacter(root: JsonValue.Obj, schema: Int, idFactory: () -> String): DublCharacter {
+    private fun decodeCharacter(root: JsonValue.Obj, schema: Int, idFactory: () -> String, preserveValues: Boolean = false): DublCharacter {
         val attributes = defaultAttributes().toMutableMap()
         val jsonAttributes = root.objectValue("attributes")
         AttributeId.entries.forEach { id ->
@@ -207,7 +220,7 @@ object SnapshotCodec {
 
         val skills = linkedMapOf<String, CharacterSkill>()
         root.array("skills").forEach { item ->
-            item.asObject()?.let(::decodeSkill)?.let { skills[it.id] = it }
+            item.asObject()?.let { decodeSkill(it, preserveValues) }?.let { skills[it.id] = it }
         }
         val hidden = root.array("hiddenSkillIds").mapNotNull { it.asString()?.takeIf(String::isNotBlank) }.toCollection(linkedSetOf())
         val disabledSkillEffectIds = root.array("disabledSkillEffectIds")
@@ -218,13 +231,13 @@ object SnapshotCodec {
             val item = value.asObject() ?: return@forEach
             val id = item.string("id").trim()
             val rank = item.int("rank", 0)
-            if (id.isNotBlank() && rank > 0) development[id] = OwnedDevelopment(rank, item.int("option", 0).coerceAtLeast(0))
+            if (id.isNotBlank() && (preserveValues || rank > 0)) development[id] = OwnedDevelopment(rank, item.int("option", 0).let { if (preserveValues) it else it.coerceAtLeast(0) })
         }
         val developmentOverrides = root.array("developmentOverrides").mapNotNull { value ->
-            value.asObject()?.let(::decodeDevelopmentEntry)
+            value.asObject()?.let { decodeDevelopmentEntry(it, preserveValues) }
         }.associateBy { it.id }
         val customDevelopmentEntries = root.array("customDevelopmentEntries").mapNotNull { value ->
-            value.asObject()?.let(::decodeDevelopmentEntry)
+            value.asObject()?.let { decodeDevelopmentEntry(it, preserveValues) }
         }.distinctBy { it.id }
         val customResources = root.array("customResources").mapNotNull { value ->
             val item = value.asObject() ?: return@mapNotNull null
@@ -235,8 +248,8 @@ object SnapshotCodec {
                 maximum = item.int("maximum", 0),
             )
         }
-        val experience = root.int("experience", 0).coerceAtLeast(0)
-        val creationExperience = if (root.has("creationExperience")) root.int("creationExperience", experience).coerceAtLeast(0) else experience
+        val experience = root.int("experience", 0).let { if (preserveValues) it else it.coerceAtLeast(0) }
+        val creationExperience = if (root.has("creationExperience")) root.int("creationExperience", experience).let { if (preserveValues) it else it.coerceAtLeast(0) } else experience
         val creationComplete = if (root.has("creationComplete")) root.bool("creationComplete", false) else schema < 5
 
         val rulesetRoot = root.objectValue("ruleset")
@@ -258,7 +271,7 @@ object SnapshotCodec {
             creationExperience = creationExperience,
             creationComplete = creationComplete,
             xpAdjustment = root.int("xpAdjustment", 0),
-            abilityPointsOverride = root.intOrNull("abilityPointsOverride")?.coerceAtLeast(0),
+            abilityPointsOverride = root.intOrNull("abilityPointsOverride")?.let { if (preserveValues) it else it.coerceAtLeast(0) },
             size = root.int("size", 5),
             legs = root.int("legs", 2),
             attributes = attributes,
@@ -282,24 +295,24 @@ object SnapshotCodec {
             customDevelopmentEntries = customDevelopmentEntries,
             magic = decodeMagic(root.objectValue("magic"), idFactory),
             gear = decodeGear(root.objectValue("gear"), idFactory),
-        ).normalized()
+        ).let { if (preserveValues) it else it.normalized() }
     }
 
-    private fun decodeDevelopmentEntry(root: JsonValue.Obj): DevelopmentEntry? {
+    private fun decodeDevelopmentEntry(root: JsonValue.Obj, preserveValues: Boolean): DevelopmentEntry? {
         val id = root.string("id").trim().takeIf(String::isNotBlank) ?: return null
         val costType = DevelopmentCostType.entries.firstOrNull { it.name == root.string("costType") } ?: DevelopmentCostType.XP
         val options = root.array("abilityOptions").mapNotNull { value ->
             val item = value.asObject() ?: return@mapNotNull null
-            AbilityOption(source = item.string("source"), value = item.int("value", 0).coerceAtLeast(0))
+            AbilityOption(source = item.string("source"), value = item.int("value", 0).let { if (preserveValues) it else it.coerceAtLeast(0) })
         }
         return DevelopmentEntry(
             id = id,
             name = root.string("name", "Без названия"),
             section = root.string("section"),
             category = root.string("category"),
-            cost = root.int("cost", 0).coerceAtLeast(0),
+            cost = root.int("cost", 0).let { if (preserveValues) it else it.coerceAtLeast(0) },
             costType = costType,
-            maxRank = root.int("maxRank", 1).coerceAtLeast(1),
+            maxRank = root.int("maxRank", 1).let { if (preserveValues) it else it.coerceAtLeast(1) },
             requirements = root.string("requirements"),
             benefit = root.string("benefit"),
             notes = root.string("notes"),
@@ -314,12 +327,12 @@ object SnapshotCodec {
         )
     }
 
-    private fun decodeSkill(root: JsonValue.Obj): CharacterSkill? {
+    private fun decodeSkill(root: JsonValue.Obj, preserveValues: Boolean): CharacterSkill? {
         val id = root.string("id").ifBlank { return null }
         val attrs = root.array("attributes").mapNotNull { value ->
             val raw = value.asString() ?: return@mapNotNull null
             AttributeId.entries.firstOrNull { it.name == raw }
-        }.distinct()
+        }.let { if (preserveValues) it else it.distinct() }
         val categoryOverride = root.string("categoryOverride").takeIf(String::isNotBlank)?.let { raw ->
             com.furybook.dubl.model.SkillCategory.entries.firstOrNull { it.name == raw }
         }

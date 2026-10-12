@@ -16,7 +16,8 @@ internal sealed interface JsonValue {
     data object Null : JsonValue
 }
 
-internal class JsonReader(private val source: String) {
+internal class JsonReader(private val source: String, private val strict: Boolean = false) {
+    private var depth = 0
     private var index = 0
 
     fun read(): JsonValue {
@@ -29,7 +30,8 @@ internal class JsonReader(private val source: String) {
     private fun readValue(): JsonValue {
         skipWhitespace()
         require(index < source.length) { "Unexpected end of JSON" }
-        return when (source[index]) {
+        if (strict) require(++depth <= 128) { "JSON nesting limit exceeded" }
+        val value = when (source[index]) {
             '{' -> readObject()
             '[' -> readArray()
             '"' -> JsonValue.Str(readString())
@@ -39,6 +41,8 @@ internal class JsonReader(private val source: String) {
             '-', in '0'..'9' -> readNumber()
             else -> error("Unexpected JSON character '${source[index]}' at $index")
         }
+        if (strict) depth--
+        return value
     }
 
     private fun readObject(): JsonValue.Obj {
@@ -56,6 +60,7 @@ internal class JsonReader(private val source: String) {
             skipWhitespace()
             require(source.getOrNull(index) == ':') { "Expected ':' after '$key'" }
             index++
+            if (strict) require(key !in values) { "Duplicate JSON key: $key" }
             values[key] = readValue()
             skipWhitespace()
             when (source.getOrNull(index)) {
@@ -110,7 +115,10 @@ internal class JsonReader(private val source: String) {
                         else -> error("Unsupported JSON escape \\$escaped")
                     }
                 }
-                else -> out.append(ch)
+                else -> {
+                    if (strict) require(ch.code >= 0x20) { "Unescaped JSON control character" }
+                    out.append(ch)
+                }
             }
         }
         error("Unterminated JSON string")
@@ -129,7 +137,9 @@ internal class JsonReader(private val source: String) {
             if (source.getOrNull(index) == '+' || source.getOrNull(index) == '-') index++
             while (source.getOrNull(index)?.isDigit() == true) index++
         }
-        return JsonValue.Num(source.substring(start, index))
+        val raw = source.substring(start, index)
+        if (strict) require(Regex("-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?").matches(raw)) { "Invalid JSON number" }
+        return JsonValue.Num(raw)
     }
 
     private fun expect(value: String) {
@@ -138,7 +148,7 @@ internal class JsonReader(private val source: String) {
     }
 
     private fun skipWhitespace() {
-        while (source.getOrNull(index)?.isWhitespace() == true) index++
+        while (source.getOrNull(index)?.let { if (strict) it in " \t\r\n" else it.isWhitespace() } == true) index++
     }
 
     private fun peek(ch: Char): Boolean = source.getOrNull(index) == ch
