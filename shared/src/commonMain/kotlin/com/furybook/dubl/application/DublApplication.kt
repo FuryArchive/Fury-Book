@@ -1,5 +1,6 @@
 package com.furybook.dubl.application
 
+import com.furybook.dubl.acquisition.AcquisitionService
 import com.furybook.dubl.data.CharacterExtrasStore
 import com.furybook.dubl.data.CharacterStore
 import com.furybook.dubl.model.AppSnapshot
@@ -19,6 +20,7 @@ class DublApplication(
     extrasStore: CharacterExtrasStore,
     idFactory: () -> String,
     customConditionIdFactory: () -> String = { "" },
+    acquisitionService: AcquisitionService? = null,
 ) {
     private val characterSession = CharacterSession(characterStore, idFactory)
     private val extrasSession = CharacterExtrasSession(extrasStore, customConditionIdFactory)
@@ -26,7 +28,7 @@ class DublApplication(
 
     val character = CharacterApplication(characterSession, extrasSession, undoManager)
     val skills = SkillsApplication(characterSession, extrasSession)
-    val development = DevelopmentApplication(characterSession, undoManager)
+    val development = DevelopmentApplication(characterSession, undoManager, acquisitionService)
     val magic = MagicApplication(characterSession, undoManager)
     val equipment = EquipmentApplication(characterSession)
     val sheet = SheetApplication(extrasSession, { characterSession.active.id }, undoManager)

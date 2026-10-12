@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import shutil
 import subprocess
 import tempfile
@@ -20,6 +21,8 @@ def test_platform_adapters_expose_the_same_shared_acquisition_operation():
 def test_legacy_planner_requires_canonical_context_and_cannot_write_or_create_undo():
     kotlinc = shutil.which("kotlinc")
     assert kotlinc is not None
+    coroutines = Path(kotlinc).resolve().parents[1] / "lib/kotlinx-coroutines-core-jvm.jar"
+    assert coroutines.is_file(), "Kotlin distribution must include its coroutine runtime"
     shared = ROOT / "shared/src/commonMain/kotlin"
     sources = sorted((shared / "com/furybook/dubl/model").glob("*.kt"))
     sources += sorted((shared / "com/furybook/dubl/acquisition").glob("*.kt"))
@@ -37,7 +40,7 @@ def test_legacy_planner_requires_canonical_context_and_cannot_write_or_create_un
     with tempfile.TemporaryDirectory() as td:
         jar = Path(td) / "development-acquisition.jar"
         compiled = subprocess.run(
-            [kotlinc, "-language-version", "2.0", *map(str, sources), "-include-runtime", "-d", str(jar)],
+            [kotlinc, "-language-version", "2.0", "-cp", str(coroutines), *map(str, sources), "-include-runtime", "-d", str(jar)],
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -45,7 +48,7 @@ def test_legacy_planner_requires_canonical_context_and_cannot_write_or_create_un
         )
         assert compiled.returncode == 0, compiled.stderr
         result = subprocess.run(
-            ["java", "-jar", str(jar)],
+            ["java", "-cp", os.pathsep.join((str(jar), str(coroutines))), "DevelopmentAcquisitionHarnessKt"],
             cwd=ROOT,
             capture_output=True,
             text=True,
