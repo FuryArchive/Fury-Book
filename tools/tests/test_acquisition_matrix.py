@@ -145,3 +145,19 @@ def test_unmapped_source_occurrences_have_explicit_open_questions():
     occurrence = next(s for s in manifest['sourceOccurrences'] if not s['runtimeId'])
     occurrence['blockingQuestion'] = []
     assert {'code': 'MISSING_BLOCKING_QUESTION', 'caseId': occurrence['sourceId']} in validate(matrix, manifest)
+
+
+def test_discounted_cell_requires_legally_owned_self_taught_evidence():
+    matrix, manifest = corpus()
+    case = next(c for c in matrix['cases'] if c['caseId'] ==
+                'athletics|0|1|DEFAULT|AFTER_CREATION|SELF_TAUGHT|EXISTING|FIXED')
+    case['ownedPrerequisites'] = []
+    assert {'code': 'PREREQUISITE_EVIDENCE_MISMATCH', 'caseId': case['caseId']} in validate(matrix, manifest)
+
+
+def test_discounted_cell_requires_trusted_price_rule():
+    matrix, manifest = corpus()
+    case = next(c for c in matrix['cases'] if c['caseId'] ==
+                'athletics|0|1|DEFAULT|AFTER_CREATION|SELF_TAUGHT|EXISTING|FIXED')
+    case['priceRule'] = 'unrelated_rule'
+    assert {'code': 'PRICE_RULE_MISMATCH', 'caseId': case['caseId']} in validate(matrix, manifest)

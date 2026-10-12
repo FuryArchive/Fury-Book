@@ -182,6 +182,12 @@ def validate_matrix(matrix: dict, manifest: dict) -> list[dict]:
             price = oracle_cost(definition, context, manifest['reviewedRules'])
             confirmed = price is not None
             expected_price = price[:2] if price else None
+            expected_prerequisites = ([{'selfTaughtLegallyOwned': True}]
+                                      if context['discountConditions'] == 'SELF_TAUGHT' else [])
+            if case.get('ownedPrerequisites') != expected_prerequisites:
+                error('PREREQUISITE_EVIDENCE_MISMATCH', ident)
+            if case.get('priceRule') != (price[2] if price else None):
+                error('PRICE_RULE_MISMATCH', ident)
             if any(case.get(k) != v for k, v in context.items()) or case.get('definitionRef') != definition['id']:
                 error('CONTEXT_MISMATCH', ident)
             if case.get('sourceRef') != definition['sourceRefs'] or case.get('sourceId') != definition['sourceIds']:
