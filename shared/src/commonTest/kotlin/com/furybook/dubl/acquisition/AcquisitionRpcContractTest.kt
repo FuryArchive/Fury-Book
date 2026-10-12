@@ -29,5 +29,22 @@ class AcquisitionRpcContractTest {
         assertEquals(jsonArray(listOf(jsonString("op1"))),root.values["p_operation_ids"])
         assertEquals(jsonNumber(2),root.values["p_writer_version"])
         assertEquals(JsonValue.Null,root.values["p_resolution"])
+        assertEquals(jsonObject("payloadCanonical" to jsonString(payload)),root.values["p_envelope"])
+    }
+
+    @Test fun raw_wire_wrapper_preserves_lexemes_unicode_and_lone_surrogates() = runBlocking {
+        val state=StoredCharacter(DublCharacter("lexical",name="Lone \uD800; pair 😀",
+            gear=CharacterGear(loadAutomatic=false,loadManual=-0.0,items=listOf(GearItem("gear",name="tiny",load=1.0E-10)))),
+            CharacterSheetExtras(),emptyList(),Ledger(Opening("new","funding",Amount(100,0),RequirementNode.CreationPhase.Phase.Creating,OpeningProvenance.NewCharacter),emptyList()),
+            emptyList(),emptyList(),SyncMetadata(0),0,0,RequirementNode.CreationPhase.Phase.Creating)
+        val store=InMemoryAcquisitionStore(mapOf("lexical" to encodeEnvelope(state)))
+        val mutations=CharacterMutationCoordinator(store,{AcquisitionCatalog(emptyMap(),"fixture","fixture")},{"id"})
+        assertIs<MutationResult.Applied>(mutations.mutate(CanonicalMutation("op","lexical",0,MutationPayload.Grant(Amount.ZERO),"Fixture")))
+        val payload=assertIs<LoadResult.Loaded>(store.load("lexical")).state.outbox.single().payloadCanonical
+        assertTrue(payload.contains("-0.0")); assertTrue(payload.contains("1.0E-10")); assertTrue(payload.contains("\\uD800"))
+        val root=JsonReader(AcquisitionSyncWire.encodePush(AcquisitionPush("lexical","op",0,payload)),strict=true).read() as JsonValue.Obj
+        val wrapper=root.values.getValue("p_envelope") as JsonValue.Obj
+        assertEquals(setOf("payloadCanonical"),wrapper.values.keys)
+        assertEquals(jsonString(payload),wrapper.values.getValue("payloadCanonical"))
     }
 }

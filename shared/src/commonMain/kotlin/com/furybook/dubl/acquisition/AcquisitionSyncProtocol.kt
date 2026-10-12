@@ -249,13 +249,13 @@ object AcquisitionSyncWire {
             state.ledger.entries.lastOrNull()?.let { it.operationId==request.operationId && it.type!=LedgerEntryType.SyncAdoption } == true &&
             state.receipts.lastOrNull()?.let { it.operationId==request.operationId && it.afterRevision==state.revision } == true) { "Push must identify a saved non-resolution operation" }
         return canonicalJson(jsonStringify(jsonObject("p_character_id" to jsonString(request.characterId), "p_operation_ids" to jsonArray(listOf(jsonString(request.operationId))),
-            "p_expected_revision" to jsonString(request.parentServerRevision.toString()), "p_envelope" to JsonReader(request.payloadCanonical).read(),
+            "p_expected_revision" to jsonString(request.parentServerRevision.toString()), "p_envelope" to jsonObject("payloadCanonical" to jsonString(request.payloadCanonical)),
             "p_writer_version" to jsonNumber(WRITER_VERSION), "p_resolution" to JsonValue.Null)))
     }
     fun encodeResolution(request: AcquisitionResolution): String {
         validateResolutionRequest(request)
         return canonicalJson(jsonStringify(jsonObject("p_character_id" to jsonString(request.characterId), "p_operation_ids" to jsonArray(listOf(jsonString(request.operationId))),
-            "p_expected_revision" to jsonString(request.expectedServerRevision.toString()), "p_envelope" to JsonReader(request.selectedCanonical).read(),
+            "p_expected_revision" to jsonString(request.expectedServerRevision.toString()), "p_envelope" to jsonObject("payloadCanonical" to jsonString(request.selectedCanonical)),
             "p_writer_version" to jsonNumber(WRITER_VERSION), "p_resolution" to jsonObject("choice" to jsonString(request.choice.name),
                 "archiveId" to jsonString(request.archiveId), "expectedServerRevision" to jsonString(request.expectedServerRevision.toString())))))
     }
