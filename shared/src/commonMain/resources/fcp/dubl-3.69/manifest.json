@@ -118,6 +118,14 @@
         "core"
       ],
       "order": 500
+    },
+    {
+      "kind": "dubl.legacy-acquisition-v11",
+      "path": "content/legacy-v11-catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 510
     }
   ],
   "dependencies": [],

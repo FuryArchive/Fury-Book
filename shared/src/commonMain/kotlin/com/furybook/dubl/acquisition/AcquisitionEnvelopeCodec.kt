@@ -103,14 +103,42 @@ private fun decodeState(root: JsonValue.Obj): StoredCharacter {
         root.long("revision"), root.long("storageRevision"), root.phase("creationPhase"), root.number("formatVersion"))
 }
 
-private fun encodeOpening(opening: Opening) = jsonObject(
+private fun encodeOpening(opening: Opening): JsonValue.Obj = JsonValue.Obj(jsonObject(
     "migrationId" to jsonString(opening.migrationId), "sourceFingerprint" to jsonString(opening.sourceFingerprint),
     "balance" to amount(opening.balance), "legacyStage" to jsonString(opening.legacyStage.name),
-    "provenance" to jsonString(opening.provenance.name), "reason" to nullable(opening.reason))
+    "provenance" to jsonString(opening.provenance.name), "reason" to nullable(opening.reason)).values +
+    // Absence must remain absence for pre-T09 format1 outbox payload equality.
+    (opening.legacyMigration?.let { mapOf("legacyMigration" to encodeLegacyMigration(it)) } ?: emptyMap()))
 private fun decodeOpening(value: JsonValue.Obj): Opening {
-    value.keys("migrationId", "sourceFingerprint", "balance", "legacyStage", "provenance", "reason")
+    val required = arrayOf("migrationId", "sourceFingerprint", "balance", "legacyStage", "provenance", "reason")
+    value.keys(*(if(value.has("legacyMigration")) required + "legacyMigration" else required))
     return Opening(value.text("migrationId"), value.text("sourceFingerprint"), value.amount("balance"),
-        value.phase("legacyStage"), OpeningProvenance.valueOf(value.text("provenance")), value.optionalText("reason"))
+        value.phase("legacyStage"), OpeningProvenance.valueOf(value.text("provenance")), value.optionalText("reason"),
+        if(value.has("legacyMigration")) decodeLegacyMigration(value.objectRequired("legacyMigration")) else null)
+}
+private fun encodeLegacyMigration(value:LegacyMigrationProvenance):JsonValue.Obj = jsonObject(
+    "origin" to jsonObject("characterId" to jsonString(value.origin.characterId), "schema" to jsonNumber(value.origin.schema),
+        "sourceRevision" to jsonString(value.origin.sourceRevision), "raw" to jsonString(value.origin.raw),
+        "activePackIds" to jsonArray(value.origin.activePackIds.map(::jsonString)),
+        "ownershipMappings" to JsonValue.Obj(value.origin.ownershipMappings.mapValues { encodeDefinition(it.value) })),
+    "calculatorBaseline" to jsonString(value.calculatorBaseline), "catalogIdentity" to nullable(value.catalogIdentity),
+    "historyUnknown" to jsonBoolean(value.historyUnknown),
+    "ownershipRecords" to jsonArray(value.ownershipRecords.map { record -> jsonObject(
+        "ownershipKey" to jsonString(record.ownershipKey), "kind" to jsonString(record.kind.name), "rank" to jsonNumber(record.rank),
+        "candidateEntryId" to nullable(record.candidateEntryId), "custom" to jsonBoolean(record.custom)) }))
+private fun decodeLegacyMigration(value:JsonValue.Obj):LegacyMigrationProvenance {
+    value.keys("origin","calculatorBaseline","catalogIdentity","historyUnknown","ownershipRecords")
+    val origin=value.objectRequired("origin").also { it.keys("characterId","schema","sourceRevision","raw","activePackIds","ownershipMappings") }
+    return LegacyMigrationProvenance(LegacyOrigin(origin.text("characterId"),origin.number("schema"),origin.text("sourceRevision"),
+        origin.text("raw"),origin.list("activePackIds").map { (it as? JsonValue.Str)?.value ?: error("Expected pack ID") },
+        origin.objectRequired("ownershipMappings").values.mapValues { decodeDefinition(it.value.obj()) }),
+        value.text("calculatorBaseline"),value.optionalText("catalogIdentity"),
+        (value.values["historyUnknown"] as? JsonValue.Bool)?.value ?: error("Expected history marker"),
+        value.list("ownershipRecords").map { item ->
+            val row=item.obj().also { it.keys("ownershipKey","kind","rank","candidateEntryId","custom") }
+            LegacyOwnershipRecord(row.text("ownershipKey"),AcquisitionKind.valueOf(row.text("kind")),row.number("rank"),row.optionalText("candidateEntryId"),
+                (row.values["custom"] as? JsonValue.Bool)?.value ?: error("Expected custom marker"))
+        })
 }
 private fun encodeEntry(entry: LedgerEntry) = jsonObject(
     "operationId" to jsonString(entry.operationId), "type" to jsonString(entry.type.name),
@@ -200,6 +228,31 @@ private fun validate(state: StoredCharacter) {
     require(state.character.creationComplete == (state.creationPhase == RequirementNode.CreationPhase.Phase.Finalized)) { "Creation phase mismatch" }
     require(state.ledger.opening.migrationId.isNotBlank() && state.ledger.opening.sourceFingerprint.isNotBlank()) { "Opening requires provenance" }
     require(state.ledger.opening.provenance != OpeningProvenance.UserConfirmed || !state.ledger.opening.reason.isNullOrBlank()) { "Confirmed funding requires reason" }
+    state.ledger.opening.legacyMigration?.let { provenance ->
+        val opening=state.ledger.opening
+        val original=validateLegacyOrigin(provenance.origin)
+        require(provenance.ownershipRecords==legacyOwnershipRecords(original)) { "Legacy ownership evidence differs from original backup" }
+        require(original.creationComplete==(opening.legacyStage==RequirementNode.CreationPhase.Phase.Finalized)) { "Legacy stage mismatch" }
+        require(provenance.origin.characterId==state.character.id && provenance.origin.sourceFingerprint==opening.sourceFingerprint) { "Legacy backup scope/fingerprint mismatch" }
+        require(legacyMigrationId(provenance.origin)==opening.migrationId) { "Legacy migration identity mismatch" }
+        require(provenance.historyUnknown && provenance.calculatorBaseline==LEGACY_ECONOMY_BASELINE) { "Unknown legacy history/baseline" }
+        require(opening.provenance!=OpeningProvenance.NewCharacter) { "New character cannot have legacy provenance" }
+        if (opening.provenance==OpeningProvenance.LegacyCalculated) {
+            val expected=legacyCatalogIdentity(provenance.origin.activePackIds)
+            require(expected!=null && provenance.catalogIdentity==expected) { "Calculated migration needs its pinned catalog identity" }
+        } else require(provenance.catalogIdentity==null) { "Confirmed migration cannot claim a calculated catalog" }
+        state.instances.filter { it.origin is AcquisitionOrigin.Legacy }.forEach { instance ->
+            val origin=instance.origin as AcquisitionOrigin.Legacy
+            require(origin.characterId==provenance.origin.characterId && origin.schema==provenance.origin.schema.toString() &&
+                origin.sourceRevision==provenance.origin.sourceRevision && origin.sourceFingerprint==opening.sourceFingerprint) { "Legacy instance provenance mismatch" }
+            val record=provenance.ownershipRecords.singleOrNull { it.ownershipKey==origin.ownershipKey }
+                ?: error("Legacy instance lacks original ownership evidence")
+            require(record.candidateEntryId==null || record.candidateEntryId==instance.definition.entryId) { "Legacy instance differs from original candidate ID" }
+            if(record.kind==AcquisitionKind.SCHOOL) require(isLegacySchoolRef(instance.definition)) { "Invalid resolved school identity" }
+            provenance.origin.ownershipMappings[origin.ownershipKey]?.let { require(instance.definition==it) { "Legacy mapping differs from its instance" } }
+            require(instance.instanceId==legacyInstanceId(instance.definition,origin)) { "Legacy instance identity mismatch" }
+        }
+    }
     require(state.instances.map { it.instanceId }.distinct().size == state.instances.size) { "Duplicate instance ID" }
     state.instances.forEach { require(it.origin !is AcquisitionOrigin.Legacy || it.origin.characterId == state.character.id) { "Legacy instance scope mismatch" } }
     val entries = state.ledger.entries

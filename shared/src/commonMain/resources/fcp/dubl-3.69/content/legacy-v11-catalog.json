@@ -1,0 +1,6126 @@
+{
+  "format": "dubl.legacy-economy-v11",
+  "baseline": "f47a5256a66ddc5e1b7b5c1e204e57279fc7227f",
+  "sources": [
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-3.69/manifest.json",
+      "sha256": "4bc25a58a01dbccea03b3f30bc2f7b7c98bd008d80edbfa30377d8b5a7945bea"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-chi-3.69/manifest.json",
+      "sha256": "e1a05e32efd92967e2a3b1eba7fc6863d2762482ef90724fc57175abfbc2bcbc"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_regular_catalog.json",
+      "sha256": "0fcc39b36130687b9630766f0a207fd75b2059a88e4bfc7c0af1d0099d8d3ad3"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_special_catalog.json",
+      "sha256": "057accd12bcfbd0f2108e3d45202e267fea81ebe50af7276a8ec6dcf17785ad0"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_ability_roots_catalog.json",
+      "sha256": "2d7435a1e1c6b1a26a271014c99d9810770bd7ac951c5dcff750987885904e4b"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_martial_catalog.json",
+      "sha256": "fd2c4d0b41ca0fff061b951ccf7528b6f47d7d877988881f5d463c660adbb9b4"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_magic_catalog.json",
+      "sha256": "bd08377e3f519d97856c080b691f3b94680bd9f83bebf9484d38f6415134d3e3"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_catalog.json",
+      "sha256": "4a2176c8a4ea7fbeb1cc84a80192e579ed240a65a39f3d01e7b5f6cd04c6e952"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-chi-3.69/content/development_chi_catalog.json",
+      "sha256": "2e2dd8717de93db8cd7d19bc4d727992ff67e2b698fccb9a01d194681e77896d"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-3.69/content/skills_catalog.json",
+      "sha256": "b8cadef8cf0175ee454a64fca239f702cb6a7477b2a2692602256f872ffc43ed"
+    },
+    {
+      "path": "shared/src/commonMain/resources/fcp/dubl-3.69/content/magic_equipment_catalog.json",
+      "sha256": "ee240278f64f81e5a8da6ca217a5163ba709eaa99091c89dce3effca012896a0"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/com/furybook/dubl/model/CharacterEconomy.kt",
+      "sha256": "60c9fdc877edfa9c5658ef66673404a17d580ca4bb628e441e5b20ce83aa2326"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/com/furybook/dubl/model/DevelopmentModels.kt",
+      "sha256": "f4188977b2ac9fb092d330a3b8b7da3c46520626240e1493532b114ebc911816"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/com/furybook/dubl/model/SkillModels.kt",
+      "sha256": "18607147715db41be0de4746196105cb8a07efb5c84520acdcaf9b50b79b7e78"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/com/furybook/dubl/model/GeneratedSkillCatalog.kt",
+      "sha256": "c494f4e60b99b4e4a6a967c2b25f03eca7d6e811006e2b5de9b3cdb079560ac4"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/com/furybook/dubl/model/MagicEquipmentModels.kt",
+      "sha256": "609578862c991e53c0f7a7b46fa3311ca06f776fe80864eef3ded76515bc911c"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/com/furybook/dubl/model/CharacterModels.kt",
+      "sha256": "d03375f8cdaa1bea1a54572a225a91a51f3bb330778bf2a3c9ebc32c8d58c311"
+    },
+    {
+      "path": "shared/src/commonMain/kotlin/com/furybook/dubl/data/SnapshotCodec.kt",
+      "sha256": "1288764ac8b01aaa66d3b9b391897c0552c026876d2a6ef31b35869669ba1148"
+    }
+  ],
+  "packOrder": [
+    "dubl-3.69",
+    "dubl-chi-3.69"
+  ],
+  "inactiveChiClaims": [
+    "martial_technique_08d81ce45b880c24"
+  ],
+  "developments": [
+    {
+      "id": "feat_e05a30e954c90cd6",
+      "packId": "dubl-3.69",
+      "cost": 10,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6bf79551af3d6ea8",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2f94d2294be7d3fa",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0682bdd416ebe1c5",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dc74b3f6c0ff922f",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_128c2860a292efef",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7a05da069e5a5667",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a1b2117d80ed94e3",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cb77652b78152667",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dfb7c30574749cae",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7a1583e54ea2e49e",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8953366282803d89",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6d1ba374b1aa80c9",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b08dfb27a33fde8e",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f31167dd6c68876a",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ef01c79bad95bc11",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b9596e9fcf4783f2",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_981e1615ce27501f",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9c23c19465114ae6",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fe40de7bd9514242",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3502559c63707e6a",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0be07734fc944da9",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_418a6ebb03769dc0",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b5e7b6d832cf689f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4add442b30aea005",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7fa988dc9e4fc7c7",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2d8bf7cb47ca0d8c",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9168c5a0d0e27491",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3233f2da5c693e34",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_19343b11022a5be4",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d69c0d77fdf1d016",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c69b491a98862c61",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d9393b7bcd8910dd",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7724f739e5fd73c0",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_48d67bcbe8fc28c8",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fcdea7663f0b9383",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_098eff5ce64b5b87",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a5d3b291d6db6600",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fe9c83a15d2010bd",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c3e4dc88d2e69e5a",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_72094d2dcfe2baa4",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_60747f5c420d79ee",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_06cb5943b77c50e3",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8456202e99da5796",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9f477ab40687062a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4e8ea7dbf3fb9784",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fde4317b9b9ab7cd",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cd965f927a426cc2",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1a9f2f0b9135c3d8",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f33c232811919ee5",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0bf4bbf1c46717a4",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7765fc49273697b2",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d1199253868da3e5",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9cdb23c3843b6b4c",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_002f961bc98825c0",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b47552f7d1361f33",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3afeef51c7dbedf6",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3a3d5913f1f15d8d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bd8f99a63d357307",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4c5b39c1c2c1e293",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_139d983dfaa45730",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_475503b5c4d7e32b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ae89314bf1944366",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b28ef4152e26995a",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_212be8e87097059f",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b050cfaca797b797",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7dcc2dd2d6ae0123",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f72b932f269c5468",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_37d28406e9448153",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_98544c0129d9b2a7",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_21433433e4647c82",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c52dfd8ac23e2850",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c5bfe7442840e108",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9c621454cfd259d9",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a350031b6ae7f9e8",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bb4aa34c8361c971",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_659bd74345ebd251",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5fdb014afbcc0807",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_80cb914af7c6df13",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0a550ee38a5200a4",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a700b29906107b2b",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b4c4cb83cb4afccd",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c0c6df625b29ac22",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e08febc698c8a953",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fc2eb28bbec2ed20",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_87a9d840d06ed240",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_220ac3fadc71fca8",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_409935660e906b58",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_78ad2819f5eab021",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4691820ebdfd5957",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5da49e15b0b6c3dc",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_41a4981c51a12c6c",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8bdb33ad5ad600d8",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4bcd83f25311ccbd",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e63bcf4c87dd83e1",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7f31a14fc242f532",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_23d838794c2ccdc5",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cfa9aa3e8740f026",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dad6c142bda7893e",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_31c461aa8f327ced",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f8d4f6fe3eff1c38",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1e4f2d8d4bab0107",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e4fca8944cd56257",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8513312a57bbbaeb",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5760bb863f1af790",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e15334b93796d854",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d9c77ea8aa836686",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_255d30b26489a033",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_212358bf2539330f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_302c8b08b74bf8c4",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2fa9ffd9f7a53e01",
+      "packId": "dubl-3.69",
+      "cost": 10,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_feaff1b3972ffac9",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_abd8f5efdc2566f7",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_36bc41ab9ab77351",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4871a5fecd90e549",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_203565fe3e4177aa",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2334f8b24105194c",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_54bec8a33d2f92ba",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b2b5f208d7adf9a0",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_195750d39f11cfba",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9f3b0ed0ec3c3dc3",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1e5dba9becf1a19d",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7f8d6491bd3e5254",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c447a33cd2f7e59b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d0e8baba7a5863c9",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_10b53a383254a7f1",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fcdd74622d21435d",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e22fc0ae2cd61f3a",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2c250def3ebd2349",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1a8fec9f8ab56cc0",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_727b422d0227dbac",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9d25a6d251e7a7a7",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1c923fa61f82ded6",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3b7ebbf3d76578ab",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9810dc6144d25d9b",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e63dcbbf9b7dda01",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_349c8435b5b4e0f4",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_608bfc2a52637b13",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e5d4ab23e63d4ad8",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2b0b27e7c578caeb",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2f6cc2a6bb5fbef5",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4b9639e339d94ec6",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9a80687ab37883e7",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_455c5ac6d380a58a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3e8aadc453bb432d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_16673555e425c3cb",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_555de96ef1d0ca7c",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7767abfc9b7aed0c",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c373dce5e5a51fa1",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3cd8e00bb937a5d1",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9a0dbfed2efa56b7",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f7202f148aa21fe3",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f08ff2b7e182ef11",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4db45c02ba4e49c9",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f577ae1aa69e62ad",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_400a0c31ef69a403",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ed8b4da6b63c16cb",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b933cd25efd7c5d5",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_552acbbd41a96ccb",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_233fec5c9b1c56ca",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_108ac1d6e40fa059",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c615c7ed90b1c8f0",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_950e1ef9ad8bcf77",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bec7aa2959058aa7",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f80d6ec156e94fef",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_208b697799296d8e",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_315682b861458eaf",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_73b6672717f97e05",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2cda0df5bcdba24b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_06a609b99de2fd12",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4742b164fa432c4a",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9428ec86bbf55ed7",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c5729fed94001b26",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9dacf0fb17bfb9a0",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_754f3ea1e0258f48",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2eecb213f09ba1f4",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_efb63c726c416845",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c12203ae67663fa7",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_81f18b432b42b1d3",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ae9c471fa1b91ead",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7b289fcac02bd296",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a7146989bac98b62",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a142d59b050b7eaf",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_499c7b7514d659a2",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_10c5f8c3a4819723",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_14c8ada4f92269a4",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_98dfd58c101b4b3e",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5b3b68dd9e06774a",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_acaae543140e026c",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ad417e0f012d5be8",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_09f12301d807aab2",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2ef079bc6f8a0d1c",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2f319e24e5b66f8e",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_704ada7214283321",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b8d6db87afe2bb22",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1132fdededf8c020",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_452fc8a96034acc2",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f1f51dd351f60437",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_00fbe2c5478ae7f2",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9ccf0ae0abbebaff",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4992bb9a566aab44",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_40f68755993247cb",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2e91e66aac3641d8",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8ca6e75b2d38b883",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f9c1b97d8bbfd801",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3d1889747491f3b2",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_55a00ef5ebec7832",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c8e0271c9bd8bb91",
+      "packId": "dubl-3.69",
+      "cost": 5,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f9945bc403603794",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b4154deb78a0bc28",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0b87a0d73c606eba",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cdc11250493cd59c",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3219b2220a1a0926",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_53c01e07fb18b541",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_21e3ab4eab1e48a0",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dc1ba6e9fa849dda",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8fe4e0dfcbedb063",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6016e267aa329ca7",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b3ff357b33dc8af1",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9c36241711bd0b74",
+      "packId": "dubl-3.69",
+      "cost": 75,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1c545028041ae4e3",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bea2470f5623c41c",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a144256fd7c09aeb",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5a681a34327a203e",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c89f5f7ad5d8c28e",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8cd438317819c497",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7fc6fc6e63da9688",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c89ec0dfba8408f9",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bf787e3a3ea38310",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9e9679c9c13db810",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_600fc03329750988",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_95b19d58202e83b8",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dd0ba74aedebce10",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cf54ca9a173993e0",
+      "packId": "dubl-3.69",
+      "cost": 10,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fd3d473bd5f717e0",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_65e4315227fdc855",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_57d649cda0182656",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d2afd80ad8e35bd6",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c735a6b0ec8f2905",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c35ba86389f61a11",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_110ba1f8a1617966",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8b2a26fd84370ee1",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7c23e3fc59ae4202",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_032d06fb9a4118ce",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_80a24decd57bf883",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dbc58e54dc9d28d9",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b6173be4e251982d",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6e608cd8acbb7b2f",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8df5e1aefda2a020",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ecf606af6554155a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ecb87902348a50c9",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_58a6e44bcad8d490",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a5fd203a26fdf5f5",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b8328250c5443569",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_03bdd05045737de9",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2d6d89e4371fda60",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7321f6d55d019f93",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_eaa70b65b370825b",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bc96393fb969a8e3",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_46ef062387e0840a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_90e4fd02d41d0574",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e66e4cd15ec825ba",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_87a1b741e4b9744f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_410d23864293c612",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_df83efb85dea39dc",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6e3be80e0addf8d3",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a453558bdabf61ca",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cab3a5a79c730185",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e3e8b7293fffe302",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_69a42f2a4d54a3ba",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_46b1a206cb799537",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1d81f7f83aedf9f9",
+      "packId": "dubl-3.69",
+      "cost": 70,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e51286dcfb04695d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1fb86899adeb5527",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_11d6af703d7ebee9",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_90b805aa3a1836de",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_43ee7fbb9399c5ef",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2d8325b14c4dc6c9",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a28c8ad099f43b13",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9ec7c929c84ff6ae",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8ce817b9fcd29219",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_65ea8eac0fbac756",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d3e0b8906bd105f2",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_42473bc0735b2186",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3956c6e4b0cc08c1",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3449f79cc7ed79d1",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b8989e97e58accba",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fe005b143b217b52",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3f69c42fe3a960dd",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5d529855eb3823a5",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_09439655443ed30b",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_883e5b9db927ce07",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_846d6cff41343664",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_247d51073cc98454",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6cca0978934dc66e",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4c85aa747f319702",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e76043d374b62744",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_872647ceee8f38bc",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8c378751d5c718d3",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c01feca8f72f9267",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7c1e70b92a60c750",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ca870f0e40a87ae0",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4e7d79f21936a142",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_359840fe43838f10",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e000383baa5b3afa",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ff626e2585de2dc7",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9813ba6aff7624ad",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_20333bb586348ab8",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7de562d7f8525f6e",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9c39a48b5a63feb0",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_93a350961a4ba331",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9710046dc000748a",
+      "packId": "dubl-3.69",
+      "cost": 55,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8437874ad6d99cf1",
+      "packId": "dubl-3.69",
+      "cost": 55,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8b6f3261d7c5c8ea",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_127f2d478d76e66d",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_60f7c4ca067ff0a5",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_43a03b64a656118f",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c48bad1e2f79cc02",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_844174f5261d6d85",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8f96ece73f65bcfa",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9c9bfb5f33d0ff77",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e3202d8c160eb2f4",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_85e6bef68fce8139",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cf016fbcb5694bb9",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ef30600d1a509341",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_00d27f4a83e142da",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8375cdb3022db2f6",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f3a95cbf618f3f7a",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_eef2c7391e1bfbe0",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_72e1af25e3a0cea4",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_495b4a88fcac7d3f",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d311a68493a4872f",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9c65548e75013f0f",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4e70134ae23c95d0",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_73777bba1763b63b",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_74ece586d9352abd",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b24f9be358a16b43",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0c3e0521c4c5e668",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a0ce124c38f9babb",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_331997d79309902d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ee6b8ee7b9c444ed",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5845641bc1d17c2b",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_38b4526ff5a4dedf",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7fa4257aad0f3ea5",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_50d020a12998c83b",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c674564a9eb4b6e3",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ec0aff06046c7a07",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_84b3a80d34561387",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_26281a4ec2b227d1",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2d29b4e21c5aa360",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c657786350e001d2",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0bd10c31b772990f",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a231ab1257c3cc30",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_371b671fb37a1c5f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fa8514b126e00d4d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_49c5ba9431ae4768",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_428ff552e965ddaa",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e87634186101633f",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_48b024e36a3ddd21",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9d23b672153f2252",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9d9fa39f4efe7e95",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cd204c9214ce5117",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b2af3d6d79460623",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ccc1b9121b75324b",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_352940bbbadf77ef",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b5a820a8ed0a5cda",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_efa686df6f600015",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_819cf3b062b1c18f",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_86f62a72aaf0c495",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ff2b2532be3cc900",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b802afc2806c5b17",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_98e957beddccda22",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cdfdef5260d67af8",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f5fbd495f377c688",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a8e37ecb25f5209d",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f42b45eaf3762d1e",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e31b759598801a91",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8338973515df67d3",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fd640cfbf8eacd26",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b7ac269653868a6c",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_259bc0767ad933b6",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5128e48484e7288d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d006c816fda09f9d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_db9b807fcd82d51a",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_46e2ff001afc53b3",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_56af9236580961b8",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a834e752f2e3132b",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_29f20ae454f0d8ba",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_617d68d2452a5525",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bdd0ea160eb40c9f",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3b52a8ca2fb9ac31",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b13c4d437b322235",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_05158a62e80115da",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bda60ae45d55e458",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1e917fbfcb30bcbb",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dd748c7e0d83140f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c5ca770b130c02b4",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6e4368a28a083301",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_963c20ec0c14be88",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a06e094956b0c61e",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_424f406f5b45ddcd",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_87eb2e3627c352bf",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7519826d733a38a9",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c6bde9f113a4dedf",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_396c18da9410a823",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1fc8a228447e1916",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_51ef96ff892ba12c",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_be8ff81aff2e4b4d",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8ad9a2e3fa3ad25b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fbbc019dfe96dbf5",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_71a6d3461154cdde",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_28ad9701e25f2a0e",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d91980d08153d6c8",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c4f198a722bc93b7",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9ef8c9a50d4f6e28",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8eb6bfc7b8b5a074",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8a7eff97954e63db",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_575d1fae7950346b",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b8591cfd7b812248",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_165e749b6f396cb8",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3bc071e63be82bea",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e9f4c4b95c5df11c",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_81c34f5d3e7fb8d9",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9cb9560c36089240",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6b6b3a102996ca6e",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0e301e6de206aab4",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_adc845dc51d012a0",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e980eea9d31969a8",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_04d78e47808ea3eb",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7b621212f99495dd",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_48e7c69389fdcd3c",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_444466165b290ced",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dee6d91d0a987242",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_00967fb67f915b15",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f9c1caf4ec09ee8d",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d4df49bd218a6103",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_91d56fec47d2502f",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_923d021a2e9e6abf",
+      "packId": "dubl-3.69",
+      "cost": 75,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_07b1246112e3ad75",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_acd52652bbd1576c",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d25f034a5cf3af31",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b2421ab5cfc14e1b",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1beadb2cd06442f9",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_58c9a78e46ea0cb3",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_49f28660561b1ae5",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4084ca6aab6d811c",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f2cc6f0c80305336",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f6cae65c38d93465",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b41bff6e836781b5",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9b015d25afd296fd",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_97d1239b7e0eb28b",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_44e8ec54f23aee13",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_12c463f7f4fa00a1",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c2ada6713f1e3cf2",
+      "packId": "dubl-3.69",
+      "cost": 65,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_130a086aaa590429",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_841c5e52936bfc31",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_15d561fae0c769f7",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_633c5e6eaf0e636b",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3acde4a62c69d01d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e15a39ad2d1a7aaa",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3029ebbd8ea09714",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d1885db7edd2680f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ffcecfc06b94e592",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a4724bc98b972fd7",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c2c2cbfa84405060",
+      "packId": "dubl-3.69",
+      "cost": 65,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9012c539238a1e6f",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_482ee0f8c87f4398",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6a65e51f4aea6c5a",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4187a51aa75de184",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d5ebf88eb7adac06",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_42dbac6721383f7e",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_556b5908ef65b396",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_58cf8d0d57421411",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e2631d55515e1934",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_863079b74884d9cd",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0c7de953ad25243b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a77f41fb4282c3ff",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_68354cc3084013a8",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a7e9bdcd561a533e",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_55fd28acf50f38b2",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2bac7eb5e4b3f4b3",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_93272c756bf69ad7",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ec796c364e0b6c90",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_86b0beb374b3fe3c",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9f726e10aeb9a7bd",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6ad2c4fd41382160",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ed4817368e82ceb8",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6add0384614ae863",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_629ab1201dd31841",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2c8d9330b0526884",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_604cb2eab849f95f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_059f2cc3cccea373",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6eb0fafdd61cdc20",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_94dad25d7888869e",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_70e7a1ab4d5749ec",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a35cd71644363fca",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1bacaebcd614c5c5",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f6dab14054b3c25e",
+      "packId": "dubl-3.69",
+      "cost": 75,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_52a4d6cee2756b48",
+      "packId": "dubl-3.69",
+      "cost": 75,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5abb4936ea815213",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7c06b44361f99e86",
+      "packId": "dubl-3.69",
+      "cost": 90,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f798eee5d98707fa",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_77268d0a98b0bbe3",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_18e8d25ae033d3cc",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4aec953f86c6ab7f",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7ad04d9ea0a3d418",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_07a5933de10322e2",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dae0c005f43cc4c0",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c1cbac9f98bbe854",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b7eadf64d2b256fd",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a450ed487b601d42",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e04b4d619a503480",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_29ff1cb23df7879d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_020d4e245d3efed5",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f02f1386a008c762",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3033b2c6accce145",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4d4fcd1a77f07bb1",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fc1f69730433e92b",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_556672f71365a80b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b9db81015247663e",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d3595f2cbe0c8f12",
+      "packId": "dubl-3.69",
+      "cost": 70,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_28e20759cab8ebc8",
+      "packId": "dubl-3.69",
+      "cost": 70,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bc76ef56ff5c6ba6",
+      "packId": "dubl-3.69",
+      "cost": 70,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9501c95b22d02ede",
+      "packId": "dubl-3.69",
+      "cost": 90,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ab0ad31f46407f46",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d1ed574bc6fc7721",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ee839733dc3497c4",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bdd80c0f95bb9370",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f6e6a3475c23ad54",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_09d2c29758e45bac",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_002a151fc18f9720",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f337696f351f8055",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_432089ca4270b16d",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ba5b71a8818a8f21",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f9d76b881fa16ea2",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fed4d41b141a5679",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8079e41c8639fba1",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_698cbf5ca1ae9910",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a43c8ee470b2dda3",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e6df7c11fb2fbabc",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7576d0a496b3b046",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8d1afdcdbfd842c9",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_029a6f765a74c2b5",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_cfd77403814f4759",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9a78166118f5201d",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6e5f776e24effe94",
+      "packId": "dubl-3.69",
+      "cost": 15,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5368c7691988fd41",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_baa94ab25615a030",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_59b18e651fa5109a",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e810090595516067",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_c6da67546770415c",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ebb2870a71751e1e",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0acacb60df070f2b",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_04393a69151c2356",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bb95a4d2f3f26135",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7c744c70e9c97a5e",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_846d1a2b621948ad",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e1aa37565142c881",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_e49c4c9df1a343ce",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8d9a8d78342f9158",
+      "packId": "dubl-3.69",
+      "cost": 75,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_ca778ede19771422",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6b93201cb7721c97",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_764d06cacf2d2f08",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b111b3c46f498d63",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f938893fb568afe2",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4c0d2eeba22e7f67",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_798aa56ff3f6ca06",
+      "packId": "dubl-3.69",
+      "cost": 55,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2687e5a913b07ad8",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_8a7d97e92179a666",
+      "packId": "dubl-3.69",
+      "cost": 65,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_22eb6769decb881c",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_66c8d74e2b7f1106",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_46a2d866b3f99bb4",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_032f4da5204e74fd",
+      "packId": "dubl-3.69",
+      "cost": 70,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b01d5e3067fd43d5",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_78bd1afcc7f2f869",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4bfc9758e7f7e54f",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6339d8d3458b7cfb",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_92f6b3f9b2befe1f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a9495070244fa250",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_3581e05f31eb178e",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4358b6b50ee00450",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_91c5a37b6e94e3e4",
+      "packId": "dubl-3.69",
+      "cost": 75,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_1d9d4f8e6d850cae",
+      "packId": "dubl-3.69",
+      "cost": 75,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_6f7441d04e880130",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_b364b25cb13664c0",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_4576268c38fcd5f7",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_7bc39bc9c44dd41e",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_834a9fdca2efe82c",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_253522fa4d04dba5",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5bb9b7c6c6694812",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_906f8131263d3eb9",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "access_11f3a49ee9802ad0",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_45edee695a349bf7",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_17f99cc35c559d82",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "access_5b50c9c8ead88fd5",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "access_224a2229ad335a33",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "access_40c3d6bcbdac132a",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "access_60f7faada295fcfc",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_e8245289051beebc",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_bb18db3acee8d8c0",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "access_99adfccc91b11167",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1,
+        1
+      ]
+    },
+    {
+      "id": "access_b7ab9ab06b30dd98",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_e9d24a11c1717b4b",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_d0fdba646d5da299",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_1b7b5d63bbfe5999",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_d0703df3ea56baab",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_3080526640119bbc",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_fa467b4e9d83447b",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_72ff998a42c1b5fa",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_471c1aa054fcf62f",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1,
+        2
+      ]
+    },
+    {
+      "id": "access_597f3218972b15b7",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_a8bdafdea2ef268e",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_c4bae7903fbe31be",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_fc1a6c172730bb9d",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_7e908586113358b3",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "access_b832538f3a803048",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_bd7119a29fbad30f",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_3fa2fc858d18365b",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_7a53a3d465dd1c00",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_0cda2f98e9ea984c",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_0ae1b0eb999784a7",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_f9a25e27a88a7d61",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_a80140e55e6b3033",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_6ee5e1d18064717b",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_7295ddf972d38038",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_c55a5bee28052c88",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_5a507d1433ae0b0d",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2,
+        2
+      ]
+    },
+    {
+      "id": "access_f9116a33157b64d4",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_ee0f09d57b95080c",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_169a9294a567006e",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "access_a1ba386fab363965",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "access_19955388f7d405f5",
+      "packId": "dubl-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "martial_style_087ea8a7d53b373b",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_f5dae0d0bb88dcd1",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_40f8859eef79b27f",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_01d52974d11f9e9a",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_2cb08b5fe00825ab",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_5d710dcb682cb6d1",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_962e11b849f75b55",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_945b0cbe583e071d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_6f736b57bce826e7",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_9a22edda27cdbf1d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_1d08a4430ffda5d7",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_ef279d5dcb34e6e9",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_0f3bde169c598189",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_67eb4ba76ffadf58",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_1b574900af113065",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_3b600d4526eb11e1",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_bda806b6dd43209b",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_871e095c5a18d7e0",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_style_c04d39e6322c4546",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_175d9254b640d8a4",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_5e0287d7defeb6d9",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_432c954125daed93",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_dbfed48c09011566",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_9bfa154b252a4237",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_1c3dbf687535815f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_2ca3ad475e3e3230",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_bf9c6aa4cbe4da50",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_d1c3841055caa24a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_bc0d6619e8c7045a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_6562440762708107",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_23fd4936857b5c0a",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_e1110cd9a24338fd",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_9570cddbac98fc12",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_82b656f5d6ca2369",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_08bd4561c608e38e",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_7c27dfa22bbddc1c",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_eaa92316de20c2d8",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_b0166735c4692a80",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_9f114ee5476528fb",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_79d6709ccea23e3c",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_5756ee7ef95a7f1e",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_42bec698373df45a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_d824b2882043426f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_09faa578fd22bc70",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_3ee589b0fb715375",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_880f59e730436e3f",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_76352ef2faa44f6a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_da9c48525174b302",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_314e656a5dd44158",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_fc91dd01d6a8e911",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_b12e3376dd051830",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_6de639c65b691307",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_7430776d53822839",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_2b7fdaa277a425d7",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_14c8e6363cd3472b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_368151a9903c45fb",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_eaf2ee4151f57379",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_08d81ce45b880c24",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_707cb54e844c23ca",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_6d5fdf78e92ef875",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_9740c81769fb5fe8",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_d90259937bbac032",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_88d6aa3447f15e7d",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_32de802614715e74",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_5dc9304819dcb93b",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_f65450de976eb506",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_0344c88864c66fcd",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_321aadb2825d78b8",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_94025d2484f2b7ff",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_d0e090db8c7e4e9f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_a229777052d0ee1f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_bb44ff7dfd2ae2af",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_7870b6ca906ede75",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_378f9347f58d0f4f",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_70f1367211d75516",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_7ed70596fce5e5fc",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_a33d0f570f89b178",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_49fb84ac208d8c30",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_35d3e21a3125ceb4",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_0538ad57baa6a7ac",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_8d6c513ecfae8940",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_0a89b01b3e7aee7d",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_a58d24c1a02fe195",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_1dbea05081fdc91b",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_d6a9d18dbaad1dd1",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_d80848daa5058b84",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_352dcf8c9aafdf7f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_c3ba3d9537f75f87",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_cb4a5d8dc41b2159",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_c6da162d3f0a6f55",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_dfd8055f1f4fe334",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_0e63cdd7adc78c31",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_bf6bc1cd2fe54e59",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_ed1a6d7067a971f2",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_5bb4db31e321a22c",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_988695a07128bad7",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_8ea5df32d09c01a7",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_c7b6cc0eaff66058",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_dc72d3e70490bf4a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_74bfc8567e667529",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_c37f10657bcb0cea",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_27f9b1b7a639488f",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_f3013914d8c4441b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_442a72a0f522471b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_d2e5b83cdda2329b",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_fcbf7ab842c6741f",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_2ac159570d5e16ce",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_0e8f8d19fbec4ef8",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_53cf634a2ee629e3",
+      "packId": "dubl-3.69",
+      "cost": 45,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_018a367cb15c8cca",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_604c341a63f1dac6",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_f0a8514894df0fe9",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_cead705118cd2edb",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_c70f24317749c112",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_88095df932afb4df",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_bda42510361d501a",
+      "packId": "dubl-3.69",
+      "cost": 25,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_3c251948f7cad41d",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_afe967a7f5d53a23",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_c4af7fdcc5eac4e9",
+      "packId": "dubl-3.69",
+      "cost": 60,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_8958b0c3d97b20c8",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_58d1dafc841d9b8a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "martial_technique_8b67011d5bd91023",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_bf7b04eb68961725",
+      "packId": "dubl-3.69",
+      "cost": 100,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_2c562740ca9ad706",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_0a8dd19e6030b27c",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_187afe0473ebd36a",
+      "packId": "dubl-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_a1700670dd605d69",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_fd7bee8198e57574",
+      "packId": "dubl-3.69",
+      "cost": 20,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_46408580837ac2b3",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_f6f37c05cf7c5257",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_dd0d5c6f8c2fd9e5",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_36930110e6df163a",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5d04a18357baa173",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_d93dd2d62f378864",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_5b6c5408dcdf4c96",
+      "packId": "dubl-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_9297f6d3c3564ee5",
+      "packId": "dubl-3.69",
+      "cost": 35,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "feat_176ac87695709aea",
+      "packId": "dubl-3.69",
+      "cost": 50,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "chi_development_6b44546d9d5fa11b",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_d516094876012090",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "chi_development_64b4278b87d8af72",
+      "packId": "dubl-chi-3.69",
+      "cost": 30,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "chi_development_df49774e7f04b06c",
+      "packId": "dubl-chi-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "chi_development_202ce9f34238f2a8",
+      "packId": "dubl-chi-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "chi_development_01408208e61871b2",
+      "packId": "dubl-chi-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "chi_development_d0a96422f39e457d",
+      "packId": "dubl-chi-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "chi_development_6c5146eb9116cc9e",
+      "packId": "dubl-chi-3.69",
+      "cost": 40,
+      "ability": false,
+      "options": []
+    },
+    {
+      "id": "chi_development_69efc0e4b6b8f49b",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "chi_development_65e6b7802cee8108",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_669564ab4fae3c64",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "chi_development_61bd073cde1b17e1",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "chi_development_190fbda767ca64be",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_df819473c66bcb28",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "chi_development_c1ef116a341f5f14",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_65ee84fe0cfe4f01",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_d41750e199dfcd9c",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "chi_development_2902fdd258da1b91",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        2
+      ]
+    },
+    {
+      "id": "chi_development_2f419ee9349e490e",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_c76b37e5c5f558a0",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_b0cb7f68cfffa0af",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_42f062aba6715840",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_d92a6b832ac58852",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_bb88ecd53c51687e",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_a9a363b5d9403f94",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_dd726932c61186b3",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    },
+    {
+      "id": "chi_development_ec74a7b12b0a102a",
+      "packId": "dubl-chi-3.69",
+      "cost": 0,
+      "ability": true,
+      "options": [
+        1
+      ]
+    }
+  ],
+  "skillRankCosts": [
+    0,
+    10,
+    30,
+    60,
+    100,
+    150,
+    210,
+    280,
+    360,
+    450,
+    550
+  ],
+  "skillIds": [
+    "athletics",
+    "barter",
+    "awareness",
+    "riding",
+    "lockpicking",
+    "driving",
+    "survival",
+    "animal_handling",
+    "intimidation",
+    "knowledge_academic",
+    "knowledge_template",
+    "engineering_repair",
+    "performance_vocal",
+    "performance_template",
+    "leadership",
+    "eloquence",
+    "medicine",
+    "piloting",
+    "search",
+    "profession_template",
+    "craft_template",
+    "stealth",
+    "shooting",
+    "melee_weapon",
+    "throwing",
+    "unarmed",
+    "computers"
+  ],
+  "builtInSkillIds": [
+    "athletics",
+    "barter",
+    "awareness",
+    "riding",
+    "lockpicking",
+    "driving",
+    "survival",
+    "animal_handling",
+    "intimidation",
+    "knowledge_academic",
+    "engineering_repair",
+    "performance_vocal",
+    "leadership",
+    "eloquence",
+    "medicine",
+    "piloting",
+    "search",
+    "stealth",
+    "shooting",
+    "melee_weapon",
+    "throwing",
+    "unarmed",
+    "computers"
+  ],
+  "spellIds": [
+    "spell_54234bfde5761792",
+    "spell_375ac5a4182a072c",
+    "spell_ae3dd4572dbc3b49",
+    "spell_b71d8e4072660f90",
+    "spell_4b143934fdb77984",
+    "spell_6339942bb23ec0f5",
+    "spell_0f37bd74f710b4fb",
+    "spell_2ecdbe18b6148310",
+    "spell_31b169a43215a8e7",
+    "spell_f7806a941ebf21f5",
+    "spell_9d9860336b57df6e",
+    "spell_db24344e06991713",
+    "spell_8a5fd6512a3a5a66",
+    "spell_1cc9a32829007021",
+    "spell_b2de2ad02456564c",
+    "spell_65db6709c0147a67",
+    "spell_12cf9120d1785f31",
+    "spell_64339dedae079bd8",
+    "spell_e5c449e878b7db1f",
+    "spell_d711393dc1658703",
+    "spell_3152ee8e2e4bf63c",
+    "spell_93a296ba0595719d",
+    "spell_4522e8c7f3f1964a",
+    "spell_1c57ae18818abde5",
+    "spell_8ff909a79aedbca9",
+    "spell_acad070ad693f59b",
+    "spell_efaa7ae62ee3c435",
+    "spell_27761680b14f80a3",
+    "spell_12d54c747700f783",
+    "spell_32e9f14c0a981e99",
+    "spell_5e448fd2f2498f5d",
+    "spell_c346f0f9489342a9",
+    "spell_c10c981af31e1aa7",
+    "spell_c631d1e752849f4a",
+    "spell_e44393ca9bfe0406",
+    "spell_18263b50358b13cc",
+    "spell_69b14f4a97c6a324",
+    "spell_6e740dd602aa42a4",
+    "spell_aecc2c1a7af07dcd",
+    "spell_679110774eb9a567",
+    "spell_35e87d4ed4b6d707",
+    "spell_ed7cdfd04e582d97",
+    "spell_0a12dbfcf4b83ed8",
+    "spell_e51fb9e79397ccd0",
+    "spell_06bb15e115a80bec",
+    "spell_d39433e6534f010b",
+    "spell_7de8aea4621a9cde",
+    "spell_9a7155210c6190a1",
+    "spell_56602c7287d4a21d",
+    "spell_f6dac73ff48b1f87",
+    "spell_f8d997a3e271b6ce",
+    "spell_90bbcdfa5c497da3",
+    "spell_98da60413079e477",
+    "spell_63780e27be995121",
+    "spell_a8cbe2c3a4b280ee",
+    "spell_86cfbc585b805adb",
+    "spell_2227bc8c4c2b5e45",
+    "spell_6c6a162a8d201643",
+    "spell_63e1b24192469300",
+    "spell_cece841e8cff1f42",
+    "spell_5fa342322a559b4d",
+    "spell_fd362af52e31e4cf",
+    "spell_321cc472d94194c8",
+    "spell_cfc391fe956d613d",
+    "spell_d814f522b4338a41",
+    "spell_38688947b356fd9b",
+    "spell_b3875f12d3b339c3",
+    "spell_64ead9a4d71eb253",
+    "spell_d38aa9e41beab139",
+    "spell_9e614c0009b5a929",
+    "spell_0f68b25bdd0697a9",
+    "spell_88643458fefdb9ac",
+    "spell_0528dd9fb103cd70",
+    "spell_6e22b50cb054eb71",
+    "spell_e2e0c94c39fc8ff0",
+    "spell_d2973329ed39a095",
+    "spell_25a04865636e2356",
+    "spell_1c75c16a818daa0a",
+    "spell_76151d45eeb1a742",
+    "spell_58f5e95b4153e838",
+    "spell_198066545cafb36e",
+    "spell_73a58fdb310e19e2",
+    "spell_96476c2094b9c3d1",
+    "spell_90e7faa1db83f266",
+    "spell_44dcc4a498d7a1f8",
+    "spell_7f26680eb01b3131",
+    "spell_895cd5be18f9c921",
+    "spell_3a91f59223f2592b",
+    "spell_b47e8c010d7df8ca",
+    "spell_f21e94005c0d6a05",
+    "spell_ed46fe960ac526ac",
+    "spell_de8c88e94afd81a5",
+    "spell_add04b932b9b3586",
+    "spell_a05c5ff03e96b17f",
+    "spell_9b3bce5501ffc7ad",
+    "spell_b9e05369a3e03591",
+    "spell_136460f824666e3e",
+    "spell_606f6980ea561734",
+    "spell_98c8d0781a349a5c",
+    "spell_be72bd076b54bace",
+    "spell_787eed82eca46c3a",
+    "spell_4e9585a93b164536",
+    "spell_8acf9d02a197688e",
+    "spell_ff0f2470d3958645",
+    "spell_0dd92d6f7100cee1",
+    "spell_a7d134030c3d6036",
+    "spell_f0d8d157f9a96dfb",
+    "spell_a6ebebbb0afe4a5b",
+    "spell_d39b9647d2fb792e",
+    "spell_93e12f2d8f7e5386",
+    "spell_d1b499a18ac2a663",
+    "spell_f3a2f35599d3b11f",
+    "spell_0502f82bb3fe83e2",
+    "spell_d150c5582c82fe50",
+    "spell_1add68d9e7127659",
+    "spell_ab521a367b68c7ed",
+    "spell_850ab79328424e69",
+    "spell_2ec1614e8ac8ec3c",
+    "spell_3c6ec81d123234bd",
+    "spell_c3a1693aa96a879a",
+    "spell_4f6796359b904a63",
+    "spell_99f3bb3efe45e40a",
+    "spell_0da8b87565a754bf",
+    "spell_7b04547192842e7b",
+    "spell_9aae59148225fa0a",
+    "spell_47f49712cc12ef62",
+    "spell_32716f3751de28dd",
+    "spell_6e79387338d3860e",
+    "spell_7f3ff5ab971295a6",
+    "spell_93beab6d40826ea7",
+    "spell_8643ca24795eb7b8",
+    "spell_e3bebd434e638daa",
+    "spell_7c6c1afd3f549212",
+    "spell_51b9743f6fc02120",
+    "spell_436e70bf65a068a3",
+    "spell_218c17df464d18bf",
+    "spell_bba3ac6f4885b74e",
+    "spell_766ef509e3544c08",
+    "spell_ec038923083e2b7e",
+    "spell_b2f2695b9e851484",
+    "spell_c8bcccedce3fb5ec",
+    "spell_267106372b68a769",
+    "spell_321c395df051397e",
+    "spell_3dabc86ce250049f",
+    "spell_4aed824dac7f9fac",
+    "spell_6ec59129cc9bbcf8",
+    "spell_7572e2952d72ae94",
+    "spell_84f9f4e5b17fea62",
+    "spell_1f0d7af16f414375",
+    "spell_2aa17ba8beb27e45",
+    "spell_5232b643cc72c46a",
+    "spell_367f6b1c179b038f",
+    "spell_f7b91455610253ad",
+    "spell_b7c30c4854fa2920",
+    "spell_e8cbf7fc8415c721",
+    "spell_1e2289cff3eaf1c4",
+    "spell_dcc51f7528b1fc4d",
+    "spell_5c8cb685ac178481",
+    "spell_ab257195a3977924",
+    "spell_6791fdaed1e982be",
+    "spell_6ca18d40b20955df",
+    "spell_8f6c1939ce3bc31b",
+    "spell_1880638096fa1582",
+    "spell_03ab2e1577e9f805",
+    "spell_e01e8eb2ca010933",
+    "spell_5082bdd0e266df79",
+    "spell_013301e99125251d",
+    "spell_29174ccafa8c22d0",
+    "spell_e7fd476893c17c1a",
+    "spell_14b181780d273c82",
+    "spell_2341c6a029c00426",
+    "spell_942ecb9f916110c4",
+    "spell_e29cb064534c4497",
+    "spell_489ff7fb2bcba537",
+    "spell_c09c1ac0315b29ca",
+    "spell_9b9a859a03d1c459",
+    "spell_2a65bb39396e8388",
+    "spell_b6542f7306518b59",
+    "spell_a2a3c626c460d643",
+    "spell_47852a7e2962ef75",
+    "spell_0cda2f98e9ea984c",
+    "spell_f2e1047fe42317ba",
+    "spell_a265dcd62c6de247",
+    "spell_1e4c41a79e33feb3",
+    "spell_37de8808fffc79d9",
+    "spell_553d371e58f52a89",
+    "spell_09eb282327732057",
+    "spell_36f321ab33d785c4",
+    "spell_7cc6e439f27ec66b",
+    "spell_ead7a68d5ece1942",
+    "spell_c27ff0a642906e4c",
+    "spell_4637bd933d430439",
+    "spell_7defd3a4970030a8",
+    "spell_f25d7a8114705900",
+    "spell_21dd5eff65009c44",
+    "spell_7a56d81779a3591b",
+    "spell_a344aa120fcdb0ba",
+    "spell_02d4d1664107c86e",
+    "spell_529103bb72a68d4f",
+    "spell_15e2d006c9466437",
+    "spell_2c97720d10aa09f3",
+    "spell_983b423d096fcec4",
+    "spell_31043f173c61bb89",
+    "spell_4bb8804909131d0e",
+    "spell_72f912f261847b71",
+    "spell_c7d980797efee1de",
+    "archmage_fcf240633ac4d04d",
+    "archmage_d9427e6cbbb12f96",
+    "archmage_09e43ec5616bc635",
+    "archmage_9403b780b71eb5cc",
+    "archmage_14a4f0e92a625ef9",
+    "archmage_00fefbc966a7eb25",
+    "archmage_ad5662f723768a98",
+    "archmage_c0ec6aa1fb9be6c9",
+    "archmage_cd4d17c48c9a907a",
+    "archmage_9a9ffb2526d78877",
+    "archmage_81c61050a23e76fa",
+    "archmage_273fb39f7fc6b417",
+    "archmage_acc5e68d86d94dfc",
+    "archmage_432a157ada39d1cd",
+    "archmage_e8a02f2f8d8cff3d",
+    "archmage_bb4830ef8af46947",
+    "archmage_0431c6006e11db33",
+    "archmage_857283f0326d250c",
+    "archmage_b1d1ea72f9549f9e",
+    "archmage_65c50aabf51889db",
+    "archmage_13b8a21f808b6a5b",
+    "archmage_06b14f3846ccfcf3",
+    "archmage_139ffa003e2e154d",
+    "archmage_736b1c2d23623bfa",
+    "archmage_973ca355fb4c6de8",
+    "archmage_34a7abbf0c45d68f",
+    "archmage_0e08080306e282b8",
+    "archmage_06a09067a631749d",
+    "archmage_7381fd4ddde633e7",
+    "archmage_43539b09b757e52b",
+    "archmage_68e58b623b58f7b8",
+    "archmage_d12d013a8794ae1f",
+    "archmage_60d465f47a50bbb5",
+    "archmage_730e944928783bec",
+    "archmage_10a04906b6e83f2e",
+    "archmage_c3a5e0f086c189b2",
+    "archmage_517d839a908da8e3",
+    "archmage_897a01cd66410b62",
+    "archmage_1548edf090c0da31",
+    "archmage_4ab2a582f9afc0f4",
+    "archmage_5a41cbfb78e36b8a",
+    "archmage_b0aa5c8372da1d03",
+    "archmage_b102cba7affe7fe7",
+    "archmage_47b2e0802924efa7",
+    "archmage_a65e3718511ec835",
+    "archmage_976f98941ad2cb47",
+    "archmage_79bef2fc08daf5c7",
+    "archmage_91880ccd30ed6dbb",
+    "archmage_00f002ac29d5e082",
+    "archmage_2c227bfedeed1a73",
+    "archmage_ce9bb95e9f651154",
+    "archmage_18cd978e1472a884",
+    "archmage_542a0fc02c743c74",
+    "archmage_9b651fc9807462ce",
+    "archmage_33f47739ab31a607",
+    "archmage_65ff7c982e090882",
+    "archmage_83ef136675e6c9a0",
+    "archmage_982ac63db1f8ba2b",
+    "archmage_30fa0437899ca7af"
+  ]
+}

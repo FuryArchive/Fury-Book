@@ -81,6 +81,9 @@ fun validateAcquisitionProjection(changes: List<AcquisitionChange>, state: Store
     var context = acquisitionContext(state, catalog, pendingConfirmations)
     val prices = mutableListOf<PriceResult.Known>()
     for (change in changes) {
+        val definition = catalog.definitions[change.definition]
+        val legacyIssue = definition?.let { legacyAcquisitionIssue(it, state, catalog) }
+        if (legacyIssue != null) { issues += legacyIssue; break }
         val checked = admit(change, context)
         if (checked.issue != null) { issues += checked.issue; break }
         prices += checked.price!!
@@ -146,6 +149,7 @@ private class Planning(val request: AcquisitionRequest, val state: StoredCharact
         repairOwnedRequirements: Boolean = false): Draft {
         val d = start.context.catalog.definitions[target.definition]
             ?: return block(start, target.definition, "Missing catalog definition", RequirementStatus.SourceUnresolved)
+        legacyAcquisitionIssue(d, state, start.context.catalog)?.let { return start.copy(issues = start.issues + it) }
         if (work-- <= 0 || path.size >= 64) return block(start, d.ref, "Planner traversal limit reached", RequirementStatus.SourceUnresolved)
         val resolved = resolveTarget(target, d, start.context)
         if (resolved.issue != null) return start.copy(issues = start.issues + resolved.issue)

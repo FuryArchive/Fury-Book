@@ -9,6 +9,7 @@ data class Opening(
     val legacyStage: RequirementNode.CreationPhase.Phase,
     val provenance: OpeningProvenance,
     val reason: String? = null,
+    val legacyMigration: LegacyMigrationProvenance? = null,
 )
 
 enum class LedgerEntryType { Purchase, Undo, Grant, ManualCorrection, NonFinancial, CompleteCreation, ConfirmLegacyParameter }

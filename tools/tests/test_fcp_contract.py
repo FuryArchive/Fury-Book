@@ -42,7 +42,7 @@ def test_core_and_optional_chi_are_separate_fury_content_packs():
 def test_catalogs_no_longer_live_as_loose_shared_resources():
     for name in (
         "skills_catalog.json", "conditions_catalog.json", "development_catalog.json",
-        "acquisition_catalog.json",
+        "acquisition_catalog.json", "legacy-v11-catalog.json",
         "development_regular_catalog.json", "development_special_catalog.json",
         "development_ability_roots_catalog.json", "development_martial_catalog.json",
         "development_chi_catalog.json", "development_magic_catalog.json",
@@ -336,3 +336,19 @@ def test_resource_surfaces_render_from_typed_dubl_models_without_chi_special_cas
     assert "CharacterSheetResourceId.CHI" not in desktop
     assert "chiResourcePresentation" not in desktop
     assert "chiTogglePresentation" not in desktop
+
+
+def test_frozen_legacy_migration_snapshot_is_declared_and_keeps_provenance():
+    runtime = CORE_PACK / "content/legacy-v11-catalog.json"
+    development = ROOT / "rulesets/dubl-3.69/acquisition/legacy-v11-catalog.json"
+    assert runtime.read_bytes() == development.read_bytes()
+    payload = json.loads(runtime.read_text(encoding="utf-8"))
+    assert payload["baseline"] == "f47a5256a66ddc5e1b7b5c1e204e57279fc7227f"
+    assert len(payload["developments"]) == 796
+    eagle = [row for row in payload["developments"] if row["id"] == "feat_9012c539238a1e6f"]
+    assert len(eagle) == 1 and eagle[0]["cost"] == 0
+    assert payload["inactiveChiClaims"] == ["martial_technique_08d81ce45b880c24"]
+    assert payload["skillRankCosts"] == [0, 10, 30, 60, 100, 150, 210, 280, 360, 450, 550]
+    assert all(not source["path"].startswith("/") and len(source["sha256"]) == 64 for source in payload["sources"])
+    manifest = load_manifest(CORE_PACK)
+    assert [entry["path"] for entry in manifest["entries"] if entry["kind"] == "dubl.legacy-acquisition-v11"] == ["content/legacy-v11-catalog.json"]

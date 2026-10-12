@@ -28,6 +28,16 @@ class AcquisitionEnvelopeTest {
     private fun rewrite(raw: String, action: (MutableMap<String, JsonValue>) -> Unit): String {
         val fields = parseRoot(raw).values.toMutableMap(); action(fields); return jsonStringify(JsonValue.Obj(fields))
     }
+    @Test fun pre_migration_extension_envelope_and_queued_payload_keep_exact_shape() {
+        val before = purchased()
+        val payload = encodeSyncEnvelope(before)
+        assertFalse(payload.contains("legacyMigration"))
+        val queued = before.copy(outbox = listOf(OutboxItem("buy", 7, payload)))
+        val raw = encodeEnvelope(queued)
+        assertFalse(raw.contains("legacyMigration"))
+        assertEquals(raw, encodeEnvelope(assertIs<LoadResult.Loaded>(decodeEnvelope(raw)).state))
+        assertEquals(queued, assertIs<LoadResult.Loaded>(CharacterTransferCodec.decodeEnvelope(CharacterTransferCodec.encodeEnvelope(queued))).state)
+    }
     @Test fun round_trip_large_xp() {
         val original = state(Amount(9_007_199_254_740_993L, Long.MAX_VALUE))
         val raw = encodeEnvelope(original)
