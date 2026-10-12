@@ -8,13 +8,18 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /** Captured exact values, not a callback retained across retries. Null collections mean preserve. */
-class CharacterPatch(character: DublCharacter, instances: List<AcquisitionInstance>? = null, extras: CharacterSheetExtras? = null) {
-    internal val canonical: String
-    internal val replacesInstances = instances != null
-    internal val replacesExtras = extras != null
-    init {
-        val temporary = projectionContainer(character, instances.orEmpty(), extras ?: CharacterSheetExtras())
-        canonical = mutationProjectionCanonical(temporary)
+class CharacterPatch private constructor(internal val canonical:String,internal val replacesInstances:Boolean,internal val replacesExtras:Boolean) {
+    constructor(character:DublCharacter,instances:List<AcquisitionInstance>?=null,extras:CharacterSheetExtras?=null):this(
+        mutationProjectionCanonical(projectionContainer(character,instances.orEmpty(),extras ?: CharacterSheetExtras())),instances!=null,extras!=null)
+    companion object {
+        /** Foreign copied provenance needs the complete validated base, never a bare whitelist. */
+        fun fromCanonicalState(state:StoredCharacter,character:DublCharacter=state.character,
+            instances:List<AcquisitionInstance>?=null,extras:CharacterSheetExtras?=null):CharacterPatch {
+            encodeEnvelope(state)
+            require(character.id==state.character.id) { "Patch character scope differs" }
+            val staged=state.copy(character=character,instances=instances ?: state.instances,extras=extras ?: state.extras,outbox=emptyList())
+            return CharacterPatch(mutationProjectionCanonical(staged),instances!=null,extras!=null)
+        }
     }
     internal fun apply(state: StoredCharacter): StoredCharacter {
         val decoded = decodeMutationProjection(state, canonical)

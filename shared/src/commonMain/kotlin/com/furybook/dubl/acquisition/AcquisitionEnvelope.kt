@@ -11,6 +11,16 @@ data class AcquisitionCapabilities(val localDurable: Boolean, val cloudLedgerV2:
 data class AcquisitionCopySource(val sourceCharacterId: String, val destinationCharacterId: String,
     val importOperationId: String, val sourceCanonical: String)
 
+/** Deduplicated branch bytes and the exact prior pool membership needed to reconstruct its wire. */
+class AcquisitionSyncProof(val proofId:String,val payloadCanonical:String,proofIds:List<String>) {
+    val proofIds:List<String> = EnvelopeList(proofIds)
+    fun copy(proofId:String=this.proofId,payloadCanonical:String=this.payloadCanonical,proofIds:List<String> =this.proofIds)=
+        AcquisitionSyncProof(proofId,payloadCanonical,proofIds)
+    override fun equals(other:Any?):Boolean=other is AcquisitionSyncProof && proofId==other.proofId && payloadCanonical==other.payloadCanonical && proofIds==other.proofIds
+    override fun hashCode():Int=listOf(proofId,payloadCanonical,proofIds).hashCode()
+}
+data class PendingAcquisitionResolution(val request:AcquisitionResolution,val localCanonical:String,val serverCanonical:String)
+
 enum class ReceiptStatus { Applied, Undone }
 class SavedAcquisitionResult(val cost: Amount, val remaining: Amount, changes: List<AcquisitionChange>) {
     val changes: List<AcquisitionChange> = EnvelopeList(changes)
@@ -28,7 +38,7 @@ data class Receipt(
     val afterRevision: Long,
 )
 data class OutboxItem(val operationId: String, val parentServerRevision: Long, val payloadCanonical: String)
-data class SyncMetadata(val serverRevision: Long, val remoteConflictCanonical: String? = null)
+data class SyncMetadata(val serverRevision: Long, val remoteConflictCanonical: String? = null, val pendingResolution:PendingAcquisitionResolution?=null)
 
 /** Local durable unit. Gameplay, local CAS and remote CAS revisions have separate meanings. */
 class StoredCharacter(
@@ -44,7 +54,9 @@ class StoredCharacter(
     val creationPhase: RequirementNode.CreationPhase.Phase,
     val formatVersion: Int = 1,
     copySources: List<AcquisitionCopySource> = emptyList(),
+    syncProofs:List<AcquisitionSyncProof> = emptyList(),
 ) {
+    val syncProofs:List<AcquisitionSyncProof> = EnvelopeList(syncProofs)
     val copySources: List<AcquisitionCopySource> = EnvelopeList(copySources)
     val instances: List<AcquisitionInstance> = EnvelopeList(instances)
     val receipts: List<Receipt> = EnvelopeList(receipts)
@@ -52,14 +64,14 @@ class StoredCharacter(
     override fun equals(other: Any?): Boolean = other is StoredCharacter && character == other.character && extras == other.extras &&
         instances == other.instances && ledger == other.ledger && receipts == other.receipts && outbox == other.outbox &&
         syncMetadata == other.syncMetadata && revision == other.revision && storageRevision == other.storageRevision &&
-        creationPhase == other.creationPhase && formatVersion == other.formatVersion && copySources == other.copySources
+        creationPhase == other.creationPhase && formatVersion == other.formatVersion && copySources == other.copySources && syncProofs==other.syncProofs
     override fun hashCode(): Int = listOf(character, extras, instances, ledger, receipts, outbox, syncMetadata, revision,
-        storageRevision, creationPhase, formatVersion, copySources).hashCode()
+        storageRevision, creationPhase, formatVersion, copySources, syncProofs).hashCode()
     fun copy(character: DublCharacter = this.character, extras: CharacterSheetExtras = this.extras,
         instances: List<AcquisitionInstance> = this.instances, ledger: Ledger = this.ledger,
         receipts: List<Receipt> = this.receipts, outbox: List<OutboxItem> = this.outbox,
         syncMetadata: SyncMetadata = this.syncMetadata, revision: Long = this.revision,
         storageRevision: Long = this.storageRevision, creationPhase: RequirementNode.CreationPhase.Phase = this.creationPhase,
-        formatVersion: Int = this.formatVersion, copySources: List<AcquisitionCopySource> = this.copySources) = StoredCharacter(character, extras, instances, ledger, receipts, outbox,
-        syncMetadata, revision, storageRevision, creationPhase, formatVersion, copySources)
+        formatVersion: Int = this.formatVersion, copySources: List<AcquisitionCopySource> = this.copySources, syncProofs:List<AcquisitionSyncProof> = this.syncProofs) = StoredCharacter(character, extras, instances, ledger, receipts, outbox,
+        syncMetadata, revision, storageRevision, creationPhase, formatVersion, copySources, syncProofs)
 }

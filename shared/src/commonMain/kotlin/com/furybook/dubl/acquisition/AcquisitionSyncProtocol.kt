@@ -8,7 +8,7 @@ import kotlinx.coroutines.sync.withLock
 /** Already committed state. Transport must never execute requestCanonical/game commands. */
 data class AcquisitionPush(val characterId: String, val operationId: String, val parentServerRevision: Long, val payloadCanonical: String)
 enum class LocalOrServer { Local, Server }
-/** Separate endpoint/DTO: created only by explicit resolveConflict after a durable archive. */
+/** Separate confirmed-choice DTO; both methods use the one binding acquisition_sync_v2 RPC. */
 data class AcquisitionResolution(val characterId: String, val operationId: String, val expectedServerRevision: Long,
     val choice: LocalOrServer, val archiveId: String, val selectedCanonical: String)
 sealed interface AcquisitionPushResult {
@@ -70,39 +70,63 @@ class AcquisitionSyncProtocol(private val store: AcquisitionStore, private val t
         }
         val loaded = store.load(characterId)
         if (loaded !is LoadResult.Loaded) SyncEnvelopeResult.Unavailable(loaded)
-        else SyncEnvelopeResult.Synced(loaded.state.syncMetadata.serverRevision, loaded.state.outbox.size)
+        else currentResult(loaded.state)
     }
     suspend fun resolveConflict(characterId: String, choice: LocalOrServer, expectedServerRevision: Long): SyncEnvelopeResult = guarded(characterId) {
         val loaded = store.load(characterId)
         if (loaded !is LoadResult.Loaded) return@guarded SyncEnvelopeResult.Unavailable(loaded)
         val local = loaded.state
-        val serverCanonical = local.syncMetadata.remoteConflictCanonical ?: return@guarded SyncEnvelopeResult.LocalChanged
-        if (expectedServerRevision != local.syncMetadata.serverRevision) return@guarded conflict(local, serverCanonical)
-        val localCanonical = encodeSyncEnvelope(local)
-        val server = decodeSyncEnvelope(serverCanonical)
-        require(server.character.id == characterId) { "Conflict character scope differs" }
-        val archiveId = acquisitionArchiveId(characterId, expectedServerRevision, localCanonical, serverCanonical)
-        val saved = ArchivedAcquisitionConflict(archiveId, characterId, expectedServerRevision, localCanonical, serverCanonical)
-        when (val result = archive.preserve(saved)) {
-            CommitResult.Committed -> Unit
-            CommitResult.Conflict -> return@guarded SyncEnvelopeResult.StorageFailure("Archive identity conflict")
-            is CommitResult.StorageFailure -> return@guarded SyncEnvelopeResult.StorageFailure(result.reason)
+        var pending=local.syncMetadata.pendingResolution
+        if(pending==null) {
+            val serverCanonical=local.syncMetadata.remoteConflictCanonical ?: return@guarded SyncEnvelopeResult.LocalChanged
+            if(expectedServerRevision!=local.syncMetadata.serverRevision)return@guarded conflict(local,serverCanonical)
+            val localCanonical=encodeSyncEnvelope(local)
+            val archiveId=acquisitionArchiveId(characterId,expectedServerRevision,localCanonical,serverCanonical)
+            val saved=ArchivedAcquisitionConflict(archiveId,characterId,expectedServerRevision,localCanonical,serverCanonical)
+            when(val result=archive.preserve(saved)) {
+                CommitResult.Committed -> Unit
+                CommitResult.Conflict -> return@guarded SyncEnvelopeResult.StorageFailure("Archive identity conflict")
+                is CommitResult.StorageFailure -> return@guarded SyncEnvelopeResult.StorageFailure(result.reason)
+            }
+            val selected=if(choice==LocalOrServer.Local)local else decodeSyncEnvelope(serverCanonical)
+            val adopted=adoption(selected,local,idFactory(),saved,choice)
+            pending=PendingAcquisitionResolution(AcquisitionResolution(characterId,adopted.ledger.entries.last().operationId,expectedServerRevision,
+                choice,archiveId,encodeSyncEnvelope(adopted)),localCanonical,serverCanonical)
+            // Freeze the dedicated identity/request durably BEFORE the first possible server acceptance.
+            val next=local.copy(storageRevision=increment(local.storageRevision),syncMetadata=local.syncMetadata.copy(pendingResolution=pending))
+            when(val result=store.compareAndSet(characterId,local.storageRevision,next)) {
+                CommitResult.Committed -> Unit
+                CommitResult.Conflict -> return@guarded SyncEnvelopeResult.LocalChanged
+                is CommitResult.StorageFailure -> return@guarded SyncEnvelopeResult.StorageFailure(result.reason)
+            }
+        } else {
+            if(pending.request.choice!=choice || pending.request.expectedServerRevision!=expectedServerRevision)
+                return@guarded SyncEnvelopeResult.LocalChanged
+            val saved=ArchivedAcquisitionConflict(pending.request.archiveId,characterId,pending.request.expectedServerRevision,pending.localCanonical,pending.serverCanonical)
+            when(val result=archive.preserve(saved)) {
+                CommitResult.Committed -> Unit
+                CommitResult.Conflict -> return@guarded SyncEnvelopeResult.StorageFailure("Archive identity conflict")
+                is CommitResult.StorageFailure -> return@guarded SyncEnvelopeResult.StorageFailure(result.reason)
+            }
         }
-        val id = idFactory()
-        val selected = if (choice == LocalOrServer.Local) local else server
-        val adoption = adoption(selected, local, id, saved, choice)
-        val request = AcquisitionResolution(characterId, id, expectedServerRevision, choice, archiveId, encodeSyncEnvelope(adoption))
+        val frozen=requireNotNull(pending)
+        val request=frozen.request
+        val localCanonical=frozen.localCanonical
+        val serverCanonical=frozen.serverCanonical
+        val adoption=decodeSyncEnvelope(request.selectedCanonical)
         when (val response = transport.resolve(request)) {
             is AcquisitionPushResult.IdentityConflict -> SyncEnvelopeResult.IdentityConflict(response.reason)
             is AcquisitionPushResult.Conflict -> saveConflict(characterId, response)
             is AcquisitionPushResult.Acknowledged -> {
-                if (response.operationId != id || response.payloadCanonical != request.selectedCanonical || response.serverRevision <= expectedServerRevision)
+                if (response.operationId != request.operationId || response.payloadCanonical != request.selectedCanonical || response.serverRevision <= expectedServerRevision)
                     return@guarded SyncEnvelopeResult.IdentityConflict("Resolution ack does not match archived selection")
                 repeat(8) {
                     val now = store.load(characterId)
                     if (now !is LoadResult.Loaded) return@guarded SyncEnvelopeResult.Unavailable(now)
                     val current = now.state
-                    if (encodeSyncEnvelope(current) != localCanonical || current.syncMetadata.remoteConflictCanonical != serverCanonical)
+                    if(encodeSyncEnvelope(current)==request.selectedCanonical && current.syncMetadata.serverRevision>=response.serverRevision && current.syncMetadata.pendingResolution==null)
+                        return@guarded currentResult(current)
+                    if (encodeSyncEnvelope(current) != localCanonical || current.syncMetadata.remoteConflictCanonical != serverCanonical || current.syncMetadata.pendingResolution!=frozen)
                         return@guarded saveConflict(characterId, AcquisitionPushResult.Conflict(response.serverRevision, request.selectedCanonical))
                     val next = adoption.copy(storageRevision = increment(current.storageRevision),
                         extras = adoption.extras.copy(portraitUri = current.extras.portraitUri),
@@ -123,7 +147,7 @@ class AcquisitionSyncProtocol(private val store: AcquisitionStore, private val t
             if (loaded !is LoadResult.Loaded) return SyncEnvelopeResult.Unavailable(loaded)
             val state = loaded.state
             val current = state.outbox.singleOrNull { it.operationId == item.operationId }
-                ?: return SyncEnvelopeResult.Synced(state.syncMetadata.serverRevision, state.outbox.size)
+                ?: return currentResult(state)
             if (current.payloadCanonical != item.payloadCanonical) return SyncEnvelopeResult.IdentityConflict("Queued identity changed during ack")
             val remoteRevision = maxOf(revision, state.syncMetadata.serverRevision)
             val next = state.copy(storageRevision = increment(state.storageRevision),
@@ -132,7 +156,7 @@ class AcquisitionSyncProtocol(private val store: AcquisitionStore, private val t
                     if (pending.parentServerRevision < remoteRevision) pending.copy(parentServerRevision = remoteRevision) else pending
                 }, syncMetadata = state.syncMetadata.copy(serverRevision = remoteRevision))
             when (val result = store.compareAndSet(characterId, state.storageRevision, next)) {
-                CommitResult.Committed -> return SyncEnvelopeResult.Synced(remoteRevision, next.outbox.size)
+                CommitResult.Committed -> return currentResult(next)
                 CommitResult.Conflict -> Unit
                 is CommitResult.StorageFailure -> return SyncEnvelopeResult.StorageFailure(result.reason)
             }
@@ -156,6 +180,8 @@ class AcquisitionSyncProtocol(private val store: AcquisitionStore, private val t
         }
         return SyncEnvelopeResult.StorageFailure("Storage remained busy during conflict preservation")
     }
+    private fun currentResult(state:StoredCharacter):SyncEnvelopeResult = state.syncMetadata.remoteConflictCanonical?.let { conflict(state,it) }
+        ?: SyncEnvelopeResult.Synced(state.syncMetadata.serverRevision,state.outbox.size)
     private fun conflict(state: StoredCharacter, remote: String) = SyncEnvelopeResult.Conflict(state.syncMetadata.serverRevision, encodeSyncEnvelope(state), remote)
     private suspend fun guarded(id: String, action: suspend () -> SyncEnvelopeResult): SyncEnvelopeResult {
         if (!capabilities.canSync) return SyncEnvelopeResult.Disabled
@@ -176,15 +202,20 @@ private fun adoption(selected: StoredCharacter, local: StoredCharacter, id: Stri
     val request = canonicalJson(jsonStringify(jsonObject("type" to jsonString("SyncAdoption"), "characterId" to jsonString(local.character.id),
         "expectedRevision" to jsonString(local.revision.toString()), "expectedServerRevision" to jsonString(archive.serverRevision.toString()),
         "choice" to jsonString(choice.name), "archiveId" to jsonString(archive.archiveId))))
-    val proof = canonicalJson(jsonStringify(jsonObject("schema" to jsonString("sync-adoption-v1"),
-        "selectedCanonical" to jsonString(encodeSyncEnvelope(selected)), "displacedCanonical" to jsonString(archive.localCanonical),
-        "serverCanonical" to jsonString(archive.serverCanonical), "expectedServerRevision" to jsonString(archive.serverRevision.toString()),
+    val server=decodeSyncEnvelope(archive.serverCanonical)
+    val selectedProof=captureSyncProof(selected)
+    val displacedProof=captureSyncProof(local)
+    val serverProof=captureSyncProof(server)
+    val pool=combineSyncProofs(selected.syncProofs+local.syncProofs+server.syncProofs+listOf(selectedProof,displacedProof,serverProof))
+    val proof = canonicalJson(jsonStringify(jsonObject("schema" to jsonString("sync-adoption-v2"),
+        "selectedProofId" to jsonString(selectedProof.proofId), "displacedProofId" to jsonString(displacedProof.proofId),
+        "serverProofId" to jsonString(serverProof.proofId), "expectedServerRevision" to jsonString(archive.serverRevision.toString()),
         "choice" to jsonString(choice.name), "archiveId" to jsonString(archive.archiveId))))
     val entry = LedgerEntry(id, LedgerEntryType.SyncAdoption, emptyList(), Amount.ZERO, RuleVersions("sync-v1", "sync-v1"),
         creationPhase = selected.creationPhase, evidenceCanonical = proof)
     val next = selected.copy(ledger = selected.ledger.copy(entries = selected.ledger.entries + entry),
         receipts = selected.receipts + Receipt(id, request, SavedAcquisitionResult(Amount.ZERO, balance(selected.ledger), emptyList()), ReceiptStatus.Applied, beforeRevision, afterRevision),
-        outbox = emptyList(), syncMetadata = SyncMetadata(0), revision = afterRevision, storageRevision = 0)
+        outbox = emptyList(), syncMetadata = SyncMetadata(0), revision = afterRevision, storageRevision = 0,syncProofs=pool)
     encodeEnvelope(next)
     return next
 }
@@ -215,13 +246,14 @@ object AcquisitionSyncWire {
     fun encodePush(request: AcquisitionPush): String {
         val state=decodeSyncEnvelope(request.payloadCanonical)
         require(request.operationId.isNotBlank() && request.parentServerRevision >= 0 && state.character.id == request.characterId &&
-            state.ledger.entries.singleOrNull { it.operationId==request.operationId }?.type?.let { it != LedgerEntryType.SyncAdoption } == true) { "Push must identify a saved non-resolution operation" }
+            state.ledger.entries.lastOrNull()?.let { it.operationId==request.operationId && it.type!=LedgerEntryType.SyncAdoption } == true &&
+            state.receipts.lastOrNull()?.let { it.operationId==request.operationId && it.afterRevision==state.revision } == true) { "Push must identify a saved non-resolution operation" }
         return canonicalJson(jsonStringify(jsonObject("p_character_id" to jsonString(request.characterId), "p_operation_ids" to jsonArray(listOf(jsonString(request.operationId))),
             "p_expected_revision" to jsonString(request.parentServerRevision.toString()), "p_envelope" to JsonReader(request.payloadCanonical).read(),
             "p_writer_version" to jsonNumber(WRITER_VERSION), "p_resolution" to JsonValue.Null)))
     }
     fun encodeResolution(request: AcquisitionResolution): String {
-        require(request.operationId.isNotBlank() && request.archiveId.isNotBlank() && request.expectedServerRevision >= 0 && decodeSyncEnvelope(request.selectedCanonical).character.id == request.characterId)
+        validateResolutionRequest(request)
         return canonicalJson(jsonStringify(jsonObject("p_character_id" to jsonString(request.characterId), "p_operation_ids" to jsonArray(listOf(jsonString(request.operationId))),
             "p_expected_revision" to jsonString(request.expectedServerRevision.toString()), "p_envelope" to JsonReader(request.selectedCanonical).read(),
             "p_writer_version" to jsonNumber(WRITER_VERSION), "p_resolution" to jsonObject("choice" to jsonString(request.choice.name),

@@ -185,8 +185,8 @@ internal fun mutationEvidenceStates(state:StoredCharacter,entry:LedgerEntry,rece
     return decodeMutationProjection(state,canonicalJson(jsonStringify(root.values.getValue("before")))) to
         decodeMutationProjection(state,canonicalJson(jsonStringify(root.values.getValue("after"))))
 }
-private fun validateMutationInverse(state:StoredCharacter,entry:LedgerEntry,receipt:Receipt):StoredCharacter {
-    val (before,after)=mutationEvidenceStates(state,entry,receipt)
+private fun validateMutationInverse(state:StoredCharacter,entry:LedgerEntry,receipt:Receipt,anchor:StoredCharacter=state):StoredCharacter {
+    val (before,after)=mutationEvidenceStates(anchor,entry,receipt)
     require(mutationProjectionCanonical(state)==mutationProjectionCanonical(after)) { "Current character differs from mutation result" }
     val command=objectJson(receipt.requestCanonical)
     require(command.text("type")=="CanonicalMutation" && command.text("expectedRevision")==receipt.beforeRevision.toString())
@@ -203,7 +203,8 @@ private fun validateMutationInverse(state:StoredCharacter,entry:LedgerEntry,rece
             require(before.creationPhase==after.creationPhase)
             require(Amount.fromJson(jsonStringify(payload.values.getValue("delta")))==entry.amountDelta)
             val patch=payload.values.getValue("patch") as JsonValue.Obj
-            val decoded=decodeMutationProjection(before,canonicalJson(jsonStringify(patch.values.getValue("projection"))))
+            // The historical before projection is detached; decode against the validated current base.
+            val decoded=decodeMutationProjection(anchor,canonicalJson(jsonStringify(patch.values.getValue("projection"))))
             val expected=before.copy(character=decoded.character,
                 instances=if(patch.values["replacesInstances"]==jsonBoolean(true)) decoded.instances else before.instances,
                 extras=if(patch.values["replacesExtras"]==jsonBoolean(true)) decoded.extras else before.extras)
@@ -241,7 +242,7 @@ internal fun activeLegacyRemovalKeys(state:StoredCharacter):Set<String> = buildS
         try {
             val (before,after)=mutationEvidenceStates(state,entry,receipt)
             // Reuse authorization checks at the recorded after projection, not the current later tip.
-            validateMutationInverse(after,entry,receipt)
+            validateMutationInverse(after,entry,receipt,anchor=state)
             before.instances.filter { it.origin is AcquisitionOrigin.Legacy }.forEach { old ->
                 val next=after.instances.singleOrNull { it.instanceId==old.instanceId }
                 if(next==null || next.rank<old.rank) add((old.origin as AcquisitionOrigin.Legacy).ownershipKey)

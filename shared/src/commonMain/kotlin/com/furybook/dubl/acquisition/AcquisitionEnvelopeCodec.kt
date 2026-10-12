@@ -92,15 +92,16 @@ private fun encodeState(state: StoredCharacter, local: Boolean): JsonValue.Obj =
         "operationId" to jsonString(item.operationId), "parentServerRevision" to decimal(item.parentServerRevision),
         "payloadCanonical" to jsonString(item.payloadCanonical)) }) else null,
     "syncMetadata" to if (local) jsonObject("serverRevision" to decimal(state.syncMetadata.serverRevision),
-        "remoteConflictCanonical" to nullable(state.syncMetadata.remoteConflictCanonical)) else null,
-).values + if (state.copySources.isEmpty()) emptyMap() else mapOf("copySources" to jsonArray(state.copySources.map { source ->
+        "remoteConflictCanonical" to nullable(state.syncMetadata.remoteConflictCanonical)).let { metadata -> JsonValue.Obj(metadata.values +
+            (state.syncMetadata.pendingResolution?.let { mapOf("pendingResolution" to encodePendingResolution(it)) } ?: emptyMap())) } else null,
+ ).values + (if (state.copySources.isEmpty()) emptyMap() else mapOf("copySources" to jsonArray(state.copySources.map { source ->
     jsonObject("sourceCharacterId" to jsonString(source.sourceCharacterId), "destinationCharacterId" to jsonString(source.destinationCharacterId),
         "importOperationId" to jsonString(source.importOperationId), "sourceCanonical" to jsonString(source.sourceCanonical))
-})))
+}))) + (if(state.syncProofs.isEmpty()) emptyMap() else mapOf("syncProofs" to jsonArray(state.syncProofs.map(::encodeSyncProof)))))
 
 private fun decodeState(root: JsonValue.Obj): StoredCharacter {
     root.keys("formatVersion", "characterId", "characterSnapshot", "extras", "instances", "ledger", "receipts",
-        "revision", "creationPhase", "storageRevision", "outbox", "syncMetadata", *if(root.has("copySources")) arrayOf("copySources") else emptyArray())
+        "revision", "creationPhase", "storageRevision", "outbox", "syncMetadata", *((if(root.has("copySources")) listOf("copySources") else emptyList()) + (if(root.has("syncProofs")) listOf("syncProofs") else emptyList())).toTypedArray())
     val snapshot = root.objectRequired("characterSnapshot")
     if (snapshot.number("schema") != SnapshotCodec.SCHEMA) throw UnsupportedEnvelope("Embedded character schema")
     require(snapshot.list("characters").size == 1) { "Envelope requires exactly one character" }
@@ -111,18 +112,35 @@ private fun decodeState(root: JsonValue.Obj): StoredCharacter {
         "Character projection would lose or normalize persisted fields"
     }
     val ledger = root.objectRequired("ledger").also { it.keys("opening", "entries") }
-    val sync = root.objectRequired("syncMetadata").also { it.keys("serverRevision", "remoteConflictCanonical") }
+    val sync = root.objectRequired("syncMetadata").also { it.keys("serverRevision", "remoteConflictCanonical", *if(it.has("pendingResolution")) arrayOf("pendingResolution") else emptyArray()) }
     return StoredCharacter(character, decodeExtras(root.objectRequired("extras")), root.list("instances").map { decodeInstance(it.obj()) },
         Ledger(decodeOpening(ledger.objectRequired("opening")), ledger.list("entries").map { decodeEntry(it.obj()) }),
         root.list("receipts").map { decodeReceipt(it.obj()) }, root.list("outbox").map { value ->
             val item = value.obj().also { it.keys("operationId", "parentServerRevision", "payloadCanonical") }
             OutboxItem(item.text("operationId"), item.long("parentServerRevision"), item.text("payloadCanonical"))
-        }, SyncMetadata(sync.long("serverRevision"), sync.optionalText("remoteConflictCanonical")),
+        }, SyncMetadata(sync.long("serverRevision"), sync.optionalText("remoteConflictCanonical"),if(sync.has("pendingResolution")) decodePendingResolution(sync.objectRequired("pendingResolution")) else null),
         root.long("revision"), root.long("storageRevision"), root.phase("creationPhase"), root.number("formatVersion"),
         if(root.has("copySources")) root.list("copySources").map { value ->
             val source=value.obj().also { it.keys("sourceCharacterId","destinationCharacterId","importOperationId","sourceCanonical") }
             AcquisitionCopySource(source.text("sourceCharacterId"),source.text("destinationCharacterId"),source.text("importOperationId"),source.text("sourceCanonical"))
-        } else emptyList())
+        } else emptyList(),if(root.has("syncProofs")) root.list("syncProofs").map { decodeSyncProof(it.obj()) } else emptyList())
+}
+
+private fun encodeSyncProof(value:AcquisitionSyncProof)=jsonObject("proofId" to jsonString(value.proofId),
+    "payloadCanonical" to jsonString(value.payloadCanonical),"proofIds" to jsonArray(value.proofIds.map(::jsonString)))
+private fun decodeSyncProof(value:JsonValue.Obj):AcquisitionSyncProof {
+    value.keys("proofId","payloadCanonical","proofIds")
+    return AcquisitionSyncProof(value.text("proofId"),value.text("payloadCanonical"),value.list("proofIds").map { (it as? JsonValue.Str)?.value ?: error("Expected proof ID") })
+}
+private fun encodePendingResolution(value:PendingAcquisitionResolution)=jsonObject("localCanonical" to jsonString(value.localCanonical),
+    "serverCanonical" to jsonString(value.serverCanonical),"request" to jsonObject("characterId" to jsonString(value.request.characterId),
+        "operationId" to jsonString(value.request.operationId),"expectedServerRevision" to decimal(value.request.expectedServerRevision),
+        "choice" to jsonString(value.request.choice.name),"archiveId" to jsonString(value.request.archiveId),"selectedCanonical" to jsonString(value.request.selectedCanonical)))
+private fun decodePendingResolution(value:JsonValue.Obj):PendingAcquisitionResolution {
+    value.keys("localCanonical","serverCanonical","request")
+    val request=value.objectRequired("request").also { it.keys("characterId","operationId","expectedServerRevision","choice","archiveId","selectedCanonical") }
+    return PendingAcquisitionResolution(AcquisitionResolution(request.text("characterId"),request.text("operationId"),request.long("expectedServerRevision"),
+        LocalOrServer.valueOf(request.text("choice")),request.text("archiveId"),request.text("selectedCanonical")),value.text("localCanonical"),value.text("serverCanonical"))
 }
 
 private fun encodeOpening(opening: Opening): JsonValue.Obj = JsonValue.Obj(jsonObject(
@@ -246,7 +264,9 @@ private fun decodeExtras(value: JsonValue.Obj): CharacterSheetExtras {
     return extras
 }
 
-private fun validate(state: StoredCharacter, committedTip: Boolean = true) {
+private fun validate(state: StoredCharacter, committedTip: Boolean = true, sharedProofs:SyncProofContext?=null) {
+    val proofs=sharedProofs ?: SyncProofContext(state.syncProofs)
+    proofs.verifyMembership(state.syncProofs)
     var historical: StoredCharacter? = null
     var previousDestination: String? = null
     var importId: String? = null
@@ -255,17 +275,17 @@ private fun validate(state: StoredCharacter, committedTip: Boolean = true) {
             source.sourceCharacterId != source.destinationCharacterId) { "Invalid copy identity" }
         require(previousDestination == null || source.sourceCharacterId == previousDestination) { "Broken copy ancestry" }
         val root=wireRoot(source.sourceCanonical,source.sourceCharacterId)
-        require(!root.has("copySources")) { "Nested copy ancestry" }
-        val original=decodeWireState(root)
-        validateState(original,historical,importId,true)
+        require(!root.has("copySources") && !root.has("syncProofs")) { "Nested copy ancestry/proof pool" }
+        val original=decodeWireState(root).copy(syncProofs=state.syncProofs)
+        validateState(original,historical,importId,true,proofs)
         historical=original
         previousDestination=source.destinationCharacterId
         importId=source.importOperationId
     }
     require(previousDestination == null || previousDestination == state.character.id) { "Copy destination scope mismatch" }
-    validateState(state,historical,importId,committedTip)
+    validateState(state,historical,importId,committedTip,proofs)
 }
-private fun validateState(state: StoredCharacter, historical: StoredCharacter?, importId: String?, committedTip: Boolean) {
+private fun validateState(state: StoredCharacter, historical: StoredCharacter?, importId: String?, committedTip: Boolean, proofs:SyncProofContext) {
     if(historical!=null) {
         require(state.ledger.opening==historical.ledger.opening && state.ledger.entries.size>historical.ledger.entries.size &&
             state.ledger.entries.take(historical.ledger.entries.size)==historical.ledger.entries) { "Copied historical ledger differs" }
@@ -274,7 +294,7 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
         require(boundary.operationId==importId && boundary.type==LedgerEntryType.Import && boundary.amountDelta==Amount.ZERO && boundary.changes.isEmpty()) { "Copy requires separate import operation" }
         val proof=requireCanonical(boundary.evidenceCanonical).obj()
         val receipt=state.receipts.single { it.operationId==boundary.operationId }
-        val fingerprint=legacySourceFingerprint(canonicalText(JsonValue.Obj(encodeState(historical,false).values - "copySources")))
+        val fingerprint=legacySourceFingerprint(canonicalText(JsonValue.Obj(encodeState(historical,false).values - "copySources" - "syncProofs")))
         val importRequest=canonicalText(jsonObject("type" to jsonString("Import"),"characterId" to jsonString(state.character.id),
             "sourceCharacterId" to jsonString(historical.character.id),"sourceFingerprint" to jsonString(fingerprint)))
         require(receipt.requestCanonical==importRequest) { "Import receipt scope/provenance differs" }
@@ -314,8 +334,26 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
         }
     }
     require(state.instances.map { it.instanceId }.distinct().size == state.instances.size) { "Duplicate instance ID" }
-    state.instances.forEach { require(it.origin !is AcquisitionOrigin.Legacy || (it.origin.characterId == state.character.id || historical?.instances?.any { old -> old.instanceId==it.instanceId && old.origin==it.origin && old.definition==it.definition } == true ||
+    state.instances.forEach { require(it.origin !is AcquisitionOrigin.Legacy || (it.origin.characterId == state.character.id || inheritedCopiedHolding(state,historical,it,committedTip) ||
         copiedLegacyAdmission(state,historical,it,committedTip))) { "Legacy instance scope mismatch" } }
+    if(historical!=null) {
+        // A fresh captured confirmation is also a baseline once recorded, even if now omitted.
+        state.ledger.entries.drop(historical.ledger.entries.size+1).filter { it.type==LedgerEntryType.ConfirmLegacyParameter }.forEach { entry ->
+            val proof=requireCanonical(entry.evidenceCanonical).obj()
+            val prior=proof.objectRequired("before").list("instances").map { decodeInstance(it.obj()) }
+            val added=proof.objectRequired("after").list("instances").map { decodeInstance(it.obj()) }.filter { next ->
+                next.origin is AcquisitionOrigin.Legacy && next.origin.characterId!=state.character.id && prior.none { it.instanceId==next.instanceId }
+            }
+            added.forEach { captured ->
+                val current=state.instances.singleOrNull { it.instanceId==captured.instanceId }
+                require(copiedLegacyAdmission(state,historical,current ?: captured,committedTip,missing=current==null)) { "Confirmed copied holding omitted without recorded inverse" }
+            }
+        }
+    }
+    historical?.instances?.filter { it.origin is AcquisitionOrigin.Legacy }?.forEach { captured ->
+        val current=state.instances.singleOrNull { it.instanceId==captured.instanceId }
+        require(inheritedCopiedHolding(state,historical,current ?: captured,committedTip,missing=current==null)) { "Copied holding removed without exact recorded proof" }
+    }
     val entries = state.ledger.entries
     require(entries.map { it.operationId }.distinct().size == entries.size && entries.all { it.operationId.isNotBlank() }) { "Duplicate/blank ledger operation ID" }
     require(state.receipts.map { it.operationId }.distinct().size == state.receipts.size) { "Duplicate receipt ID" }
@@ -333,15 +371,15 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
             require(receipt.beforeRevision>=revision) { "Copied adoption revision regressed" }
         } else if(entry.type==LedgerEntryType.SyncAdoption) {
             val proof=requireCanonical(entry.evidenceCanonical).obj()
-            proof.keys("schema","selectedCanonical","displacedCanonical","serverCanonical","expectedServerRevision","choice","archiveId")
-            val selected=decodeSyncEnvelope(proof.text("selectedCanonical"))
-            val displaced=decodeSyncEnvelope(proof.text("displacedCanonical"))
-            val server=decodeSyncEnvelope(proof.text("serverCanonical"))
+            val branches=adoptionBranches(proof,proofs,state.syncProofs.map { it.proofId }.toSet())
+            val selected=branches.selected
+            val displaced=branches.displaced
+            val server=branches.server
             val choice=LocalOrServer.valueOf(proof.text("choice"))
-            val selectedCanonical=if(choice==LocalOrServer.Local) proof.text("displacedCanonical") else proof.text("serverCanonical")
+            val selectedCanonical=if(choice==LocalOrServer.Local) branches.displacedCanonical else branches.serverCanonical
             val expectedServerRevision=proof.long("expectedServerRevision")
-            require(proof.text("schema")=="sync-adoption-v1" && proof.text("selectedCanonical")==selectedCanonical && displaced.character.id==state.character.id && server.character.id==state.character.id &&
-                proof.text("archiveId")==acquisitionArchiveId(state.character.id,expectedServerRevision,proof.text("displacedCanonical"),proof.text("serverCanonical")) &&
+            require(branches.selectedCanonical==selectedCanonical && displaced.character.id==state.character.id && server.character.id==state.character.id &&
+                proof.text("archiveId")==acquisitionArchiveId(state.character.id,expectedServerRevision,branches.displacedCanonical,branches.serverCanonical) &&
                 selected.character.id==state.character.id && selected.revision==revision &&
                 selected.ledger.opening==state.ledger.opening && selected.ledger.entries==seen.values.toList() &&
                 selected.receipts==state.receipts.take(seen.size).map { current -> current.copy(status=selected.receipts.single { it.operationId==current.operationId }.status) } &&
@@ -375,7 +413,7 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
     val tip=entries.lastOrNull()
     if(committedTip && tip?.type==LedgerEntryType.SyncAdoption && historical?.ledger?.entries?.any { it==tip } != true) {
         val proof=requireCanonical(tip.evidenceCanonical).obj()
-        val selected=decodeSyncEnvelope(proof.text("selectedCanonical"))
+        val selected=adoptionBranches(proof,proofs,state.syncProofs.map { it.proofId }.toSet()).selected
         require(state.character==selected.character && state.instances==selected.instances &&
             state.extras.copy(portraitUri=null)==selected.extras.copy(portraitUri=null) && state.creationPhase==selected.creationPhase) { "Adoption projection differs from selected whole branch" }
     }
@@ -392,10 +430,11 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
             }
         }
         val payloadReceipts = payload.list("receipts").map { decodeReceipt(it.obj()) }
-        require(payloadReceipts.any { it.operationId == item.operationId }) { "Outbox payload lacks its operation" }
+        require(payloadReceipts.lastOrNull()?.operationId==item.operationId && payloadReceipts.last().afterRevision==payload.long("revision")) { "Outbox must identify its captured tip" }
         val payloadLedger = payload.objectRequired("ledger")
         require(canonicalText(payloadLedger.values.getValue("opening")) == canonicalText(encodeOpening(state.ledger.opening))) { "Outbox opening differs" }
         val payloadEntries = payloadLedger.list("entries").map { decodeEntry(it.obj()) }
+        require(payloadEntries.lastOrNull()?.operationId==item.operationId && payloadEntries.last().type!=LedgerEntryType.SyncAdoption) { "Ordinary outbox cannot represent resolution" }
         require(payloadEntries.size <= entries.size && payloadEntries.indices.all {
             canonicalText(encodeEntry(payloadEntries[it])) == canonicalText(encodeEntry(entries[it]))
         }) { "Outbox ledger is not a saved prefix" }
@@ -408,11 +447,21 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
         }
     }
     state.syncMetadata.remoteConflictCanonical?.let { validateSyncPayload(it, state.character.id) }
+    state.syncMetadata.pendingResolution?.let { pending ->
+        validateResolutionRequest(pending.request)
+        require(pending.request.characterId==state.character.id && decodeSyncEnvelope(pending.localCanonical).character.id==state.character.id &&
+            decodeSyncEnvelope(pending.serverCanonical).character.id==state.character.id && pending.request.archiveId==acquisitionArchiveId(state.character.id,
+                pending.request.expectedServerRevision,pending.localCanonical,pending.serverCanonical)) { "Pending resolution scope/archive differs" }
+        val frozen=decodeSyncEnvelope(pending.request.selectedCanonical)
+        val proof=requireCanonical(frozen.ledger.entries.last().evidenceCanonical).obj()
+        val branches=adoptionBranches(proof,SyncProofContext(frozen.syncProofs))
+        require(branches.displacedCanonical==pending.localCanonical && branches.serverCanonical==pending.serverCanonical) { "Pending resolution branch differs" }
+    }
 }
 
 /** A missing mapped instance in a copy is admitted only by a fresh, exact typed confirmation.
  * The captured original opening/ownership backup is still independently validated above. */
-private fun copiedLegacyAdmission(state:StoredCharacter,historical:StoredCharacter?,instance:AcquisitionInstance,committedTip:Boolean):Boolean {
+private fun copiedLegacyAdmission(state:StoredCharacter,historical:StoredCharacter?,instance:AcquisitionInstance,committedTip:Boolean,missing:Boolean=false):Boolean {
     val source=historical ?: return false
     val provenance=source.ledger.opening.legacyMigration ?: return false
     val origin=instance.origin as? AcquisitionOrigin.Legacy ?: return false
@@ -427,7 +476,6 @@ private fun copiedLegacyAdmission(state:StoredCharacter,historical:StoredCharact
         if(entry.type!=LedgerEntryType.ConfirmLegacyParameter || entry.amountDelta!=Amount.ZERO || entry.changes.isNotEmpty()) return@any false
         try {
             val receipt=state.receipts.single { it.operationId==entry.operationId }
-            require(receipt.status==ReceiptStatus.Applied)
             val request=requireCanonical(receipt.requestCanonical).obj()
             request.keys("type","characterId","expectedRevision","reason","payload")
             require(request.text("type")=="CanonicalMutation" && request.text("characterId")==state.character.id &&
@@ -448,34 +496,46 @@ private fun copiedLegacyAdmission(state:StoredCharacter,historical:StoredCharact
             val added=next.single { it.instanceId==instance.instanceId }
             require(next.filterNot { it.instanceId==instance.instanceId }==old && added.definition==instance.definition &&
                 added.origin==origin && added.rank==record.rank && added.parameters==payload.strings("parameters"))
-            var expected=added
-            for(later in state.ledger.entries.dropWhile { it.operationId!=entry.operationId }.drop(1)) {
-                val changes=later.changes.filter { it.instanceId==instance.instanceId }
-                if(changes.isNotEmpty()) {
-                    require(later.type==LedgerEntryType.Purchase || later.type==LedgerEntryType.Undo)
-                    changes.forEach { change ->
-                        require(change.kind==record.kind && change.definition==expected.definition && change.parameters==expected.parameters &&
-                            change.optionId==expected.abilityOptionId && change.fromRank==expected.rank && change.toRank>0)
-                        expected=expected.copy(rank=change.toRank)
-                    }
-                } else if(later.type==LedgerEntryType.ManualCorrection || later.type==LedgerEntryType.ConfirmLegacyParameter) {
-                    expected=recordedCopiedHoldingMutation(state,later,expected,reverse=false)
-                } else if(later.type==LedgerEntryType.Undo) {
-                    val reversed=state.ledger.entries.single { it.operationId==later.reversesId }
-                    if(reversed.type==LedgerEntryType.ManualCorrection || reversed.type==LedgerEntryType.ConfirmLegacyParameter)
-                        expected=recordedCopiedHoldingMutation(state,reversed,expected,reverse=true)
-                }
-            }
-            // Prospective finite staging precedes the next receipt. Public persistence/transport
-            // require the exact resulting holding from the recorded paid or explicit mutation chain.
-            require(if(committedTip) instance==expected else instance.instanceId==expected.instanceId &&
-                instance.definition==expected.definition && instance.origin==expected.origin)
+            require(copiedHoldingChain(state,added,record.kind,state.ledger.entries.indexOf(entry)+1,if(missing)null else instance,committedTip))
             true
         } catch (_:Exception) { false }
     }
 }
 
-private fun recordedCopiedHoldingMutation(state:StoredCharacter,entry:LedgerEntry,current:AcquisitionInstance,reverse:Boolean):AcquisitionInstance {
+private fun inheritedCopiedHolding(state:StoredCharacter,source:StoredCharacter?,instance:AcquisitionInstance,committedTip:Boolean,missing:Boolean=false):Boolean {
+    val captured=source?.instances?.singleOrNull { it.instanceId==instance.instanceId } ?: return false
+    val origin=captured.origin as? AcquisitionOrigin.Legacy ?: return false
+    val kind=source.ledger.opening.legacyMigration?.ownershipRecords?.singleOrNull { it.ownershipKey==origin.ownershipKey }?.kind ?: return false
+    return try { copiedHoldingChain(state,captured,kind,source.ledger.entries.size+1,if(missing)null else instance,committedTip) } catch (_:Exception) { false }
+}
+/** The captured holding is a baseline, never permission to change rank/parameters/option. */
+private fun copiedHoldingChain(state:StoredCharacter,initial:AcquisitionInstance,kind:AcquisitionKind,start:Int,
+    instance:AcquisitionInstance?,committedTip:Boolean):Boolean {
+    var expected:AcquisitionInstance?=initial
+    for(later in state.ledger.entries.drop(start)) {
+        val changes=later.changes.filter { it.instanceId==initial.instanceId }
+        if(changes.isNotEmpty()) {
+            require(later.type==LedgerEntryType.Purchase || later.type==LedgerEntryType.Undo)
+            changes.forEach { change ->
+                val prior=requireNotNull(expected) { "Paid change lacks preceding holding" }
+                require(change.kind==kind && change.definition==prior.definition && change.parameters==prior.parameters &&
+                    change.optionId==prior.abilityOptionId && change.fromRank==prior.rank && change.toRank>0)
+                expected=prior.copy(rank=change.toRank)
+            }
+        } else if(later.type==LedgerEntryType.ManualCorrection || later.type==LedgerEntryType.ConfirmLegacyParameter) {
+            expected=recordedCopiedHoldingMutation(state,later,expected,initial,reverse=false)
+        } else if(later.type==LedgerEntryType.Undo) {
+            val reversed=state.ledger.entries.single { it.operationId==later.reversesId }
+            if(reversed.type==LedgerEntryType.ManualCorrection || reversed.type==LedgerEntryType.ConfirmLegacyParameter)
+                expected=recordedCopiedHoldingMutation(state,reversed,expected,initial,reverse=true)
+        }
+    }
+    // Only detached pre-receipt staging may contain the prospective next holding.
+    return if(committedTip) instance==expected else instance==null || (instance.instanceId==initial.instanceId &&
+        instance.definition==initial.definition && instance.origin==initial.origin)
+}
+
+private fun recordedCopiedHoldingMutation(state:StoredCharacter,entry:LedgerEntry,current:AcquisitionInstance?,identity:AcquisitionInstance,reverse:Boolean):AcquisitionInstance? {
     val receipt=state.receipts.single { it.operationId==entry.operationId }
     val request=requireCanonical(receipt.requestCanonical).obj().also { it.keys("type","characterId","expectedRevision","reason","payload") }
     require(request.text("type")=="CanonicalMutation" && request.text("characterId")==state.character.id &&
@@ -486,14 +546,128 @@ private fun recordedCopiedHoldingMutation(state:StoredCharacter,entry:LedgerEntr
     else require(entry.amountDelta==Amount.ZERO)
     val proof=requireCanonical(entry.evidenceCanonical).obj().also { it.keys("schema","command","before","after") }
     require(proof.text("schema")=="mutation-evidence-v1" && proof.values["command"]==request)
-    fun holding(key:String):AcquisitionInstance {
+    val beforeProjection=proof.objectRequired("before").also { it.keys("characterSnapshot","instances","extras","creationPhase") }
+    val afterProjection=proof.objectRequired("after").also { it.keys("characterSnapshot","instances","extras","creationPhase") }
+    if(entry.type==LedgerEntryType.ManualCorrection) {
+        payload.keys("kind","patch","delta")
+        val patch=payload.objectRequired("patch").also { it.keys("projection","replacesInstances","replacesExtras") }
+        val projection=patch.objectRequired("projection").also { it.keys("characterSnapshot","instances","extras","creationPhase") }
+        fun replacing(key:String)=(patch.values[key] as? JsonValue.Bool)?.value ?: error("Expected patch replacement flag")
+        require(afterProjection.values["characterSnapshot"]==projection.values["characterSnapshot"] &&
+            afterProjection.values["creationPhase"]==projection.values["creationPhase"] &&
+            beforeProjection.values["creationPhase"]==afterProjection.values["creationPhase"])
+        for((field,flag) in listOf("instances" to "replacesInstances","extras" to "replacesExtras"))
+            require(afterProjection.values[field]==(if(replacing(flag))projection.values[field] else beforeProjection.values[field])) { "Correction differs from captured patch" }
+    } else {
+        payload.keys("kind","instanceId","parameters","resolution")
+        if(payload.text("instanceId")==identity.instanceId) {
+            require(beforeProjection.values.filterKeys { it!="instances" }==afterProjection.values.filterKeys { it!="instances" })
+            val beforeInstances=beforeProjection.list("instances").map { decodeInstance(it.obj()) }
+            val afterInstances=afterProjection.list("instances").map { decodeInstance(it.obj()) }
+            val old=beforeInstances.singleOrNull { it.instanceId==identity.instanceId }
+            val next=afterInstances.single { it.instanceId==identity.instanceId }
+            require(afterInstances.filterNot { it.instanceId==identity.instanceId }==beforeInstances.filterNot { it.instanceId==identity.instanceId } &&
+                next.parameters==payload.strings("parameters"))
+            if(old!=null) require(payload.values["resolution"]==JsonValue.Null && next==old.copy(parameters=next.parameters) && old.parameters.all { next.parameters[it.key]==it.value })
+            else {
+                val origin=identity.origin as AcquisitionOrigin.Legacy
+                val record=state.ledger.opening.legacyMigration!!.ownershipRecords.single { it.ownershipKey==origin.ownershipKey }
+                val resolution=payload.objectRequired("resolution").also { it.keys("ownershipKey","packId","entryId","rank") }
+                require(resolution.text("ownershipKey")==record.ownershipKey && resolution.text("packId")==identity.definition.packId &&
+                    resolution.text("entryId")==identity.definition.entryId && resolution.number("rank")==record.rank && next.rank==record.rank)
+            }
+        } else {
+            require(beforeProjection.list("instances").map { decodeInstance(it.obj()) }.singleOrNull { it.instanceId==identity.instanceId }==
+                afterProjection.list("instances").map { decodeInstance(it.obj()) }.singleOrNull { it.instanceId==identity.instanceId }) { "Unrelated confirmation changed holding" }
+        }
+    }
+    fun holding(key:String):AcquisitionInstance? {
         val projection=proof.objectRequired(key).also { it.keys("characterSnapshot","instances","extras","creationPhase") }
-        return projection.list("instances").map { decodeInstance(it.obj()) }.single { it.instanceId==current.instanceId }
+        return projection.list("instances").map { decodeInstance(it.obj()) }.singleOrNull { it.instanceId==identity.instanceId }
     }
     val before=holding(if(reverse) "after" else "before")
     val after=holding(if(reverse) "before" else "after")
-    require(before==current && after.instanceId==current.instanceId && after.definition==current.definition && after.origin==current.origin)
+    require(before==current && (after==null || (after.instanceId==identity.instanceId && after.definition==identity.definition && after.origin==identity.origin)))
+    require(reverse || entry.type!=LedgerEntryType.ManualCorrection || current!=null || after==null) { "Correction cannot create a removed holding" }
     return after
+}
+
+/** Fingerprint uses the same existing SHA-256 UTF-16BE identity, not an external trust claim. */
+internal fun acquisitionSyncProofId(payloadCanonical:String,proofIds:List<String>):String = "sync-proof:" + legacySourceFingerprint(canonicalText(
+    jsonObject("payloadCanonical" to jsonString(payloadCanonical),"proofIds" to jsonArray(proofIds.map(::jsonString)))))
+internal fun captureSyncProof(state:StoredCharacter):AcquisitionSyncProof {
+    val root=requireCanonical(encodeSyncEnvelope(state)).obj()
+    val flat=canonicalText(JsonValue.Obj(root.values-"syncProofs"))
+    val ids=state.syncProofs.map { it.proofId }
+    return AcquisitionSyncProof(acquisitionSyncProofId(flat,ids),flat,ids)
+}
+internal fun combineSyncProofs(records:List<AcquisitionSyncProof>):List<AcquisitionSyncProof> {
+    val unique=linkedMapOf<String,AcquisitionSyncProof>()
+    records.forEach { record ->
+        require(unique[record.proofId]?.let { it==record } != false) { "Proof identity collision" }
+        unique[record.proofId]=record
+    }
+    return unique.values.sortedBy { it.proofId }
+}
+private class SyncProofContext(records:List<AcquisitionSyncProof>) {
+    private val index=records.associateBy { it.proofId }
+    private val resolved=mutableMapOf<String,StoredCharacter>()
+    private val resolving=mutableSetOf<String>()
+    init {
+        require(index.size==records.size && records.map { it.proofId }==records.map { it.proofId }.sorted()) { "Duplicate/unsorted proof pool" }
+        records.forEach { require(it.proofId==acquisitionSyncProofId(it.payloadCanonical,it.proofIds)) { "Proof content identity mismatch" } }
+    }
+    fun verifyMembership(records:List<AcquisitionSyncProof>) {
+        require(records.map { it.proofId }==records.map { it.proofId }.distinct().sorted()) { "Duplicate/unsorted proof membership" }
+        records.forEach { require(index[it.proofId]==it) { "Proof pool content differs" };resolve(it.proofId) }
+    }
+    fun resolve(id:String):StoredCharacter {
+        resolved[id]?.let { return it }
+        val record=index[id] ?: error("Missing referenced proof")
+        require(resolving.add(id)) { "Cyclic sync proof" }
+        try {
+            require(record.proofIds==record.proofIds.distinct().sorted()) { "Invalid prior proof membership" }
+            val root=requireCanonical(record.payloadCanonical).obj()
+            require(!root.has("syncProofs")) { "Recursive proof pool" }
+            val state=decodeWireState(wireRoot(record.payloadCanonical,root.text("characterId"))).copy(
+                syncProofs=record.proofIds.map { index[it] ?: error("Missing prior proof") })
+            validate(state,sharedProofs=this)
+            require(canonicalText(JsonValue.Obj(encodeState(state,false).values-"syncProofs"))==record.payloadCanonical) { "Proof would lose values" }
+            resolved[id]=state
+            return state
+        } finally { resolving.remove(id) }
+    }
+    fun canonical(id:String):String=canonicalText(encodeState(resolve(id),false))
+}
+private data class AdoptionBranches(val selected:StoredCharacter,val displaced:StoredCharacter,val server:StoredCharacter,
+    val selectedCanonical:String,val displacedCanonical:String,val serverCanonical:String)
+private fun adoptionBranches(proof:JsonValue.Obj,proofs:SyncProofContext,available:Set<String>?=null):AdoptionBranches {
+    return when(proof.text("schema")) {
+        "sync-adoption-v1" -> {
+            proof.keys("schema","selectedCanonical","displacedCanonical","serverCanonical","expectedServerRevision","choice","archiveId")
+            val selected=proof.text("selectedCanonical");val displaced=proof.text("displacedCanonical");val server=proof.text("serverCanonical")
+            AdoptionBranches(decodeSyncEnvelope(selected),decodeSyncEnvelope(displaced),decodeSyncEnvelope(server),selected,displaced,server)
+        }
+        "sync-adoption-v2" -> {
+            proof.keys("schema","selectedProofId","displacedProofId","serverProofId","expectedServerRevision","choice","archiveId")
+            fun id(key:String)=proof.text(key).also { require(available==null || it in available) { "Branch proof outside captured membership" } }
+            val selected=id("selectedProofId");val displaced=id("displacedProofId");val server=id("serverProofId")
+            AdoptionBranches(proofs.resolve(selected),proofs.resolve(displaced),proofs.resolve(server),proofs.canonical(selected),proofs.canonical(displaced),proofs.canonical(server))
+        }
+        else -> throw UnsupportedEnvelope("Unsupported adoption proof schema")
+    }
+}
+/** Shared strict dedicated-request boundary, also used by durable pending-resolution admission. */
+internal fun validateResolutionRequest(request:AcquisitionResolution) {
+    val state=decodeSyncEnvelope(request.selectedCanonical)
+    val tip=state.ledger.entries.lastOrNull()
+    val receipt=state.receipts.lastOrNull()
+    require(request.operationId.isNotBlank() && request.archiveId.isNotBlank() && request.expectedServerRevision>=0 &&
+        state.character.id==request.characterId && tip?.operationId==request.operationId && tip.type==LedgerEntryType.SyncAdoption &&
+        receipt?.operationId==request.operationId && receipt.afterRevision==state.revision) { "Resolution must identify its exact adoption tip" }
+    val proof=requireCanonical(tip.evidenceCanonical).obj()
+    require(proof.text("archiveId")==request.archiveId && proof.text("choice")==request.choice.name &&
+        proof.long("expectedServerRevision")==request.expectedServerRevision) { "Resolution differs from archived confirmed choice" }
 }
 
 /** Validate nested wire structure without recursively accepting local bookkeeping. */
@@ -525,7 +699,7 @@ fun decodeSyncEnvelope(raw:String):StoredCharacter {
 }
 internal fun flatSyncEnvelope(state:StoredCharacter):String {
     val root=JsonReader(encodeSyncEnvelope(state)).read().obj()
-    return canonicalText(JsonValue.Obj(root.values - "copySources"))
+    return canonicalText(JsonValue.Obj(root.values - "copySources" - "syncProofs"))
 }
 private fun requireCanonical(raw: String): JsonValue {
     require(raw == canonicalJson(raw)) { "Expected canonical JSON" }

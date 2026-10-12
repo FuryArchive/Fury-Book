@@ -170,7 +170,7 @@ class AcquisitionSyncTest {
         val counterfeit=chosen.copy(character=chosen.character.copy(name="counterfeit"),outbox=emptyList())
         assertFailsWith<IllegalArgumentException> { encodeEnvelope(counterfeit) }
         assertFailsWith<IllegalArgumentException> { encodeSyncEnvelope(counterfeit) }
-        assertFailsWith<IllegalArgumentException> { encodeEnvelope(chosen.copy(ledger=chosen.ledger.copy(entries=chosen.ledger.entries.dropLast(1)+marker.copy(evidenceCanonical=marker.evidenceCanonical.replace("sync-adoption-v1","forged"))))) }
+        assertFailsWith<IllegalArgumentException> { encodeEnvelope(chosen.copy(ledger=chosen.ledger.copy(entries=chosen.ledger.entries.dropLast(1)+marker.copy(evidenceCanonical=marker.evidenceCanonical.replace(Regex("sync-adoption-v[12]"),"forged"))))) }
         buy(local,"ten","fresh");assertEquals(5L,load(local).revision)
         assertEquals("fresh",assertIs<UndoEligibility.Available>(AcquisitionUndo(local).eligible("hero")).operationId)
         assertIs<ApplyResult.Applied>(AcquisitionUndo(local).undo("hero","undo-fresh",5))
