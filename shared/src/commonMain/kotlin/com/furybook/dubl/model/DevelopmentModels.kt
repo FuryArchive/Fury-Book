@@ -1,5 +1,10 @@
 package com.furybook.dubl.model
 
+import com.furybook.dubl.acquisition.AcquisitionInstance
+import com.furybook.dubl.acquisition.AcquisitionOrigin
+import com.furybook.dubl.acquisition.DefinitionRef
+import com.furybook.dubl.acquisition.legacyInstanceId
+
 enum class DevelopmentCostType {
     XP,
     ABILITY,
@@ -103,6 +108,23 @@ fun DevelopmentCatalog.withoutEntries(entryIds: Set<String>): DevelopmentCatalog
 data class OwnedDevelopment(
     val rank: Int = 0,
     val optionIndex: Int = 0,
+)
+
+/** Read-only migration bridge. optionIndex cannot establish a stable option or specialization ID.
+ * The migration caller may supply an independently resolved option ID; unknown parameters stay absent.
+ * Rank and the original OwnedDevelopment are retained without normalization or new purchase history.
+ */
+fun OwnedDevelopment.toAcquisitionInstance(
+    definition: DefinitionRef,
+    origin: AcquisitionOrigin.Legacy,
+    resolvedAbilityOptionId: String? = null,
+): AcquisitionInstance = AcquisitionInstance(
+    instanceId = legacyInstanceId(definition, origin),
+    definition = definition,
+    rank = rank,
+    parameters = emptyMap(),
+    abilityOptionId = resolvedAbilityOptionId,
+    origin = origin,
 )
 
 internal fun developmentManaRequirementRank(text: String): Int? {
