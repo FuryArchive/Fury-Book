@@ -17,12 +17,17 @@ def test_platform_adapters_expose_the_same_shared_acquisition_operation():
         assert "application.development.acquire" in text
 
 
-def test_shared_recursive_choices_batch_rejection_storage_and_single_undo_boundary():
+def test_legacy_planner_requires_canonical_context_and_cannot_write_or_create_undo():
     kotlinc = shutil.which("kotlinc")
     assert kotlinc is not None
     shared = ROOT / "shared/src/commonMain/kotlin"
     sources = sorted((shared / "com/furybook/dubl/model").glob("*.kt"))
+    sources += sorted((shared / "com/furybook/dubl/acquisition").glob("*.kt"))
+    sources += sorted((shared / "com/furybook/content").glob("*.kt"))
+    sources += sorted((shared / "com/furybook/core/json").glob("*.kt"))
     sources += [
+        shared / "com/furybook/dubl/data/SnapshotCodec.kt",
+        shared / "com/furybook/dubl/data/CharacterTransferCodec.kt",
         shared / "com/furybook/dubl/data/CharacterStore.kt",
         shared / "com/furybook/dubl/state/CharacterSession.kt",
         shared / "com/furybook/dubl/application/ApplicationUndoManager.kt",

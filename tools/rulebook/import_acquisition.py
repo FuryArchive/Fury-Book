@@ -451,6 +451,29 @@ def build_acquisition_catalogs(repo_root):
                 item['identityQuestion'] = 'Q_SOURCE_PARAMETER_IDENTITY'
                 item['parameterDefinitions'] = [{'key': 'specialization', 'domain': {
                     'type': 'Unresolved', 'reason': 'Q_SOURCE_PARAMETER_IDENTITY'}}]
+        if d['id'] == 'access_17f99cc35c559d82':
+            # Reviewed binary access, not a ranked feat. These table rows identify
+            # the two sources; numeric legacy option positions are not identities.
+            expected = {12100: 'Боевые крики', 12103: 'Мораль', 12104: '1',
+                        12105: 'Ци', 12106: '2', 12107: 'Требование: Командирский голос'}
+            for paragraph, text in expected.items():
+                if source_ref(evidence, paragraph)['originalText'].strip() != text:
+                    raise ValueError('Combat cry access source binding requires review')
+            permission = source_ref(evidence, 11906)
+            if 'при создании персонажа' not in permission['originalText']:
+                raise ValueError('Combat cry access purchase phase requires review')
+            item.update(maxRank=1, repeatPolicy={'type': 'Single'}, abilityOptionIds=['morale', 'chi'],
+                        sourceStatus='NeedsResolution', sourceRef=source_ref(evidence, 12100),
+                        requirementsText='Командирский голос', requirementSource=source_ref(evidence, 12107))
+            item['classificationSources'].update({
+                'access:permission': permission, 'access:creation': source_ref(evidence, 11901),
+                'option:morale': source_ref(evidence, 12103), 'option:chi': source_ref(evidence, 12105)})
+            options = {key: {'type': 'Fixed', 'xp': '0', 'ap': str(ap), 'sourceRef': source_ref(evidence, paragraph)}
+                       for key, ap, paragraph in [('morale', 1, 12104), ('chi', 2, 12106)]}
+            item['priceRule'] = {'type': 'Conditional', 'sourceRef': permission,
+                'condition': node('CreationPhase', d['id']+'/price/creation', permission, operator='EQ', operand='Creating'),
+                'whenTrue': {'type': 'ByOption', 'options': options, 'sourceRef': source_ref(evidence, 12102)},
+                'whenFalse': {'type': 'Unknown', 'reason': 'Unconfirmed post-creation access purchase policy', 'sourceRef': permission}}
         definitions.append(item)
     for item in definitions:
         id = item['ref']['entryId']; src = item.pop('requirementSource', item['sourceRef'])

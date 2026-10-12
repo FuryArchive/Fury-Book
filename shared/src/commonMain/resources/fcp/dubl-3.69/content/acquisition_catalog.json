@@ -59236,75 +59236,140 @@
       },
       "name": "Боевые крики",
       "kind": "DEVELOPMENT",
-      "maxRank": null,
+      "maxRank": 1,
       "repeatPolicy": {
-        "type": "Unresolved",
-        "reason": "Q_SOURCE_PARAMETER_IDENTITY"
+        "type": "Single"
       },
       "familyIds": [],
       "categoryIds": [],
-      "classificationSources": {},
+      "classificationSources": {
+        "access:permission": {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "sheet": "t.z1o9nhkkrzeb",
+          "paragraph": 11906,
+          "originalText": "Определяет сколько очков способностей надо потратить для получения доступа к покупке способностей при создании персонажа."
+        },
+        "access:creation": {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "sheet": "t.z1o9nhkkrzeb",
+          "paragraph": 11901,
+          "originalText": "Способности имеют разную силу, поэтому стоимость способностей рознится. При создании персонажа способности можно приобрести за очки способностей. (см. создание персонажа).  "
+        },
+        "option:morale": {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "sheet": "t.z1o9nhkkrzeb",
+          "paragraph": 12103,
+          "originalText": "Мораль"
+        },
+        "option:chi": {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "sheet": "t.z1o9nhkkrzeb",
+          "paragraph": 12105,
+          "originalText": "Ци"
+        }
+      },
       "parameterDefinitions": [],
-      "abilityOptionIds": null,
-      "sourceStatus": "Unavailable",
+      "abilityOptionIds": [
+        "morale",
+        "chi"
+      ],
+      "sourceStatus": "NeedsResolution",
       "sourceRef": {
-        "documentId": "unverified:dubl-3.69",
-        "documentVersion": "3.69",
-        "originalText": "Командирский голос",
-        "sheet": "core:p-002658,core:t-002660",
-        "paragraph": null
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.z1o9nhkkrzeb",
+        "paragraph": 12100,
+        "originalText": "Боевые крики "
       },
       "requirementsText": "Командирский голос",
       "priceRule": {
-        "type": "Unknown",
-        "reason": "source-unverified",
+        "type": "Conditional",
         "sourceRef": {
-          "documentId": "unverified:dubl-3.69",
-          "documentVersion": "3.69",
-          "originalText": "Командирский голос",
-          "sheet": "core:p-002658,core:t-002660",
-          "paragraph": null
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "sheet": "t.z1o9nhkkrzeb",
+          "paragraph": 11906,
+          "originalText": "Определяет сколько очков способностей надо потратить для получения доступа к покупке способностей при создании персонажа."
+        },
+        "condition": {
+          "type": "CreationPhase",
+          "nodeId": "access_17f99cc35c559d82/price/creation",
+          "sourceRef": {
+            "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+            "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+            "sheet": "t.z1o9nhkkrzeb",
+            "paragraph": 11906,
+            "originalText": "Определяет сколько очков способностей надо потратить для получения доступа к покупке способностей при создании персонажа."
+          },
+          "operator": "EQ",
+          "operand": "Creating"
+        },
+        "whenTrue": {
+          "type": "ByOption",
+          "options": {
+            "morale": {
+              "type": "Fixed",
+              "xp": "0",
+              "ap": "1",
+              "sourceRef": {
+                "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                "sheet": "t.z1o9nhkkrzeb",
+                "paragraph": 12104,
+                "originalText": "1"
+              }
+            },
+            "chi": {
+              "type": "Fixed",
+              "xp": "0",
+              "ap": "2",
+              "sourceRef": {
+                "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                "sheet": "t.z1o9nhkkrzeb",
+                "paragraph": 12106,
+                "originalText": "2"
+              }
+            }
+          },
+          "sourceRef": {
+            "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+            "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+            "sheet": "t.z1o9nhkkrzeb",
+            "paragraph": 12102,
+            "originalText": "Стоимость"
+          }
+        },
+        "whenFalse": {
+          "type": "Unknown",
+          "reason": "Unconfirmed post-creation access purchase policy",
+          "sourceRef": {
+            "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+            "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+            "sheet": "t.z1o9nhkkrzeb",
+            "paragraph": 11906,
+            "originalText": "Определяет сколько очков способностей надо потратить для получения доступа к покупке способностей при создании персонажа."
+          }
         }
       },
       "requirements": {
-        "type": "AllOf",
+        "type": "OwnedRank",
         "nodeId": "access_17f99cc35c559d82/requirements",
         "sourceRef": {
-          "documentId": "unverified:dubl-3.69",
-          "documentVersion": "3.69",
-          "originalText": "Командирский голос",
-          "sheet": "core:p-002658,core:t-002660",
-          "paragraph": null
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "sheet": "t.z1o9nhkkrzeb",
+          "paragraph": 12107,
+          "originalText": "Требование: Командирский голос"
         },
-        "children": [
-          {
-            "type": "OwnedRank",
-            "nodeId": "access_17f99cc35c559d82/requirements",
-            "sourceRef": {
-              "documentId": "unverified:dubl-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Командирский голос",
-              "sheet": "core:p-002658,core:t-002660",
-              "paragraph": null
-            },
-            "packId": "dubl-3.69",
-            "entryId": "feat_a700b29906107b2b",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "access_17f99cc35c559d82/source",
-            "sourceRef": {
-              "documentId": "unverified:dubl-3.69",
-              "documentVersion": "3.69",
-              "originalText": "Командирский голос",
-              "sheet": "core:p-002658,core:t-002660",
-              "paragraph": null
-            },
-            "reason": "source-unverified"
-          }
-        ]
+        "packId": "dubl-3.69",
+        "entryId": "feat_a700b29906107b2b",
+        "operator": "GE",
+        "operand": 1
       }
     },
     {
@@ -119976,20 +120041,6 @@
       }
     },
     {
-      "kind": "source-unverified",
-      "definitionId": "access_17f99cc35c559d82",
-      "packId": "dubl-3.69",
-      "nodeId": "access_17f99cc35c559d82/source",
-      "message": "source-unverified",
-      "sourceRef": {
-        "documentId": "unverified:dubl-3.69",
-        "documentVersion": "3.69",
-        "originalText": "Командирский голос",
-        "sheet": "core:p-002658,core:t-002660",
-        "paragraph": null
-      }
-    },
-    {
       "kind": "missing-requirement-source",
       "definitionId": "access_5b50c9c8ead88fd5",
       "packId": "dubl-3.69",
@@ -136076,5 +136127,5 @@
       }
     }
   ],
-  "catalogRevision": "9a42ebf944560200adc6f11a02d6cfcf906437a48c82965dbb925d3ccedc2520"
+  "catalogRevision": "f1dac8ef397cb7556dea8c46e7d7833a6895f9b98f0ca3cc8e1d72cdac52aabf"
 }

@@ -510,7 +510,7 @@ class DevelopmentRulesTest {
     }
 
     @Test
-    fun acquisitionPlannerTreatsOwnedHigherManaRankAsSatisfied() {
+    fun legacyAcquisitionPlannerRequiresExplicitCanonicalContext() {
         val giantMagic = child.copy(
             id = "giant-magic",
             name = "Великанская магия",
@@ -528,7 +528,8 @@ class DevelopmentRulesTest {
             ),
         )
 
-        assertTrue(plan.unresolvedRequirements.isEmpty())
+        assertTrue(plan.unresolvedRequirements.single().contains("StoredCharacter"))
+        assertFalse(plan.canApply)
         assertTrue(plan.steps.isEmpty())
     }
 

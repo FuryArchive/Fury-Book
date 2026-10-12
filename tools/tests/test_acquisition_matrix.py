@@ -218,3 +218,18 @@ def test_template_skill_quotes_retain_price_only_scope_and_source_identity():
             assert case['expectedRemainingXP'] == 9995
     case['evidenceScope'] = 'APPLY_ELIGIBLE'
     assert any(e['code'] == 'PRICE_SCOPE_MISMATCH' for e in validate(matrix, manifest))
+
+
+def test_combat_cry_access_literal_creation_options_and_unknown_postcreation():
+    matrix, manifest = corpus()
+    rows = {c['caseId']: c for c in matrix['cases']}
+    for option, ap in [('morale', 1), ('chi', 2)]:
+        row = rows[f'combat_cries_access_{option}_creation']
+        assert (row['expectedCostXP'], row['expectedCostAP'], row['expectedRemainingXP'], row['expectedRemainingAP']) == (0, ap, 100, 10-ap)
+        assert row['sourceRef'] == ['core:P11901','core:P11906'] + [f'core:P{p}' for p in range(12100,12108)]
+        assert row['evidenceStatus'] == 'CONFIRMED'
+        unknown = rows[f'combat_cries_access_{option}_postcreation_unknown']
+        assert unknown['evidenceStatus'] == 'SOURCE_UNVERIFIED'
+        assert unknown['expectedCostAP'] is None and unknown['expectedCostXP'] is None
+        assert unknown['blockingQuestion'] == ['Q_access_17f99cc35c559d82']
+    assert not validate(matrix, manifest)

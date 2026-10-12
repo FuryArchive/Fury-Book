@@ -295,3 +295,20 @@ def test_undefined_discount_rounding_only_omits_affected_transition(monkeypatch)
     discounted = rule['whenFalse']['whenTrue']['transitions']
     assert not any(t['toRank'] == 1 for t in discounted)
     assert next(t for t in discounted if t['toRank'] == 2)['xp'] == '10'
+
+
+def test_combat_cry_access_uses_explicit_source_and_creation_only_options():
+    entry = entries()['access_17f99cc35c559d82']
+    assert entry['maxRank'] == 1
+    assert entry['repeatPolicy'] == {'type': 'Single'}
+    assert entry['sourceStatus'] == 'NeedsResolution'
+    assert entry['abilityOptionIds'] == ['morale', 'chi']
+    assert entry['requirements']['type'] == 'OwnedRank'
+    assert entry['requirements']['entryId'] == 'feat_a700b29906107b2b'
+    assert entry['requirements']['sourceRef']['paragraph'] == 12107
+    rule = entry['priceRule']
+    assert rule['condition']['type'] == 'CreationPhase' and rule['condition']['operand'] == 'Creating'
+    assert rule['sourceRef']['paragraph'] == 11906
+    assert rule['whenFalse']['type'] == 'Unknown'
+    options = rule['whenTrue']['options']
+    assert [(key, options[key]['ap'], options[key]['sourceRef']['paragraph']) for key in ['morale', 'chi']] == [('morale','1',12104),('chi','2',12106)]

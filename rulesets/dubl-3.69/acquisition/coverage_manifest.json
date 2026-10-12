@@ -125306,6 +125306,116 @@
       "isListItem": false,
       "paragraph": 13618,
       "sha256": "6ca2a0f10846b10f7ec40807c9e453509654e42531520878a4e06339f9eeaa03"
+    },
+    "core:P11901": {
+      "text": "Способности имеют разную силу, поэтому стоимость способностей рознится. При создании персонажа способности можно приобрести за очки способностей. (см. создание персонажа).  ",
+      "startIndex": 121,
+      "endIndex": 294,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 11901,
+      "sha256": "466db1aba48e17fad8a13d8946ea26e252f4d9161cb178ce9cf6031937e675b1"
+    },
+    "core:P11906": {
+      "text": "Определяет сколько очков способностей надо потратить для получения доступа к покупке способностей при создании персонажа.",
+      "startIndex": 576,
+      "endIndex": 697,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 11906,
+      "sha256": "1f4b24f34a2078a3a7142cd956ac0ef9ff0058e2e6b6a64a6dda45528e53c2c4"
+    },
+    "core:P12100": {
+      "text": "Боевые крики ",
+      "startIndex": 9014,
+      "endIndex": 9027,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "HEADING_3",
+      "isListItem": false,
+      "paragraph": 12100,
+      "sha256": "cd5eb2f7dad53e4792ff84d8594df7d41a94c87ae358dc9e97c55d3e0a813908"
+    },
+    "core:P12101": {
+      "text": "Тип / Источник",
+      "startIndex": 9032,
+      "endIndex": 9046,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 12101,
+      "sha256": "9a7daf0f597a719344642817e384b7df1362002efa80959676d674363bca7e68"
+    },
+    "core:P12102": {
+      "text": "Стоимость",
+      "startIndex": 9048,
+      "endIndex": 9057,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 12102,
+      "sha256": "ac9be8a9ca6c2ec8c0da83114bcf5c145480cf836f66de6eae0df74ccf7effb8"
+    },
+    "core:P12103": {
+      "text": "Мораль",
+      "startIndex": 9060,
+      "endIndex": 9066,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 12103,
+      "sha256": "3146e38d6b5112675a77d391b51865bba06afe0b5965e145f402be9aad481989"
+    },
+    "core:P12104": {
+      "text": "1",
+      "startIndex": 9068,
+      "endIndex": 9069,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 12104,
+      "sha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+    },
+    "core:P12105": {
+      "text": "Ци",
+      "startIndex": 9072,
+      "endIndex": 9074,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 12105,
+      "sha256": "86efc2df3f02a0553f7ecb0d9719e540577175811e3ed315a6f5d149ab9eca77"
+    },
+    "core:P12106": {
+      "text": "2",
+      "startIndex": 9076,
+      "endIndex": 9077,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 12106,
+      "sha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    "core:P12107": {
+      "text": "Требование: Командирский голос",
+      "startIndex": 9080,
+      "endIndex": 9110,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 12107,
+      "sha256": "8a0c48c6447c15cbc9d00f93e9840a40342f7fe7fa204aad1d86c8e4b72734c2"
+    },
+    "core:P12108": {
+      "text": "Описание: Вы можете использовать боевой крик 1 раз в день за каждый известный крик, а после каждое использование тратит запас выносливости. Каждые 8 часов без использования боевых криков восстанавливают одно использование. Все крики тратят по 1 пункту боевого крика. Является моральным эффектом.",
+      "startIndex": 9115,
+      "endIndex": 9410,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 12108,
+      "sha256": "881a947ef9548b57cdeacdb05fd453490d6ccf8b3d03fab61e0616a82cbacca8"
     }
   },
   "questions": [
@@ -132840,6 +132950,234 @@
           "refundXP": 20
         }
       ]
+    },
+    {
+      "caseId": "combat_cries_access_morale_creation",
+      "sourceId": [
+        "reviewed-access:core:P12100"
+      ],
+      "sourceRef": [
+        "core:P11901",
+        "core:P11906",
+        "core:P12100",
+        "core:P12101",
+        "core:P12102",
+        "core:P12103",
+        "core:P12104",
+        "core:P12105",
+        "core:P12106",
+        "core:P12107"
+      ],
+      "definitionRef": {
+        "id": "access_17f99cc35c559d82",
+        "pack": "dubl-3.69",
+        "catalogVersion": "3.69",
+        "resolutionVersion": 1
+      },
+      "instance": "FIRST",
+      "parameters": {
+        "semanticClass": "FIXED"
+      },
+      "fromRank": 0,
+      "toRank": 1,
+      "optionId": "morale",
+      "creationPhase": "CREATION",
+      "discountConditions": "NONE",
+      "ownedPrerequisites": [
+        {
+          "definitionId": "feat_a700b29906107b2b",
+          "rank": 1
+        },
+        {
+          "CHA": 4,
+          "CON": 4
+        }
+      ],
+      "openingXP": 100,
+      "openingAP": 10,
+      "expectedCostXP": 0,
+      "expectedCostAP": 1,
+      "expectedRemainingXP": 100,
+      "expectedRemainingAP": 9,
+      "expectedUndoXP": 100,
+      "expectedUndoAP": 10,
+      "evidenceStatus": "CONFIRMED",
+      "blockingQuestion": [],
+      "priceRule": "manually_reviewed_access_anchor",
+      "evidenceScope": "PRICE_ONLY",
+      "expectedApply": "CONDITIONAL_ON_CONFIRMED_ADMISSION_AND_IDENTITY"
+    },
+    {
+      "caseId": "combat_cries_access_morale_postcreation_unknown",
+      "sourceId": [
+        "reviewed-access:core:P12100"
+      ],
+      "sourceRef": [
+        "core:P11901",
+        "core:P11906",
+        "core:P12100",
+        "core:P12101",
+        "core:P12102",
+        "core:P12103",
+        "core:P12104",
+        "core:P12105",
+        "core:P12106",
+        "core:P12107"
+      ],
+      "definitionRef": {
+        "id": "access_17f99cc35c559d82",
+        "pack": "dubl-3.69",
+        "catalogVersion": "3.69",
+        "resolutionVersion": 1
+      },
+      "instance": "FIRST",
+      "parameters": {
+        "semanticClass": "FIXED"
+      },
+      "fromRank": 0,
+      "toRank": 1,
+      "optionId": "morale",
+      "creationPhase": "AFTER_CREATION",
+      "discountConditions": "NONE",
+      "ownedPrerequisites": [
+        {
+          "definitionId": "feat_a700b29906107b2b",
+          "rank": 1
+        },
+        {
+          "CHA": 4,
+          "CON": 4
+        }
+      ],
+      "openingXP": 100,
+      "openingAP": 10,
+      "expectedCostXP": null,
+      "expectedCostAP": null,
+      "expectedRemainingXP": null,
+      "expectedRemainingAP": null,
+      "expectedUndoXP": null,
+      "expectedUndoAP": null,
+      "evidenceStatus": "SOURCE_UNVERIFIED",
+      "blockingQuestion": [
+        "Q_access_17f99cc35c559d82"
+      ],
+      "priceRule": null,
+      "evidenceScope": "PRICE_ONLY",
+      "expectedApply": "BLOCKED_SOURCE"
+    },
+    {
+      "caseId": "combat_cries_access_chi_creation",
+      "sourceId": [
+        "reviewed-access:core:P12100"
+      ],
+      "sourceRef": [
+        "core:P11901",
+        "core:P11906",
+        "core:P12100",
+        "core:P12101",
+        "core:P12102",
+        "core:P12103",
+        "core:P12104",
+        "core:P12105",
+        "core:P12106",
+        "core:P12107"
+      ],
+      "definitionRef": {
+        "id": "access_17f99cc35c559d82",
+        "pack": "dubl-3.69",
+        "catalogVersion": "3.69",
+        "resolutionVersion": 1
+      },
+      "instance": "FIRST",
+      "parameters": {
+        "semanticClass": "FIXED"
+      },
+      "fromRank": 0,
+      "toRank": 1,
+      "optionId": "chi",
+      "creationPhase": "CREATION",
+      "discountConditions": "NONE",
+      "ownedPrerequisites": [
+        {
+          "definitionId": "feat_a700b29906107b2b",
+          "rank": 1
+        },
+        {
+          "CHA": 4,
+          "CON": 4
+        }
+      ],
+      "openingXP": 100,
+      "openingAP": 10,
+      "expectedCostXP": 0,
+      "expectedCostAP": 2,
+      "expectedRemainingXP": 100,
+      "expectedRemainingAP": 8,
+      "expectedUndoXP": 100,
+      "expectedUndoAP": 10,
+      "evidenceStatus": "CONFIRMED",
+      "blockingQuestion": [],
+      "priceRule": "manually_reviewed_access_anchor",
+      "evidenceScope": "PRICE_ONLY",
+      "expectedApply": "CONDITIONAL_ON_CONFIRMED_ADMISSION_AND_IDENTITY"
+    },
+    {
+      "caseId": "combat_cries_access_chi_postcreation_unknown",
+      "sourceId": [
+        "reviewed-access:core:P12100"
+      ],
+      "sourceRef": [
+        "core:P11901",
+        "core:P11906",
+        "core:P12100",
+        "core:P12101",
+        "core:P12102",
+        "core:P12103",
+        "core:P12104",
+        "core:P12105",
+        "core:P12106",
+        "core:P12107"
+      ],
+      "definitionRef": {
+        "id": "access_17f99cc35c559d82",
+        "pack": "dubl-3.69",
+        "catalogVersion": "3.69",
+        "resolutionVersion": 1
+      },
+      "instance": "FIRST",
+      "parameters": {
+        "semanticClass": "FIXED"
+      },
+      "fromRank": 0,
+      "toRank": 1,
+      "optionId": "chi",
+      "creationPhase": "AFTER_CREATION",
+      "discountConditions": "NONE",
+      "ownedPrerequisites": [
+        {
+          "definitionId": "feat_a700b29906107b2b",
+          "rank": 1
+        },
+        {
+          "CHA": 4,
+          "CON": 4
+        }
+      ],
+      "openingXP": 100,
+      "openingAP": 10,
+      "expectedCostXP": null,
+      "expectedCostAP": null,
+      "expectedRemainingXP": null,
+      "expectedRemainingAP": null,
+      "expectedUndoXP": null,
+      "expectedUndoAP": null,
+      "evidenceStatus": "SOURCE_UNVERIFIED",
+      "blockingQuestion": [
+        "Q_access_17f99cc35c559d82"
+      ],
+      "priceRule": null,
+      "evidenceScope": "PRICE_ONLY",
+      "expectedApply": "BLOCKED_SOURCE"
     }
   ],
   "scopeNote": "Fixed graph1498 identities all accounted for. Finite structural candidate transitions are not author-confirmed legality. Unknown maxima and unreviewed discount combinations are open obligations; release remains blocked. Unicode user labels represented by six identity classes. No runtime price fields retained."
