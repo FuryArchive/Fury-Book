@@ -166,6 +166,79 @@ class RequirementEvaluatorTest {
         assertEquals(RequirementStatus.Satisfied, status(RequirementNode.Attribute("size", source, AttributeId.STRENGTH, ComparisonOperator.EQ, 5), large))
     }
 
+    @Test fun distinct_count_finds_bound_or_proof_in_both_orders_without_counting_unrelated_instances() {
+        val defs = listOf(definition("a"), definition("b"))
+        val ctx = context(defs, listOf(instance("a"), instance("b")))
+        for (alternatives in listOf(listOf(none("independent"), owned("a")), listOf(owned("a"), none("independent")))) {
+            val predicate = RequirementNode.AnyOf("count/or", source, alternatives)
+            for (scopedPredicate in listOf(predicate, RequirementNode.AllOf("count/and", source,
+                listOf(RequirementNode.Attribute("count/str", source, AttributeId.STRENGTH, ComparisonOperator.GE, 1), predicate)))) {
+                val count = RequirementNode.DistinctCount("count", source, scopedPredicate, DistinctScope.Definition, ComparisonOperator.EQ, 1)
+                val proof = evaluate(count, ctx)
+                assertEquals(RequirementStatus.Satisfied, proof.status)
+                assertEquals(RequirementValue.Number(1), proof.actualValue)
+                assertEquals(listOf("instance/a"), proof.witnesses.filterIsInstance<RequirementWitness.OwnedInstance>().map { it.instanceId })
+            }
+        }
+    }
+
+    @Test fun distinct_count_excludes_impossible_conjunctions_but_preserves_genuinely_uncertain_matches() {
+        val defs = listOf(definition("a"), definition("b"))
+        val open = RequirementNode.Unresolved("count/open", source, "Open candidate rule")
+        for (terms in listOf(listOf(owned("a"), open), listOf(open, owned("a")))) {
+            val predicate = RequirementNode.AllOf("count/and", source, terms)
+            for (operator in listOf(ComparisonOperator.EQ, ComparisonOperator.LE)) {
+                val count = RequirementNode.DistinctCount("count", source, predicate, DistinctScope.Definition, operator, 0)
+                val unrelated = evaluate(count, context(defs, listOf(instance("b"))))
+                assertEquals(RequirementStatus.Satisfied, unrelated.status)
+                assertEquals(RequirementValue.Number(0), unrelated.actualValue)
+                assertNull(unrelated.reason)
+                val possible = evaluate(count, context(defs, listOf(instance("a"), instance("b"))))
+                assertEquals(RequirementStatus.SourceUnresolved, possible.status)
+                assertEquals(RequirementValue.Number(0), possible.actualValue)
+                assertTrue(possible.reason.orEmpty().contains("0..1"))
+            }
+            // Independent truth cannot conceal a potentially bound but unresolved alternative.
+            val alternatives = RequirementNode.AnyOf("count/or", source, listOf(none("independent"), predicate))
+            val count = RequirementNode.DistinctCount("count", source, alternatives, DistinctScope.Definition, ComparisonOperator.EQ, 0)
+            assertEquals(RequirementStatus.SourceUnresolved, evaluate(count, context(defs, listOf(instance("a"), instance("b")))).status)
+            assertEquals(RequirementStatus.Satisfied, evaluate(count, context(defs, listOf(instance("b")))).status)
+        }
+    }
+
+    @Test fun acquisition_context_deeply_snapshots_reachable_catalog_collections() {
+        val parameters = mutableListOf(ParameterDefinition("weaponTypeId", ParameterDomain.StableIds(setOf("melee"))))
+        val options = mutableSetOf("mastery")
+        val rows = mutableListOf(PriceRule.Transition(0, 1, 7, 0, source))
+        val nestedOptions = mutableMapOf<String, PriceRule>("nested" to PriceRule.TransitionTable(rows, source))
+        val conditional = PriceRule.Conditional(none("condition"), PriceRule.ByOption(nestedOptions, source),
+            PriceRule.TransitionTable(rows, source), source)
+        val outerOptions = mutableMapOf<String, PriceRule>("first" to conditional)
+        val definition = definition("a").copy(parameterDefinitions = parameters, abilityOptionIds = options,
+            priceRule = PriceRule.ByOption(outerOptions, source))
+        val definitions = mutableMapOf(definition.ref to definition)
+        val ctx = AcquisitionContext(DublCharacter("snapshot"), emptyList(), emptySet(),
+            RequirementNode.CreationPhase.Phase.Creating, emptyList(), AcquisitionCatalog(definitions, "catalog", "resolution"))
+        parameters.clear()
+        options.clear()
+        rows.clear()
+        nestedOptions["nested"] = PriceRule.Fixed(999, 0, source)
+        outerOptions.clear()
+        definitions.clear()
+        val captured = ctx.catalog.definitions.getValue(ref("a"))
+        assertEquals(listOf("weaponTypeId"), captured.parameterDefinitions.map { it.key })
+        assertEquals(setOf("mastery"), captured.abilityOptionIds)
+        val outer = assertIs<PriceRule.ByOption>(captured.priceRule)
+        val condition = assertIs<PriceRule.Conditional>(outer.options.getValue("first"))
+        val inner = assertIs<PriceRule.ByOption>(condition.whenTrue)
+        for (table in listOf(assertIs<PriceRule.TransitionTable>(inner.options.getValue("nested")),
+            assertIs<PriceRule.TransitionTable>(condition.whenFalse))) {
+            assertEquals(listOf(PriceRule.Transition(0, 1, 7, 0, source)), table.transitions)
+        }
+        assertEquals("catalog", ctx.catalog.catalogRevision)
+        assertEquals("resolution", ctx.catalog.resolutionRevision)
+    }
+
     @Test fun typed_availability_never_runs_display_parser_or_force_bypass() {
         val entry = DevelopmentEntry("target", "Target", "", "", 1, DevelopmentCostType.XP, 2, "Ловкость 99", "", "", emptyList(), null, emptyList(), false, false, false, "", "")
         val typed = definition("target")
