@@ -6,6 +6,7 @@ import gc
 import json
 from pathlib import Path
 
+from .import_acquisition import build_acquisition_catalogs, correct_development_payload
 from .extract_docx import extract_docx, write_json
 from .diagnostics import make_diagnostic
 from .provenance import attach_provenance
@@ -58,6 +59,7 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
     else:
         ruleset_config = {}
     domain_config = ruleset_config.get("domains", {})
+    acquisition_enabled = (repo_root / "rulesets/dubl-3.69/acquisition/source_questions.json").is_file()
 
     def domain_meta(domain: str, base: dict) -> dict:
         tracked = domain_config.get(domain, {})
@@ -143,7 +145,7 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
             development_candidate, development_bindings, version="3.69"
         )
         _write(development_candidate, output_dir / "content/development_regular_source.json")
-        _write(promoted_development, output_dir / "content/development_regular.json")
+        _write(correct_development_payload(promoted_development, repo_root) if acquisition_enabled else promoted_development, output_dir / "content/development_regular.json")
         all_diagnostics.extend(development_diagnostics)
         development_total = len(development_bindings.get("bindings", []))
         development_linked = len(development_candidate.get("entries", []))
@@ -177,7 +179,7 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
             special_diagnostics.extend(compare_regular_development_runtime(special_candidate, runtime_development))
         promoted_special = promote_special_development(special_candidate, special_bindings, version="3.69")
         _write(special_candidate, output_dir / "content/development_special_source.json")
-        _write(promoted_special, output_dir / "content/development_special.json")
+        _write(correct_development_payload(promoted_special, repo_root) if acquisition_enabled else promoted_special, output_dir / "content/development_special.json")
         all_diagnostics.extend(special_diagnostics)
         special_total = len(special_bindings.get("bindings", []))
         special_linked = len(special_candidate.get("entries", []))
@@ -513,6 +515,14 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
                 "missing": max(0, skill_effect_total - skill_effect_linked),
             },
         })
+
+    # Like other source-bound domains, acquisition is enabled by its committed input.
+    if acquisition_enabled:
+        for pack_id, payload in build_acquisition_catalogs(repo_root).items():
+            _write(payload, output_dir / "content" / pack_id / "acquisition_catalog.json")
+        domains["acquisition"] = {"status": "source_generated_with_blockers",
+            "output": "content/dubl-3.69/acquisition_catalog.json",
+            "optionalOutput": "content/dubl-chi-3.69/acquisition_catalog.json"}
 
     diagnostics_root = {
         "schemaVersion": 1,

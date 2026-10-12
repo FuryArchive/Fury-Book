@@ -1,0 +1,344 @@
+"""Deterministic acquisition IR. Runtime consumes the declared FCP payload, never this parser.
+
+The committed T01 evidence is a source excerpt set, not a price oracle input:
+anchors/expected costs are deliberately never read. Structural definitions supply IDs
+only; unsupported wording and unverified modules remain explicit blocking nodes.
+"""
+from __future__ import annotations
+
+import argparse
+import copy
+import hashlib
+import json
+import re
+from collections import defaultdict
+from pathlib import Path
+
+CORE = 'dubl-3.69'
+CHI = 'dubl-chi-3.69'
+KINDS = {'development': 'DEVELOPMENT', 'attribute': 'ATTRIBUTE', 'skill': 'SKILL',
+         'mana_rank': 'MANA', 'magic_school': 'SCHOOL', 'spell': 'SPELL', 'chi_bonus_rank': 'CHI_BONUS'}
+ATTRIBUTES = {'Сила': 'STR', 'Ловкость': 'DEX', 'Телосложение': 'CON', 'Скорость': 'SPD',
+              'Восприятие': 'PER', 'Интеллект': 'INT', 'Воля': 'WIL', 'Харизма': 'CHA'}
+CORRECTIONS = {'feat_fcdd74622d21435d': 11012, 'feat_eaa70b65b370825b': 11791,
+               'feat_bc96393fb969a8e3': 11797}
+
+
+def read(path):
+    return json.loads(Path(path).read_text(encoding='utf-8'))
+
+
+def source_ref(evidence, paragraph=None, text=None):
+    meta = evidence['provenance']
+    p = evidence['sourceEvidence'].get(f'core:P{paragraph}', {})
+    return {'documentId': meta['documentId'], 'documentVersion': meta['revisionId'],
+            'sheet': p.get('tabId'), 'paragraph': paragraph,
+            'originalText': p.get('text', '') if text is None else text}
+
+
+def node(kind, node_id, source, **fields):
+    return {'type': kind, 'nodeId': node_id, 'sourceRef': source, **fields}
+
+
+def parse_requirement(text, node_id, source, definitions):
+    """Conservative grammar: ordered conjunctions containing explicit OR groups.
+
+    Commas in the named martial style list belong to its OR group; the tail after
+    the final 'или' alternative belongs to AND. Parentheses/unknown lexical forms
+    are never stripped to obtain a convenient match.
+    """
+    raw = text.strip().rstrip('.')
+    local = dict(source, originalText=text)
+    def sub(value, suffix):
+        return parse_requirement(value.strip(), f'{node_id}/{suffix}', source, definitions)
+    if raw in ('-', '—'):
+        return node('AllOf', node_id, local, children=[], noRequirementsStatement='Source explicitly states no requirements')
+    if not raw:
+        return node('Unresolved', node_id, local, reason='missing-requirement-source')
+    if raw.startswith('Боевые искусства:'):
+        body = raw.split(':', 1)[1].strip()
+        if ';' in body:
+            styles, tail = body.split(';', 1)
+            tails = [x.strip() for x in tail.split(',')]
+        elif ' или ' in body:
+            before, after = body.rsplit(' или ', 1)
+            last, *tails = after.split(',')
+            styles = before + ', ' + last
+        else:
+            return node('Unresolved', node_id, local, reason='ambiguous-martial-list-boundary')
+        choices = [sub(x, f'style/{i}') for i, x in enumerate(re.split(r',| или ', styles))]
+        return node('AllOf', node_id, local, children=[node('AnyOf', node_id+'/styles', local, children=choices)] + [sub(x, f'tail/{i}') for i, x in enumerate(tails)])
+    # Do not split commas inside qualifiers, or invent a meaning for и/или / typo ил.
+    if '(' in raw or ')' in raw or 'и/или' in raw:
+        return node('Unresolved', node_id, local, reason='unresolved-qualified-or-compound-requirement')
+    parts = re.split(r'[,;]', raw)
+    if len(parts) > 1:
+        return node('AllOf', node_id, local, children=[sub(x, i) for i, x in enumerate(parts)])
+    if ' или ' in raw:
+        return node('AnyOf', node_id, local, children=[sub(x, i) for i, x in enumerate(raw.split(' или '))])
+    if raw == 'Только при создании персонажа':
+        return node('CreationPhase', node_id, local, operand='Creating', operator='EQ')
+    explicit_spell = raw.lower().startswith('заклинание ')
+    if explicit_spell:
+        raw = raw[len('заклинание '):].strip(' «»"')
+    match = re.fullmatch(r'(.+?)\s+(\d+)', raw)
+    label, rank = (match[1], int(match[2])) if match else (raw, 1)
+    if label in ATTRIBUTES and match:
+        return node('Attribute', node_id, local, attributeId=ATTRIBUTES[label], operand=rank, operator='GE')
+    candidates = [d for d in definitions if d['name'] == label and (not explicit_spell or d['kind'] == 'SPELL')]
+    if len(candidates) != 1:
+        return node('Unresolved', node_id, local, reason=('missing-reference:' if not candidates else 'ambiguous-reference:') + label)
+    target = candidates[0]
+    ref = target['ref']
+    if target['kind'] == 'SPELL':
+        if match:
+            return node('Unresolved', node_id, local, reason='spell-rank-not-defined:'+label)
+        return node('LearnedSpell', node_id, local, **ref, operator='EQ', operand=True)
+    if target['kind'] == 'SKILL':
+        return node('SkillFamily', node_id, local, packId=ref['packId'], familyId=ref['entryId'], operator='GE', operand=rank)
+    return node('OwnedRank', node_id, local, **ref, operator='GE', operand=rank)
+
+
+def walk(tree):
+    yield tree
+    for child in tree.get('children', []):
+        yield from walk(child)
+    for key in ('predicate', 'conflicting'):
+        if key in tree:
+            yield from walk(tree[key])
+
+
+def diagnose_catalog(definitions):
+    """Keep exact references; detect all SCCs including self loops, without flattening OR."""
+    index = defaultdict(list)
+    diagnostics = []
+    def emit(kind, definition, n, message):
+        diagnostics.append({'kind': kind, 'definitionId': definition['ref']['entryId'],
+                            'packId': definition['ref']['packId'], 'nodeId': n.get('nodeId'),
+                            'message': message, 'sourceRef': n.get('sourceRef')})
+    for d in definitions:
+        index[(d['ref']['packId'], d['ref']['entryId'])].append(d)
+    for values in index.values():
+        if len(values) > 1:
+            emit('duplicate-definition', values[0], values[0]['requirements'], 'Duplicate stable definition identity')
+    edges = defaultdict(set)
+    for d in definitions:
+        own = (d['ref']['packId'], d['ref']['entryId'])
+        for n in walk(d['requirements']):
+            if n['type'] == 'Unresolved':
+                emit(n['reason'].split(':')[0], d, n, n['reason'])
+            field = {'OwnedRank': 'entryId', 'Specialization': 'entryId', 'LearnedSpell': 'entryId', 'SkillFamily': 'familyId', 'BranchAccess': 'branchId'}.get(n['type'])
+            if not field:
+                continue
+            key = (n['packId'], n[field]); targets = index.get(key, [])
+            if not targets:
+                emit('missing-reference', d, n, ':'.join(key)); continue
+            if len(targets) != 1:
+                emit('ambiguous-reference', d, n, ':'.join(key))
+            edges[own].add(key)
+            target = targets[0]
+            if n['type'] in ('OwnedRank', 'SkillFamily', 'Specialization'):
+                maximum = target.get('maxRank')
+                if maximum is None:
+                    emit('unresolved-reference-rank', d, n, ':'.join(key))
+                elif n['operand'] < 0 or n['operand'] > maximum:
+                    emit('rank-out-of-range', d, n, f"{n['operand']} outside 0..{maximum}: {key}")
+            if n.get('accessOptionId') is not None:
+                options = target.get('abilityOptionIds')
+                if options is None or n['accessOptionId'] not in options:
+                    emit('option-out-of-range', d, n, str(n['accessOptionId']))
+    # Tarjan, stable traversal for reproducible diagnostics.
+    count = 0; indices = {}; low = {}; stack = []; active = set()
+    def visit(v):
+        nonlocal count
+        indices[v] = low[v] = count; count += 1; stack.append(v); active.add(v)
+        for w in sorted(edges[v]):
+            if w not in indices:
+                visit(w); low[v] = min(low[v], low[w])
+            elif w in active:
+                low[v] = min(low[v], indices[w])
+        if low[v] == indices[v]:
+            component = []
+            while True:
+                w = stack.pop(); active.remove(w); component.append(w)
+                if w == v: break
+            if len(component) > 1 or v in edges[v]:
+                for key in sorted(component):
+                    emit('dependency-cycle', index[key][0], index[key][0]['requirements'], repr(sorted(component)))
+    for key in sorted(index):
+        if key not in indices: visit(key)
+    return diagnostics
+
+
+def correct_development_payload(payload, repo_root):
+    result = copy.deepcopy(payload)
+    evidence = read(Path(repo_root)/'rulesets/dubl-3.69/acquisition/source_questions.json')
+    for e in result.get('entries', []):
+        p = CORRECTIONS.get(e['id'])
+        if p:
+            e['requirements'] = evidence['sourceEvidence'][f'core:P{p}']['text'].split(':', 1)[1].strip()
+            e['acquisitionSourceRef'] = source_ref(evidence, p)
+        if e['id'] == 'feat_9012c539238a1e6f':
+            text = evidence['sourceEvidence']['core:P13387']['text']
+            e['cost'] = int(text.split(':', 1)[1])
+            e['acquisitionSourceRef'] = source_ref(evidence, 13387)
+            # Remove only the obsolete cost-only diagnostic, never another field's blocker.
+            if e.get('mechanicsConflict') == 'В рулбуке не определены поля: cost. Значения сохранены только для совместимости.':
+                for field in ('incomplete', 'mechanicsConflict', 'conflictNote'): e.pop(field, None)
+    return result
+
+
+def build_acquisition_catalogs(repo_root):
+    repo_root = Path(repo_root)
+    evidence = read(repo_root/'rulesets/dubl-3.69/acquisition/source_questions.json')
+    for p in evidence['sourceEvidence'].values():
+        if 'sha256' in p and hashlib.sha256(p['text'].encode()).hexdigest() != p['sha256']:
+            raise ValueError('Source excerpt checksum mismatch')
+    runtime = {}; occurrence = defaultdict(list)
+    for o in evidence['sourceOccurrences']:
+        if o.get('runtimeId'): occurrence[o['runtimeId']].append(o)
+    for pack in (CORE, CHI):
+        root = repo_root/'shared/src/commonMain/resources/fcp'/pack
+        manifest = read(root/'manifest.json')
+        for entry in sorted(manifest['entries'], key=lambda e: (e.get('order', 0), e['path'])):
+            if entry['kind'] == 'dubl.development':
+                for d in correct_development_payload(read(root/entry['path']), repo_root)['entries']:
+                    runtime[d['id']] = (pack, d)
+            elif entry['kind'] == 'dubl.skills':
+                for d in read(root/entry['path'])['skills']:
+                    runtime[d['id']] = (pack, d)
+            elif entry['kind'] == 'dubl.magic-equipment':
+                for d in read(root/entry['path'])['spells']:
+                    runtime[d['id']] = (pack, d)
+    definitions = []
+    for d in evidence['definitions']:
+        if d['kind'] not in KINDS or not d['included']: continue
+        pack, r = runtime.get(d['id'], (d['pack'], {}))
+        if d['kind'] == 'chi_bonus_rank': pack = CHI
+        occurrences = occurrence[d['id']]
+        o = occurrences[0] if len(occurrences) == 1 else None
+        confirmed = o is not None and o['matchStatus'] == 'matched'
+        # A unique stable binding still needs retained and verified source excerpts.
+        if confirmed:
+            confirmed = all(ref in evidence['sourceEvidence'] for ref in o['sourceRef'])
+        source = source_ref(evidence, int(o['sourceRef'][0].split('P')[1])) if confirmed else {
+            'documentId': 'unverified:'+pack, 'documentVersion': '3.69',
+            'originalText': r.get('requirements', ''), 'sheet': ','.join(r.get('sourceRefs', [])) or None, 'paragraph': None}
+        maximum = d['rankBounds'][1] if d['rankBasis'] == 'SOURCE_TABLE' else None
+        if confirmed:
+            m = re.search(r'^Ранг(?:и)?:\s*(\d+)\s*$', o['fullRule'], re.M)
+            if m: maximum = int(m[1])
+        item = {'ref': {'packId': pack, 'entryId': d['id']}, 'name': d['name'], 'kind': KINDS[d['kind']],
+                'maxRank': maximum, 'repeatPolicy': {'type': 'Unresolved', 'reason': 'Q_SOURCE_PARAMETER_IDENTITY'},
+                'parameterDefinitions': [], 'abilityOptionIds': None if r.get('abilityOptions') else [],
+                'sourceStatus': 'NeedsResolution' if confirmed else 'Unavailable', 'sourceRef': source,
+                'requirementsText': r.get('requirements', ''),
+                'priceRule': {'type': 'Unknown', 'reason': 'source-unverified' if not confirmed else 'Q_SOURCE_PRICE_CONTEXT', 'sourceRef': source}}
+        if confirmed:
+            reqs = [(int(ref.split('P')[1]), evidence['sourceEvidence'][ref]['text']) for ref in o['sourceRef'] if re.match(r'^Требовани[ея]:', evidence['sourceEvidence'][ref]['text'])]
+            if len(reqs) != 1:
+                item['requirementsText'] = ''
+            if len(reqs) == 1:
+                p, text = reqs[0]; item['requirementsText'] = text.split(':', 1)[1].strip(); item['requirementSource'] = source_ref(evidence, p)
+            prices = [(int(ref.split('P')[1]), evidence['sourceEvidence'][ref]['text']) for ref in o['sourceRef'] if re.fullmatch(r'Стоимость:\s*\d+', evidence['sourceEvidence'][ref]['text'])]
+            if len(prices) == 1:
+                p, text = prices[0]; price = {'xp': str(int(text.split(':',1)[1])), 'ap': '0', 'sourceRef': source_ref(evidence, p)}
+                if maximum == 1:
+                    item['priceRule'] = {'type': 'Fixed', **price}
+                else:
+                    item['priceRule'] = {'type': 'TransitionTable', 'transitions': [{'fromRank': 0, 'toRank': 1, **price}], 'sourceRef': price['sourceRef']}
+            if d['id'] == 'feat_7fc6fc6e63da9688' and 'каждый раз выбирая новый тип сопротивления' in o['fullRule']:
+                item['repeatPolicy'] = {'type': 'DistinctParameter', 'parameterKeys': ['resistanceType'], 'requireUnique': True}
+                item['parameterDefinitions'] = [{'key': 'resistanceType', 'domain': {'type': 'Unresolved', 'reason': 'Source type-to-stable-ID mapping requires review'}}]
+        if d['kind'] in ('attribute', 'skill') and d['rankBasis'] == 'SOURCE_TABLE':
+            start, stop, heading = (67, 112, 63) if d['kind'] == 'attribute' else (359, 389, 355)
+            transitions = []
+            for paragraph in range(start, stop, 3):
+                text = evidence['sourceEvidence'][f'core:P{paragraph}']['text']
+                match = re.fullmatch(r'(-?\d+) → (-?\d+)', text.strip())
+                if not match:
+                    raise ValueError(f'Unrecognized acquisition price row core:P{paragraph}')
+                cost_text = evidence['sourceEvidence'][f'core:P{paragraph + 1}']['text'].strip()
+                if not re.fullmatch(r'\d+', cost_text):
+                    raise ValueError(f'Unrecognized acquisition price core:P{paragraph + 1}')
+                transitions.append({'fromRank': int(match[1]), 'toRank': int(match[2]),
+                    'xp': cost_text, 'ap': '0', 'sourceRef': source_ref(evidence, paragraph + 1)})
+            item['priceRule'] = {'type': 'TransitionTable', 'transitions': transitions,
+                                 'sourceRef': source_ref(evidence, heading)}
+            item['sourceRef'] = source_ref(evidence, heading)
+            item['sourceStatus'] = 'NeedsResolution'
+            # Explicit general purchase permission, not an absent display field.
+            permission = 62 if d['kind'] == 'attribute' else 203
+            item['requirementSource'] = source_ref(evidence, permission)
+            item['requirementsText'] = evidence['sourceEvidence'][f'core:P{permission}']['text']
+            item['generalPurchasePermission'] = not r.get('template', False)
+            if not r.get('template', False):
+                # A fixed attribute/skill has one value whose rank is raised;
+                # it is not a new independently specialized instance.
+                item['repeatPolicy'] = {'type': 'Single'}
+                item['sourceStatus'] = 'Confirmed'
+            if r.get('template'):
+                item['identityQuestion'] = 'Q_SOURCE_PARAMETER_IDENTITY'
+                item['parameterDefinitions'] = [{'key': 'specialization', 'domain': {
+                    'type': 'Unresolved', 'reason': 'Q_SOURCE_PARAMETER_IDENTITY'}}]
+        definitions.append(item)
+    for item in definitions:
+        id = item['ref']['entryId']; src = item.pop('requirementSource', item['sourceRef'])
+        if item.pop('generalPurchasePermission', False):
+            tree = node('AllOf', id+'/requirements', src, children=[],
+                noRequirementsStatement='The cited general rule explicitly permits purchase of this fixed attribute/skill rank for XP; no additional entry prerequisite is stated.')
+        elif item.get('identityQuestion'):
+            tree = node('Unresolved', id+'/requirements', src, reason=item.pop('identityQuestion'))
+        else:
+            tree = parse_requirement(item['requirementsText'], id+'/requirements', src, definitions)
+        # The root keeps exact wording/prefix for provenance, children keep atom wording.
+        tree['sourceRef'] = src
+        if item['sourceStatus'] == 'Unavailable':
+            blocker = node('Unresolved', id+'/source', src, reason='source-unverified')
+            if tree['type'] == 'AllOf' and tree.get('children'):
+                tree['children'].append(blocker)
+            else:
+                tree = node('AllOf', id+'/requirements', src, children=[tree, blocker])
+        _, r = runtime.get(id, ('', {}))
+        if r.get('accessId'):
+            access = node('BranchAccess', id+'/access', src, packId=CORE, branchId=r['accessId'], operator='EQ', operand=True)
+            tree = node('AllOf', id+'/with-access', src, children=[tree, access])
+        if id == 'feat_9012c539238a1e6f':
+            tree['children'].append(node('Unresolved', id+'/parent-access', src, reason='Q_EAGLE_PARENT_ACCESS'))
+        item['requirements'] = tree
+    diagnostics = diagnose_catalog(definitions)
+    # Invalid graph constraints are executable blockers too, not diagnostics that a
+    # future evaluator could accidentally ignore. Preserve the original subtree.
+    by_ref = {(d['ref']['packId'], d['ref']['entryId']): d for d in definitions}
+    blocking = {'duplicate-definition', 'missing-reference', 'ambiguous-reference', 'rank-out-of-range', 'option-out-of-range', 'unresolved-reference-rank', 'dependency-cycle'}
+    for diagnostic in diagnostics:
+        if diagnostic['kind'] not in blocking: continue
+        d = by_ref[(diagnostic['packId'], diagnostic['definitionId'])]
+        blocker = node('Unresolved', d['ref']['entryId']+'/diagnostic/'+str(len(list(walk(d['requirements'])))), diagnostic['sourceRef'], reason=diagnostic['kind']+':'+diagnostic['message'])
+        if d['requirements']['type'] == 'AllOf' and d['requirements'].get('children'):
+            d['requirements']['children'].append(blocker)
+        else:
+            d['requirements'] = node('AllOf', d['ref']['entryId']+'/validated', d['sourceRef'], children=[d['requirements'], blocker])
+    resolution = hashlib.sha256((repo_root/'rulesets/dubl-3.69/resolutions.json').read_bytes()).hexdigest()
+    result = {}
+    for pack in (CORE, CHI):
+        payload = {'schemaVersion': 1, 'resolutionRevision': resolution,
+                   'definitions': [d for d in definitions if d['ref']['packId'] == pack],
+                   'diagnostics': [d for d in diagnostics if d['packId'] == pack]}
+        payload['catalogRevision'] = hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+        result[pack] = payload
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--repo-root', type=Path, default=Path('.'))
+    parser.add_argument('--output-dir', type=Path, required=True)
+    args = parser.parse_args()
+    for pack, payload in build_acquisition_catalogs(args.repo_root).items():
+        path = args.output_dir/pack/'acquisition_catalog.json'; path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+
+
+if __name__ == '__main__':
+    main()

@@ -3979,7 +3979,7 @@
       "name": "Орлиный взор",
       "section": "Ветки способностей",
       "category": "Совершенная точность",
-      "cost": 0,
+      "cost": 45,
       "costType": "xp",
       "ranks": 1,
       "requirements": "Совершенная точность, Зоркость 2",
@@ -3995,9 +3995,13 @@
         "Совершенная точность"
       ],
       "accessId": "access_3fa2fc858d18365b",
-      "incomplete": true,
-      "mechanicsConflict": "В рулбуке не определены поля: cost. Значения сохранены только для совместимости.",
-      "conflictNote": "Локальная правка разрешена; compatibility fallback не считается канонической трактовкой."
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.z1o9nhkkrzeb",
+        "paragraph": 13387,
+        "originalText": "Стоимость: 45"
+      }
     },
     {
       "id": "feat_482ee0f8c87f4398",

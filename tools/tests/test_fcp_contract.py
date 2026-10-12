@@ -42,6 +42,7 @@ def test_core_and_optional_chi_are_separate_fury_content_packs():
 def test_catalogs_no_longer_live_as_loose_shared_resources():
     for name in (
         "skills_catalog.json", "conditions_catalog.json", "development_catalog.json",
+        "acquisition_catalog.json",
         "development_regular_catalog.json", "development_special_catalog.json",
         "development_ability_roots_catalog.json", "development_martial_catalog.json",
         "development_chi_catalog.json", "development_magic_catalog.json",

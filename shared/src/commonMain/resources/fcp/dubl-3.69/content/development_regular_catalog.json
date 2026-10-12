@@ -2319,7 +2319,7 @@
       "cost": 20,
       "costType": "xp",
       "ranks": 1,
-      "requirements": "Ловкость 3, Скорость 3, Холодное оружие 3 или Рукопашный бой 3",
+      "requirements": "Ловкость 3 или Скорость 3; Холодное оружие 3 или Рукопашный бой 3",
       "benefit": "Вы научились правильно блокировать удары с помощью щита и оружия. Без этого навыка проверки блокирования эффективны на ½.",
       "sourceRefs": [
         "core:p-001457",
@@ -2327,7 +2327,14 @@
         "core:p-001459",
         "core:p-001460",
         "core:p-001461"
-      ]
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.9xkxyxwswfn9",
+        "paragraph": 11012,
+        "originalText": "Требование: Ловкость 3 или Скорость 3; Холодное оружие 3 или Рукопашный бой 3"
+      }
     },
     {
       "id": "feat_e22fc0ae2cd61f3a",
@@ -4784,7 +4791,7 @@
       "cost": 30,
       "costType": "xp",
       "ranks": 2,
-      "requirements": "Бегун 1, Выносливый 2, Телосложение 5,",
+      "requirements": "Бегун 1, Выносливый 2, Телосложение 3",
       "benefit": "Когда Вы используете ускорение, его длительность увеличивается на 1 раунд за каждый ранг. Вы можете бежать в 10 раз дольше до потери пунктов выносливости.",
       "sourceRefs": [
         "core:p-002360",
@@ -4792,7 +4799,14 @@
         "core:p-002362",
         "core:p-002363",
         "core:p-002364"
-      ]
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.9xkxyxwswfn9",
+        "paragraph": 11791,
+        "originalText": "Требование: Бегун 1, Выносливый 2, Телосложение 3"
+      }
     },
     {
       "id": "feat_bc96393fb969a8e3",
@@ -4802,7 +4816,7 @@
       "cost": 30,
       "costType": "xp",
       "ranks": 1,
-      "requirements": "Бегун 2, Ловкость 5, Сила 4",
+      "requirements": "Бегун 2, Ловкость 3, Сила 3",
       "benefit": "Используя ускорение Вы можете потратить дополнительно 1 пункт выносливости и добавить ещё половину значения базового бега.",
       "sourceRefs": [
         "core:p-002366",
@@ -4810,7 +4824,14 @@
         "core:p-002368",
         "core:p-002369",
         "core:p-002370"
-      ]
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.9xkxyxwswfn9",
+        "paragraph": 11797,
+        "originalText": "Требование: Бегун 2, Ловкость 3, Сила 3"
+      }
     },
     {
       "id": "feat_46ef062387e0840a",

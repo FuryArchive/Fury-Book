@@ -1,5 +1,7 @@
 package com.furybook.dubl.content
 
+import com.furybook.dubl.acquisition.CatalogLoadResult
+import com.furybook.dubl.acquisition.loadAcquisitionCatalog
 import com.furybook.content.FcpContentPack
 import com.furybook.content.FcpTextSource
 import com.furybook.content.FcpUiComponent
@@ -42,6 +44,9 @@ class DublChiFcpCatalogLoader(
 
     fun claimedDevelopmentIds(): Set<String> =
         pack.manifest.claims("dubl.development").mapTo(linkedSetOf()) { it.id }
+
+    fun loadAcquisition(corePack: FcpContentPack): CatalogLoadResult =
+        loadAcquisitionCatalog(listOf(corePack, pack), includeChi = true)
 
     fun loadDevelopment(): DevelopmentCatalog =
         mergeDevelopmentCatalogs(

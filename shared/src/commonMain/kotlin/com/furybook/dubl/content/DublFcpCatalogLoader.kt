@@ -1,5 +1,7 @@
 package com.furybook.dubl.content
 
+import com.furybook.dubl.acquisition.CatalogLoadResult
+import com.furybook.dubl.acquisition.loadAcquisitionCatalog
 import com.furybook.content.FcpContentPack
 import com.furybook.content.FcpTextSource
 import com.furybook.dubl.data.mergeDevelopmentCatalogs
@@ -38,6 +40,9 @@ class DublFcpCatalogLoader(
 
     fun loadConditions(): ConditionCatalog =
         parseConditionCatalog(pack.readSingle("dubl.conditions"))
+
+    fun loadAcquisition(includeChi: Boolean = false, optionalPacks: List<FcpContentPack> = emptyList()): CatalogLoadResult =
+        loadAcquisitionCatalog(listOf(pack) + optionalPacks, includeChi)
 
     fun loadDevelopment(): DevelopmentCatalog =
         mergeDevelopmentCatalogs(

@@ -110,6 +110,14 @@
         "core"
       ],
       "order": 400
+    },
+    {
+      "kind": "dubl.acquisition",
+      "path": "content/acquisition_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 500
     }
   ],
   "dependencies": [],
