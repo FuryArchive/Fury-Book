@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import com.furybook.dubl.acquisition.*
 import com.furybook.dubl.data.SnapshotCodec
 import com.furybook.core.cloud.FuryCloudTransport
+import com.furybook.core.cloud.CloudExtrasProjection
 import kotlin.js.Promise
 import kotlinx.browser.window
 import kotlinx.coroutines.MainScope
@@ -207,7 +208,7 @@ class WebCloudSync(private val acquisitionStore: AcquisitionStore? = null,
             val encoded=SnapshotCodec.encode(com.furybook.dubl.model.AppSnapshot(listOf(canonical.character),canonical.character.id))
             val root=js("JSON.parse")(encoded)
             characterArray.push(root.characters[0])
-            extrasCharacters[canonical.character.id]=js("JSON.parse")(com.furybook.core.cloud.CloudProtocol.extrasJson(canonical.extras))
+            extrasCharacters[canonical.character.id]=js("JSON.parse")(CloudExtrasProjection.encode(canonical.extras))
         }
         val actualCount=characterArray.length as Int
         val snapshotRoot = js("({})")

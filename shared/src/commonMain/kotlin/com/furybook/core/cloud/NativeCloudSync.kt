@@ -331,6 +331,14 @@ class NativeCloudSyncCoordinator(
     }
 }
 
+/**
+ * Sheet extras for a legacy/local bootstrap projection. Preserves the existing cloud field shape,
+ * including a device-local portrait. Receipt-aware transport must use encodeSyncEnvelope instead.
+ */
+object CloudExtrasProjection {
+    fun encode(extras: CharacterSheetExtras): String = CloudProtocol.extrasJson(extras)
+}
+
 internal object CloudProtocol {
     fun parseBootstrap(raw: String): CloudBootstrap {
         val root = parseRoot(raw)
