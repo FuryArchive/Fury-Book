@@ -8,6 +8,7 @@ import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.CharacterSheetResourceId
 import com.furybook.dubl.model.SheetGroup
 import com.furybook.dubl.model.SheetGroupingRules
+import com.furybook.core.json.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -22,20 +23,25 @@ class DesktopCharacterExtrasStore(
 
     override fun save(characterId: String, extras: CharacterSheetExtras) {
         val state = ensureLoaded()
-        state[characterId] = extras
-        persist(state)
+        val next = state.toMutableMap().apply { put(characterId, extras) }
+        persist(next)
+        cache = next
     }
 
     override fun delete(characterId: String) {
         val state = ensureLoaded()
-        if (state.remove(characterId) != null) persist(state)
+        if (characterId in state) {
+            val next = state.toMutableMap().apply { remove(characterId) }
+            persist(next)
+            cache = next
+        }
     }
 
     private fun ensureLoaded(): MutableMap<String, CharacterSheetExtras> {
         cache?.let { return it }
-        val loaded = if (!Files.exists(file)) mutableMapOf() else runCatching {
+        val loaded = if (Files.notExists(file)) mutableMapOf() else runCatching {
             decode(Files.readString(file, StandardCharsets.UTF_8)).toMutableMap()
-        }.getOrDefault(mutableMapOf())
+        }.getOrThrow()
         cache = loaded
         return loaded
     }
@@ -77,11 +83,29 @@ class DesktopCharacterExtrasStore(
     }
 
     private fun decode(raw: String): Map<String, CharacterSheetExtras> {
-        // Reuse the stable grouping encoding inside a deliberately small object decoder.
-        val root = parseDesktopObject(raw)
+        // Unknown fields/enum values are refused rather than stripped during a migrated save.
+        val normalized = normalizeLegacyControls(raw)
+        val json = JsonReader(normalized, strict = true).read() as JsonValue.Obj
+        require(json.values.keys == setOf("version", "characters")) { "Unknown legacy extras fields" }
+        if (json.int("version") != 1) throw UnsupportedDesktopData("Unsupported sheet-extras version")
+        val charactersJson = json.values["characters"] as? JsonValue.Obj ?: error("Expected extras characters object")
+        val fields = setOf("portraitUri", "conditions", "hiddenResources", "preferredAttributes", "skillGroups", "developmentGroups", "conditionOverrides", "customConditions", "notes", "noteEntries")
+        charactersJson.values.forEach { (id, value) ->
+            require(id.isNotBlank())
+            val row = value as? JsonValue.Obj ?: error("Expected character extras object")
+            require(row.values.keys.all { it in fields }) { "Unknown character extras field" }
+            row.values.forEach { (key, item) -> when (key) {
+                "conditions" -> require((item as JsonValue.Arr).values.all { it is JsonValue.Str && CharacterConditionId.entries.any { e -> e.name == it.value } }) { "Unknown condition" }
+                "hiddenResources" -> require((item as JsonValue.Arr).values.all { it is JsonValue.Str && CharacterSheetResourceId.entries.any { e -> e.name == it.value } }) { "Unknown resource" }
+                "preferredAttributes" -> require((item as JsonValue.Obj).values.values.all { it is JsonValue.Str && AttributeId.entries.any { e -> e.name == it.value } }) { "Unknown attribute" }
+                "portraitUri" -> require(item is JsonValue.Str || item == JsonValue.Null)
+                else -> require(item is JsonValue.Str) { "Expected encoded extras string" }
+            } }
+        }
+        val root = parseDesktopObject(normalized)
         val characters = root.objects["characters"] ?: return emptyMap()
         return characters.objects.mapValues { (_, objectValue) ->
-            CharacterSheetExtras(
+            val extras = CharacterSheetExtras(
                 portraitUri = objectValue.strings["portraitUri"],
                 activeConditions = objectValue.arrays["conditions"].orEmpty().mapNotNull { name -> CharacterConditionId.entries.firstOrNull { it.name == name } }.toSet(),
                 hiddenResourceIds = objectValue.arrays["hiddenResources"].orEmpty().mapNotNull { name -> CharacterSheetResourceId.entries.firstOrNull { it.name == name } }.toSet(),
@@ -95,6 +119,16 @@ class DesktopCharacterExtrasStore(
                 notes = objectValue.strings["notes"].orEmpty(),
                 noteEntries = CharacterNoteDataCodec.decode(objectValue.strings["noteEntries"]),
             )
+            mapOf(
+                "skillGroups" to SheetGroupingRules.encode(extras.skillGroups),
+                "developmentGroups" to SheetGroupingRules.encode(extras.developmentGroups),
+                "conditionOverrides" to ConditionLocalDataCodec.encodeOverrides(extras.conditionOverrides),
+                "customConditions" to ConditionLocalDataCodec.encodeCustom(extras.customConditions),
+                "noteEntries" to CharacterNoteDataCodec.encode(extras.noteEntries),
+            ).forEach { (field, encoded) ->
+                require(objectValue.strings[field].orEmpty() == encoded) { "Legacy extras $field would lose values" }
+            }
+            extras
         }
     }
 
@@ -104,58 +138,41 @@ class DesktopCharacterExtrasStore(
         val objects: MutableMap<String, DesktopObject> = linkedMapOf(),
     )
 
+    /** Older desktop writers emitted grouping separators literally inside strings. Normalize only
+     * that established compatibility encoding for parsing; the original source is preserved verbatim.
+     */
+    private fun normalizeLegacyControls(raw: String): String = buildString {
+        var inString = false
+        var escaped = false
+        raw.forEach { ch ->
+            if (inString && ch.code in 0..31) append("\\u").append(ch.code.toString(16).padStart(4, '0')) else append(ch)
+            if (!escaped && ch == '"') inString = !inString
+            escaped = inString && !escaped && ch == '\\'
+        }
+    }
+
     private fun parseDesktopObject(raw: String): DesktopObject {
-        // This parser only consumes the exact format emitted above and safely falls back to empty state.
-        var i = 0
-        fun skip() { while (i < raw.length && raw[i].isWhitespace()) i++ }
-        fun readString(): String {
-            require(raw[i++] == '"')
-            val out = StringBuilder()
-            while (i < raw.length) {
-                val c = raw[i++]
-                if (c == '"') return out.toString()
-                if (c == '\\') {
-                    val e = raw[i++]
-                    out.append(when (e) { 'n' -> '\n'; 'r' -> '\r'; 't' -> '\t'; else -> e })
-                } else out.append(c)
-            }
-            error("unterminated")
+        fun convert(value: JsonValue.Obj): DesktopObject = DesktopObject().apply {
+            value.values.forEach { (key, item) -> when (item) {
+                is JsonValue.Str -> strings[key] = item.value
+                JsonValue.Null -> strings[key] = null
+                is JsonValue.Arr -> arrays[key] = item.values.map { (it as JsonValue.Str).value }
+                is JsonValue.Obj -> objects[key] = convert(item)
+                else -> Unit // Root version was validated above.
+            } }
         }
-        fun parseArray(): List<String> {
-            require(raw[i++] == '['); skip()
-            val values = mutableListOf<String>()
-            if (raw.getOrNull(i) == ']') { i++; return values }
-            while (true) {
-                skip(); values += readString(); skip()
-                when (raw[i++]) { ']' -> return values; ',' -> Unit; else -> error("array") }
-            }
-        }
-        lateinit var parseObject: () -> DesktopObject
-        parseObject = {
-            skip(); require(raw[i++] == '{'); skip()
-            val result = DesktopObject()
-            if (raw.getOrNull(i) == '}') { i++; result } else {
-                while (true) {
-                    skip(); val key = readString(); skip(); require(raw[i++] == ':'); skip()
-                    when (raw.getOrNull(i)) {
-                        '"' -> result.strings[key] = readString()
-                        '[' -> result.arrays[key] = parseArray()
-                        '{' -> result.objects[key] = parseObject()
-                        'n' -> { require(raw.substring(i, (i + 4).coerceAtMost(raw.length)) == "null"); i += 4; result.strings[key] = null }
-                        else -> { while (i < raw.length && raw[i] !in charArrayOf(',', '}')) i++ }
-                    }
-                    skip(); when (raw[i++]) { '}' -> break; ',' -> Unit; else -> error("object") }
-                }
-                result
-            }
-        }
-        return parseObject()
+        return convert(JsonReader(raw, strict = true).read() as JsonValue.Obj)
+    }
+
+    companion object {
+        internal fun decodeLegacy(raw: String): Map<String, CharacterSheetExtras> =
+            DesktopCharacterExtrasStore(Path.of("unused-extras-codec")).decode(raw)
     }
 
     private fun stringArray(values: Iterable<String>): String = values.joinToString(prefix = "[", postfix = "]", separator = ",", transform = ::quoted)
     private fun quoted(value: String): String = buildString {
         append('"')
-        value.forEach { c -> when (c) { '\\' -> append("\\\\"); '"' -> append("\\\""); '\n' -> append("\\n"); '\r' -> append("\\r"); '\t' -> append("\\t"); else -> append(c) } }
+        value.forEach { c -> when (c) { '\\' -> append("\\\\"); '"' -> append("\\\""); '\n' -> append("\\n"); '\r' -> append("\\r"); '\t' -> append("\\t"); else -> if (c.code < 32) append("\\u").append(c.code.toString(16).padStart(4, '0')) else append(c) } }
         append('"')
     }
 }

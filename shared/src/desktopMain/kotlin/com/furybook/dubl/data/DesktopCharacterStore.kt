@@ -1,6 +1,7 @@
 package com.furybook.dubl.data
 
 import com.furybook.dubl.model.AppSnapshot
+import com.furybook.dubl.acquisition.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
@@ -12,10 +13,15 @@ class DesktopCharacterStore(
     private val idFactory: () -> String = { UUID.randomUUID().toString() },
 ) : CharacterStore {
     override fun load(): AppSnapshot {
-        if (!Files.exists(file)) return SnapshotCodec.fresh(idFactory)
-        return runCatching {
-            SnapshotCodec.decode(Files.readString(file, StandardCharsets.UTF_8), idFactory)
-        }.getOrElse { SnapshotCodec.fresh(idFactory) }
+        if (Files.notExists(file)) return SnapshotCodec.fresh(idFactory)
+        val raw = Files.readString(file, StandardCharsets.UTF_8)
+        when (val result = decodeEnvelope(raw)) {
+            is LoadResult.MigrationRequired -> Unit
+            is LoadResult.Unsupported -> throw UnsupportedDesktopData(result.reason)
+            is LoadResult.Corrupt -> error("Corrupt characters.json: ${result.reason}")
+            else -> error("Expected legacy snapshot in characters.json")
+        }
+        return SnapshotCodec.decode(raw, idFactory)
     }
 
     override fun save(snapshot: AppSnapshot) {

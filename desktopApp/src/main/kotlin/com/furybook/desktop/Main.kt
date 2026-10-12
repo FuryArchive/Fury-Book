@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -68,6 +70,8 @@ import com.furybook.desktop.screens.SkillsScreen
 import com.furybook.desktop.cloud.DesktopCloudController
 import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
+import com.furybook.dubl.acquisition.*
+import com.furybook.dubl.data.DesktopAcquisitionStore
 import com.furybook.dubl.data.DesktopCharacterStore
 import com.furybook.dubl.data.DesktopCharacterExtrasStore
 
@@ -128,17 +132,36 @@ private fun DesktopVisualTheme(content: @Composable () -> Unit) {
 
 @Composable
 private fun DesktopApp() {
+    val localAcquisitionEnabled = remember { java.lang.Boolean.getBoolean("furybook.acquisition.local") }
     val baseCharacters = remember { DesktopCharacterStore() }
     val baseExtras = remember { DesktopCharacterExtrasStore() }
     val observedCharacters = remember(baseCharacters) { ObservingCharacterStore(baseCharacters) }
     val observedExtras = remember(baseExtras) { ObservingCharacterExtrasStore(baseExtras) }
-    val cloudController = remember(baseCharacters, baseExtras) {
-        DesktopCloudController(baseCharacters, baseExtras).also {
+    val legacyCloudController = remember(baseCharacters, baseExtras, localAcquisitionEnabled) {
+        if (localAcquisitionEnabled) null else DesktopCloudController(baseCharacters, baseExtras).also {
             it.bind(observedCharacters, observedExtras)
         }
     }
-    val reloadToken = cloudController.reloadToken
-    val state = remember(reloadToken) { DesktopAppState(observedCharacters, observedExtras) }
+    val reloadToken = legacyCloudController?.reloadToken ?: 0
+    val acquisitionStore = remember(localAcquisitionEnabled) { if (localAcquisitionEnabled) DesktopAcquisitionStore() else null }
+    val startup = remember(reloadToken, localAcquisitionEnabled) {
+        runCatching { DesktopAppState(observedCharacters, observedExtras,
+            localAcquisitionEnabled = localAcquisitionEnabled, acquisitionStore = acquisitionStore) }
+    }
+    val state = startup.getOrNull()
+    if (state == null) {
+        Column(Modifier.fillMaxSize().padding(24.dp)) {
+            Text("Не удалось открыть данные", style = MaterialTheme.typography.headlineSmall)
+            Text(startup.exceptionOrNull()?.message ?: "Хранилище недоступно")
+            Text("Исходные файлы сохранены. Запись заблокирована; проверьте резервную копию и формат.")
+        }
+        return
+    }
+    if (localAcquisitionEnabled) {
+        LocalAcquisitionStoragePanel(state)
+        return // Never bind canonical envelopes to legacy cloud save/link/import/delete writers.
+    }
+    val cloudController = requireNotNull(legacyCloudController)
     var selected by remember { mutableStateOf(DesktopSection.SHEET) }
 
     LaunchedEffect(cloudController) {
@@ -152,19 +175,73 @@ private fun DesktopApp() {
         cloudController.updateEnabledPackIds((cloudController.enabledPackIds - availableIds) + activeIds)
     }
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        val layout = layoutClassForWidth(maxWidth.value.toInt())
-        if (layout == DublLayoutClass.COMPACT) {
-            Column(Modifier.fillMaxSize()) {
-                CompactNavigation(selected, { selected = it })
-                DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
-            }
-        } else {
-            Row(Modifier.fillMaxSize()) {
-                DesktopRail(state, selected, { selected = it }, Modifier.width(230.dp).fillMaxHeight())
-                DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
+    Column(Modifier.fillMaxSize()) {
+        state.storageError?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(12.dp)) }
+        BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
+            val layout = layoutClassForWidth(maxWidth.value.toInt())
+            if (layout == DublLayoutClass.COMPACT) {
+                Column(Modifier.fillMaxSize()) {
+                    CompactNavigation(selected, { selected = it })
+                    DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
+                }
+            } else {
+                Row(Modifier.fillMaxSize()) {
+                    DesktopRail(state, selected, { selected = it }, Modifier.width(230.dp).fillMaxHeight())
+                    DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
+                }
             }
         }
+    }
+}
+
+/** T12 storage-only opt-in. Legacy editors/cloud controls stay unavailable until canonical UI lands. */
+@Composable
+private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
+    var packs by remember { mutableStateOf("dubl-3.69") }
+    var xp by remember { mutableStateOf("") }
+    var ap by remember { mutableStateOf("") }
+    var reason by remember { mutableStateOf("") }
+    var localError by remember { mutableStateOf<String?>(null) }
+    val loaded = runCatching { state.localStoredCharacter() }.getOrNull()
+    Column(Modifier.fillMaxSize().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text("Локальный журнал: ${state.activeCharacter.name}", style = MaterialTheme.typography.headlineSmall)
+        Text("Изолированная локальная копия. Облачная запись этого формата выключена.")
+        when (loaded) {
+            is LoadResult.Loaded -> {
+                val amount = balance(loaded.state.ledger)
+                Text("Сохранено на устройстве: ${amount.xp} XP / ${amount.ap} ОСп")
+                Text("История и очередь сохранены. Канонический интерфейс покупок ещё не включён.")
+            }
+            is LoadResult.MigrationRequired -> {
+                Text("Укажите известный состав исходного листа. Старые покупки не переоцениваются новым каталогом.")
+                OutlinedTextField(packs, { packs = it }, label = { Text("Пакеты исходного листа, через запятую") })
+                Button(onClick = {
+                    localError = runCatching { state.prepareLocalMigration(packs.split(',').map(String::trim).filter(String::isNotBlank)) }
+                        .exceptionOrNull()?.message
+                }) { Text("Подготовить миграцию") }
+                state.preparedLegacyMigration?.let { prepared ->
+                    val opening = balance(prepared.ledger)
+                    Text("Остаток по сохранённым старым правилам: ${opening.xp} XP / ${opening.ap} ОСп")
+                    Button(onClick = {
+                        localError = runCatching { state.commitPreparedLocalMigration() }.exceptionOrNull()?.message
+                    }) { Text("Подтверждаю исходные пакеты и перенос") }
+                }
+                if (state.pendingLegacyMigration != null) {
+                    OutlinedTextField(xp, { xp = it }, label = { Text("Известный остаток XP") })
+                    OutlinedTextField(ap, { ap = it }, label = { Text("Известный остаток ОСп") })
+                    OutlinedTextField(reason, { reason = it }, label = { Text("Основание подтверждения") })
+                    Button(enabled = xp.toLongOrNull() != null && ap.toLongOrNull() != null && reason.isNotBlank(), onClick = {
+                        localError = runCatching { state.confirmLocalOpeningBalance(xp.toLong(), ap.toLong(), reason) }
+                            .exceptionOrNull()?.message
+                    }) { Text("Подтверждаю остаток и исходные пакеты") }
+                }
+            }
+            is LoadResult.LegacyImportConflict -> Text(loaded.reason)
+            is LoadResult.Unsupported -> Text("Формат не поддерживается: ${loaded.reason}")
+            is LoadResult.Corrupt -> Text("Повреждённые данные: ${loaded.reason}")
+            else -> Text("Хранилище недоступно. Запись заблокирована.")
+        }
+        (localError ?: state.storageError)?.let { Text(it, color = MaterialTheme.colorScheme.error) }
     }
 }
 

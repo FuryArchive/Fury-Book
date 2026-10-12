@@ -1,0 +1,183 @@
+package com.furybook.dubl.data
+
+import com.furybook.core.json.*
+import com.furybook.dubl.acquisition.*
+import java.nio.ByteBuffer
+import java.nio.channels.FileChannel
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption.*
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
+
+enum class DesktopAcquisitionWriteStage { AfterTempFlush, BeforeReplace, AfterReplace, AfterDirectoryFlush }
+
+/**
+ * Separate versioned container. Atomic replace is mandatory; unsupported filesystems fail closed.
+ * File + directory force precede acknowledgement. Orphan temps are never promoted. A corrupt/future
+ * head is retained for export, not silently recovered/reset. Legacy files are immutable import inputs.
+ * Stable lock files are never removed; an OS lock serializes other JVMs and a JVM lock prevents
+ * overlapping FileChannel locks between instances. Character IDs never become path components.
+ */
+class DesktopAcquisitionStore(
+    private val dataDirectory: Path = DesktopCharacterStore.defaultDataDirectory(),
+    private val fault: (DesktopAcquisitionWriteStage) -> Unit = {},
+) : AcquisitionStore {
+    private val container = dataDirectory.toAbsolutePath().normalize().resolve("acquisition-v1")
+    private val legacyCharacters = dataDirectory.resolve("characters.json")
+    private val legacyExtras = dataDirectory.resolve("sheet-extras.json")
+
+    fun envelopePath(characterId: String): Path = container.resolve("${key(characterId)}.json")
+
+    override suspend fun load(characterId: String): LoadResult = locked(characterId) { loadLocked(characterId) }
+
+    /** Preparation does not write. A caller must explicitly confirm when the frozen catalog is absent. */
+    fun prepareMigration(characterId: String, activePackIds: List<String>, catalog: LegacyCatalogSnapshot?): MigrationResult =
+        locked(characterId) {
+            when (val loaded = loadLocked(characterId)) {
+                is LoadResult.Loaded -> MigrationResult.Ready(loaded.state)
+                is LoadResult.Unsupported -> MigrationResult.Unsupported(loaded.raw, loaded.reason)
+                is LoadResult.Corrupt -> MigrationResult.Corrupt(loaded.raw, loaded.reason)
+                is LoadResult.LegacyImportConflict -> MigrationResult.Corrupt(loaded.canonicalRaw, loaded.reason)
+                is LoadResult.Missing -> MigrationResult.Corrupt("", "Legacy character is missing")
+                is LoadResult.MigrationRequired -> try {
+                    val rawExtras = readIfExists(legacyExtras)
+                    val extras = rawExtras?.let { DesktopCharacterExtrasStore.decodeLegacy(it)[characterId] }
+                        ?: com.furybook.dubl.model.CharacterSheetExtras()
+                    val root = JsonReader(loaded.raw, strict = true).read() as JsonValue.Obj
+                    val source = LegacyOrigin(characterId, root.int("schema"),
+                        legacySourceFingerprint(loaded.raw), loaded.raw, activePackIds, extrasSource = LegacyExtrasSource(rawExtras))
+                    prepareLegacy(loaded.raw, source, catalog, extras)
+                } catch (failure: UnsupportedDesktopData) {
+                    MigrationResult.Unsupported(loaded.raw, failure.message ?: "Unsupported extras")
+                } catch (failure: Exception) {
+                    MigrationResult.Corrupt(loaded.raw, failure.message ?: "Invalid legacy source set")
+                }
+            }
+        }
+
+    override suspend fun compareAndSet(characterId: String, expectedStorageRevision: Long, next: StoredCharacter): CommitResult = try {
+        // Capture and validate before touching a file. No caller-owned mutable collection survives.
+        val encoded = encodeEnvelope(next)
+        val captured = (decodeEnvelope(encoded) as LoadResult.Loaded).state
+        require(captured.character.id == characterId) { "Character scope differs" }
+        locked(characterId) {
+            when (val current = loadLocked(characterId)) {
+                is LoadResult.Loaded -> {
+                    if (current.state.storageRevision != expectedStorageRevision || expectedStorageRevision == Long.MAX_VALUE ||
+                        captured.storageRevision != expectedStorageRevision + 1) return@locked CommitResult.Conflict
+                }
+                is LoadResult.Missing -> if (expectedStorageRevision != -1L || captured.storageRevision != 0L)
+                    return@locked CommitResult.Conflict
+                is LoadResult.MigrationRequired -> {
+                    if (expectedStorageRevision != -1L || captured.storageRevision != 0L) return@locked CommitResult.Conflict
+                    val origin = captured.ledger.opening.legacyMigration?.origin
+                        ?: return@locked CommitResult.StorageFailure("Legacy source requires an explicit migration")
+                    if (origin.raw != current.raw || origin.extrasSource == null || !sourceUnchanged(origin))
+                        return@locked CommitResult.Conflict
+                    val originalExtras = origin.extrasSource.raw?.let { DesktopCharacterExtrasStore.decodeLegacy(it)[characterId] }
+                        ?: com.furybook.dubl.model.CharacterSheetExtras()
+                    require(captured.extras == originalExtras) { "Initial migration must preserve every legacy extras value" }
+                }
+                is LoadResult.LegacyImportConflict -> return@locked CommitResult.StorageFailure(current.reason)
+                is LoadResult.Corrupt -> return@locked CommitResult.StorageFailure("Corrupt envelope/source: ${current.reason}")
+                is LoadResult.Unsupported -> return@locked CommitResult.StorageFailure("Unsupported envelope/source: ${current.reason}")
+            }
+            captured.ledger.opening.legacyMigration?.origin?.let {
+                if (!sourceUnchanged(it)) return@locked CommitResult.Conflict
+            }
+            durableReplace(envelopePath(characterId), encoded)
+            CommitResult.Committed
+        }
+    } catch (failure: Exception) { CommitResult.StorageFailure(failure.message ?: "Desktop storage unavailable") }
+
+    private fun loadLocked(characterId: String): LoadResult {
+        val path = envelopePath(characterId)
+        val canonicalRaw = try { readIfExists(path) } catch (_: java.nio.charset.CharacterCodingException) {
+            return LoadResult.Corrupt("", "Invalid envelope UTF-8; original bytes retained in the container")
+        }
+        if (canonicalRaw != null) {
+            val raw = canonicalRaw
+            val loaded = decodeEnvelope(raw)
+            if (loaded is LoadResult.Loaded) {
+                if (loaded.state.character.id != characterId) return LoadResult.Corrupt(raw, "Envelope character scope differs")
+                loaded.state.ledger.opening.legacyMigration?.origin?.let { origin ->
+                    if (origin.extrasSource == null) return LoadResult.Unsupported(raw,
+                        "Legacy migration lacks the exact sheet-extras source; preserve/export it for review")
+                    if (!sourceUnchanged(origin)) return LoadResult.LegacyImportConflict(raw,
+                        readIfExists(legacyCharacters), readIfExists(legacyExtras),
+                        "Legacy source changed after migration; choose an import branch before writing")
+                }
+            }
+            return loaded
+        }
+        val raw = try { readIfExists(legacyCharacters) } catch (_: java.nio.charset.CharacterCodingException) {
+            return LoadResult.Corrupt("", "Invalid legacy UTF-8; original bytes retained")
+        } ?: return LoadResult.Missing(characterId)
+        return when (val legacy = decodeEnvelope(raw)) {
+            is LoadResult.MigrationRequired -> try {
+                val root = JsonReader(raw, strict=true).read() as JsonValue.Obj
+                val ids = root.array("characters").map { (it as JsonValue.Obj).string("id") }
+                require(ids.all(String::isNotBlank) && ids.distinct().size == ids.size) { "Invalid legacy character identities" }
+                if (characterId in ids) legacy else LoadResult.Missing(characterId)
+            } catch (failure: Exception) { LoadResult.Corrupt(raw, failure.message ?: "Invalid legacy snapshot") }
+            is LoadResult.Loaded -> LoadResult.Corrupt(raw, "Acquisition envelope found in legacy path")
+            else -> legacy
+        }
+    }
+
+    private fun sourceUnchanged(origin: LegacyOrigin): Boolean = readIfExists(legacyCharacters) == origin.raw &&
+        (origin.extrasSource == null || readIfExists(legacyExtras) == origin.extrasSource.raw)
+
+    private fun durableReplace(path: Path, raw: String) {
+        val temp = path.resolveSibling("${path.fileName}.${UUID.randomUUID()}.tmp")
+        try {
+            FileChannel.open(temp, CREATE_NEW, WRITE).use { channel ->
+                val buffer = ByteBuffer.wrap(raw.toByteArray(StandardCharsets.UTF_8))
+                while (buffer.hasRemaining()) channel.write(buffer)
+                channel.force(true)
+            }
+            fault(DesktopAcquisitionWriteStage.AfterTempFlush)
+            fault(DesktopAcquisitionWriteStage.BeforeReplace)
+            Files.move(temp, path, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+            fault(DesktopAcquisitionWriteStage.AfterReplace)
+            forceDirectory(container)
+            fault(DesktopAcquisitionWriteStage.AfterDirectoryFlush)
+        } finally { Files.deleteIfExists(temp) }
+    }
+
+    private fun <T> locked(characterId: String, action: () -> T): T {
+        require(characterId.isNotBlank()) { "Blank character ID" }
+        createDirectoriesDurably(container)
+        val lockPath = container.resolve("${key(characterId)}.lock")
+        return locks.computeIfAbsent(lockPath) { ReentrantLock() }.withLock {
+            FileChannel.open(lockPath, CREATE, WRITE).use { channel -> channel.lock().use { action() } }
+        }
+    }
+
+    private fun readIfExists(path: Path): String? = try { read(path) }
+        catch (_: java.nio.file.NoSuchFileException) { null }
+
+    private fun createDirectoriesDurably(path: Path) {
+        if (Files.isDirectory(path)) return
+        val parent = requireNotNull(path.parent) { "Missing filesystem root" }
+        createDirectoriesDurably(parent)
+        try { Files.createDirectory(path) } catch (_: java.nio.file.FileAlreadyExistsException) {
+            require(Files.isDirectory(path)) { "Storage path is not a directory" }
+        }
+        forceDirectory(parent)
+    }
+    private fun read(path: Path): String = StandardCharsets.UTF_8.newDecoder()
+        .onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
+        .decode(ByteBuffer.wrap(Files.readAllBytes(path))).toString()
+    private fun key(id: String): String = legacySourceFingerprint(id).substringAfter(':')
+    private fun forceDirectory(path: Path) { FileChannel.open(path, READ).use { it.force(true) } }
+    companion object { private val locks = ConcurrentHashMap<Path, ReentrantLock>() }
+}
+
+class UnsupportedDesktopData(message: String) : IllegalStateException(message)

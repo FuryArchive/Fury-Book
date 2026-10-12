@@ -25,6 +25,7 @@ class AcquisitionUndo(private val store: AcquisitionStore) {
         if(loaded !is LoadResult.Loaded) return UndoEligibility.Unavailable(when(loaded) {
             is LoadResult.Missing -> "Character is missing"
             is LoadResult.MigrationRequired -> "Character requires migration"
+            is LoadResult.LegacyImportConflict -> "Legacy import conflict: ${loaded.reason}"
             is LoadResult.Corrupt -> "Character envelope is corrupt: ${loaded.reason}"
             is LoadResult.Unsupported -> "Character envelope is unsupported: ${loaded.reason}"
             is LoadResult.Loaded -> error("Handled above")

@@ -141,6 +141,7 @@ private fun blocked(reason: String) = ApplyResult.Blocked(listOf(AcquisitionIssu
 private fun loadReason(result: LoadResult): String = when (result) {
     is LoadResult.Missing -> "missing"
     is LoadResult.MigrationRequired -> "migration required"
+    is LoadResult.LegacyImportConflict -> "legacy import conflict: ${result.reason}"
     is LoadResult.Unsupported -> result.reason
     is LoadResult.Corrupt -> result.reason
     is LoadResult.Loaded -> "loaded"

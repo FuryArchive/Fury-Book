@@ -3,6 +3,13 @@ package com.furybook.desktop
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.furybook.dubl.acquisition.*
+import com.furybook.dubl.data.DesktopAcquisitionStore
+import com.furybook.dubl.data.CharacterTransferCodec
+import com.furybook.dubl.data.CharacterTransferRejectReason
+import com.furybook.content.FcpContentPack
+import com.furybook.content.FcpTextSource
+import kotlinx.coroutines.runBlocking
 import com.furybook.content.DesktopFcpInstaller
 import com.furybook.content.FcpComposition
 import com.furybook.content.FcpManifest
@@ -32,12 +39,57 @@ import java.util.prefs.Preferences
 class DesktopAppState(
     private val characterStore: CharacterStore = DesktopCharacterStore(),
     private val extrasStore: CharacterExtrasStore = DesktopCharacterExtrasStore(),
+    val localAcquisitionEnabled: Boolean = false,
+    private val acquisitionStore: DesktopAcquisitionStore? = if (localAcquisitionEnabled) DesktopAcquisitionStore() else null,
 ) {
-    private val application = DublApplication(
-        characterStore = characterStore,
-        extrasStore = extrasStore,
-        idFactory = { UUID.randomUUID().toString() },
-    )
+    // No live backend guard evidence exists. The local format must never enter legacy cloud writers.
+    val cloudLedgerV2: Boolean = false
+    var storageError: String? by mutableStateOf(null)
+        private set
+    var pendingLegacyMigration: PendingMigration? by mutableStateOf(null)
+        private set
+    var preparedLegacyMigration: StoredCharacter? by mutableStateOf(null)
+        private set
+    private val acquisitionService by lazy { AcquisitionService(requireNotNull(acquisitionStore), ::acquisitionCatalog) { UUID.randomUUID().toString() } }
+    private var application = createApplication()
+    private var legacyStorageBlocked = false
+
+    private fun acquisitionCatalog(): AcquisitionCatalog {
+        val source = FcpTextSource { path -> javaClass.classLoader.getResource(path)?.readText() }
+        val packs = contentPackComposition.active.map { manifest ->
+            if (manifest.id == DublFcp.PACK_ID || manifest.id == DublChiFcp.PACK_ID)
+                FcpContentPack.load("fcp/${manifest.id}", source)
+            else DesktopFcpInstaller.openInstalled(installedFcpRoot, manifest)
+        }
+        return loadAcquisitionCatalog(packs, chiPackEnabled).catalog
+    }
+
+    private fun createApplication(): DublApplication {
+        if (!localAcquisitionEnabled) return DublApplication(characterStore, extrasStore, { UUID.randomUUID().toString() })
+        val store = requireNotNull(acquisitionStore) { "Local acquisition store is not configured" }
+        val original = characterStore.load()
+        val loaded = runBlocking { original.characters.associate { it.id to store.load(it.id) } }
+        val view = original.copy(characters = original.characters.map { character ->
+            when (val value = loaded.getValue(character.id)) {
+                is LoadResult.Loaded -> value.state.character
+                is LoadResult.MigrationRequired -> character
+                else -> throw AcquisitionPreviewUnavailable(value)
+            }
+        })
+        val readOnlyCharacters = object : CharacterStore {
+            override fun load() = view
+            override fun save(snapshot: AppSnapshot) = error("Legacy character writer is blocked in local acquisition mode")
+        }
+        val readOnlyExtras = object : CharacterExtrasStore {
+            override fun load(characterId: String) = (loaded[characterId] as? LoadResult.Loaded)?.state?.extras ?: extrasStore.load(characterId)
+            override fun save(characterId: String, extras: CharacterSheetExtras) = error("Legacy extras writer is blocked in local acquisition mode")
+            override fun delete(characterId: String) = error("Legacy extras delete is blocked in local acquisition mode")
+        }
+        return DublApplication(readOnlyCharacters, readOnlyExtras, { UUID.randomUUID().toString() },
+            acquisitionService = acquisitionService,
+            mutationCoordinator = CharacterMutationCoordinator(store, ::acquisitionCatalog) { UUID.randomUUID().toString() },
+            acquisitionUndo = AcquisitionUndo(store))
+    }
     private val catalogLoader = DesktopCatalogLoader()
     private val contentPackPreferences = Preferences.userRoot().node("com/furybook/content-packs")
     private val installedFcpRoot = DesktopCharacterStore.defaultDataDirectory().resolve("fcp")
@@ -82,7 +134,7 @@ class DesktopAppState(
         }
 
     init {
-        application.equipment.syncCatalogLoads(magicEquipmentCatalog.gear)
+        if (!localAcquisitionEnabled) application.equipment.syncCatalogLoads(magicEquipmentCatalog.gear)
         refresh()
     }
 
@@ -207,9 +259,85 @@ class DesktopAppState(
         extras = application.activeExtras
     }
 
-    private inline fun <T> sync(action: () -> T): T {
-        val result = action()
-        refresh()
+    private inline fun <T> sync(action: () -> T): T? {
+        if (localAcquisitionEnabled) {
+            storageError = "Старое редактирование заблокировано для локального журнала. Используйте каноническую операцию."
+            return null
+        }
+        if (legacyStorageBlocked) return null
+        return try {
+            val result = action()
+            storageError = null
+            refresh()
+            result
+        } catch (failure: Exception) {
+            // Legacy sessions may change memory before their adapter throws. Reload persisted state.
+            storageError = "Ошибка сохранения: ${failure.message}. Проверьте файл перед повтором."
+            runCatching { application = createApplication(); refresh() }.onFailure { legacyStorageBlocked = true }
+            null
+        }
+    }
+
+    fun localStoredCharacter(): LoadResult = runBlocking { requireNotNull(acquisitionStore).load(snapshot.activeCharacterId) }
+    fun prepareLocalMigration(activePackIds: List<String>): MigrationResult {
+        check(localAcquisitionEnabled)
+        // The caller explicitly declares the source composition. Current preferences are not evidence.
+        // Only the hash-verified frozen old payload may calculate an opening; today's catalog is never used.
+        val source = FcpTextSource { path -> javaClass.classLoader.getResource(path)?.readText() }
+        val oldCatalog = runCatching {
+            loadLegacyCatalogSnapshot(FcpContentPack.load("fcp/${DublFcp.PACK_ID}", source), activePackIds)
+        }.getOrNull()
+        val result = requireNotNull(acquisitionStore).prepareMigration(snapshot.activeCharacterId, activePackIds, oldCatalog)
+        pendingLegacyMigration = (result as? MigrationResult.NeedsBalanceConfirmation)?.pending
+        preparedLegacyMigration = (result as? MigrationResult.Ready)?.state
+        storageError = when (result) {
+            is MigrationResult.NeedsBalanceConfirmation -> result.pending.reason
+            is MigrationResult.Corrupt -> result.reason
+            is MigrationResult.Unsupported -> result.reason
+            is MigrationResult.Ready -> null
+        }
+        return result
+    }
+    fun confirmLocalOpeningBalance(xp: Long, ap: Long, reason: String): CommitResult {
+        check(localAcquisitionEnabled)
+        val pending = requireNotNull(pendingLegacyMigration) { "Prepare and review the exact legacy source first" }
+        val state = confirmLegacyBalance(pending, Amount(xp, ap), reason)
+        return commitLocalMigration(state)
+    }
+    fun commitPreparedLocalMigration(): CommitResult {
+        check(localAcquisitionEnabled)
+        return commitLocalMigration(requireNotNull(preparedLegacyMigration) { "Prepare and review the legacy migration first" })
+    }
+    private fun commitLocalMigration(state: StoredCharacter): CommitResult {
+        val result = runBlocking { requireNotNull(acquisitionStore).compareAndSet(state.character.id, -1, state) }
+        storageError = when (result) {
+            CommitResult.Committed -> null
+            CommitResult.Conflict -> "Исходный лист изменился. Подготовьте миграцию заново."
+            is CommitResult.StorageFailure -> result.reason
+        }
+        if (result == CommitResult.Committed) { pendingLegacyMigration = null; preparedLegacyMigration = null; reloadCanonicalView() }
+        return result
+    }
+    private fun reloadCanonicalView() {
+        runCatching { application = createApplication(); refresh() }.onFailure {
+            storageError = "Сохранено на устройстве, но просмотр не обновился: ${it.message}. Проверьте конфликт перед новой операцией."
+        }
+    }
+    suspend fun previewLocalAcquisition(request: AcquisitionRequest): AcquisitionPlan {
+        check(localAcquisitionEnabled)
+        return application.development.previewAcquisition(request)
+    }
+    suspend fun applyLocalAcquisition(command: ConfirmAcquisition): ApplyResult {
+        check(localAcquisitionEnabled)
+        val result = application.development.confirmAcquisition(command)
+        storageError = when (result) {
+            is ApplyResult.StorageFailure -> result.reason
+            is ApplyResult.Stale -> "Предпросмотр устарел. Проверьте цену заново."
+            is ApplyResult.Blocked -> result.issues.joinToString { it.reason }
+            is ApplyResult.IdentityConflict -> result.reason
+            else -> null
+        }
+        if (result is ApplyResult.Applied || result is ApplyResult.AlreadyApplied || result is ApplyResult.AlreadyUndone) reloadCanonicalView()
         return result
     }
 
@@ -278,20 +406,20 @@ class DesktopAppState(
     fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) = sync { application.skills.setPreferredAttribute(skillId, attribute) }
 
     fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int = 0) = sync { application.development.setRank(entryId, rank, optionIndex) }
-    fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult = sync { application.development.acquire(developmentCatalog, request) }
+    fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult = sync { application.development.acquire(developmentCatalog, request) } ?: DevelopmentAcquisitionResult(false, DevelopmentAcquisitionPlanner(activeCharacter, developmentCatalog).plan(request), storageError ?: "Storage unavailable")
     fun setDevelopmentOverride(entry: DevelopmentEntry) = sync { application.development.setOverride(entry) }
     fun resetDevelopmentOverride(entryId: String) = sync { application.development.resetOverride(entryId) }
     fun addCustomDevelopment(entry: DevelopmentEntry): String? = sync { application.development.addCustom(entry) }
-    fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean = sync { application.development.updateCustom(entry) }
+    fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean = sync { application.development.updateCustom(entry) } ?: false
     fun removeCustomDevelopment(entryId: String) = sync { application.development.removeCustom(entryId) }
 
     fun setMagicManaRank(rank: Int) = sync { application.magic.setManaRank(rank) }
     fun setMagicSchoolPower(name: String, power: Int) = sync { application.magic.setSchoolPower(name, power) }
-    fun addMagicSchool(name: String, rank: Int, note: String): Boolean = sync { application.magic.addSchool(name, rank, note) }
-    fun updateMagicSchool(index: Int, name: String, rank: Int, note: String): Boolean = sync { application.magic.updateSchool(index, name, rank, note) }
+    fun addMagicSchool(name: String, rank: Int, note: String): Boolean = sync { application.magic.addSchool(name, rank, note) } ?: false
+    fun updateMagicSchool(index: Int, name: String, rank: Int, note: String): Boolean = sync { application.magic.updateSchool(index, name, rank, note) } ?: false
     fun removeMagicSchool(index: Int) = sync { application.magic.removeSchool(index) }
-    fun addCatalogSpell(entry: SpellCatalogEntry): Boolean = sync { application.magic.addCatalogSpell(entry) }
-    fun addCustomSpell(spell: KnownSpell): String = sync { application.magic.addCustomSpell(spell) }
+    fun addCatalogSpell(entry: SpellCatalogEntry): Boolean = sync { application.magic.addCatalogSpell(entry) } ?: false
+    fun addCustomSpell(spell: KnownSpell): String = sync { application.magic.addCustomSpell(spell) } ?: ""
     fun updateSpell(spell: KnownSpell) = sync { application.magic.updateSpell(spell) }
     fun setSpellLearned(uid: String, learned: Boolean) = sync { application.magic.setSpellLearned(uid, learned) }
     fun removeSpell(uid: String) = sync { application.magic.removeSpell(uid) }
@@ -299,8 +427,8 @@ class DesktopAppState(
     fun setGearLoadAutomatic(enabled: Boolean) = sync { application.equipment.setLoadAutomatic(enabled) }
     fun setGearManualLoad(value: Double) = sync { application.equipment.setManualLoad(value) }
     fun syncCatalogGearLoads(entries: List<GearCatalogEntry>) = sync { application.equipment.syncCatalogLoads(entries) }
-    fun addCatalogGear(entry: GearCatalogEntry): String = sync { application.equipment.addCatalog(entry) }
-    fun addCustomGear(item: GearItem): String = sync { application.equipment.addCustom(item) }
+    fun addCatalogGear(entry: GearCatalogEntry): String = sync { application.equipment.addCatalog(entry) } ?: ""
+    fun addCustomGear(item: GearItem): String = sync { application.equipment.addCustom(item) } ?: ""
     fun updateGearItem(item: GearItem) = sync { application.equipment.updateItem(item) }
     fun setGearItemCarried(uid: String, carried: Boolean) = sync { application.equipment.setItemCarried(uid, carried) }
     fun setGearItemQuantity(uid: String, quantity: Int) = sync { application.equipment.setItemQuantity(uid, quantity) }
@@ -323,13 +451,19 @@ class DesktopAppState(
     fun setCustomConditionActive(id: String, active: Boolean) = sync { application.sheet.setCustomConditionActive(id, active) }
     fun removeCustomCondition(id: String) = sync { application.sheet.removeCustomCondition(id) }
 
-    fun exportActiveCharacter(): String = application.transfer.exportActive()
-    fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) }
+    fun exportActiveCharacter(): String = if (localAcquisitionEnabled) {
+        val loaded = localStoredCharacter()
+        when (loaded) {
+            is LoadResult.Loaded -> CharacterTransferCodec.encodeEnvelope(loaded.state)
+            else -> throw AcquisitionPreviewUnavailable(loaded)
+        }
+    } else application.transfer.exportActive()
+    fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) } ?: CharacterTransferImportResult.Rejected(CharacterTransferRejectReason.INVALID_FILE)
 
     fun createCharacter() = sync { application.character.createCharacter() }
     fun selectCharacter(id: String) = sync { application.character.selectCharacter(id) }
     fun deleteActive() = sync { application.character.deleteActive() }
-    fun undoLast(): Boolean = sync { application.undoLast() }
+    fun undoLast(): Boolean = sync { application.undoLast() } ?: false
 
     fun importPortrait(source: Path): String? = runCatching {
         val ext = source.fileName.toString().substringAfterLast('.', "png").take(8)

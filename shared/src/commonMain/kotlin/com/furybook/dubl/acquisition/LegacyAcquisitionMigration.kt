@@ -9,6 +9,9 @@ private class LegacyMappingEntry(override val key:String,override val value:Defi
     override fun hashCode():Int = key.hashCode() xor value.hashCode()
 }
 
+/** A captured absent extras file is distinct from an origin with no extras-source support. */
+data class LegacyExtrasSource(val raw: String?)
+
 /** Exact source plus explicit old active pack order. No device-local path, time or random identity. */
 class LegacyOrigin(
     val characterId: String,
@@ -17,6 +20,7 @@ class LegacyOrigin(
     val raw: String,
     activePackIds: List<String>,
     ownershipMappings: Map<String, DefinitionRef> = emptyMap(),
+    val extrasSource: LegacyExtrasSource? = null,
 ) {
     val activePackIds: List<String> = EnvelopeList(activePackIds)
     val ownershipMappings: Map<String, DefinitionRef> = object : AbstractMap<String, DefinitionRef>() {
@@ -25,13 +29,15 @@ class LegacyOrigin(
             LegacyMappingEntry(it.first,it.second)
         }.toSet()
     }
-    val sourceFingerprint: String get() = legacySourceFingerprint(raw)
+    val sourceFingerprint: String get() = legacySourceFingerprint(if (extrasSource == null) raw else
+        listOf("characters.json", raw, "sheet-extras.json", if (extrasSource.raw == null) "absent" else "present", extrasSource.raw.orEmpty())
+            .joinToString("") { "${it.length}:$it" })
     fun copy(characterId:String=this.characterId,schema:Int=this.schema,sourceRevision:String=this.sourceRevision,raw:String=this.raw,
-        activePackIds:List<String> = this.activePackIds,ownershipMappings:Map<String,DefinitionRef> = this.ownershipMappings) =
-        LegacyOrigin(characterId,schema,sourceRevision,raw,activePackIds,ownershipMappings)
+        activePackIds:List<String> = this.activePackIds,ownershipMappings:Map<String,DefinitionRef> = this.ownershipMappings,extrasSource:LegacyExtrasSource?=this.extrasSource) =
+        LegacyOrigin(characterId,schema,sourceRevision,raw,activePackIds,ownershipMappings,extrasSource)
     override fun equals(other:Any?):Boolean=other is LegacyOrigin && characterId==other.characterId && schema==other.schema &&
-        sourceRevision==other.sourceRevision && raw==other.raw && activePackIds==other.activePackIds && ownershipMappings==other.ownershipMappings
-    override fun hashCode():Int=listOf(characterId,schema,sourceRevision,raw,activePackIds,ownershipMappings).hashCode()
+        sourceRevision==other.sourceRevision && raw==other.raw && activePackIds==other.activePackIds && ownershipMappings==other.ownershipMappings && extrasSource==other.extrasSource
+    override fun hashCode():Int=listOf(characterId,schema,sourceRevision,raw,activePackIds,ownershipMappings,extrasSource).hashCode()
 }
 
 /** Original positive ownership evidence. Scope and fingerprint belong to the enclosing origin.
@@ -114,6 +120,7 @@ internal fun legacyMigrationId(origin:LegacyOrigin):String = "legacy-v11:"+legac
 class PendingMigration internal constructor(
     val origin: LegacyOrigin,
     val character: DublCharacter,
+    val extras: CharacterSheetExtras,
     instances: List<AcquisitionInstance>,
     unresolvedOwnershipKeys: List<String>,
     val reason: String,
@@ -134,12 +141,13 @@ fun compareLegacyMigrations(left:StoredCharacter,right:StoredCharacter):LegacyMi
         left.revision==right.revision && left.ledger==right.ledger && left.character==right.character &&
         left.extras==right.extras && left.receipts==right.receipts && left.creationPhase==right.creationPhase) LegacyMigrationComparison.SameOrigin else LegacyMigrationComparison.Conflict
 
-fun prepareLegacy(raw:String,origin:LegacyOrigin,legacyCatalog:LegacyCatalogSnapshot?):MigrationResult {
+fun prepareLegacy(raw:String,origin:LegacyOrigin,legacyCatalog:LegacyCatalogSnapshot?,extras:CharacterSheetExtras=CharacterSheetExtras()):MigrationResult {
     // Exact canonical data is already migrated. Never route it through legacy normalization.
     when(val loaded=decodeEnvelope(raw)) {
         is LoadResult.Loaded -> return MigrationResult.Ready(loaded.state)
         is LoadResult.Unsupported -> return MigrationResult.Unsupported(raw,loaded.reason)
         is LoadResult.Corrupt -> return MigrationResult.Corrupt(raw,loaded.reason)
+        is LoadResult.LegacyImportConflict -> return MigrationResult.Corrupt(raw,loaded.reason)
         is LoadResult.Missing -> return MigrationResult.Corrupt(raw,"Missing legacy record")
         is LoadResult.MigrationRequired -> Unit
     }
@@ -149,7 +157,7 @@ fun prepareLegacy(raw:String,origin:LegacyOrigin,legacyCatalog:LegacyCatalogSnap
         val character=validateLegacyOrigin(origin)
         val catalog=legacyCatalog?.takeIf { it.activePackIds==origin.activePackIds }
         val (instances,unresolved)=legacyInstances(character,origin,catalog)
-        val pending=PendingMigration(origin,character,instances,unresolved,"Exact old catalog/composition is unavailable; confirm the known XP/AP balance")
+        val pending=PendingMigration(origin,character,extras,instances,unresolved,"Exact old catalog/composition is unavailable; confirm the known XP/AP balance")
         if(catalog==null) MigrationResult.NeedsBalanceConfirmation(pending)
         else MigrationResult.Ready(migrated(pending,LegacyEconomyV11.balance(character,catalog),OpeningProvenance.LegacyCalculated,null,catalog.identity))
     } catch(failure:Exception) { MigrationResult.Corrupt(raw,failure.message ?: "Invalid legacy data") }
@@ -163,7 +171,7 @@ private fun migrated(pending:PendingMigration,balance:Amount,provenance:OpeningP
     val phase=if(pending.character.creationComplete) RequirementNode.CreationPhase.Phase.Finalized else RequirementNode.CreationPhase.Phase.Creating
     val opening=Opening(legacyMigrationId(pending.origin),pending.origin.sourceFingerprint,balance,phase,provenance,reason,
         LegacyMigrationProvenance(pending.origin,LEGACY_ECONOMY_BASELINE,catalogIdentity,ownershipRecords=legacyOwnershipRecords(pending.character)))
-    val state=StoredCharacter(pending.character,CharacterSheetExtras(),pending.instances,Ledger(opening,emptyList()),emptyList(),emptyList(),SyncMetadata(0),0,0,phase)
+    val state=StoredCharacter(pending.character,pending.extras,pending.instances,Ledger(opening,emptyList()),emptyList(),emptyList(),SyncMetadata(0),0,0,phase)
     encodeEnvelope(state) // Fail closed before returning a result that cannot preserve its backup.
     return state
 }

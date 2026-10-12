@@ -120,7 +120,9 @@ private fun encodeLegacyMigration(value:LegacyMigrationProvenance):JsonValue.Obj
     "origin" to jsonObject("characterId" to jsonString(value.origin.characterId), "schema" to jsonNumber(value.origin.schema),
         "sourceRevision" to jsonString(value.origin.sourceRevision), "raw" to jsonString(value.origin.raw),
         "activePackIds" to jsonArray(value.origin.activePackIds.map(::jsonString)),
-        "ownershipMappings" to JsonValue.Obj(value.origin.ownershipMappings.mapValues { encodeDefinition(it.value) })),
+        "ownershipMappings" to JsonValue.Obj(value.origin.ownershipMappings.mapValues { encodeDefinition(it.value) })).let { origin ->
+            JsonValue.Obj(origin.values + (value.origin.extrasSource?.let { mapOf("extrasSource" to jsonObject("raw" to nullable(it.raw))) } ?: emptyMap()))
+        },
     "calculatorBaseline" to jsonString(value.calculatorBaseline), "catalogIdentity" to nullable(value.catalogIdentity),
     "historyUnknown" to jsonBoolean(value.historyUnknown),
     "ownershipRecords" to jsonArray(value.ownershipRecords.map { record -> jsonObject(
@@ -128,10 +130,11 @@ private fun encodeLegacyMigration(value:LegacyMigrationProvenance):JsonValue.Obj
         "candidateEntryId" to nullable(record.candidateEntryId), "custom" to jsonBoolean(record.custom)) }))
 private fun decodeLegacyMigration(value:JsonValue.Obj):LegacyMigrationProvenance {
     value.keys("origin","calculatorBaseline","catalogIdentity","historyUnknown","ownershipRecords")
-    val origin=value.objectRequired("origin").also { it.keys("characterId","schema","sourceRevision","raw","activePackIds","ownershipMappings") }
+    val origin=value.objectRequired("origin").also { it.keys(*(listOf("characterId","schema","sourceRevision","raw","activePackIds","ownershipMappings") + if(it.has("extrasSource")) listOf("extrasSource") else emptyList()).toTypedArray()) }
     return LegacyMigrationProvenance(LegacyOrigin(origin.text("characterId"),origin.number("schema"),origin.text("sourceRevision"),
         origin.text("raw"),origin.list("activePackIds").map { (it as? JsonValue.Str)?.value ?: error("Expected pack ID") },
-        origin.objectRequired("ownershipMappings").values.mapValues { decodeDefinition(it.value.obj()) }),
+        origin.objectRequired("ownershipMappings").values.mapValues { decodeDefinition(it.value.obj()) },
+        if (origin.has("extrasSource")) LegacyExtrasSource(origin.objectRequired("extrasSource").also { it.keys("raw") }.optionalText("raw")) else null),
         value.text("calculatorBaseline"),value.optionalText("catalogIdentity"),
         (value.values["historyUnknown"] as? JsonValue.Bool)?.value ?: error("Expected history marker"),
         value.list("ownershipRecords").map { item ->
