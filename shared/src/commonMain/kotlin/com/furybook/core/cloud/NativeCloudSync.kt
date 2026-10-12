@@ -1,5 +1,6 @@
 package com.furybook.core.cloud
 
+import com.furybook.dubl.acquisition.*
 import com.furybook.core.json.JsonValue
 import com.furybook.core.json.array
 import com.furybook.core.json.asObject
@@ -83,7 +84,21 @@ sealed interface NativeSyncOutcome {
     data class Conflicts(val items: List<NativeSyncConflict>) : NativeSyncOutcome
 }
 
-class FuryNativeCloudApi(private val transport: FuryCloudTransport) {
+class FuryNativeCloudApi(private val transport: FuryCloudTransport, private val acquisitionStore: AcquisitionStore? = null) {
+    fun acquisitionTransport(capabilities: AcquisitionCapabilities): AcquisitionSyncTransport = AcquisitionRpcTransport(transport, capabilities)
+    /** Legacy RPCs cannot downgrade a locally migrated character. Construction is wired by T17. */
+    private suspend fun legacyIds(ids: Set<String>): Set<String> {
+        val store=acquisitionStore ?: return ids
+        return ids.filterTo(linkedSetOf()) { id -> when(val loaded=store.load(id)) {
+            is LoadResult.Loaded -> false
+            is LoadResult.Missing, is LoadResult.MigrationRequired -> true
+            else -> error("Character is not safe for legacy cloud write: ${loaded::class.simpleName}")
+        } }
+    }
+    private fun legacySnapshot(snapshot: AppSnapshot, ids: Set<String>): AppSnapshot {
+        val characters=snapshot.characters.filter { it.id in ids }
+        return AppSnapshot(characters,snapshot.activeCharacterId.takeIf { it in ids } ?: characters.firstOrNull()?.id.orEmpty())
+    }
     suspend fun bootstrap(): CloudBootstrap =
         CloudProtocol.parseBootstrap(transport.rpc("get_web_bootstrap", "{}"))
 
@@ -93,9 +108,10 @@ class FuryNativeCloudApi(private val transport: FuryCloudTransport) {
         enabledPackIds: Set<String>,
         device: String,
     ): CloudBootstrap {
+        val ids=legacyIds(snapshot.characters.mapTo(linkedSetOf()) { it.id })
         val body = jsonObject(
-            "p_snapshot" to jsonString(SnapshotCodec.encode(snapshot)),
-            "p_extras" to CloudProtocol.extrasValue(extras),
+            "p_snapshot" to jsonString(SnapshotCodec.encode(legacySnapshot(snapshot,ids))),
+            "p_extras" to CloudProtocol.extrasValue(extras.filterKeys { it in ids }),
             "p_pack_state" to CloudProtocol.packStateValue(enabledPackIds),
             "p_device" to jsonString(device),
         )
@@ -112,12 +128,13 @@ class FuryNativeCloudApi(private val transport: FuryCloudTransport) {
         knownStateRevision: Int,
         device: String,
     ): NativeSyncResponse {
+        val ids=legacyIds(snapshot.characters.mapTo(linkedSetOf()) { it.id } + dirtyIds + deletedIds + knownRevisions.keys)
         val body = jsonObject(
-            "p_snapshot" to jsonString(SnapshotCodec.encode(snapshot)),
-            "p_extras" to CloudProtocol.extrasValue(extras),
-            "p_dirty_ids" to jsonArray(dirtyIds.map(::jsonString)),
-            "p_deleted_ids" to jsonArray(deletedIds.map(::jsonString)),
-            "p_known_revisions" to JsonValue.Obj(knownRevisions.mapValues { jsonNumber(it.value) }),
+            "p_snapshot" to jsonString(SnapshotCodec.encode(legacySnapshot(snapshot,ids))),
+            "p_extras" to CloudProtocol.extrasValue(extras.filterKeys { it in ids }),
+            "p_dirty_ids" to jsonArray(dirtyIds.filter { it in ids }.map(::jsonString)),
+            "p_deleted_ids" to jsonArray(deletedIds.filter { it in ids }.map(::jsonString)),
+            "p_known_revisions" to JsonValue.Obj(knownRevisions.filterKeys { it in ids }.mapValues { jsonNumber(it.value) }),
             "p_pack_state" to CloudProtocol.packStateValue(enabledPackIds),
             "p_known_state_revision" to jsonNumber(knownStateRevision),
             "p_device" to jsonString(device),
@@ -131,6 +148,7 @@ class FuryNativeCloudApi(private val transport: FuryCloudTransport) {
         localExtrasJson: String,
         device: String,
     ): String {
+        require(conflict.characterId in legacyIds(setOf(conflict.characterId))) { "Migrated character requires receipt-aware conflict resolution" }
         val body = jsonObject(
             "p_character_id" to jsonString(conflict.characterId),
             "p_data" to parseRoot(localCharacterJson),
@@ -151,6 +169,7 @@ class NativeCloudSyncCoordinator(
     private val api: FuryNativeCloudApi,
     private val idFactory: () -> String,
     private val deviceLabel: String,
+    private val acquisitionStore: AcquisitionStore? = null,
 ) {
     fun markSnapshotChanged(before: AppSnapshot, after: AppSnapshot) {
         val old = before.characters.associateBy { it.id }
@@ -262,17 +281,31 @@ class NativeCloudSyncCoordinator(
     private fun loadExtras(snapshot: AppSnapshot): Map<String, CharacterSheetExtras> =
         snapshot.characters.associate { it.id to extrasStore.load(it.id) }
 
-    private fun applyBootstrap(bootstrap: CloudBootstrap) {
+    private suspend fun applyBootstrap(bootstrap: CloudBootstrap) {
         if (bootstrap.characters.isEmpty()) return
-        val snapshot = CloudProtocol.toSnapshot(bootstrap, idFactory)
-        val oldIds = characterStore.load().characters.mapTo(linkedSetOf()) { it.id }
-        characterStore.save(snapshot)
-
-        val newIds = snapshot.characters.mapTo(linkedSetOf()) { it.id }
-        (oldIds - newIds).forEach(extrasStore::delete)
-        bootstrap.characters.forEach { cloudCharacter ->
-            extrasStore.save(cloudCharacter.id, CloudProtocol.decodeExtras(cloudCharacter.extrasJson))
+        val old=characterStore.load()
+        val remote=CloudProtocol.toSnapshot(bootstrap,idFactory)
+        val protected=linkedMapOf<String,StoredCharacter>()
+        acquisitionStore?.let { store ->
+            (old.characters.map { it.id } + remote.characters.map { it.id }).distinct().forEach { id ->
+                when(val loaded=store.load(id)) {
+                    is LoadResult.Loaded -> protected[id]=loaded.state
+                    is LoadResult.Missing, is LoadResult.MigrationRequired -> Unit
+                    else -> error("Cannot publish legacy bootstrap over an unavailable canonical character")
+                }
+            }
         }
+        val characters=remote.characters.filterNot { it.id in protected } + protected.values.map { it.character }
+        val active=old.activeCharacterId.takeIf { it in protected } ?: remote.activeCharacterId
+        val snapshot=AppSnapshot(characters,active)
+        characterStore.save(snapshot)
+        val oldIds=old.characters.mapTo(linkedSetOf()) { it.id }
+        val newIds=snapshot.characters.mapTo(linkedSetOf()) { it.id }
+        (oldIds-newIds).forEach(extrasStore::delete)
+        bootstrap.characters.filterNot { it.id in protected }.forEach { cloud ->
+            extrasStore.save(cloud.id,CloudProtocol.decodeExtras(cloud.extrasJson))
+        }
+        protected.values.forEach { extrasStore.save(it.character.id,it.extras) }
     }
 
     private fun saveCleanMetadata(bootstrap: CloudBootstrap) {
@@ -400,6 +433,7 @@ internal object CloudProtocol {
         val characters = root.array("characters").mapNotNull { value ->
             val item = value.asObject() ?: return@mapNotNull null
             val data = item.objectValue("data") ?: return@mapNotNull null
+            require("formatVersion" !in data.values) { "Acquisition envelope requires versioned cloud read" }
             val extras = item.objectValue("extras") ?: jsonObject()
             val id = item.string("id").ifBlank { data.string("id") }
             if (id.isBlank()) return@mapNotNull null

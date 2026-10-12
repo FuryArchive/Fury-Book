@@ -291,6 +291,11 @@ class AcquisitionPlannerTest {
             val receipt = Receipt("other","{\"characterId\":\"hero\"}",SavedAcquisitionResult(Amount.ZERO,Amount(100,10),emptyList()),
                 ReceiptStatus.Applied,0,1)
             val persisted = original.copy(ledger=original.ledger.copy(entries=listOf(entry)),receipts=listOf(receipt),revision=1,storageRevision=1)
+            if(type==LedgerEntryType.Import || type==LedgerEntryType.SyncAdoption) {
+                // These typed history boundaries additionally require exact source/archive proofs.
+                assertFailsWith<IllegalArgumentException>(type.name) { encodeEnvelope(persisted) }
+                continue
+            }
             val loaded = assertIs<LoadResult.Loaded>(decodeEnvelope(encodeEnvelope(persisted))).state
             assertTrue(retainedAcquisitionConfirmations(loaded).isEmpty(),type.name)
             assertFalse(plan(request("target"),loaded,c).executable,type.name)

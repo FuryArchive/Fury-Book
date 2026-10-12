@@ -12,7 +12,7 @@ data class Opening(
     val legacyMigration: LegacyMigrationProvenance? = null,
 )
 
-enum class LedgerEntryType { Purchase, Undo, Grant, ManualCorrection, NonFinancial, CompleteCreation, ConfirmLegacyParameter }
+enum class LedgerEntryType { Purchase, Undo, Grant, ManualCorrection, NonFinancial, CompleteCreation, ConfirmLegacyParameter, Import, SyncAdoption }
 data class RuleVersions(val catalogRevision: String, val resolutionRevision: String)
 
 class LedgerEntry(

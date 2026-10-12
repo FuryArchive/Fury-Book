@@ -214,7 +214,7 @@ private fun priceEvidence(plan: AcquisitionPlan, before: StoredCharacter, after:
  * Outbox is omitted before codec validation because the staged projection is not a committed tip yet.
  */
 fun acquisitionProjectionCanonical(state: StoredCharacter): String {
-    val envelope = JsonReader(encodeEnvelope(state.copy(outbox = emptyList()))).read() as JsonValue.Obj
+    val envelope = JsonReader(encodeProjectionEnvelope(state.copy(outbox = emptyList()))).read() as JsonValue.Obj
     return canonicalJson(jsonStringify(jsonObject("characterSnapshot" to envelope.values.getValue("characterSnapshot"),
         "instances" to envelope.values.getValue("instances"))))
 }

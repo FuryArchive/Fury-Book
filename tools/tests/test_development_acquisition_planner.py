@@ -30,6 +30,8 @@ def test_legacy_planner_requires_canonical_context_and_cannot_write_or_create_un
     sources += sorted((shared / "com/furybook/core/json").glob("*.kt"))
     sources += sorted((shared / "com/furybook/dubl/application").glob("*.kt"))
     sources += [
+        # The shared receipt transport uses the real native cloud DTO/transport definition.
+        shared / "com/furybook/core/cloud/NativeCloudSync.kt",
         shared / "com/furybook/dubl/data/SnapshotCodec.kt",
         shared / "com/furybook/dubl/data/LegacySnapshotValidation.kt",
         shared / "com/furybook/dubl/data/CharacterTransferCodec.kt",

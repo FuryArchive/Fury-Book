@@ -165,7 +165,7 @@ internal fun projectionContainer(character:DublCharacter,instances:List<Acquisit
         if(character.creationComplete) RequirementNode.CreationPhase.Phase.Finalized else RequirementNode.CreationPhase.Phase.Creating,OpeningProvenance.NewCharacter),emptyList()),
     emptyList(),emptyList(),SyncMetadata(0),0,0,if(character.creationComplete) RequirementNode.CreationPhase.Phase.Finalized else RequirementNode.CreationPhase.Phase.Creating)
 internal fun mutationProjectionCanonical(state:StoredCharacter):String {
-    val root=JsonReader(encodeEnvelope(state.copy(outbox=emptyList()))).read() as JsonValue.Obj
+    val root=JsonReader(encodeProjectionEnvelope(state.copy(outbox=emptyList()))).read() as JsonValue.Obj
     return canonicalJson(jsonStringify(JsonValue.Obj(root.values.filterKeys { it in setOf("characterSnapshot","instances","extras","creationPhase") })))
 }
 /** Decode finite projections through the exact envelope codec; no normalization or history restoration. */
@@ -173,8 +173,7 @@ internal fun decodeMutationProjection(state:StoredCharacter,raw:String):StoredCh
     val projection=JsonReader(raw,strict=true).read() as JsonValue.Obj
     require(projection.values.keys==setOf("characterSnapshot","instances","extras","creationPhase")) { "Invalid mutation projection fields" }
     val root=JsonReader(encodeEnvelope(state.copy(outbox=emptyList()))).read() as JsonValue.Obj
-    return (decodeEnvelope(canonicalJson(jsonStringify(JsonValue.Obj(root.values+projection.values)))) as? LoadResult.Loaded)?.state
-        ?: throw IllegalArgumentException("Invalid exact mutation projection")
+    return decodeProjectionEnvelope(canonicalJson(jsonStringify(JsonValue.Obj(root.values+projection.values))))
 }
 internal fun appendCanonicalOperation(before:StoredCharacter,after:StoredCharacter,id:String,request:String,type:LedgerEntryType,
     delta:Amount,versions:RuleVersions,evidence:String,changes:List<AcquisitionChange> = emptyList(),reverses:String?=null):StoredCharacter {

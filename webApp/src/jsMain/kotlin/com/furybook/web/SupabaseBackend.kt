@@ -5,6 +5,7 @@ package com.furybook.web
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.furybook.dubl.acquisition.*
 import com.furybook.dubl.data.SnapshotCodec
 import com.furybook.core.cloud.FuryCloudTransport
 import kotlin.js.Promise
@@ -67,7 +68,8 @@ data class CloudBootstrap(
 
 private data class ScheduledState(val snapshot: String, val extras: String, val chiEnabled: Boolean)
 
-class WebCloudSync : FuryCloudTransport {
+class WebCloudSync(private val acquisitionStore: AcquisitionStore? = null,
+    private val acquisitionCharacterIds: () -> Set<String> = { emptySet() }) : FuryCloudTransport {
     private val client: dynamic = SupabaseModule.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
     private val scope = MainScope()
     private val deviceLabel = detectDeviceLabel()
@@ -134,6 +136,17 @@ class WebCloudSync : FuryCloudTransport {
         }
     }
 
+    /** Same shared DTO/CAS/whole-branch protocol as native, gated until actual server guards exist. */
+    fun createAcquisitionSync(store: AcquisitionStore, archive: AcquisitionConflictArchive, localDurable: Boolean): AcquisitionSyncProtocol {
+        val capabilities=AcquisitionCapabilities(localDurable=localDurable,cloudLedgerV2=false,formatWritable=true)
+        return AcquisitionSyncProtocol(store,AcquisitionRpcTransport(this,capabilities),archive,capabilities,::webUuid)
+    }
+    private suspend fun legacyWritable(characterId: String): Boolean = when(val loaded=acquisitionStore?.load(characterId)) {
+        null, is LoadResult.Missing, is LoadResult.MigrationRequired -> true
+        is LoadResult.Loaded -> false
+        else -> error("Character is not safe for legacy cloud write: ${loaded::class.simpleName}")
+    }
+
     suspend fun signOut() {
         runCatching { (client.auth.signOut() as Promise<dynamic>).await() }
         userId = null
@@ -166,10 +179,23 @@ class WebCloudSync : FuryCloudTransport {
         val extrasCharacters = js("({})")
         extrasRoot.characters = extrasCharacters
 
+        val localSnapshot=lastScheduled?.snapshot?.let { js("JSON.parse")(it) }
+        val candidates=acquisitionCharacterIds().toMutableSet()
+        val localCount=(localSnapshot?.characters?.length as? Int) ?: 0
+        for(index in 0 until localCount) candidates += localSnapshot.characters[index].id as String
         val count = (characters?.length as? Int) ?: 0
+        for(index in 0 until count) candidates += characters[index].id as String
+        val protected=linkedMapOf<String,StoredCharacter>()
+        acquisitionStore?.let { store -> candidates.forEach { id -> when(val loaded=store.load(id)) {
+            is LoadResult.Loaded -> protected[id]=loaded.state
+            is LoadResult.Missing, is LoadResult.MigrationRequired -> Unit
+            else -> error("Cannot publish legacy bootstrap over an unavailable canonical character")
+        } } }
         for (index in 0 until count) {
             val item = characters[index]
             val id = item.id as String
+            if (item.data?.formatVersion != null) error("Новый формат требует receipt-aware чтения Fury Cloud")
+            if(id in protected) continue
             characterArray.push(item.data)
             extrasCharacters[id] = item.extras
             val revision = numberToInt(item.revision)
@@ -177,19 +203,29 @@ class WebCloudSync : FuryCloudTransport {
             serverPayloads[id] = payloadFingerprint(item.data, item.extras)
         }
 
+        protected.values.forEach { canonical ->
+            val encoded=SnapshotCodec.encode(com.furybook.dubl.model.AppSnapshot(listOf(canonical.character),canonical.character.id))
+            val root=js("JSON.parse")(encoded)
+            characterArray.push(root.characters[0])
+            extrasCharacters[canonical.character.id]=js("JSON.parse")(com.furybook.core.cloud.CloudProtocol.extrasJson(canonical.extras))
+        }
+        val actualCount=characterArray.length as Int
         val snapshotRoot = js("({})")
         snapshotRoot.schema = SnapshotCodec.SCHEMA
         snapshotRoot.characters = characterArray
         val requestedActive = state?.activeCharacterId as? String
-        val fresh = if (count == 0) SnapshotCodec.fresh(::webUuid) else null
+        val fresh = if (actualCount == 0) SnapshotCodec.fresh(::webUuid) else null
         val snapshotRaw = if (fresh != null) {
             SnapshotCodec.encode(fresh)
         } else {
-            snapshotRoot.activeCharacterId = requestedActive ?: (characters[0].id as String)
+            val localActive=localSnapshot?.activeCharacterId as? String
+            snapshotRoot.activeCharacterId = localActive?.takeIf { it in protected } ?: requestedActive?.takeIf { id ->
+                (0 until actualCount).any { (characterArray[it].id as String)==id }
+            } ?: (characterArray[0].id as String)
             js("JSON.stringify")(snapshotRoot) as String
         }
 
-        val extrasRaw = if (count == 0) "{\"version\":1,\"characters\":{}}" else js("JSON.stringify")(extrasRoot) as String
+        val extrasRaw = if (actualCount == 0) "{\"version\":1,\"characters\":{}}" else js("JSON.stringify")(extrasRoot) as String
         val packState = state?.packState
         val chiEnabled = (packState?.chiEnabled as? Boolean) ?: false
         stateRevision = numberToInt(state?.revision)
@@ -225,7 +261,7 @@ class WebCloudSync : FuryCloudTransport {
             extras = extrasRaw,
             chiEnabled = chiEnabled,
             nickname = profileNickname,
-            hasCharacters = count > 0,
+            hasCharacters = actualCount > 0,
         )
     }
 
@@ -247,6 +283,7 @@ class WebCloudSync : FuryCloudTransport {
 
     suspend fun forceConflict(): Result<Unit> = runCatching {
         val current = conflict ?: return@runCatching
+        require(legacyWritable(current.characterId)) { "Migrated character requires receipt-aware conflict resolution" }
         if (current.deleteRequested) {
             val payload = js("({})")
             payload.p_character_id = current.characterId
@@ -331,6 +368,7 @@ class WebCloudSync : FuryCloudTransport {
             val data = characters[index]
             val id = data.id as String
             localIds += id
+            if (!legacyWritable(id)) continue
             val extras = if (extrasCharacters == null || extrasCharacters[id] == null) js("({})") else extrasCharacters[id]
             val fingerprint = payloadFingerprint(data, extras)
             if (serverPayloads[id] == fingerprint) continue
@@ -370,6 +408,7 @@ class WebCloudSync : FuryCloudTransport {
 
         val deletedIds = serverPayloads.keys.filter { it !in localIds }
         for (id in deletedIds) {
+            if (!legacyWritable(id)) continue
             val payload = js("({})")
             payload.p_character_id = id
             payload.p_expected_revision = characterRevisions[id] ?: 0

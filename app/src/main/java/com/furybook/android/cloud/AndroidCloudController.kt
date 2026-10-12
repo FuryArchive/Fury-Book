@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.furybook.dubl.acquisition.*
 import com.furybook.core.cloud.CloudBootstrap
 import com.furybook.core.cloud.CampaignDashboard
 import com.furybook.core.cloud.CampaignInvite
@@ -33,10 +34,11 @@ class AndroidCloudController(
     context: Context,
     private val characterStore: CharacterStore,
     private val extrasStore: CharacterExtrasStore,
+    private val acquisitionStore: AcquisitionStore? = null,
 ) {
     private val gateway = AndroidFuryCloudGateway(context)
     private val metadataStore = AndroidCloudMetadataStore(context)
-    private val api = FuryNativeCloudApi(gateway)
+    private val api = FuryNativeCloudApi(gateway, acquisitionStore)
     private val campaignApi = FuryCampaignApi(gateway) { UUID.randomUUID().toString() }
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var coordinator: NativeCloudSyncCoordinator? = null
@@ -70,6 +72,12 @@ class AndroidCloudController(
 
     init {
         rebuildCoordinator()
+    }
+
+    /** T17 supplies the durable store/archive; server guards remain a separate release gate. */
+    fun createAcquisitionSync(store: AcquisitionStore, archive: AcquisitionConflictArchive, localDurable: Boolean): AcquisitionSyncProtocol {
+        val capabilities=AcquisitionCapabilities(localDurable=localDurable, cloudLedgerV2=false, formatWritable=true)
+        return AcquisitionSyncProtocol(store,api.acquisitionTransport(capabilities),archive,capabilities) { UUID.randomUUID().toString() }
     }
 
     fun bind(
@@ -342,6 +350,7 @@ class AndroidCloudController(
             metadataStore = metadataStore,
             api = api,
             idFactory = { UUID.randomUUID().toString() },
+            acquisitionStore = acquisitionStore,
             deviceLabel = androidCloudDeviceLabel(),
         )
     }

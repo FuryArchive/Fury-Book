@@ -268,7 +268,7 @@ private fun resolveUndoCandidate(state: StoredCharacter): UndoCandidate {
     val tip=state.ledger.entries[index]
     require(tip.type!=LedgerEntryType.Undo) { "Cannot undo an inverse operation" }
     val receipt=state.receipts.single { it.operationId==tip.operationId }
-    require(receipt.status==ReceiptStatus.Applied && receipt.afterRevision==index.toLong()+1) { "Original operation is not the eligible applied tip" }
+    require(receipt.status==ReceiptStatus.Applied) { "Original operation is not the eligible applied tip" }
     val restored=if(tip.type==LedgerEntryType.Purchase) validatePurchaseInverse(state,tip,receipt)
         else validateMutationInverse(state,tip,receipt)
     return UndoCandidate(tip,receipt,restored)
