@@ -168,15 +168,19 @@ fun main() {
     check(session.active.developmentRank(powerStrike.id) == 1)
     check(session.active.developmentRank(reckless.id) == 1)
     check(undo.canUndo)
+    check(store.load().characters.single() == session.active) { "acquisition must save the entire projection" }
     check(undo.undoLast())
     check(session.active.will == 3)
     check(session.active.resolveSkill("melee_weapon")!!.rank == 2)
     check(session.active.developmentRank(reckless.id) == 0)
+    check(store.load().characters.single() == session.active) { "Undo must save the prior character" }
+    check(!undo.undoLast()) { "one purchase has exactly one Undo boundary" }
 
     val beforeManual = session.active
     val rejected = application.acquire(catalog, DevelopmentAcquisitionRequest.single(manual.id, includeTarget = true))
     check(!rejected.applied)
     check(session.active == beforeManual)
+    check(store.load().characters.single() == beforeManual) { "rejected unresolved plan must not save a partial character" }
 
     println("DEVELOPMENT_ACQUISITION_OK")
 }
