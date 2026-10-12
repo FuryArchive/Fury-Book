@@ -55,7 +55,10 @@ class AcquisitionChange(
 }
 
 private class PriceParameterSnapshot(parameters: Map<String, String>) : AbstractMap<String, String>() {
-    private data class Entry(override val key: String, override val value: String) : Map.Entry<String, String>
+    private class Entry(override val key: String, override val value: String) : Map.Entry<String, String> {
+        override fun equals(other: Any?): Boolean = other is Map.Entry<*, *> && key == other.key && value == other.value
+        override fun hashCode(): Int = key.hashCode() xor value.hashCode()
+    }
     private val captured = parameters.map { (key, value) -> Entry(key, value) }
     override val entries: Set<Map.Entry<String, String>> = object : AbstractSet<Map.Entry<String, String>>() {
         override val size: Int get() = captured.size

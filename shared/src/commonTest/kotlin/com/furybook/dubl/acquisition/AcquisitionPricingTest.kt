@@ -78,4 +78,32 @@ class AcquisitionPricingTest {
         assertEquals(mapOf("knowledgeId" to "anatomy"), change.parameters)
         assertEquals(change, change.copy())
     }
+
+    @Test fun parameter_snapshot_obeys_map_entry_and_hash_key_contracts() {
+        val original = mutableMapOf("knowledgeId" to "anatomy", "schoolId" to "history")
+        val ordinary = original.toMap()
+        val snapshot = AcquisitionChange(AcquisitionKind.DEVELOPMENT, ref, "new", 0, 1, original, null).parameters
+        assertEquals(ordinary, snapshot)
+        assertEquals(snapshot, ordinary)
+        assertEquals(ordinary.hashCode(), snapshot.hashCode())
+        for (entry in ordinary.entries) {
+            val captured = snapshot.entries.single { it.key == entry.key }
+            assertEquals(entry, captured)
+            assertEquals(captured, entry)
+            assertEquals(entry.hashCode(), captured.hashCode())
+        }
+        assertEquals("ordinary", hashMapOf(ordinary to "ordinary")[snapshot])
+        assertEquals("snapshot", hashMapOf(snapshot to "snapshot")[ordinary])
+        val ordinaryEntry = ordinary.entries.first()
+        val capturedEntry = snapshot.entries.single { it.key == ordinaryEntry.key }
+        assertEquals("ordinary-entry", hashMapOf(ordinaryEntry to "ordinary-entry")[capturedEntry])
+        assertEquals("snapshot-entry", hashMapOf(capturedEntry to "snapshot-entry")[ordinaryEntry])
+        original.clear()
+        original["knowledgeId"] = "different"
+        assertEquals(ordinary, snapshot)
+        assertEquals(ordinary.hashCode(), snapshot.hashCode())
+        assertEquals("retained", hashMapOf(ordinary to "retained")[snapshot])
+        assertFalse(snapshot is MutableMap<*, *>)
+        assertFalse(capturedEntry is MutableMap.MutableEntry<*, *>)
+    }
 }
