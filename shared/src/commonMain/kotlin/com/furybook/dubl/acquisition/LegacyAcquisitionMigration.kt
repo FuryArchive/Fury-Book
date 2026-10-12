@@ -76,7 +76,8 @@ fun unresolvedLegacyOwnership(state:StoredCharacter,catalog:AcquisitionCatalog):
             origin.sourceRevision==source.sourceRevision && origin.sourceFingerprint==fingerprint &&
             instance.instanceId==legacyInstanceId(instance.definition,origin)
     }.groupBy { (it.origin as AcquisitionOrigin.Legacy).ownershipKey }
-    return provenance.ownershipRecords.filter { record -> !record.custom && scoped[record.ownershipKey].orEmpty().none { instance ->
+    val removed = activeLegacyRemovalKeys(state)
+    return provenance.ownershipRecords.filter { record -> !record.custom && record.ownershipKey !in removed && scoped[record.ownershipKey].orEmpty().none { instance ->
         catalog.definitions[instance.definition]?.kind==record.kind &&
             (record.candidateEntryId==null || record.candidateEntryId==instance.definition.entryId)
     } }

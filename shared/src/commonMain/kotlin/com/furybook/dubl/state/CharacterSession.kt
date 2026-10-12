@@ -33,7 +33,7 @@ internal class CharacterSession(
     internal fun updateActive(transform: (DublCharacter) -> DublCharacter) {
         val activeId = snapshot.activeCharacterId
         val updated = snapshot.characters.map { character ->
-            if (character.id == activeId) transform(character).normalized() else character
+            if (character.id == activeId) transform(character).let { if (store is DetachedCharacterStore) stagedResources(character, it) else it.normalized() } else character
         }
         persist(snapshot.copy(characters = updated))
     }
@@ -683,3 +683,28 @@ internal class CharacterSession(
         store.save(newSnapshot)
     }
 }
+
+/** Exact volatile staging store: never attached to platform persistence. */
+internal class DetachedCharacterStore(initial: AppSnapshot) : CharacterStore {
+    private var value = initial
+    override fun load() = value
+    override fun save(snapshot: AppSnapshot) { value = snapshot }
+}
+
+/** Preserve the existing resource bounds only for edited resources/changed maxima. Global legacy
+ * normalization would erase unrelated manual ranks, absent/rank-zero rows and exact identities.
+ */
+private fun stagedResources(before: DublCharacter, after: DublCharacter): DublCharacter = after.copy(
+    hpCurrent = if (before.hpCurrent != after.hpCurrent || before.healthMaximum != after.healthMaximum)
+        after.hpCurrent.coerceAtMost(after.healthMaximum) else after.hpCurrent,
+    enduranceCurrent = if (before.enduranceCurrent != after.enduranceCurrent || before.enduranceMaximum != after.enduranceMaximum)
+        after.enduranceCurrent.coerceIn(0, after.enduranceMaximum.coerceAtLeast(0)) else after.enduranceCurrent,
+    manaCurrent = if (before.manaCurrent != after.manaCurrent || before.effectiveManaMaximum != after.effectiveManaMaximum)
+        after.manaCurrent.coerceIn(0, after.effectiveManaMaximum.coerceAtLeast(0)) else after.manaCurrent,
+    chiCurrent = if (before.chiCurrent != after.chiCurrent || before.chiMaximum != after.chiMaximum)
+        after.chiCurrent.coerceIn(0, after.chiMaximum.coerceAtLeast(0)) else after.chiCurrent,
+    customResources = after.customResources.map { resource ->
+        if (before.customResources.singleOrNull { it.uid == resource.uid } == resource) resource
+        else resource.copy(maximum = resource.maximum.coerceAtLeast(0), current = resource.current.coerceIn(0, resource.maximum.coerceAtLeast(0)))
+    },
+)

@@ -28,13 +28,14 @@ def test_legacy_planner_requires_canonical_context_and_cannot_write_or_create_un
     sources += sorted((shared / "com/furybook/dubl/acquisition").glob("*.kt"))
     sources += sorted((shared / "com/furybook/content").glob("*.kt"))
     sources += sorted((shared / "com/furybook/core/json").glob("*.kt"))
+    sources += sorted((shared / "com/furybook/dubl/application").glob("*.kt"))
     sources += [
         shared / "com/furybook/dubl/data/SnapshotCodec.kt",
         shared / "com/furybook/dubl/data/CharacterTransferCodec.kt",
         shared / "com/furybook/dubl/data/CharacterStore.kt",
         shared / "com/furybook/dubl/state/CharacterSession.kt",
-        shared / "com/furybook/dubl/application/ApplicationUndoManager.kt",
-        shared / "com/furybook/dubl/application/DevelopmentApplication.kt",
+        shared / "com/furybook/dubl/data/CharacterExtrasStore.kt",
+        shared / "com/furybook/dubl/state/CharacterExtrasSession.kt",
         HARNESS,
     ]
     with tempfile.TemporaryDirectory() as td:

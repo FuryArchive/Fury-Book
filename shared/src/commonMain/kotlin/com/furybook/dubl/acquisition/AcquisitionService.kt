@@ -127,20 +127,13 @@ class AcquisitionService(private val store: AcquisitionStore, private val catalo
         val remaining = balance(state.ledger) - cost
         require(cost == confirmed.cost && remaining == confirmed.remaining && replay.prices == confirmed.prices) { "Final quote differs from confirmation" }
         require(remaining.xp >= 0 && remaining.ap >= 0) { "Insufficient canonical balance" }
-        require(state.revision < Long.MAX_VALUE && state.storageRevision < Long.MAX_VALUE) { "Revision overflow" }
-        val entry = LedgerEntry(command.operationId,
+        val saved = appendCanonicalOperation(state, normalized, command.operationId, command.canonical,
             if (confirmed.changes.isEmpty()) LedgerEntryType.NonFinancial else LedgerEntryType.Purchase,
-            confirmed.changes, Amount.ZERO - cost, RuleVersions(catalog.catalogRevision, catalog.resolutionRevision),
-            creationPhase = state.creationPhase, evidenceCanonical = encodeAcquisitionEvidence(command.request.externalConfirmations,
-                priceEvidence(confirmed, state, normalized)))
-        val receipt = Receipt(command.operationId, command.canonical, SavedAcquisitionResult(cost, remaining, confirmed.changes),
-            ReceiptStatus.Applied, state.revision, state.revision + 1)
-        val saved = normalized.copy(ledger = state.ledger.copy(entries = state.ledger.entries + entry),
-            receipts = state.receipts + receipt, revision = state.revision + 1, storageRevision = state.storageRevision + 1)
-        require(balance(saved.ledger) == remaining && balance(saved.ledger) - balance(state.ledger) == entry.amountDelta) { "Monetary delta mismatch" }
-        val queued = saved.copy(outbox = saved.outbox + OutboxItem(command.operationId, state.syncMetadata.serverRevision, encodeSyncEnvelope(saved)))
-        encodeEnvelope(queued) // Validate exactly what the store will persist before invoking CAS.
-        return Prepared(queued)
+            Amount.ZERO - cost, RuleVersions(catalog.catalogRevision, catalog.resolutionRevision),
+            encodeAcquisitionEvidence(command.request.externalConfirmations, priceEvidence(confirmed, state, normalized)),
+            confirmed.changes)
+        require(balance(saved.ledger) == remaining && balance(saved.ledger) - balance(state.ledger) == Amount.ZERO - cost) { "Monetary delta mismatch" }
+        return Prepared(saved)
     }
 }
 

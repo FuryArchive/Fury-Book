@@ -1,6 +1,7 @@
 package com.furybook.dubl.application
 
-/** One-step semantic undo owned by the shared application layer. */
+/** Legacy-session one-step Undo only. Canonical operations use persisted AcquisitionUndo;
+ * this manager must never receive a canonical snapshot or publish a canonical restoration. */
 internal class ApplicationUndoManager {
     private var pending: (() -> Unit)? = null
 
