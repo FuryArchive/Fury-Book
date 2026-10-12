@@ -220,6 +220,52 @@ class AcquisitionEnvelopeTest {
         assertEquals(0, legacy.experience)
         assertFalse("manual" in legacy.development)
     }
+    @Test fun current_revision_outbox_must_match_complete_committed_projection() {
+        val local = purchased()
+        val valid = local.copy(outbox = listOf(OutboxItem("buy", 7, encodeSyncEnvelope(local))))
+        val raw = encodeEnvelope(valid)
+        for (altered in listOf(
+            local.copy(character = local.character.copy(name = "UNJOURNALED", experience = 123456)),
+            local.copy(instances = emptyList()),
+            local.copy(extras = local.extras.copy(notes = "UNJOURNALED")),
+            local.copy(character = local.character.copy(creationComplete = true), creationPhase = RequirementNode.CreationPhase.Phase.Finalized),
+        )) {
+            val payload = encodeSyncEnvelope(altered)
+            val mismatched = local.copy(outbox = listOf(OutboxItem("buy", 7, payload)))
+            assertFailsWith<IllegalArgumentException> { encodeEnvelope(mismatched) }
+            val corrupt = rewrite(raw) { it["outbox"] = jsonArray(listOf(jsonObject(
+                "operationId" to jsonString("buy"), "parentServerRevision" to jsonString("7"),
+                "payloadCanonical" to jsonString(payload)))) }
+            assertEquals(corrupt, assertIs<LoadResult.Corrupt>(decodeEnvelope(corrupt)).raw)
+        }
+    }
+    @Test fun older_outbox_prefix_remains_valid_after_a_journaled_projection_change() {
+        val original = purchased()
+        val rename = original.ledger.entries.single().copy(operationId = "rename", type = LedgerEntryType.NonFinancial,
+            changes = emptyList(), amountDelta = Amount.ZERO)
+        val receipt = Receipt("rename", "{\"characterId\":\"c\",\"name\":\"Renamed\"}",
+            SavedAcquisitionResult(Amount.ZERO, Amount(80,2), emptyList()), ReceiptStatus.Applied, 1,2)
+        val current = original.copy(character = original.character.copy(name = "Renamed"), revision = 2, storageRevision = 2,
+            ledger = original.ledger.copy(entries = original.ledger.entries + rename), receipts = original.receipts + receipt,
+            outbox = listOf(OutboxItem("buy", 7, encodeSyncEnvelope(original))))
+        assertEquals(current, assertIs<LoadResult.Loaded>(decodeEnvelope(encodeEnvelope(current))).state)
+    }
+    @Test fun strict_unicode_escapes_require_four_ascii_hex_digits() {
+        for ((digits, legacy) in listOf("+041" to "A", "-001" to "\uFFFF", "１２３４" to "\u1234")) {
+            val raw = "\"\\u$digits\""
+            assertFailsWith<IllegalArgumentException> { canonicalJson(raw) }
+            assertEquals(JsonValue.Str(legacy), JsonReader(raw).read())
+        }
+        assertEquals("\"Aï\"", canonicalJson("\"\\u0041\\u00eF\""))
+    }
+    @Test fun malformed_unicode_in_envelope_retains_original_raw_input() {
+        val valid = encodeEnvelope(purchased().copy(character = DublCharacter("c", name = "A")))
+        for (digits in listOf("+041", "-001", "１２３４")) {
+            val raw = valid.replace("\"name\":\"A\"", "\"name\":\"\\u$digits\"")
+            assertNotEquals(valid, raw)
+            assertEquals(raw, assertIs<LoadResult.Corrupt>(decodeEnvelope(raw)).raw)
+        }
+    }
     private fun runImmediate(block: suspend () -> Unit) {
         var completion: Result<Unit>? = null
         block.startCoroutine(object : Continuation<Unit> { override val context = EmptyCoroutineContext

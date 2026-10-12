@@ -108,7 +108,11 @@ internal class JsonReader(private val source: String, private val strict: Boolea
                         't' -> out.append('\t')
                         'u' -> {
                             require(index + 4 <= source.length) { "Bad unicode escape" }
-                            val code = source.substring(index, index + 4).toInt(16)
+                            val digits = source.substring(index, index + 4)
+                            if (strict) require(digits.all { it in '0'..'9' || it in 'a'..'f' || it in 'A'..'F' }) {
+                                "Unicode escape requires four ASCII hexadecimal digits"
+                            }
+                            val code = digits.toInt(16)
                             out.append(code.toChar())
                             index += 4
                         }

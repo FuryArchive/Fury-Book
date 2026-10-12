@@ -239,6 +239,11 @@ private fun validate(state: StoredCharacter) {
         require(item.operationId in receipts && item.parentServerRevision >= 0) { "Invalid outbox operation" }
         val payload = validateSyncPayload(item.payloadCanonical, state.character.id)
         require(payload.long("revision") <= state.revision) { "Future outbox revision" }
+        if (payload.long("revision") == state.revision) {
+            require(item.payloadCanonical == canonicalText(encodeState(state, local = false))) {
+                "Current-revision outbox differs from committed projection"
+            }
+        }
         val payloadReceipts = payload.list("receipts").map { decodeReceipt(it.obj()) }
         require(payloadReceipts.any { it.operationId == item.operationId }) { "Outbox payload lacks its operation" }
         val payloadLedger = payload.objectRequired("ledger")
