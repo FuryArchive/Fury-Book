@@ -152,8 +152,8 @@ private fun WebRoot() {
                     DesktopAppState(resources!!,cloud,checkNotNull(durableSession).store,checkNotNull(durableSession).states)
                 }
 
-                LaunchedEffect(state) {
-                    if(checkNotNull(durableSession).states.isEmpty()) cloud.schedule(
+                LaunchedEffect(state,state.canonicalReadState.phase,state.canonicalReadState.classifiedProtected) {
+                    if(!state.canonicalMode && state.canonicalReadState.phase==WebCanonicalReadPhase.Ready && checkNotNull(durableSession).states.isEmpty()) cloud.schedule(
                         snapshot = BrowserCharacterStore().raw(),
                         extras = BrowserCharacterExtrasStore().raw(),
                         chiEnabled = BrowserPackState.chiEnabled,
@@ -540,8 +540,9 @@ private fun FuryWebApp(
     accountEmail: String,
     onSignOut: () -> Unit,
 ) {
-    var selected by remember { mutableStateOf(DesktopSection.SHEET) }
+    var selected by remember(state) { mutableStateOf(DesktopSection.SHEET) }
 
+    WebAcquisitionRoot(state) {
     BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         val layout = layoutClassForWidth(maxWidth.value.toInt())
         if (layout == DublLayoutClass.COMPACT) {
@@ -570,6 +571,7 @@ private fun FuryWebApp(
                 DesktopContent(state, cloud, selected, layout, { selected = it }, Modifier.weight(1f))
             }
         }
+    }
     }
 }
 
@@ -604,7 +606,7 @@ private fun DesktopRail(
         ) {
             Column(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(state.activeCharacter.name, fontWeight = FontWeight.SemiBold, maxLines = 2)
-                Text("${state.activeCharacter.experience} XP · сменить ▼", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
+                Text(if(state.canonicalMode) state.canonicalBalance(state.activeCharacter.id)?.let { acquisitionAmount(it)+" · сменить ▼" } ?: "Баланс недоступен · сменить ▼" else "${state.activeCharacter.experience} XP · сменить ▼", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
             }
         }
         DropdownMenu(expanded = switcherOpen, onDismissRequest = { switcherOpen = false }) {
@@ -749,6 +751,7 @@ private fun DesktopContent(
     onNavigate: (DesktopSection) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val acquisitionActions=LocalWebAcquisition.current
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         val pageModifier = Modifier
             .widthIn(max = 2160.dp)
@@ -788,7 +791,7 @@ private fun DesktopContent(
                 DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
                 DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
                 DesktopSection.CAMPAIGN -> CampaignScreen(state, cloud, animatedPageModifier)
-                DesktopSection.CHARACTERS -> CharactersScreen(state, animatedPageModifier)
+                DesktopSection.CHARACTERS -> CharactersScreen(state, animatedPageModifier, onNewCharacter=acquisitionActions?.let { it::newCharacter }, onImported={ acquisitionActions?.action { acquisitionActions.reload() } })
             }
         }
     }

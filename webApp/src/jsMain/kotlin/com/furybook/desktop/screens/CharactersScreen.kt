@@ -38,7 +38,7 @@ import com.furybook.web.pickTextFile
 import kotlinx.coroutines.launch
 
 @Composable
-fun CharactersScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
+fun CharactersScreen(state: DesktopAppState, modifier: Modifier = Modifier, onNewCharacter:(()->Unit)?=null, onImported:(()->Unit)?=null) {
     var confirmDelete by remember { mutableStateOf(false) }
     var transferStatus by remember { mutableStateOf<String?>(null) }
     var contentPackStatus by remember { mutableStateOf<String?>(null) }
@@ -65,7 +65,9 @@ fun CharactersScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     OutlinedButton(onClick = {
                         pickTextFile(".dubl,application/json,text/plain") { raw ->
-                            transferStatus = importStatus(state.importCharacter(raw))
+                            val result=state.importCharacter(raw)
+                            transferStatus = importStatus(result)
+                            if(result is CharacterTransferImportResult.Imported) onImported?.invoke()
                         }
                     }) { Text("Импорт") }
                     OutlinedButton(onClick = {
@@ -75,7 +77,7 @@ fun CharactersScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                         )
                         transferStatus = "Персонаж экспортирован."
                     }) { Text("Экспорт") }
-                    Button(onClick = { state.createCharacter() }) { Text("+ Новый персонаж") }
+                    Button(onClick = { if(state.canonicalMode) onNewCharacter?.invoke() else state.createCharacter() }) { Text("+ Новый персонаж") }
                 }
             }
         }
@@ -112,7 +114,7 @@ fun CharactersScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                         Text(syncPhaseBadge(cloudStatus.phase), color = syncPhaseColor(cloudStatus.phase), fontWeight = FontWeight.Bold)
                     }
                     Text(
-                        "Изменения автоматически отправляются в Fury Cloud примерно через 0,7 секунды после ввода. Веб-версия не хранит персонажей офлайн.",
+                        if(state.canonicalMode) "Канонический локальный журнал защищён. Локальный результат и облачная синхронизация различаются; старые облачные записи не изменяют журнал." else "Изменения автоматически отправляются в Fury Cloud примерно через 0,7 секунды после ввода. Веб-версия не хранит персонажей офлайн.",
                         color = DublMuted,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -232,7 +234,7 @@ fun CharactersScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
             ) {
                 Text(character.concept.ifBlank { "Без концепта" }, color = DublMuted)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text("XP ${character.experience}", color = DublFocus)
+                    Text(if(state.canonicalMode) state.canonicalBalance(character.id)?.let(::acquisitionAmount) ?: "Баланс недоступен" else "XP ${character.experience}", color = DublFocus)
                     Text(if (active) "Активный" else "", color = DublFocus, fontWeight = FontWeight.SemiBold)
                 }
             }

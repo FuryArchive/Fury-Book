@@ -109,6 +109,10 @@ import com.furybook.dubl.model.resolvedSkills
 import com.furybook.dubl.model.displayNotes
 import com.furybook.dubl.model.skillCalculationForRoll
 import com.furybook.desktop.DesktopAppState
+import com.furybook.dubl.acquisition.AcquisitionRequest
+import com.furybook.dubl.acquisition.AcquisitionTarget
+import com.furybook.dubl.acquisition.DefinitionRef
+import androidx.compose.ui.platform.testTag
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -133,6 +137,7 @@ fun CharacterSheetScreen(
     onNavigateMagic: () -> Unit = {},
     onNavigateEquipment: () -> Unit = {},
 ) {
+    val actions = LocalWebAcquisition.current
     val character = state.activeCharacter
     val extras = state.extras
     val economy = CharacterEconomy.breakdown(
@@ -196,6 +201,7 @@ fun CharacterSheetScreen(
         val wideSheet = maxWidth >= 1320.dp
         Box(Modifier.fillMaxSize()) {
             LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                if (state.canonicalMode) item { AcquisitionBalanceCard() }
                 item {
                 CharacterHero(
                     state = state,
@@ -206,7 +212,7 @@ fun CharacterSheetScreen(
                     compact = compactSheet,
                     wide = wideSheet,
                     onEditIdentity = { showIdentity = true },
-                    onEconomy = { showEconomy = true },
+                    onEconomy = { if (state.canonicalMode) actions?.showHistory() else showEconomy = true },
                     onConditions = { showConditions = true },
                     onResourceDelta = ::changeResource,
                     onResourceVisibility = { showVisibility = true },
@@ -215,8 +221,16 @@ fun CharacterSheetScreen(
                     onEditCustomResource = { customResource = it },
                     onCreateCustomResource = { createResource = true },
                     onAttributeDelta = { id, delta ->
-                        state.changeAttribute(id, delta)
-                        recent = RecentSheetChange("${id.title} ${signed(delta)}", SheetUndo.Attribute(id, delta))
+                        if (state.canonicalMode) {
+                            val rank=actions?.view?.state?.character?.attributes?.get(id)?.base
+                            if (rank != null) {
+                                if (delta > 0) actions.open(AcquisitionRequest(state.snapshot.activeCharacterId,listOf(AcquisitionTarget(DefinitionRef("dubl-3.69","attribute:${id.name}"),targetRank=rank+delta))))
+                                else actions.lowerAttribute(id,rank+delta)
+                            }
+                        } else {
+                            state.changeAttribute(id, delta)
+                            recent = RecentSheetChange("${id.title} ${signed(delta)}", SheetUndo.Attribute(id, delta))
+                        }
                     },
                     onRoll = { context, attribute -> rollRequest = ContextRollRequest(context, attribute) },
                 )
@@ -328,11 +342,13 @@ fun CharacterSheetScreen(
                 sheetDevelopmentEntry = null
             },
             onResetLocal = {
-                state.resetDevelopmentOverride(entry.id)
+                if(state.canonicalMode) actions?.editManual("Сброс локальной записи") { base -> base.copy(developmentOverrides=base.developmentOverrides-entry.id) }
+                else state.resetDevelopmentOverride(entry.id)
                 sheetDevelopmentEntry = null
             },
             onDeleteCustom = {
-                state.removeCustomDevelopment(entry.id)
+                if(state.canonicalMode) actions?.editManual("Удаление своей записи") { base -> base.copy(customDevelopmentEntries=base.customDevelopmentEntries.filterNot { it.id==entry.id }) }
+                else state.removeCustomDevelopment(entry.id)
                 sheetDevelopmentEntry = null
             },
             hasLocalOverride = character.developmentOverrides.containsKey(entry.id),
@@ -346,7 +362,10 @@ fun CharacterSheetScreen(
             initial = entry,
             title = if (isCustom) "Редактировать свою запись" else "Локальная правка",
             onSave = { updated ->
-                if (isCustom) state.updateCustomDevelopment(updated) else state.setDevelopmentOverride(updated)
+                if(state.canonicalMode) actions?.editManual("Локальная правка: ${updated.name}") { base ->
+                    if(base.customDevelopmentEntries.any { it.id==updated.id }) base.copy(customDevelopmentEntries=base.customDevelopmentEntries.map { if(it.id==updated.id) updated else it })
+                    else base.copy(developmentOverrides=base.developmentOverrides+(updated.id to updated))
+                } else if (isCustom) state.updateCustomDevelopment(updated) else state.setDevelopmentOverride(updated)
                 sheetEditingDevelopment = null
             },
             onDismiss = { sheetEditingDevelopment = null },
@@ -591,9 +610,13 @@ private fun HeroIdentity(
             Text(character.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text(character.concept.ifBlank { "Без концепта" }, color = DesktopMuted, style = MaterialTheme.typography.bodyLarge)
             FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("XP ${character.experience}", color = DesktopGold, fontWeight = FontWeight.Bold)
-                Text("Осталось ${economy.remainingXp}", color = if (economy.overspentXp) MaterialTheme.colorScheme.error else DesktopAccent)
-                Text("ОС ${economy.abilityPointsRemaining}/${economy.abilityPointsBudget}", color = DesktopGold)
+                val actions=LocalWebAcquisition.current
+                if(actions?.canonical==true) Text(actions.view?.balance?.let(::acquisitionAmount) ?: "Баланс недоступен",color=DesktopGold)
+                else {
+                    Text("XP ${character.experience}", color = DesktopGold, fontWeight = FontWeight.Bold)
+                    Text("Осталось ${economy.remainingXp}", color = if (economy.overspentXp) MaterialTheme.colorScheme.error else DesktopAccent)
+                    Text("ОС ${economy.abilityPointsRemaining}/${economy.abilityPointsBudget}", color = DesktopGold)
+                }
                 Text("Размер ${character.size} · Ног ${character.legs}", color = DesktopMuted)
                 Text(if (character.creationComplete) "Создание завершено" else "Режим создания", color = DesktopMuted)
             }
@@ -854,7 +877,7 @@ private fun HeroCharacteristicsStrip(
                         onRoll = { onRoll(RollContext.ATTRIBUTE, id) },
                         onMinus = { onAttributeDelta(id, -1) },
                         onPlus = { onAttributeDelta(id, 1) },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).testTag("attribute.${id.name}"),
                     )
                 }
                 repeat(columns - rowAttributes.size) { Spacer(Modifier.weight(1f)) }
@@ -1007,7 +1030,7 @@ private fun SheetSkillsPanel(
         )
     }
     LaunchedEffect(groups, extras.skillGroups) {
-        if (groups != extras.skillGroups) state.setSkillGroups(groups)
+        if (!state.canonicalMode && groups != extras.skillGroups) state.setSkillGroups(groups)
     }
     val visibleById = remember(visibleSkills) { visibleSkills.associateBy { it.id } }
     val visibleGroups = remember(groups, visibleById) {
@@ -1277,7 +1300,7 @@ private fun SheetDevelopmentPanel(
         "development:ungrouped",
     )
     LaunchedEffect(developmentGroups, extras.developmentGroups) {
-        if (developmentGroups != extras.developmentGroups) state.setDevelopmentGroups(developmentGroups)
+        if (!state.canonicalMode && developmentGroups != extras.developmentGroups) state.setDevelopmentGroups(developmentGroups)
     }
     val developmentById = developmentItems.associateBy { it.entry.id }
     val parentById = developmentItems.associate { it.entry.id to it.parentId }
@@ -1538,6 +1561,7 @@ private fun GroupHeader(group: SheetGroup, count: Int, onToggle: () -> Unit) {
 
 @Composable
 private fun IdentityDialog(state: DesktopAppState, character: DublCharacter, onDismiss: () -> Unit, onChanged: (DublCharacter) -> Unit) {
+    val actions = LocalWebAcquisition.current
     var name by remember(character.id) { mutableStateOf(character.name) }
     var concept by remember(character.id) { mutableStateOf(character.concept) }
     var size by remember(character.id) { mutableStateOf(character.size.toString()) }
@@ -1559,6 +1583,10 @@ private fun IdentityDialog(state: DesktopAppState, character: DublCharacter, onD
         },
         confirmButton = { TextButton(onClick = {
             val before = character
+            if (state.canonicalMode) actions?.editManual("Профиль персонажа") { base -> base.copy(
+                name=name.trim(), concept=concept.trim(), size=size.toIntOrNull() ?: base.size,
+                legs=legs.toIntOrNull() ?: base.legs, manaEnabled=manaEnabled) }
+            else {
             state.setIdentity(
                 name = name,
                 concept = concept,
@@ -1566,7 +1594,9 @@ private fun IdentityDialog(state: DesktopAppState, character: DublCharacter, onD
                 legs = legs.toIntOrNull() ?: 2,
                 manaEnabled = manaEnabled,
             )
-            onChanged(before); onDismiss()
+            onChanged(before)
+            }
+            onDismiss()
         }) { Text("Сохранить") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } },
     )
@@ -1603,6 +1633,7 @@ private fun EconomySummaryCard(
 
 @Composable
 private fun EconomyDialog(state: DesktopAppState, onDismiss: () -> Unit) {
+    if (state.canonicalMode) { AcquisitionBalanceCard(); return }
     val character = state.activeCharacter
     val showChiEconomy = state.uiMounts(FcpUiSurface.CHARACTER_ECONOMY, FcpUiComponent.XP_LINE).forFeature(DublUiFeature.CHI) != null
     val economy = CharacterEconomy.breakdown(character, state.developmentCatalog, includeChi = showChiEconomy)

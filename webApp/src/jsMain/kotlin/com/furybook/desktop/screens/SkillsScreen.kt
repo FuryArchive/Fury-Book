@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -37,6 +38,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,9 +55,12 @@ import com.furybook.dubl.model.skillNextRankCost
 import com.furybook.dubl.model.skillXpSpent
 import com.furybook.ui.theme.DublMuted
 import com.furybook.desktop.DesktopAppState
+import com.furybook.web.webUuid
+import com.furybook.dubl.acquisition.AcquisitionKind
 
 @Composable
 fun SkillsScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
+    val actions=LocalWebAcquisition.current
     val character = state.activeCharacter
     var search by remember(character.id) { mutableStateOf("") }
     var category by remember(character.id) { mutableStateOf<SkillCategory?>(null) }
@@ -72,6 +77,8 @@ fun SkillsScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
             (category == null || skill.category == category) &&
             (!learnedOnly || skill.rank > 0)
     }
+    val canonicalOwned=actions?.view?.let { view -> view.instances.filter { view.catalog.definitions[it.definition]?.kind==AcquisitionKind.SKILL &&
+        (search.isBlank() || it.label.contains(search,true)) } }.orEmpty()
     val selectedSkill = selectedSkillId?.let { id ->
         character.resolvedSkills(includeHidden = true).firstOrNull { it.id == id }
     }
@@ -86,7 +93,7 @@ fun SkillsScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
             learnedOnly = learnedOnly,
             onLearnedOnlyChange = { learnedOnly = it },
             hiddenCount = character.hiddenSkillIds.size,
-            onSpecialized = { showSpecialized = true },
+            onSpecialized = { if(state.canonicalMode) actions?.chooseDefinition(AcquisitionKind.SKILL) else showSpecialized = true },
             onCustom = { showCustom = true },
             onHidden = { showHidden = true },
         )
@@ -95,7 +102,7 @@ fun SkillsScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
             Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 BoxWithConstraints(Modifier.weight(1f).fillMaxHeight()) {
                     val columns = if (maxWidth >= 980.dp) 2 else 1
-                    if (skills.isEmpty()) {
+                    if (skills.isEmpty() && canonicalOwned.isEmpty()) {
                         DesktopPanel(Modifier.fillMaxWidth()) {
                             EmptyState("По этим фильтрам умений нет.")
                         }
@@ -106,6 +113,16 @@ fun SkillsScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
+                            if(state.canonicalMode) items(canonicalOwned,key={"canonical-${it.instanceId}"},span={GridItemSpan(maxLineSpan)}) { owned ->
+                                SectionCard(owned.label,Modifier.testTag("acquisition.instance.${owned.instanceId}")) {
+                                    Text("Сохранённый экземпляр · ранг ${owned.rank}")
+                                    if(owned.parameters.isNotEmpty()) Text("Индивидуальные параметры сохранены")
+                                    Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                                        Button(onClick={actions?.openTarget(AcquisitionKind.SKILL,owned.instanceId,owned.rank+1)}) { Text("Повысить") }
+                                        TextButton(onClick={actions?.lowerHolding(AcquisitionKind.SKILL,owned.instanceId,owned.rank-1)}) { Text("Ручное понижение") }
+                                    }
+                                }
+                            }
                             skills.groupBy { it.category }.forEach { (skillCategory, categorySkills) ->
                                 item(
                                     key = "skill-category-${skillCategory.name}",
@@ -118,18 +135,21 @@ fun SkillsScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                                         ?.takeIf { it in skill.attributes }
                                         ?: skill.attributes.first()
                                     val calc = character.skillCalculation(skill, preferred)
+                                    Column {
+                                    if(state.canonicalMode) AcquisitionEntrySummary(AcquisitionKind.SKILL,skill.id,skill.rank+1)
                                     DesktopSkillCard(
                                         title = skill.name,
                                         bonus = calc.total?.let(::signed) ?: "—",
                                         attribute = preferred.title,
                                         rank = skill.rank,
-                                        nextRankCost = character.skillNextRankCost(skill.rank),
+                                        nextRankCost = if(state.canonicalMode) null else character.skillNextRankCost(skill.rank),
                                         description = skill.description,
                                         selected = selectedSkillId == skill.id,
                                         canRoll = calc.total != null,
                                         onSelect = { selectedSkillId = if (selectedSkillId == skill.id) null else skill.id },
                                         onRoll = { rollSkill = skill },
                                     )
+                                    }
                                 }
                             }
                         }
@@ -198,7 +218,7 @@ private fun DesktopSkillsToolbar(
                     fontWeight = FontWeight.Bold,
                     color = DesktopText,
                 )
-                Text("Потрачено XP: $spentXp", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
+                if(LocalWebAcquisition.current?.canonical==true) Text(LocalWebAcquisition.current?.view?.balance?.let(::acquisitionAmount) ?: "Баланс недоступен",color=DesktopMuted) else Text("Потрачено XP: $spentXp", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
             }
 
             Row(
@@ -363,6 +383,7 @@ private fun SkillInspector(
     onRoll: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val actions=LocalWebAcquisition.current
     val skill = state.activeCharacter.resolvedSkills(includeHidden = true).firstOrNull { it.id == skillId } ?: return
     val preferred = state.extras.preferredSkillAttributes[skill.id]?.takeIf { it in skill.attributes } ?: skill.attributes.first()
     val calculation = state.activeCharacter.skillCalculation(skill, preferred)
@@ -421,12 +442,18 @@ private fun SkillInspector(
             Text("Развитие", color = DesktopText, fontWeight = FontWeight.Bold)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Ранг", color = DesktopMuted)
-                RankStepper(skill.rank, max = 10) { next -> state.changeSkillRank(skill.id, next - skill.rank) }
-                state.activeCharacter.skillNextRankCost(skill.rank)?.let { cost ->
+                RankStepper(skill.rank, max = if(state.canonicalMode) Int.MAX_VALUE else 10) { next ->
+                    if(state.canonicalMode) {
+                        if(next>skill.rank) actions?.openTarget(AcquisitionKind.SKILL,skill.id,next)
+                        else actions?.lowerHolding(AcquisitionKind.SKILL,skill.id,next)
+                    } else state.changeSkillRank(skill.id, next-skill.rank)
+                }
+                if(!state.canonicalMode) state.activeCharacter.skillNextRankCost(skill.rank)?.let { cost ->
                     Text("Следующий: $cost XP", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
                 }
             }
 
+            if(state.canonicalMode) AcquisitionEntrySummary(AcquisitionKind.SKILL,skill.id,skill.rank+1)
             Text("Характеристики", color = DesktopText, fontWeight = FontWeight.Bold)
             AttributeId.entries.forEach { attr ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -494,6 +521,16 @@ private fun SkillInspector(
             DesktopSmallAction(
                 label = "Сохранить настройки",
                 onClick = {
+                    if(state.canonicalMode) actions?.nonFinancial {
+                    skills.setAttributes(skill.id, attributes.toList())
+                    skills.setModifier(skill.id, modifierText.toIntOrNull() ?: 0)
+                    skills.setFormulaNote(skill.id, note)
+                    skills.setNameOverride(skill.id, localName)
+                    skills.setDescriptionOverride(skill.id, localDescription)
+                    skills.setCategoryOverride(skill.id, localCategory)
+                    skills.setUntrainedOverride(skill.id, localUntrained)
+                    skills.setAutoOverrides(skill.id, localAuto6, localAuto12)
+                    } else {
                     state.setSkillAttributes(skill.id, attributes.toList())
                     state.setSkillModifier(skill.id, modifierText.toIntOrNull() ?: 0)
                     state.setSkillFormulaNote(skill.id, note)
@@ -502,6 +539,7 @@ private fun SkillInspector(
                     state.setSkillCategoryOverride(skill.id, localCategory)
                     state.setSkillUntrainedOverride(skill.id, localUntrained)
                     state.setSkillAutoOverrides(skill.id, localAuto6, localAuto12)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 emphasized = true,
@@ -514,7 +552,7 @@ private fun SkillInspector(
                     TextButton(onClick = { state.resetSkillDefinitionOverrides(skill.id); onClose() }) { Text("К рулбуку") }
                 }
                 if (skill.isDynamic) {
-                    TextButton(onClick = { state.deleteDynamicSkill(skill.id); onClose() }) { Text("Удалить") }
+                    TextButton(onClick = { if(state.canonicalMode) actions?.lowerHolding(AcquisitionKind.SKILL,skill.id,0) else state.deleteDynamicSkill(skill.id); onClose() }) { Text("Удалить") }
                 }
             }
             Spacer(Modifier.height(2.dp))
@@ -571,6 +609,7 @@ private fun SpecializedSkillDialog(state: DesktopAppState, onError: (String) -> 
 
 @Composable
 private fun CustomSkillDialog(state: DesktopAppState, onError: (String) -> Unit, onDismiss: () -> Unit) {
+    val actions=LocalWebAcquisition.current
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var attributes by remember { mutableStateOf(setOf(AttributeId.INTELLIGENCE)) }
@@ -599,8 +638,15 @@ private fun CustomSkillDialog(state: DesktopAppState, onError: (String) -> Unit,
             }
         },
         confirmButton = { TextButton(enabled = name.isNotBlank(), onClick = {
-            val added = state.addCustomSkill(name, description, attributes.toList(), untrained)
-            if (added != null) onDismiss() else onError("Введите корректное уникальное название. Такое умение уже может существовать.")
+            if(state.canonicalMode) {
+                val id=webUuid()
+                actions?.editManual("Своё умение: ${name.trim()}") { base -> base.copy(skills=base.skills+(id to com.furybook.dubl.model.CharacterSkill(
+                    id=id,name=name.trim(),description=description.trim(),attributes=attributes.toList(),untrainedOverride=untrained))) }
+                onDismiss()
+            } else {
+                val added = state.addCustomSkill(name, description, attributes.toList(), untrained)
+                if (added != null) onDismiss() else onError("Введите корректное уникальное название. Такое умение уже может существовать.")
+            }
         }) { Text("Добавить") } },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Отмена") } },
     )

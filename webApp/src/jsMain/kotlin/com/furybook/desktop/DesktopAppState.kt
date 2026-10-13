@@ -32,6 +32,10 @@ import com.furybook.web.CloudSyncStatus
 import com.furybook.web.WebCatalogLoader
 import com.furybook.web.WebCloudSync
 import com.furybook.web.webUuid
+import com.furybook.web.WebCanonicalReadState
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class DesktopAppState(
     private val resourceTexts: Map<String, String>,
@@ -39,18 +43,33 @@ class DesktopAppState(
     private val acquisitionStore: BrowserAcquisitionStore? = null,
     initialCanonicalStates: Map<String,StoredCharacter> = emptyMap(),
     val localAcquisitionEnabled:Boolean = false,
+    private val acquisitionCatalogProvider:(()->AcquisitionCatalog)? = null,
 ) {
     private val characterStore = BrowserCharacterStore()
     private val extrasStore = BrowserCharacterExtrasStore()
     private var canonicalStates = initialCanonicalStates.toMap()
     private var readOnlySelection:String? = null
-    private val canonicalMode get() = localAcquisitionEnabled || canonicalStates.isNotEmpty()
+    var canonicalReadState by mutableStateOf(WebCanonicalReadState.initial(acquisitionStore != null, initialCanonicalStates.isNotEmpty()))
+        private set
+    val canonicalMode get() = localAcquisitionEnabled || canonicalReadState.blocksLegacy
+    val readOnlyCanonicalMode get() = canonicalMode && !localAcquisitionEnabled
+    var canonicalLoadOutcome:LoadResult by mutableStateOf(initialCanonicalStates.values.firstOrNull()?.let { LoadResult.Loaded(it) } ?: LoadResult.Missing("unclassified"))
+        private set
+    var canonicalViewGeneration by mutableStateOf(0L)
+        private set
+    val contentRevision get() = canonicalViewGeneration
+    private val canonicalReadLane = Mutex()
+    private val canonicalCommandLane = Mutex()
+    var onCanonicalNonFinancialReview:((DublApplication.()->Unit)->Unit)? = null
     val cloudLedgerV2:Boolean = false
     var storageError:String? by mutableStateOf(null);private set
     private val acquisitionService by lazy { AcquisitionService(requireNotNull(acquisitionStore),::acquisitionCatalog,::webUuid) }
+    private var cachedAcquisitionCatalog:AcquisitionCatalog? = null
     private fun acquisitionCatalog():AcquisitionCatalog {
+        acquisitionCatalogProvider?.let { return it() }
+        cachedAcquisitionCatalog?.let { return it }
         val source=FcpTextSource { resourceTexts[it] }
-        return loadAcquisitionCatalog(contentPackComposition.active.map { FcpContentPack.load("fcp/${it.id}",source) },chiPackEnabled).catalog
+        return loadAcquisitionCatalog(contentPackComposition.active.map { FcpContentPack.load("fcp/${it.id}",source) },chiPackEnabled).catalog.also { cachedAcquisitionCatalog=it }
     }
     private fun createApplication(forceCanonical:Boolean=false):DublApplication {
         if(!canonicalMode && !forceCanonical) return DublApplication(characterStore,extrasStore,::webUuid,::webUuid)
@@ -58,7 +77,7 @@ class DesktopAppState(
         val originalCharacters=if(!characterStore.hasStoredState() && canonicalStates.isNotEmpty()) emptyList() else original.characters
         val characters=originalCharacters.map { canonicalStates[it.id]?.character ?: it }.toMutableList()
         canonicalStates.values.filter { value -> characters.none { it.id==value.character.id } }.forEach { characters += it.character }
-        val view=AppSnapshot(characters,readOnlySelection?.takeIf { id -> characters.any { it.id==id } } ?: original.activeCharacterId.takeIf { id -> characters.any { it.id==id } } ?: characters.first().id)
+        val view=AppSnapshot(characters,readOnlySelection?.takeIf { id -> characters.any { it.id==id } } ?: original.activeCharacterId.takeIf { id -> characters.any { it.id==id } } ?: characters.firstOrNull()?.id ?: original.activeCharacterId)
         val readonly=object:CharacterStore {
             override fun load()=view
             override fun save(snapshot:AppSnapshot)=error("Legacy writer cannot change a canonical browser view")
@@ -90,18 +109,31 @@ class DesktopAppState(
     private fun currentAcquisitionScope(scope:AcquisitionScope):Boolean = !disposed && acquisitionStore?.isCurrentScope()==true &&
         scope.storageScopeId==acquisitionStore.storageIdentity && scope.accountGeneration==acquisitionStore.scopeGeneration &&
         scope.controllerGeneration==controllerGeneration && scope.selectionGeneration==selectionGeneration && scope.viewCharacterId==snapshot.activeCharacterId
+    private fun currentAcquisitionOwner(scope:AcquisitionScope):Boolean = !disposed && acquisitionStore?.isCurrentScope()==true &&
+        scope.storageScopeId==acquisitionStore.storageIdentity && scope.accountGeneration==acquisitionStore.scopeGeneration &&
+        scope.controllerGeneration==controllerGeneration
     val acquisition:AcquisitionController by lazy {
         AcquisitionController(ApplicationAcquisitionCommandPort(commandApplication,checkNotNull(acquisitionStore),::acquisitionCatalog,::localCapabilities,::currentAcquisitionScope,
             { scope,state ->
                 check(currentAcquisitionScope(scope)) { "Captured owner/view changed" }
                 canonicalStates=canonicalStates+(state.character.id to state)
+                canonicalReadState=canonicalReadState.loaded(true);canonicalLoadOutcome=LoadResult.Loaded(state);canonicalViewGeneration++
                 if(scope.characterId!=scope.viewCharacterId) readOnlySelection=state.character.id
                 application=createApplication();refresh();acquisition.activateCurrentView()
+            },object:AcquisitionExecutor {
+                override suspend fun <T> read(block:suspend()->T):T=block()
+                override suspend fun <T> run(block:suspend()->T):T {
+                    val captured=capturedAcquisitionCommand().scope
+                    return canonicalCommandLane.withLock {
+                        check(currentAcquisitionOwner(captured)) { "Captured browser owner changed" }
+                        block()
+                    }
+                }
             }),::acquisitionScope,::webUuid) { acquisitionUiModel=it }
     }
     fun reviewNewCharacterFunding(initialXP:Long)=acquisition.reviewNewCharacterFunding(initialXP)
     suspend fun confirmNewCharacterFunding(key:AcquisitionQuoteKey)=acquisition.confirm(key)
-    fun dispose() { disposed=true;controllerGeneration++ }
+    fun dispose() { disposed=true;controllerGeneration++;onCanonicalNonFinancialReview=null }
 
     private val catalogLoader = WebCatalogLoader(resourceTexts)
 
@@ -180,6 +212,7 @@ class DesktopAppState(
     fun setChiPackActive(enabled: Boolean) {
         if(canonicalMode) { storageError="Состав канонического листа меняется только подтверждённой операцией";return }
         if (enabled) catalogLoader.verifyChiPack()
+        cachedAcquisitionCatalog=null
         BrowserPackState.chiEnabled = enabled
         chiPackEnabled = enabled
         canonicalDevelopmentCatalog = composeCanonicalDevelopmentCatalog()
@@ -211,13 +244,44 @@ class DesktopAppState(
     private fun requireLocalWrites() {
         check(localAcquisitionEnabled && acquisitionStore?.capabilities?.localDurable==true) { "Local durable acquisitions are disabled or unavailable" }
     }
-    private suspend fun reloadCanonicalView() {
-        val captured=acquisitionScope()
-        val store=requireNotNull(acquisitionStore)
-        val loaded=linkedMapOf<String,StoredCharacter>()
-        for(id in store.characterIds()) loaded[id]=(store.load(id) as? LoadResult.Loaded)?.state ?: error("Canonical browser head is unavailable")
-        check(currentAcquisitionScope(captured)) { "Captured owner/view changed" }
-        canonicalStates=loaded.toMap();application=createApplication();refresh()
+    /** Classification is acknowledged only after every native head has been read successfully. */
+    suspend fun initializeCanonicalView() = canonicalReadLane.withLock {
+        val store=acquisitionStore ?: return@withLock
+        val generation=controllerGeneration;val selection=selectionGeneration
+        canonicalReadState=canonicalReadState.begin()
+        try {
+            check(!disposed && store.isCurrentScope()) { "Browser owner unavailable" }
+            val loaded=linkedMapOf<String,StoredCharacter>()
+            val outcomes=linkedMapOf<String,LoadResult>()
+            val ids=(store.characterIds()+snapshot.characters.map { it.id }).distinct()
+            for(id in ids) {
+                val result=store.load(id);outcomes[id]=result
+                when(result) {
+                    is LoadResult.Loaded -> loaded[id]=result.state
+                    is LoadResult.Missing,is LoadResult.MigrationRequired -> Unit
+                    else -> throw AcquisitionPreviewUnavailable(result)
+                }
+            }
+            check(!disposed && generation==controllerGeneration && selection==selectionGeneration && store.isCurrentScope()) { "Captured owner/view changed" }
+            canonicalStates=loaded.toMap();storageError=null
+            canonicalReadState=canonicalReadState.loaded(localAcquisitionEnabled || loaded.isNotEmpty())
+            canonicalLoadOutcome=outcomes[snapshot.activeCharacterId] ?: LoadResult.Missing(snapshot.activeCharacterId)
+            canonicalViewGeneration++;application=createApplication();if(!canonicalMode) application.equipment.syncCatalogLoads(magicEquipmentCatalog.gear);refresh()
+        } catch(cancelled:CancellationException) { throw cancelled }
+        catch(failure:Exception) {
+            if(!disposed && generation==controllerGeneration && selection==selectionGeneration) {
+                canonicalReadState=canonicalReadState.failed("Каноническое хранилище недоступно. Исходные данные сохранены для восстановления.")
+                storageError=canonicalReadState.error
+            }
+            throw failure
+        }
+    }
+    private suspend fun reloadCanonicalView() = initializeCanonicalView()
+    private fun descriptive(edit:DublApplication.()->Unit) {
+        if(canonicalMode) {
+            val review=onCanonicalNonFinancialReview
+            if(review==null) storageError="Сохранённый лист недоступен; правка не выполнена" else review(edit)
+        } else sync { application.edit() }
     }
     suspend fun previewLocalAcquisition(request:AcquisitionRequest):AcquisitionPlan {
         requireLocalWrites();return commandApplication.development.previewAcquisition(request)
@@ -249,7 +313,7 @@ class DesktopAppState(
         sync { application.character.setProfile(name, concept, experience, size, legs, manaEnabled) }
     fun setIdentity(name: String, concept: String, size: Int, legs: Int, manaEnabled: Boolean) =
         sync { application.character.setIdentity(name, concept, size, legs, manaEnabled) }
-    fun setName(name: String) = sync { application.character.setName(name) }
+    fun setName(name: String) = descriptive { character.setName(name) }
     fun setSize(size: Int) = sync { application.character.setSize(size) }
     fun setLegs(legs: Int) = sync { application.character.setLegs(legs) }
     fun changeAttribute(id: AttributeId, delta: Int) = sync { application.character.changeAttribute(id, delta) }
@@ -293,7 +357,7 @@ class DesktopAppState(
     fun setSkillAttributes(skillId: String, attributes: List<AttributeId>) = sync { application.skills.setAttributes(skillId, attributes) }
     fun setSkillModifier(skillId: String, modifier: Int) = sync { application.skills.setModifier(skillId, modifier) }
     fun setSkillFormulaNote(skillId: String, note: String) = sync { application.skills.setFormulaNote(skillId, note) }
-    fun setSkillNameOverride(skillId: String, name: String) = sync { application.skills.setNameOverride(skillId, name) }
+    fun setSkillNameOverride(skillId: String, name: String) = descriptive { skills.setNameOverride(skillId, name) }
     fun setSkillDescriptionOverride(skillId: String, description: String) = sync { application.skills.setDescriptionOverride(skillId, description) }
     fun setSkillCategoryOverride(skillId: String, category: SkillCategory?) = sync { application.skills.setCategoryOverride(skillId, category) }
     fun setSkillUntrainedOverride(skillId: String, rule: UntrainedRule?) = sync { application.skills.setUntrainedOverride(skillId, rule) }
@@ -338,16 +402,16 @@ class DesktopAppState(
     fun setGearItemQuantity(uid: String, quantity: Int) = sync { application.equipment.setItemQuantity(uid, quantity) }
     fun removeGearItem(uid: String) = sync { application.equipment.removeItem(uid) }
 
-    fun setPortrait(uri: String?) = sync { application.sheet.setPortrait(uri) }
+    fun setPortrait(uri: String?) = descriptive { sheet.setPortrait(uri) }
     fun toggleCondition(condition: CharacterConditionId) = sync { application.sheet.toggleCondition(condition) }
     fun setConditions(conditions: Set<CharacterConditionId>) = sync { application.sheet.setConditions(conditions) }
-    fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) = sync { application.sheet.setResourceHidden(resource, hidden) }
-    fun setSkillGroups(groups: List<SheetGroup>) = sync { application.sheet.setSkillGroups(groups) }
-    fun setDevelopmentGroups(groups: List<SheetGroup>) = sync { application.sheet.setDevelopmentGroups(groups) }
-    fun setNotes(notes: String) = sync { application.sheet.setNotes(notes) }
+    fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) = descriptive { sheet.setResourceHidden(resource, hidden) }
+    fun setSkillGroups(groups: List<SheetGroup>) = descriptive { sheet.setSkillGroups(groups) }
+    fun setDevelopmentGroups(groups: List<SheetGroup>) = descriptive { sheet.setDevelopmentGroups(groups) }
+    fun setNotes(notes: String) = descriptive { sheet.setNotes(notes) }
     fun addNote(title: String, body: String = ""): String? = sync { application.sheet.addNote(title, body) }
-    fun updateNote(id: String, title: String, body: String) = sync { application.sheet.updateNote(id, title, body) }
-    fun removeNote(id: String) = sync { application.sheet.removeNote(id) }
+    fun updateNote(id: String, title: String, body: String) = descriptive { sheet.updateNote(id, title, body) }
+    fun removeNote(id: String) = descriptive { sheet.removeNote(id) }
     fun setConditionOverride(condition: CharacterConditionId, title: String?, description: String?) = sync { application.sheet.setConditionOverride(condition, title, description) }
     fun resetConditionOverride(condition: CharacterConditionId) = sync { application.sheet.resetConditionOverride(condition) }
     fun addCustomCondition(title: String, description: String = "", active: Boolean = false): String? = sync { application.sheet.addCustomCondition(title, description, active) }
@@ -355,13 +419,19 @@ class DesktopAppState(
     fun setCustomConditionActive(id: String, active: Boolean) = sync { application.sheet.setCustomConditionActive(id, active) }
     fun removeCustomCondition(id: String) = sync { application.sheet.removeCustomCondition(id) }
 
+    fun canonicalBalance(characterId:String):Amount? = canonicalStates[characterId]?.let { balance(it.ledger) }
+
     fun exportActiveCharacter(): String = canonicalStates[snapshot.activeCharacterId]?.let(::encodeEnvelope) ?: application.transfer.exportActive()
-    fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) } ?: CharacterTransferImportResult.Rejected(CharacterTransferRejectReason.INVALID_FILE)
+    fun importCharacter(raw: String): CharacterTransferImportResult {
+        val result=sync { application.transfer.importCharacter(raw) } ?: CharacterTransferImportResult.Rejected(CharacterTransferRejectReason.INVALID_FILE)
+        if(result is CharacterTransferImportResult.Imported) canonicalViewGeneration++
+        return result
+    }
 
     fun createCharacter() = sync { application.character.createCharacter() }
     fun selectCharacter(id: String) {
         selectionGeneration++
-        if(canonicalMode) { require(snapshot.characters.any { it.id==id });readOnlySelection=id;application=createApplication();refresh();acquisition.activateCurrentView() }
+        if(canonicalMode) { require(snapshot.characters.any { it.id==id });readOnlySelection=id;canonicalLoadOutcome=canonicalStates[id]?.let { LoadResult.Loaded(it) } ?: LoadResult.Missing(id);application=createApplication();refresh();acquisition.activateCurrentView() }
         else sync { application.character.selectCharacter(id) }
     }
     fun deleteActive() = sync { application.character.deleteActive() }
