@@ -1,6 +1,10 @@
 # Current project status
 
-Last refreshed: 2026-09-22
+Last refreshed: 2026-10-13
+
+## Unreleased acquisition and automation work
+
+The current working branch contains shared canonical acquisition, ledger/history/Undo, Android/Desktop/Web adapters, source-qualified roll formulas and prerequisites. This is not a published release: acquisition-wide native evidence integration, platform interaction and server rollout gates remain open. Production capabilities stay disabled. See [automation progress](automation-progress.md) and [rollout and recovery](acquisition-rollout.md). The product milestones below describe the older shipped line, not acceptance of this working branch.
 
 This is the living status document for Fury Book. Historical milestone reports may contain older product names and are not current branding or architecture authority.
 
