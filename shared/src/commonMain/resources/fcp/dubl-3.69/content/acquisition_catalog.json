@@ -4111,7 +4111,7 @@
         },
         "children": [
           {
-            "type": "Unresolved",
+            "type": "SkillFamily",
             "nodeId": "feat_1a9f2f0b9135c3d8/requirements",
             "sourceRef": {
               "documentId": "unverified:dubl-3.69",
@@ -4120,7 +4120,10 @@
               "sheet": "core:p-000913,core:p-000914,core:p-000915,core:p-000916,core:p-000917",
               "paragraph": null
             },
-            "reason": "unresolved-qualified-or-compound-requirement"
+            "packId": "dubl-3.69",
+            "familyId": "knowledge",
+            "operator": "GE",
+            "operand": 5
           },
           {
             "type": "Unresolved",
@@ -13141,7 +13144,7 @@
         },
         "children": [
           {
-            "type": "Unresolved",
+            "type": "OwnedRank",
             "nodeId": "feat_f577ae1aa69e62ad/requirements/0",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -13150,7 +13153,10 @@
               "paragraph": 11179,
               "originalText": "ул. Инициатива 1"
             },
-            "reason": "missing-reference:ул. Инициатива"
+            "packId": "dubl-3.69",
+            "entryId": "feat_8df5e1aefda2a020",
+            "operator": "GE",
+            "operand": 1
           },
           {
             "type": "OwnedRank",
@@ -20351,7 +20357,7 @@
         },
         "children": [
           {
-            "type": "Unresolved",
+            "type": "AnyOf",
             "nodeId": "feat_7c23e3fc59ae4202/requirements/0",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -20360,10 +20366,123 @@
               "paragraph": 11708,
               "originalText": "Любая характеристика 4"
             },
-            "reason": "missing-reference:Любая характеристика"
+            "children": [
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/0/STR",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любая характеристика 4"
+                },
+                "attributeId": "STR",
+                "operand": 4,
+                "operator": "GE"
+              },
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/0/DEX",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любая характеристика 4"
+                },
+                "attributeId": "DEX",
+                "operand": 4,
+                "operator": "GE"
+              },
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/0/CON",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любая характеристика 4"
+                },
+                "attributeId": "CON",
+                "operand": 4,
+                "operator": "GE"
+              },
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/0/SPD",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любая характеристика 4"
+                },
+                "attributeId": "SPD",
+                "operand": 4,
+                "operator": "GE"
+              },
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/0/PER",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любая характеристика 4"
+                },
+                "attributeId": "PER",
+                "operand": 4,
+                "operator": "GE"
+              },
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/0/INT",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любая характеристика 4"
+                },
+                "attributeId": "INT",
+                "operand": 4,
+                "operator": "GE"
+              },
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/0/WIL",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любая характеристика 4"
+                },
+                "attributeId": "WIL",
+                "operand": 4,
+                "operator": "GE"
+              },
+              {
+                "type": "Attribute",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/0/CHA",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любая характеристика 4"
+                },
+                "attributeId": "CHA",
+                "operand": 4,
+                "operator": "GE"
+              }
+            ]
           },
           {
-            "type": "Unresolved",
+            "type": "AnyOf",
             "nodeId": "feat_7c23e3fc59ae4202/requirements/1",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -20372,7 +20491,413 @@
               "paragraph": 11708,
               "originalText": "Любое умение 4"
             },
-            "reason": "missing-reference:Любое умение"
+            "children": [
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/athletics",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "athletics",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/barter",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "barter",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/awareness",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "awareness",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/riding",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "riding",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/lockpicking",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "lockpicking",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/driving",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "driving",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/survival",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "survival",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/animal_handling",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "animal_handling",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/intimidation",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "intimidation",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/knowledge_academic",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "knowledge_academic",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/knowledge_template",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "knowledge_template",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/engineering_repair",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "engineering_repair",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/performance_vocal",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "performance_vocal",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/performance_template",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "performance_template",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/leadership",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "leadership",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/eloquence",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "eloquence",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/medicine",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "medicine",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/piloting",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "piloting",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/search",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "search",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/profession_template",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "profession_template",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/craft_template",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "craft_template",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/stealth",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "stealth",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/shooting",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "shooting",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/melee_weapon",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "melee_weapon",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/throwing",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "throwing",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/unarmed",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "unarmed",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_7c23e3fc59ae4202/requirements/1/computers",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11708,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "computers",
+                "operator": "GE",
+                "operand": 4
+              }
+            ]
           }
         ]
       }
@@ -21041,7 +21566,7 @@
         }
       },
       "requirements": {
-        "type": "Unresolved",
+        "type": "OwnedRank",
         "nodeId": "feat_58a6e44bcad8d490/requirements",
         "sourceRef": {
           "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -21050,7 +21575,10 @@
           "paragraph": 11758,
           "originalText": "Требование: Ул. Инициатива 2"
         },
-        "reason": "missing-reference:Ул. Инициатива"
+        "packId": "dubl-3.69",
+        "entryId": "feat_8df5e1aefda2a020",
+        "operator": "GE",
+        "operand": 2
       }
     },
     {
@@ -22243,7 +22771,7 @@
             "operator": "GE"
           },
           {
-            "type": "Unresolved",
+            "type": "Attribute",
             "nodeId": "feat_df83efb85dea39dc/requirements/1",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -22252,7 +22780,9 @@
               "paragraph": 11838,
               "originalText": "Тело 4"
             },
-            "reason": "missing-reference:Тело"
+            "attributeId": "CON",
+            "operand": 4,
+            "operator": "GE"
           }
         ]
       }
@@ -22702,7 +23232,7 @@
             "operand": 1
           },
           {
-            "type": "Unresolved",
+            "type": "AnyOf",
             "nodeId": "feat_69a42f2a4d54a3ba/requirements/1",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -22711,7 +23241,413 @@
               "paragraph": 11873,
               "originalText": "Любое умение 4"
             },
-            "reason": "missing-reference:Любое умение"
+            "children": [
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/athletics",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "athletics",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/barter",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "barter",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/awareness",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "awareness",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/riding",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "riding",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/lockpicking",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "lockpicking",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/driving",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "driving",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/survival",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "survival",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/animal_handling",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "animal_handling",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/intimidation",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "intimidation",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/knowledge_academic",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "knowledge_academic",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/knowledge_template",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "knowledge_template",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/engineering_repair",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "engineering_repair",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/performance_vocal",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "performance_vocal",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/performance_template",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "performance_template",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/leadership",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "leadership",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/eloquence",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "eloquence",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/medicine",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "medicine",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/piloting",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "piloting",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/search",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "search",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/profession_template",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "profession_template",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/craft_template",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "craft_template",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/stealth",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "stealth",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/shooting",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "shooting",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/melee_weapon",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "melee_weapon",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/throwing",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "throwing",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/unarmed",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "unarmed",
+                "operator": "GE",
+                "operand": 4
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_69a42f2a4d54a3ba/requirements/1/computers",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11873,
+                  "originalText": "Любое умение 4"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "computers",
+                "operator": "GE",
+                "operand": 4
+              }
+            ]
           }
         ]
       }
@@ -23379,7 +24315,7 @@
             "operand": 3
           },
           {
-            "type": "Unresolved",
+            "type": "SkillFamily",
             "nodeId": "feat_a28c8ad099f43b13/requirements/1",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -23388,7 +24324,10 @@
               "paragraph": 16792,
               "originalText": "Ремонт 3"
             },
-            "reason": "missing-reference:Ремонт"
+            "packId": "dubl-3.69",
+            "familyId": "engineering_repair",
+            "operator": "GE",
+            "operand": 3
           }
         ]
       }
@@ -23457,7 +24396,7 @@
             "reason": "ambiguous-reference:Сервисный работник"
           },
           {
-            "type": "Unresolved",
+            "type": "SkillFamily",
             "nodeId": "feat_9ec7c929c84ff6ae/requirements/1",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -23466,7 +24405,10 @@
               "paragraph": 16797,
               "originalText": "Ремонт 5"
             },
-            "reason": "missing-reference:Ремонт"
+            "packId": "dubl-3.69",
+            "familyId": "engineering_repair",
+            "operator": "GE",
+            "operand": 5
           }
         ]
       }
@@ -24079,7 +25021,7 @@
         }
       },
       "requirements": {
-        "type": "Unresolved",
+        "type": "SkillFamily",
         "nodeId": "feat_b8989e97e58accba/requirements",
         "sourceRef": {
           "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -24088,7 +25030,10 @@
           "paragraph": 10536,
           "originalText": "Требование: Знания (Любое) 5 рангов"
         },
-        "reason": "unresolved-qualified-or-compound-requirement"
+        "packId": "dubl-3.69",
+        "familyId": "knowledge",
+        "operator": "GE",
+        "operand": 5
       }
     },
     {
@@ -113153,20 +114098,6 @@
       }
     },
     {
-      "kind": "unresolved-qualified-or-compound-requirement",
-      "definitionId": "feat_1a9f2f0b9135c3d8",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_1a9f2f0b9135c3d8/requirements",
-      "message": "unresolved-qualified-or-compound-requirement",
-      "sourceRef": {
-        "documentId": "unverified:dubl-3.69",
-        "documentVersion": "3.69",
-        "originalText": "Знания (Любое) 5 рангов",
-        "sheet": "core:p-000913,core:p-000914,core:p-000915,core:p-000916,core:p-000917",
-        "paragraph": null
-      }
-    },
-    {
       "kind": "source-unverified",
       "definitionId": "feat_1a9f2f0b9135c3d8",
       "packId": "dubl-3.69",
@@ -113518,20 +114449,6 @@
     },
     {
       "kind": "missing-reference",
-      "definitionId": "feat_f577ae1aa69e62ad",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_f577ae1aa69e62ad/requirements/0",
-      "message": "missing-reference:ул. Инициатива",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 11179,
-        "originalText": "ул. Инициатива 1"
-      }
-    },
-    {
-      "kind": "missing-reference",
       "definitionId": "feat_b8d6db87afe2bb22",
       "packId": "dubl-3.69",
       "nodeId": "feat_b8d6db87afe2bb22/requirements/1",
@@ -113588,34 +114505,6 @@
     },
     {
       "kind": "missing-reference",
-      "definitionId": "feat_7c23e3fc59ae4202",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_7c23e3fc59ae4202/requirements/0",
-      "message": "missing-reference:Любая характеристика",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 11708,
-        "originalText": "Любая характеристика 4"
-      }
-    },
-    {
-      "kind": "missing-reference",
-      "definitionId": "feat_7c23e3fc59ae4202",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_7c23e3fc59ae4202/requirements/1",
-      "message": "missing-reference:Любое умение",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 11708,
-        "originalText": "Любое умение 4"
-      }
-    },
-    {
-      "kind": "missing-reference",
       "definitionId": "feat_80a24decd57bf883",
       "packId": "dubl-3.69",
       "nodeId": "feat_80a24decd57bf883/requirements/1",
@@ -113626,48 +114515,6 @@
         "sheet": "t.9xkxyxwswfn9",
         "paragraph": 11720,
         "originalText": "Стойкость 1"
-      }
-    },
-    {
-      "kind": "missing-reference",
-      "definitionId": "feat_58a6e44bcad8d490",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_58a6e44bcad8d490/requirements",
-      "message": "missing-reference:Ул. Инициатива",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 11758,
-        "originalText": "Требование: Ул. Инициатива 2"
-      }
-    },
-    {
-      "kind": "missing-reference",
-      "definitionId": "feat_df83efb85dea39dc",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_df83efb85dea39dc/requirements/1",
-      "message": "missing-reference:Тело",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 11838,
-        "originalText": "Тело 4"
-      }
-    },
-    {
-      "kind": "missing-reference",
-      "definitionId": "feat_69a42f2a4d54a3ba",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_69a42f2a4d54a3ba/requirements/1",
-      "message": "missing-reference:Любое умение",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 11873,
-        "originalText": "Любое умение 4"
       }
     },
     {
@@ -113685,20 +114532,6 @@
       }
     },
     {
-      "kind": "missing-reference",
-      "definitionId": "feat_a28c8ad099f43b13",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_a28c8ad099f43b13/requirements/1",
-      "message": "missing-reference:Ремонт",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.dzvws1iam8fc",
-        "paragraph": 16792,
-        "originalText": "Ремонт 3"
-      }
-    },
-    {
       "kind": "ambiguous-reference",
       "definitionId": "feat_9ec7c929c84ff6ae",
       "packId": "dubl-3.69",
@@ -113710,20 +114543,6 @@
         "sheet": "t.dzvws1iam8fc",
         "paragraph": 16797,
         "originalText": "Сервисный работник 1"
-      }
-    },
-    {
-      "kind": "missing-reference",
-      "definitionId": "feat_9ec7c929c84ff6ae",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_9ec7c929c84ff6ae/requirements/1",
-      "message": "missing-reference:Ремонт",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.dzvws1iam8fc",
-        "paragraph": 16797,
-        "originalText": "Ремонт 5"
       }
     },
     {
@@ -113752,20 +114571,6 @@
         "sheet": "t.vmds8cn0bln5",
         "paragraph": 16827,
         "originalText": "Хакер 1"
-      }
-    },
-    {
-      "kind": "unresolved-qualified-or-compound-requirement",
-      "definitionId": "feat_b8989e97e58accba",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_b8989e97e58accba/requirements",
-      "message": "unresolved-qualified-or-compound-requirement",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 10536,
-        "originalText": "Требование: Знания (Любое) 5 рангов"
       }
     },
     {
@@ -135572,5 +136377,5 @@
       "resolutionRevision": "cff687788481ae6a282a7b49ca6c608aeb2d1546f91df3aa7d1e77de26a276f0"
     }
   },
-  "catalogRevision": "bbfc5148f45ccbd0b515df5ab6ae534aea072271f16b25f224a9affd25d9d22d"
+  "catalogRevision": "ddd29f17e52863b7c3b07c06d10f84b78330a639f2d5455c5b7dd82a543b8488"
 }

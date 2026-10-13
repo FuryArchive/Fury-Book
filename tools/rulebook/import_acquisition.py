@@ -111,7 +111,23 @@ def parse_requirement(text, node_id, source, definitions):
         return node('Unresolved', node_id, local, reason='unresolved-qualified-or-compound-requirement')
     if ' или ' in raw:
         return node('AnyOf', node_id, local, children=[sub(x, i) for i, x in enumerate(raw.split(' или '))])
-    knowledge = re.fullmatch(r'Знание\s+(\d+)\s*\(Любое\)', raw, re.I)
+    any_attribute = re.fullmatch(r'Любая характеристика\s+(\d+)(?:\s+ранг(?:а|ов)?)?', raw, re.I)
+    if any_attribute:
+        return node('AnyOf', node_id, local, children=[
+            node('Attribute', node_id+'/'+key, local, attributeId=key, operand=int(any_attribute[1]), operator='GE')
+            for key in ATTRIBUTES.values()])
+    any_skill = re.fullmatch(r'Любое умение\s+(\d+)(?:\s+ранг(?:а|ов)?)?', raw, re.I)
+    if any_skill:
+        members = [d for d in definitions if d['kind'] == 'SKILL' and d['ref']['packId'] == CORE]
+        if not members:
+            return node('Unresolved', node_id, local, reason='missing-any-skill-universe')
+        return node('AnyOf', node_id, local, children=[
+            node('SkillFamily', node_id+'/'+d['ref']['entryId'], local, packId=CORE,
+                 familyId=d['ref']['entryId'], operator='GE', operand=int(any_skill[1]))
+            for d in members])
+    knowledge = re.fullmatch(r'Знани[ея]\s+(\d+)\s*\(Любое\)', raw, re.I)
+    if not knowledge:
+        knowledge = re.fullmatch(r'Знани[ея]\s*\(Любое\)\s+(\d+)(?:\s+ранг(?:а|ов)?)?', raw, re.I)
     if knowledge:
         return node('SkillFamily', node_id, local, packId=CORE, familyId=KNOWLEDGE_FAMILY,
                     operator='GE', operand=int(knowledge[1]))
@@ -143,8 +159,14 @@ def parse_requirement(text, node_id, source, definitions):
         raw = raw[len('заклинание '):].strip(' «»"')
     match = re.fullmatch(r'(.+?)\s+(\d+)', raw)
     label, rank = (match[1], int(match[2])) if match else (raw, 1)
-    if label in ATTRIBUTES and match:
-        return node('Attribute', node_id, local, attributeId=ATTRIBUTES[label], operand=rank, operator='GE')
+    attribute_label = 'Телосложение' if label == 'Тело' else label
+    if attribute_label in ATTRIBUTES and match:
+        return node('Attribute', node_id, local, attributeId=ATTRIBUTES[attribute_label], operand=rank, operator='GE')
+    # Closed lexical spellings only. Never turn an arbitrary fuzzy name into a prerequisite.
+    if label.lower() == 'ул. инициатива':
+        label = 'Улучшенная инициатива'
+    if label == 'Ремонт':
+        label = 'Инженерное дело (Ремонт)'
     candidates = [d for d in definitions if d['name'] == label and (not explicit_spell or d['kind'] == 'SPELL')]
     if len(candidates) != 1:
         return node('Unresolved', node_id, local, reason=('missing-reference:' if not candidates else 'ambiguous-reference:') + label)

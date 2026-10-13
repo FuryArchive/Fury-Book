@@ -321,3 +321,38 @@ def test_combat_cry_access_preserves_source_creation_and_author_postcreation_opt
     assert rule['whenFalse']['sourceRef']['resolutionId'] == 'UR_CREATION_BALANCE_CARRYOVER_SAME_PRICE_CURRENCY'
     options = rule['whenTrue']['options']
     assert [(key, options[key]['ap'], options[key]['sourceRef']['paragraph']) for key in ['morale', 'chi']] == [('morale','1',12104),('chi','2',12106)]
+
+
+def test_closed_source_any_attribute_and_any_skill_requirements():
+    from tools.rulebook.import_acquisition import parse_requirement
+    source={'documentId':'book','documentVersion':'1','originalText':'exact'}
+    defs=[{'ref':{'packId':'dubl-3.69','entryId':'athletics'},'name':'Атлетика','kind':'SKILL'},
+          {'ref':{'packId':'dubl-3.69','entryId':'knowledge_template'},'name':'Знание (Любое)','kind':'SKILL'},
+          {'ref':{'packId':'dubl-3.69','entryId':'feat'},'name':'Не умение','kind':'DEVELOPMENT'}]
+    attr=parse_requirement('Любая характеристика 4','a',source,defs)
+    assert attr['type']=='AnyOf' and len(attr['children'])==8
+    assert {x['attributeId'] for x in attr['children']}=={'STR','DEX','CON','SPD','PER','INT','WIL','CHA'}
+    assert all(x['operand']==4 for x in attr['children'])
+    skills=parse_requirement('Любое умение 4','s',source,defs)
+    assert skills['type']=='AnyOf'
+    assert {x['familyId'] for x in skills['children']}=={'athletics','knowledge_template'}
+    assert parse_requirement('Любые два умения 5 ранга','s',source,defs)['type']=='Unresolved'
+
+
+def test_closed_abbreviations_and_any_knowledge_keep_original_source_text():
+    from tools.rulebook.import_acquisition import parse_requirement
+    source={'documentId':'book','documentVersion':'1','originalText':'exact'}
+    defs=[{'ref':{'packId':'dubl-3.69','entryId':'initiative'},'name':'Улучшенная инициатива','kind':'DEVELOPMENT'},
+          {'ref':{'packId':'dubl-3.69','entryId':'engineering_repair'},'name':'Инженерное дело (Ремонт)','kind':'SKILL'}]
+    for raw in ('ул. Инициатива 1','Ул. Инициатива 2'):
+        n=parse_requirement(raw,'n',source,defs)
+        assert n['type']=='OwnedRank' and n['entryId']=='initiative'
+        assert n['sourceRef']['originalText']==raw
+    n=parse_requirement('Тело 4','n',source,defs)
+    assert n['type']=='Attribute' and n['attributeId']=='CON' and n['operand']==4
+    n=parse_requirement('Ремонт 3','n',source,defs)
+    assert n['type']=='SkillFamily' and n['familyId']=='engineering_repair' and n['operand']==3
+    for raw in ('Знание (Любое) 5','Знания (Любое) 5 рангов','Знание 5 (Любое)'):
+        n=parse_requirement(raw,'n',source,defs)
+        assert n['type']=='SkillFamily' and n['familyId']=='knowledge' and n['operand']==5
+    assert parse_requirement('Знание (Тайное) 5','n',source,defs)['type']=='Unresolved'
