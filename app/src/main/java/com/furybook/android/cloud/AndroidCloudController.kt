@@ -25,6 +25,8 @@ import com.furybook.dubl.model.AppSnapshot
 import com.furybook.dubl.model.CharacterSheetExtras
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.Job
 import java.util.UUID
 
@@ -305,36 +307,36 @@ class AndroidCloudController(
     suspend fun useCloudVersion() {
         val lease = legacyLease ?: return
         if (disposed || !ownership.isCurrent(lease) || pauseLegacyAcquisition(lease)) return
-        val active = coordinator ?: return
+        if (coordinator == null) return
         if (!ownership.isCurrent(lease)) return
         status = NativeCloudStatus.SYNCING
         val before = localSignature()
         val generation=accountGeneration;val owner=session?.userId;val packs=localEnabledPackIds.toSet()
-        runCatching { ownership.run(lease) { active.useCloud(packs) } }
+        runCatching { ownership.run(lease) { operation -> coordinatorFor(operation).useCloud(packs) } }
             .onSuccess { outcome ->
-                if(!ownership.isCurrent(lease) || generation!=accountGeneration || owner!=session?.userId) return@onSuccess
+                if(!currentCoroutineContext().isActive || !ownership.isCurrent(lease) || generation!=accountGeneration || owner!=session?.userId) return@onSuccess
                 conflicts = emptyList()
                 applyOutcome(outcome)
                 if (before != localSignature()) reloadToken += 1
             }
-            .onFailure { if(ownership.isCurrent(lease) && generation==accountGeneration && owner==session?.userId) handleSyncFailure(it) }
+            .onFailure { if(it !is CancellationException && currentCoroutineContext().isActive && ownership.isCurrent(lease) && generation==accountGeneration && owner==session?.userId) handleSyncFailure(it) }
     }
 
     suspend fun keepLocalVersion(conflict: NativeSyncConflict) {
         val lease = legacyLease ?: return
         if (disposed || !ownership.isCurrent(lease) || pauseLegacyAcquisition(lease)) return
-        val active = coordinator ?: return
+        if (coordinator == null) return
         if (!ownership.isCurrent(lease)) return
         status = NativeCloudStatus.SYNCING
         val before = localSignature()
         val generation=accountGeneration;val owner=session?.userId;val packs=localEnabledPackIds.toSet()
-        runCatching { ownership.run(lease) { active.keepLocal(conflict,packs) } }
+        runCatching { ownership.run(lease) { operation -> coordinatorFor(operation).keepLocal(conflict,packs) } }
             .onSuccess { outcome ->
-                if(!ownership.isCurrent(lease) || generation!=accountGeneration || owner!=session?.userId) return@onSuccess
+                if(!currentCoroutineContext().isActive || !ownership.isCurrent(lease) || generation!=accountGeneration || owner!=session?.userId) return@onSuccess
                 applyOutcome(outcome)
                 if (before != localSignature()) reloadToken += 1
             }
-            .onFailure { if(ownership.isCurrent(lease) && generation==accountGeneration && owner==session?.userId) handleSyncFailure(it) }
+            .onFailure { if(it !is CancellationException && currentCoroutineContext().isActive && ownership.isCurrent(lease) && generation==accountGeneration && owner==session?.userId) handleSyncFailure(it) }
     }
 
     private fun scheduleSync(delayMs: Long = 900L) {
@@ -352,7 +354,7 @@ class AndroidCloudController(
         if (!ownership.isCurrent(lease)) return
         val generation=accountGeneration
         val owner=session?.userId
-        val active = coordinator ?: return
+        if (coordinator == null) return
         status = NativeCloudStatus.SYNCING
         statusMessage = if (firstLinkAllowed) {
             "Проверяем локальных персонажей и Fury Cloud…"
@@ -362,12 +364,15 @@ class AndroidCloudController(
         val before = localSignature()
         val packs=localEnabledPackIds.toSet()
         runCatching {
-            ownership.run(lease) { if (firstLinkAllowed) active.linkOrResume(packs) else active.syncNow(packs) }
+            ownership.run(lease) { operation ->
+                val active = coordinatorFor(operation)
+                if (firstLinkAllowed) active.linkOrResume(packs) else active.syncNow(packs)
+            }
         }.onSuccess { outcome ->
-            if(!ownership.isCurrent(lease) || generation!=accountGeneration || owner!=session?.userId) return@onSuccess
+            if(!currentCoroutineContext().isActive || !ownership.isCurrent(lease) || generation!=accountGeneration || owner!=session?.userId) return@onSuccess
             applyOutcome(outcome)
             if (before != localSignature()) reloadToken += 1
-        }.onFailure { if(ownership.isCurrent(lease) && generation==accountGeneration && owner==session?.userId) handleSyncFailure(it) }
+        }.onFailure { if(it !is CancellationException && currentCoroutineContext().isActive && ownership.isCurrent(lease) && generation==accountGeneration && owner==session?.userId) handleSyncFailure(it) }
     }
 
     /** Guard precedes coordinator/API/bootstrap writes; passing a store alone is insufficient. */
@@ -428,9 +433,12 @@ class AndroidCloudController(
         val lease = ownership.replace(current.userId)
         legacyLease = lease
         accountGeneration = ownership.generation
-        coordinator = ownership.coordinator(checkNotNull(lease), characterStore, extrasStore, metadataStore,
-            gateway, acquisitionStore, androidCloudDeviceLabel()) { UUID.randomUUID().toString() }
+        coordinator = coordinatorFor(checkNotNull(lease))
     }
+
+    private fun coordinatorFor(lease: AndroidLegacyCloudOwnership.Lease): NativeCloudSyncCoordinator =
+        ownership.coordinator(lease, characterStore, extrasStore, metadataStore,
+            gateway, acquisitionStore, androidCloudDeviceLabel()) { UUID.randomUUID().toString() }
 
     private fun localSignature(): LocalSignature {
         val snapshot = characterStore.load()

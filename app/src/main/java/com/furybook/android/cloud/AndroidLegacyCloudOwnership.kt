@@ -14,7 +14,10 @@ internal class AndroidLegacyCloudOwnership(
     private val sourceGate: AndroidLegacyWriteGate? = null,
     private val io: CoroutineDispatcher = Dispatchers.IO,
 ) {
-    internal class Lease internal constructor(val ownerId: String, val generation: Long, internal val job: Job)
+    internal class Lease internal constructor(
+        val ownerId: String, val generation: Long, internal val job: Job,
+        internal val account: Lease? = null,
+    )
     private val lock = Any()
     private val root = SupervisorJob()
     private var current: Lease? = null
@@ -37,7 +40,10 @@ internal class AndroidLegacyCloudOwnership(
     }
 
     fun isCurrent(lease: Lease): Boolean = synchronized(lock) {
-        !disposed && current === lease && lease.job.isActive && sourceGate?.readOnly != true
+        val account = lease.account ?: lease
+        !disposed && current === account && account.job.isActive && lease.job.isActive &&
+            lease.ownerId == account.ownerId && lease.generation == account.generation &&
+            sourceGate?.readOnly != true
     }
 
     fun check(lease: Lease) {
@@ -64,19 +70,24 @@ internal class AndroidLegacyCloudOwnership(
         true
     }
 
-    suspend fun <T> run(lease: Lease, action: suspend () -> T): T {
+    suspend fun <T> run(lease: Lease, action: suspend (Lease) -> T): T {
         currentCoroutineContext().ensureActive()
         val child = synchronized(lock) {
             check(lease)
+            if (lease.account != null) throw StaleLegacyCloudOwnership()
             CoroutineScope(lease.job + io).async(start = CoroutineStart.LAZY) {
-                check(lease)
-                val value = action()
-                check(lease)
+                val operation = Lease(lease.ownerId, lease.generation, currentCoroutineContext()[Job]!!, lease)
+                check(operation)
+                val value = action(operation)
+                check(operation)
                 value
             }
         }
         try { child.start(); return child.await() }
-        finally { if (!child.isCompleted) child.cancel() }
+        finally {
+            // Cancellation and local-effect admission use the same short boundary.
+            synchronized(lock) { if (!child.isCompleted) child.cancel() }
+        }
     }
 
     fun schedule(lease: Lease, delayMillis: Long, dispatcher: CoroutineDispatcher = io, action: suspend () -> Unit): Job = synchronized(lock) {

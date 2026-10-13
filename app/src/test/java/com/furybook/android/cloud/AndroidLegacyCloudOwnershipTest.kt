@@ -20,8 +20,9 @@ class AndroidLegacyCloudOwnershipTest {
             val lease = checkNotNull(ownership.replace("A"))
             val stores = Stores()
             val held = HeldTransport()
-            val coordinator = ownership.coordinator(lease, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }
-            val operation = async(Dispatchers.Default) { runCatching { ownership.run(lease) { coordinator.useCloud(emptySet()) } } }
+            val operation = async(Dispatchers.Default) { runCatching { ownership.run(lease) { owned ->
+                ownership.coordinator(owned, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }.useCloud(emptySet())
+            } } }
             val response = held.waiting.await()
             when (transition) {
                 "sign-out" -> ownership.replace(null)
@@ -44,8 +45,9 @@ class AndroidLegacyCloudOwnershipTest {
         val lease = checkNotNull(ownership.replace("A"))
         val stores = Stores()
         val held = HeldTransport()
-        val coordinator = ownership.coordinator(lease, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }
-        val operation = async(Dispatchers.Default) { runCatching { ownership.run(lease) { coordinator.linkOrResume(emptySet()) } } }
+        val operation = async(Dispatchers.Default) { runCatching { ownership.run(lease) { owned ->
+            ownership.coordinator(owned, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }.linkOrResume(emptySet())
+        } } }
         val response = held.waiting.await()
         ownership.replace("B")
         response.resume(bootstrap())
@@ -60,8 +62,9 @@ class AndroidLegacyCloudOwnershipTest {
         val lease = checkNotNull(ownership.replace("A"))
         val stores = Stores()
         val held = HeldTransport()
-        val coordinator = ownership.coordinator(lease, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }
-        val operation = async(Dispatchers.Default) { ownership.run(lease) { coordinator.linkOrResume(emptySet()) } }
+        val operation = async(Dispatchers.Default) { ownership.run(lease) { owned ->
+            ownership.coordinator(owned, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }.linkOrResume(emptySet())
+        } }
         held.waiting.await().resume("""{"nickname":"A","activeCharacterId":"","enabledPackIds":[],"stateRevision":0,"characters":[]}""")
         operation.await()
         assertEquals(listOf("get_web_bootstrap", "native_link_device"), held.functions)
@@ -87,9 +90,12 @@ class AndroidLegacyCloudOwnershipTest {
         val lease = checkNotNull(ownership.replace("A"))
         val stores = Stores()
         val held = HeldTransport()
-        val coordinator = ownership.coordinator(lease, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }
-        val scheduled = ownership.schedule(lease, 200) { coordinator.useCloud(emptySet()) }
-        val direct = async(Dispatchers.Default) { runCatching { ownership.run(lease) { coordinator.useCloud(emptySet()) } } }
+        val scheduled = ownership.schedule(lease, 200) { ownership.run(lease) { owned ->
+            ownership.coordinator(owned, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }.useCloud(emptySet())
+        } }
+        val direct = async(Dispatchers.Default) { runCatching { ownership.run(lease) { owned ->
+            ownership.coordinator(owned, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }.useCloud(emptySet())
+        } } }
         held.waiting.await()
         ownership.dispose()
         ownership.dispose()
@@ -100,19 +106,36 @@ class AndroidLegacyCloudOwnershipTest {
         assertEquals(listOf("get_web_bootstrap"), held.functions)
         assertEquals(0, stores.characterWrites + stores.extrasWrites + stores.metadataWrites)
         assertTrue(runCatching { ownership.schedule(lease, 0) { } }.exceptionOrNull() is StaleLegacyCloudOwnership)
-        assertTrue(runCatching { ownership.run(lease) { coordinator.useCloud(emptySet()) } }.exceptionOrNull() is StaleLegacyCloudOwnership)
+        assertTrue(runCatching { ownership.run(lease) { owned ->
+            ownership.coordinator(owned, stores.characters, stores.extras, stores.metadata, held, null, "synthetic") { "new" }.useCloud(emptySet())
+        } }.exceptionOrNull() is StaleLegacyCloudOwnership)
 
         val second = AndroidLegacyCloudOwnership()
         val secondLease = checkNotNull(second.replace("A"))
         val secondStores = Stores()
         val secondHeld = HeldTransport()
-        val secondCoordinator = second.coordinator(secondLease, secondStores.characters, secondStores.extras, secondStores.metadata, secondHeld, null, "synthetic") { "new" }
-        val caller = launch(Dispatchers.Default) { second.run(secondLease) { secondCoordinator.useCloud(emptySet()) } }
+        val childReady = CompletableDeferred<Job>()
+        val operationReady = CompletableDeferred<AndroidLegacyCloudOwnership.Lease>()
+        val caller = launch(Dispatchers.Default) {
+            second.run(secondLease) { owned ->
+                childReady.complete(currentCoroutineContext()[Job]!!)
+                operationReady.complete(owned)
+                second.coordinator(owned, secondStores.characters, secondStores.extras, secondStores.metadata, secondHeld, null, "synthetic") { "new" }.linkOrResume(emptySet())
+            }
+        }
         val response = secondHeld.waiting.await()
-        caller.cancel()
-        response.resume(bootstrap())
-        caller.join()
-        assertEquals(0, secondStores.characterWrites + secondStores.extrasWrites + secondStores.metadataWrites)
+        val actualChild = childReady.await()
+        val operationLease = operationReady.await()
+        assertSame(actualChild, operationLease.job)
+        caller.cancelAndJoin()
+        assertTrue(actualChild.isCancelled)
+        response.resume("""{"nickname":"A","activeCharacterId":"","enabledPackIds":[],"stateRevision":0,"characters":[]}""")
+        actualChild.join()
+        var sessionEffects = 0
+        runCatching { second.sessionBoundary(operationLease, { true }) { sessionEffects++ } }
+        assertEquals("no late RPC, write or session effect after owned child cancellation",
+            Triple(listOf("get_web_bootstrap"), 0, 0),
+            Triple(secondHeld.functions.toList(), secondStores.characterWrites + secondStores.extrasWrites + secondStores.metadataWrites, sessionEffects))
         second.dispose()
     }
 
