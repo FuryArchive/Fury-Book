@@ -140,6 +140,7 @@ import com.furybook.dubl.model.SheetGroup
 import com.furybook.dubl.model.SheetGroupingRules
 import com.furybook.dubl.model.SkillCategory
 import com.furybook.dubl.model.SkillEffectDefinition
+import com.furybook.dubl.model.skillRollAlternatives
 import com.furybook.dubl.model.SkillEffectRules
 import com.furybook.dubl.model.SkillRollEffectOption
 import com.furybook.dubl.model.allowedAttributes
@@ -3372,19 +3373,24 @@ internal fun DublSkillRollSheet(
     val context = LocalContext.current
     val developmentCatalog = LocalAndroidAcquisitionContent.current.development
     val effectCatalog = LocalAndroidAcquisitionContent.current.skillEffects
-    val calculation = character.skillCalculationForRoll(skill, initialAttribute)
-    val effects = remember(character, skill.id, developmentCatalog, effectCatalog) {
-        SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(skill)
-    }
+    var alternativeId by remember(skill.id) { mutableStateOf<String?>(null) }
+    val alternatives = character.skillRollAlternatives(skill, effectCatalog)
+    val alternative = alternatives.firstOrNull { it.id == alternativeId }
+    val effectiveSkill = alternative?.skill ?: skill
+    val calculation = character.skillCalculationForRoll(effectiveSkill, alternative?.attribute ?: initialAttribute)
+    val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
     CheckRollSheet(
         title = skill.name,
         bonusTitle = "Бонус умения · ${initialAttribute.shortTitle}",
         checkBonus = calculation.total?.plus(effects.automaticBonus),
-        formulaText = calculation.formulaText(skill, showConfiguredOptions = false),
-        rememberKey = "${skill.id}:${initialAttribute.name}",
+        formulaText = calculation.formulaText(effectiveSkill, showConfiguredOptions = false),
+        rememberKey = "${skill.id}:${initialAttribute.name}:${alternative?.id}",
         selectedAttribute = initialAttribute,
         automaticContributions = effects.automaticContributions,
         effectOptions = effects.options,
+        variantOptions = alternatives.map { it.id to it.label },
+        selectedVariant = alternative?.id,
+        onVariantSelected = { alternativeId = it },
         effectReminders = effects.reminders,
         onDismiss = onDismiss,
     )
@@ -3407,20 +3413,25 @@ internal fun DublSkillRollSheet(
     var selectedAttribute by remember(skill.id, skill.attributes, preferredAttribute) {
         mutableStateOf(preferredAttribute?.takeIf { it in skill.attributes } ?: skill.attributes.first())
     }
-    val calculation = character.skillCalculation(skill, selectedAttribute)
-    val effects = remember(character, skill.id, developmentCatalog, effectCatalog) {
-        SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(skill)
-    }
+    var alternativeId by remember(skill.id) { mutableStateOf<String?>(null) }
+    val alternatives = character.skillRollAlternatives(skill, effectCatalog)
+    val alternative = alternatives.firstOrNull { it.id == alternativeId }
+    val effectiveSkill = alternative?.skill ?: skill
+    val calculation = character.skillCalculationForRoll(effectiveSkill, alternative?.attribute ?: selectedAttribute)
+    val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
     CheckRollSheet(
         title = skill.name,
         bonusTitle = "Бонус умения",
         checkBonus = calculation.total?.plus(effects.automaticBonus),
-        formulaText = calculation.formulaText(skill),
-        rememberKey = "skills-screen:${skill.id}",
-        attributeOptions = skill.attributes,
+        formulaText = calculation.formulaText(effectiveSkill),
+        rememberKey = "skills-screen:${skill.id}:${alternative?.id}",
+        attributeOptions = if (alternative == null) skill.attributes else emptyList(),
         selectedAttribute = selectedAttribute,
         automaticContributions = effects.automaticContributions,
         effectOptions = effects.options,
+        variantOptions = alternatives.map { it.id to it.label },
+        selectedVariant = alternative?.id,
+        onVariantSelected = { alternativeId = it },
         effectReminders = effects.reminders,
         onAttributeSelected = {
             selectedAttribute = it
@@ -3446,6 +3457,9 @@ private fun CheckRollSheet(
     automaticContributions: List<RollContribution> = emptyList(),
     effectOptions: List<SkillRollEffectOption> = emptyList(),
     effectReminders: List<SkillEffectDefinition> = emptyList(),
+    variantOptions: List<Pair<String, String>> = emptyList(),
+    selectedVariant: String? = null,
+    onVariantSelected: ((String?) -> Unit)? = null,
     onAttributeSelected: ((AttributeId) -> Unit)? = null,
     flurryProfile: FlurryWeaponProfile? = null,
     shortFlurry: Boolean = false,
@@ -3508,6 +3522,17 @@ private fun CheckRollSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (variantOptions.isNotEmpty()) {
+                Text("Формула для этого броска: выбор подтверждает условие", style = MaterialTheme.typography.labelLarge)
+                FilterChip(selected = selectedVariant == null,
+                    onClick = { onVariantSelected?.invoke(null); invalidateResult() },
+                    label = { Text("Обычная проверка") })
+                variantOptions.forEach { (id, label) ->
+                    FilterChip(selected = selectedVariant == id,
+                        onClick = { onVariantSelected?.invoke(id); invalidateResult() },
+                        label = { Text(label) })
+                }
+            }
             if (automaticContributions.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 Text("Автоматические эффекты", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, color = DublAccent)

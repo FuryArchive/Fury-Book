@@ -42,6 +42,7 @@ import com.furybook.dubl.model.rollFollowUp
 import com.furybook.dubl.model.rollPreset
 import com.furybook.dubl.model.rule
 import com.furybook.dubl.model.skillCalculationForRoll
+import com.furybook.dubl.model.skillRollAlternatives
 import com.furybook.dubl.model.selectedTotals
 import com.furybook.ui.theme.DublMuted
 
@@ -127,15 +128,32 @@ fun SkillRollDialog(
     var selectedEffects by remember(skill.id) { mutableStateOf(emptySet<String>()) }
     var attrMenu by remember { mutableStateOf(false) }
 
-    val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(skill)
-    val calculation = character.skillCalculationForRoll(skill, attribute)
+    var alternativeId by remember(skill.id) { mutableStateOf<String?>(null) }
+    val alternatives = character.skillRollAlternatives(skill, effectCatalog)
+    val alternative = alternatives.firstOrNull { it.id == alternativeId }
+    val effectiveSkill = alternative?.skill ?: skill
+    val effectiveAttribute = alternative?.attribute ?: attribute
+    val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
+    val calculation = character.skillCalculationForRoll(effectiveSkill, effectiveAttribute)
 
     FuryDialog(
         onDismissRequest = onDismiss,
         title = { Text("Бросок: ${skill.name}") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { attrMenu = true }) { Text("Характеристика: ${attribute.title}") }
+                if (alternatives.isNotEmpty()) {
+                    Text("Формула только для этого броска; выбор подтверждает указанное условие", color = DublMuted)
+                    TextButton(onClick = { alternativeId = null; selectedEffects = emptySet(); result = null }) {
+                        Text(if (alternative == null) "✓ Обычная проверка" else "Обычная проверка")
+                    }
+                    alternatives.forEach { option ->
+                        TextButton(onClick = { alternativeId = option.id; selectedEffects = emptySet(); result = null }) {
+                            Text((if (alternative?.id == option.id) "✓ " else "") + option.label)
+                        }
+                    }
+                    alternative?.let { Text(it.sourceText, color = DublMuted) }
+                }
+                OutlinedButton(enabled = alternative == null, onClick = { attrMenu = true }) { Text("Характеристика: ${attribute.title}") }
                 DropdownMenu(expanded = attrMenu, onDismissRequest = { attrMenu = false }) {
                     attributes.forEach { option ->
                         DropdownMenuItem(text = { Text(option.title) }, onClick = { attribute = option; attrMenu = false })
@@ -198,7 +216,7 @@ fun SkillRollDialog(
                 ) {
                     Column(Modifier.padding(horizontal = 11.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text("Расчёт броска", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
-                        Text(calculation.formulaText(skill), color = DublMuted, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+                        Text(calculation.formulaText(effectiveSkill), color = DublMuted, style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
                     }
                 }
                 result?.let { roll ->
