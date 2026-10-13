@@ -109,13 +109,28 @@ data class GearItem(
     val section: String = "Предметы",
     val fields: Map<String, String> = emptyMap(),
     val custom: Boolean = false,
-)
+    internal val acquisitionLoadToken: com.furybook.dubl.acquisition.AcquisitionDoubleToken? = null,
+) {
+    // Derived lexical evidence is invisible to ordinary model equality and legacy serialization.
+    override fun equals(other:Any?):Boolean = other is GearItem && uid==other.uid && catalogId==other.catalogId &&
+        name==other.name && quantity==other.quantity && load.toBits()==other.load.toBits() && carried==other.carried &&
+        description==other.description && category==other.category && section==other.section && fields==other.fields && custom==other.custom
+    override fun hashCode():Int {
+        var result=uid.hashCode()
+        for(hash in listOf(catalogId?.hashCode() ?: 0,name.hashCode(),quantity,load.hashCode(),carried.hashCode(),description.hashCode(),category.hashCode(),section.hashCode(),fields.hashCode(),custom.hashCode())) result=31*result+hash
+        return result
+    }
+}
 
 data class CharacterGear(
     val loadAutomatic: Boolean = true,
     val loadManual: Double = 0.0,
     val items: List<GearItem> = emptyList(),
-)
+    internal val acquisitionLoadToken: com.furybook.dubl.acquisition.AcquisitionDoubleToken? = null,
+) {
+    override fun equals(other:Any?):Boolean=other is CharacterGear && loadAutomatic==other.loadAutomatic && loadManual.toBits()==other.loadManual.toBits() && items==other.items
+    override fun hashCode():Int=(31*loadAutomatic.hashCode()+loadManual.hashCode())*31+items.hashCode()
+}
 
 data class SpellCatalogEntry(
     val id: String,

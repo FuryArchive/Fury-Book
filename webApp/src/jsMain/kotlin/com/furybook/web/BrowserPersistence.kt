@@ -12,18 +12,33 @@ import com.furybook.dubl.model.ConditionLocalDataCodec
 import com.furybook.dubl.model.SheetGroupingRules
 
 private object BrowserSessionMemory {
+    var ownerId: String? = null
     var snapshotRaw: String? = null
+    var legacySourceEligible: Boolean = true
     var extrasRaw: String = "{\"version\":1,\"characters\":{}}"
     var chiEnabled: Boolean = false
 
     fun clear() {
+        ownerId = null
         snapshotRaw = null
+        legacySourceEligible = true
         extrasRaw = "{\"version\":1,\"characters\":{}}"
         chiEnabled = false
     }
 }
 
 fun clearBrowserSessionData() = BrowserSessionMemory.clear()
+
+/** Capture actual present tab bytes only. Never ask the fresh-generating legacy store for a source. */
+internal fun bindBrowserSessionOwner(ownerId:String) {
+    require(ownerId.isNotBlank())
+    require(BrowserSessionMemory.ownerId==null || BrowserSessionMemory.ownerId==ownerId) { "Browser tab belongs to another account" }
+    BrowserSessionMemory.ownerId=ownerId
+}
+internal fun captureBrowserLegacySource(ownerId:String):BrowserLegacySource? {
+    if(BrowserSessionMemory.ownerId!=ownerId || !BrowserSessionMemory.legacySourceEligible) return null
+    return BrowserSessionMemory.snapshotRaw?.let { BrowserLegacySource(it,BrowserSessionMemory.extrasRaw) }
+}
 
 fun webUuid(): String = js("crypto.randomUUID()") as String
 
@@ -41,9 +56,10 @@ class BrowserCharacterStore : CharacterStore {
     fun raw(): String = BrowserSessionMemory.snapshotRaw
         ?: SnapshotCodec.encode(SnapshotCodec.fresh(::webUuid)).also { BrowserSessionMemory.snapshotRaw = it }
 
-    fun replaceRaw(raw: String) {
+    fun replaceRaw(raw: String, migrationSource: Boolean = true) {
         SnapshotCodec.decode(raw, ::webUuid)
         BrowserSessionMemory.snapshotRaw = raw
+        BrowserSessionMemory.legacySourceEligible = migrationSource
     }
 }
 

@@ -27,6 +27,21 @@ external object SupabaseModule {
 
 data class WebAuthSession(val userId: String, val email: String)
 
+/** getSession's editable identity is only a candidate; getUser's Auth reply establishes the owner. */
+internal suspend fun verifyBrowserServerOwner(session:WebAuthSession,currentOwner:()->String?,
+    getUser:suspend ()->dynamic,currentSdkOwner:suspend ()->String?):WebAuthSession {
+    val expected=session.userId
+    require(expected.isNotBlank() && currentOwner()==expected) { "Browser account changed before verification" }
+    val reply=getUser()
+    if(reply.error!=null) error("Не удалось проверить владельца Fury Cloud: "+((reply.error.message as? String) ?: "Auth unavailable"))
+    val user=reply.data?.user ?: error("Authenticated browser owner unavailable")
+    val id=user.id as? String ?: error("Authenticated browser owner unavailable")
+    require(id.isNotBlank() && id==expected) { "Authenticated principal differs from captured session" }
+    val sdkOwner=currentSdkOwner()
+    require(sdkOwner==expected && currentOwner()==expected) { "Browser account changed during verification" }
+    return WebAuthSession(id,(user.email as? String).orEmpty())
+}
+
 enum class CloudSyncPhase { CONNECTING, PENDING, SYNCING, SYNCED, ERROR, CONFLICT }
 
 data class SyncHistoryItem(
@@ -90,6 +105,14 @@ class WebCloudSync(private val acquisitionStore: AcquisitionStore? = null,
 
     var profileNickname: String by mutableStateOf("")
         private set
+
+    suspend fun verifyOwner(session:WebAuthSession):WebAuthSession = verifyBrowserServerOwner(session,{userId},
+        { (client.auth.getUser() as Promise<dynamic>).await() },
+        {
+            val current=(client.auth.getSession() as Promise<dynamic>).await()
+            if(current.error!=null) error("Current browser session is unavailable")
+            current.data?.session?.user?.id as? String
+        })
 
     suspend fun restoreSession(): WebAuthSession? {
         val response = (client.auth.getSession() as Promise<dynamic>).await()

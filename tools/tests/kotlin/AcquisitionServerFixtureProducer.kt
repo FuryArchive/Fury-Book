@@ -160,7 +160,43 @@ private suspend fun fix2Fixtures(ackFile:String?=null,refusalFile:String?=null) 
         if(refusalFile!=null) verifyRefusalRetainsQueue(copied2,java.io.File(refusalFile).readLines().filter {it.isNotBlank()}.distinct())
     }
 }
+/** Separately named current T14 producer corpus; historical fixture files remain immutable. */
+private suspend fun t14ExactDecimalFixtures(ackFile:String?) {
+    val cases=listOf("zero" to 0.0,"negative-zero" to -0.0,"fraction" to 0.1,"tiny" to 1.0E-10,
+        "minimum" to Double.MIN_VALUE,"subnormal" to Double.fromBits(2),"maximum" to Double.MAX_VALUE,"large" to 1.0E20)
+    val states=cases.associate { (name,value) ->
+        val id="t14-fresh-"+name
+        val initial=StoredCharacter(DublCharacter(id,name="Fresh exact token; lone \uD800; 😀",gear=CharacterGear(loadManual=value,items=listOf(GearItem("item",load=value)))),
+            CharacterSheetExtras(),emptyList(),Ledger(Opening("opening","source",Amount(100,0),RequirementNode.CreationPhase.Phase.Creating,OpeningProvenance.NewCharacter),emptyList()),
+            emptyList(),emptyList(),SyncMetadata(0),0,0,RequirementNode.CreationPhase.Phase.Creating)
+        id to grant(initial,id+"-grant",0)
+    }
+    if(ackFile==null) {
+        println("-- Separate current fresh producer corpus; do not replace historical expectations.")
+        println("CREATE TEMP TABLE acquisition_fixtures (name text PRIMARY KEY, body jsonb NOT NULL, canonical text NOT NULL);")
+        println("GRANT SELECT ON acquisition_fixtures TO authenticated;")
+        states.forEach { (id,state) -> check(encodeSyncEnvelope(decodeSyncEnvelope(encodeSyncEnvelope(state)))==encodeSyncEnvelope(state));push(id,state,0) }
+    } else {
+        val replies=java.io.File(ackFile).readLines().filter { it.startsWith("{") }.map { AcquisitionSyncWire.decodeResult(it) as AcquisitionPushResult.Acknowledged }
+        check(replies.size==states.size)
+        for((id,state) in states) {
+            val ack=replies.single { it.payloadCanonical==encodeSyncEnvelope(state) }
+            check(ack.operationId==id+"-grant" && ack.serverRevision==1L)
+            val store=FixtureStore(state)
+            val transport=object:AcquisitionSyncTransport {
+                override suspend fun push(request:AcquisitionPush):AcquisitionPushResult { check(request.payloadCanonical==ack.payloadCanonical && request.operationId==ack.operationId);return ack }
+                override suspend fun resolve(request:AcquisitionResolution):AcquisitionPushResult=error("No resolution expected")
+            }
+            val archive=object:AcquisitionConflictArchive { override suspend fun preserve(conflict:ArchivedAcquisitionConflict):CommitResult=error("No archive expected") }
+            val protocol=AcquisitionSyncProtocol(store,transport,archive,AcquisitionCapabilities(true,true,true),{"unused"})
+            check(protocol.syncPending(id)==SyncEnvelopeResult.Synced(1,0))
+            check(store.state.outbox.isEmpty() && store.state.syncMetadata.serverRevision==1L && encodeSyncEnvelope(store.state)==ack.payloadCanonical)
+            println("T14_ACTUAL_SQL_ACK_PUBLIC_PROTOCOL_PASS|"+id)
+        }
+    }
+}
 fun main(args: Array<String>) = runBlocking {
+    if(args.firstOrNull()=="--t14-exact-decimal") { t14ExactDecimalFixtures(args.getOrNull(1));return@runBlocking }
     if (args.firstOrNull() == "--fix-2") { fix2Fixtures(args.getOrNull(1),args.getOrNull(2)); return@runBlocking }
     if (args.firstOrNull() == "--check-admission") {
         val file = java.io.File(args[1])

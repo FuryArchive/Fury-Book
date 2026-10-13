@@ -42,7 +42,7 @@ data class SyncMetadata(val serverRevision: Long, val remoteConflictCanonical: S
 
 /** Local durable unit. Gameplay, local CAS and remote CAS revisions have separate meanings. */
 class StoredCharacter(
-    val character: DublCharacter,
+    character: DublCharacter,
     val extras: CharacterSheetExtras,
     instances: List<AcquisitionInstance>,
     val ledger: Ledger,
@@ -56,6 +56,7 @@ class StoredCharacter(
     copySources: List<AcquisitionCopySource> = emptyList(),
     syncProofs:List<AcquisitionSyncProof> = emptyList(),
 ) {
+    val character:DublCharacter = reconcileAcquisitionDoubleTokens(character)
     val syncProofs:List<AcquisitionSyncProof> = EnvelopeList(syncProofs)
     val copySources: List<AcquisitionCopySource> = EnvelopeList(copySources)
     val instances: List<AcquisitionInstance> = EnvelopeList(instances)
@@ -72,6 +73,6 @@ class StoredCharacter(
         receipts: List<Receipt> = this.receipts, outbox: List<OutboxItem> = this.outbox,
         syncMetadata: SyncMetadata = this.syncMetadata, revision: Long = this.revision,
         storageRevision: Long = this.storageRevision, creationPhase: RequirementNode.CreationPhase.Phase = this.creationPhase,
-        formatVersion: Int = this.formatVersion, copySources: List<AcquisitionCopySource> = this.copySources, syncProofs:List<AcquisitionSyncProof> = this.syncProofs) = StoredCharacter(character, extras, instances, ledger, receipts, outbox,
+        formatVersion: Int = this.formatVersion, copySources: List<AcquisitionCopySource> = this.copySources, syncProofs:List<AcquisitionSyncProof> = this.syncProofs) = StoredCharacter(reconcileAcquisitionDoubleTokens(character,this.character), extras, instances, ledger, receipts, outbox,
         syncMetadata, revision, storageRevision, creationPhase, formatVersion, copySources, syncProofs)
 }

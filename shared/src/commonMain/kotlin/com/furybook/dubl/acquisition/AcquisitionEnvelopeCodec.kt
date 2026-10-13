@@ -80,7 +80,7 @@ fun decodeEnvelope(raw: String): LoadResult = try {
 private fun encodeState(state: StoredCharacter, local: Boolean): JsonValue.Obj = JsonValue.Obj(jsonObject(
     "formatVersion" to jsonNumber(state.formatVersion),
     "characterId" to jsonString(state.character.id),
-    "characterSnapshot" to parseRoot(SnapshotCodec.encode(AppSnapshot(listOf(state.character), state.character.id))),
+    "characterSnapshot" to SnapshotCodec.encodeAcquisitionProjection(state.character),
     "extras" to encodeExtras(state.extras, local),
     "instances" to jsonArray(state.instances.map(::encodeInstance)),
     "ledger" to jsonObject("opening" to encodeOpening(state.ledger.opening), "entries" to jsonArray(state.ledger.entries.map(::encodeEntry))),
@@ -108,7 +108,7 @@ private fun decodeState(root: JsonValue.Obj): StoredCharacter {
     val character = SnapshotCodec.decodeEnvelopeProjection(snapshot)
     require(character.id == root.text("characterId") && snapshot.text("activeCharacterId") == character.id) { "Character scope mismatch" }
     // Parsing must preserve the entire projection, including manual deviations; never drop fields.
-    require(canonicalJson(jsonStringify(snapshot)) == canonicalJson(SnapshotCodec.encode(AppSnapshot(listOf(character), character.id)))) {
+    require(canonicalJson(jsonStringify(snapshot)) == canonicalJson(jsonStringify(SnapshotCodec.encodeAcquisitionProjection(character)))) {
         "Character projection would lose or normalize persisted fields"
     }
     val ledger = root.objectRequired("ledger").also { it.keys("opening", "entries") }

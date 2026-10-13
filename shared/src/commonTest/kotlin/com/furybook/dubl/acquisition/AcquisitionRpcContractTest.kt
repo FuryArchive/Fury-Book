@@ -37,7 +37,10 @@ class AcquisitionRpcContractTest {
             gear=CharacterGear(loadAutomatic=false,loadManual=-0.0,items=listOf(GearItem("gear",name="tiny",load=1.0E-10)))),
             CharacterSheetExtras(),emptyList(),Ledger(Opening("new","funding",Amount(100,0),RequirementNode.CreationPhase.Phase.Creating,OpeningProvenance.NewCharacter),emptyList()),
             emptyList(),emptyList(),SyncMetadata(0),0,0,RequirementNode.CreationPhase.Phase.Creating)
-        val store=InMemoryAcquisitionStore(mapOf("lexical" to encodeEnvelope(state)))
+        // Preserve the genuine historical token expectation independently of fresh rendering.
+        val historicalRaw=encodeSyncEnvelope(state).replace(Regex("\"load\":-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?"),"\"load\":1.0E-10")
+        val historical=decodeSyncEnvelope(historicalRaw)
+        val store=InMemoryAcquisitionStore(mapOf("lexical" to encodeEnvelope(historical)))
         val mutations=CharacterMutationCoordinator(store,{AcquisitionCatalog(emptyMap(),"fixture","fixture")},{"id"})
         assertIs<MutationResult.Applied>(mutations.mutate(CanonicalMutation("op","lexical",0,MutationPayload.Grant(Amount.ZERO),"Fixture")))
         val payload=assertIs<LoadResult.Loaded>(store.load("lexical")).state.outbox.single().payloadCanonical

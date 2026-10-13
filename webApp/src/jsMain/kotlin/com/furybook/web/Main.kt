@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ComposeViewport
+import com.furybook.dubl.acquisition.*
 import com.furybook.desktop.DesktopAppState
 import com.furybook.desktop.screens.*
 import com.furybook.ui.layout.DublLayoutClass
@@ -51,21 +52,38 @@ fun main() {
 
 @Composable
 private fun WebRoot() {
-    val cloud = remember { WebCloudSync() }
     val scope = rememberCoroutineScope()
     var resources by remember { mutableStateOf<Map<String, String>?>(null) }
     var session by remember { mutableStateOf<WebAuthSession?>(null) }
+    var durableSession by remember { mutableStateOf<BrowserAcquisitionSession?>(null) }
+    val cloud = remember { WebCloudSync(object:AcquisitionStore {
+        override suspend fun load(characterId:String):LoadResult =
+            checkNotNull(durableSession) { "Verified owner storage has not initialized" }.store.load(characterId)
+        override suspend fun compareAndSet(characterId:String,expectedStorageRevision:Long,next:StoredCharacter):CommitResult =
+            CommitResult.StorageFailure("Production acquisition rollout is disabled")
+    }, { durableSession?.store?.knownCharacterIds ?: emptySet() }) }
+
     var booting by remember { mutableStateOf(true) }
     var fatalError by remember { mutableStateOf<String?>(null) }
     var connectionError by remember { mutableStateOf<String?>(null) }
     var appEpoch by remember { mutableStateOf(0) }
 
     suspend fun hydrateRemote(): CloudBootstrap {
-        val remote = cloud.pull()
-        BrowserCharacterStore().replaceRaw(remote.snapshot)
-        BrowserCharacterExtrasStore().replaceRaw(remote.extras)
-        BrowserPackState.chiEnabled = remote.chiEnabled
-        return remote
+        val authenticated=checkNotNull(session) { "Verified account is required before durable storage" }
+        durableSession?.store?.close();durableSession=null
+        val initialized=BrowserAcquisitionSession.open(authenticated,{session?.userId},verifyOwner=cloud::verifyOwner)
+        try {
+            check(session?.userId==authenticated.userId) { "Verified browser account changed" }
+            bindBrowserSessionOwner(authenticated.userId)
+            durableSession=initialized
+            val remote=cloud.pull()
+            check(session?.userId==authenticated.userId) { "Verified browser account changed" }
+            // A derived legacy display of canonical heads is never a migration source.
+            BrowserCharacterStore().replaceRaw(remote.snapshot,migrationSource=initialized.states.isEmpty())
+            BrowserCharacterExtrasStore().replaceRaw(remote.extras)
+            BrowserPackState.chiEnabled=remote.chiEnabled
+            return remote
+        } catch(failure:Throwable) { initialized.store.close();durableSession=null;throw failure }
     }
 
     fun cloudErrorMessage(error: Throwable): String =
@@ -122,6 +140,7 @@ private fun WebRoot() {
             onSignOut = {
                 scope.launch {
                     cloud.signOut()
+                    durableSession?.store?.close();durableSession=null
                     clearBrowserSessionData()
                     session = null
                     connectionError = null
@@ -133,17 +152,18 @@ private fun WebRoot() {
             val activeSession = session!!
             key(activeSession.userId, appEpoch) {
                 val state = remember(resources, activeSession.userId, appEpoch) {
-                    DesktopAppState(resources!!, cloud)
+                    DesktopAppState(resources!!,cloud,checkNotNull(durableSession).store,checkNotNull(durableSession).states)
                 }
 
                 LaunchedEffect(state) {
-                    cloud.schedule(
+                    if(checkNotNull(durableSession).states.isEmpty()) cloud.schedule(
                         snapshot = BrowserCharacterStore().raw(),
                         extras = BrowserCharacterExtrasStore().raw(),
                         chiEnabled = BrowserPackState.chiEnabled,
                     )
                 }
 
+                Box(Modifier.fillMaxSize()) {
                 FuryWebApp(
                     state = state,
                     cloud = cloud,
@@ -152,6 +172,7 @@ private fun WebRoot() {
                     onSignOut = {
                         scope.launch {
                             cloud.signOut()
+                            durableSession?.store?.close();durableSession=null
                             clearBrowserSessionData()
                             session = null
                             connectionError = null
@@ -159,6 +180,11 @@ private fun WebRoot() {
                         }
                     },
                 )
+
+                val storageMessage=state.storageError ?: if(checkNotNull(durableSession).states.isNotEmpty())
+                    "Локальный журнал сохранён. Лист доступен для чтения; выпуск покупок пока выключен." else null
+                storageMessage?.let { Text(it,modifier=Modifier.align(Alignment.BottomCenter).background(DesktopSurface).padding(12.dp),color=DesktopMuted) }
+                }
 
                 cloud.conflict?.let { conflict ->
                     ConflictDialog(

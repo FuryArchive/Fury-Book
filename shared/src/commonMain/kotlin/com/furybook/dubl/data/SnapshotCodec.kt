@@ -1,6 +1,7 @@
 package com.furybook.dubl.data
 
 import com.furybook.core.json.*
+import com.furybook.dubl.acquisition.*
 import com.furybook.dubl.model.AppSnapshot
 import com.furybook.dubl.model.DevelopmentEntry
 import com.furybook.dubl.model.DevelopmentCostType
@@ -33,8 +34,14 @@ object SnapshotCodec {
         jsonObject(
             "schema" to jsonNumber(SCHEMA),
             "activeCharacterId" to jsonString(snapshot.activeCharacterId),
-            "characters" to jsonArray(snapshot.characters.map(::encodeCharacter)),
+            "characters" to jsonArray(snapshot.characters.map { encodeCharacter(it) }),
         ),
+    )
+
+    /** Acquisition-owned strict projection; the ordinary legacy encoder remains unchanged. */
+    internal fun encodeAcquisitionProjection(character:DublCharacter):JsonValue.Obj = jsonObject(
+        "schema" to jsonNumber(SCHEMA), "activeCharacterId" to jsonString(character.id),
+        "characters" to jsonArray(listOf(encodeCharacter(character, acquisition=true))),
     )
 
     fun decode(raw: String, idFactory: () -> String): AppSnapshot {
@@ -62,7 +69,7 @@ object SnapshotCodec {
         return decodeCharacter(character, SCHEMA, { error("Missing stored identity") }, preserveValues = true)
     }
 
-    private fun encodeCharacter(character: DublCharacter): JsonValue.Obj = jsonObject(
+    private fun encodeCharacter(character: DublCharacter, acquisition:Boolean=false): JsonValue.Obj = jsonObject(
         "id" to jsonString(character.id),
         "ruleset" to jsonObject(
             "id" to jsonString(character.ruleset.id),
@@ -114,7 +121,7 @@ object SnapshotCodec {
         "developmentOverrides" to jsonArray(character.developmentOverrides.values.map(::encodeDevelopmentEntry)),
         "customDevelopmentEntries" to jsonArray(character.customDevelopmentEntries.map(::encodeDevelopmentEntry)),
         "magic" to encodeMagic(character.magic),
-        "gear" to encodeGear(character.gear),
+        "gear" to encodeGear(character.gear,acquisition),
     )
 
     private fun encodeSkill(skill: CharacterSkill): JsonValue.Obj = jsonObject(
@@ -189,16 +196,16 @@ object SnapshotCodec {
         }),
     )
 
-    private fun encodeGear(gear: CharacterGear): JsonValue.Obj = jsonObject(
+    private fun encodeGear(gear: CharacterGear, acquisition:Boolean=false): JsonValue.Obj = jsonObject(
         "loadAutomatic" to jsonBoolean(gear.loadAutomatic),
-        "loadManual" to jsonNumber(gear.loadManual),
+        "loadManual" to if(acquisition) JsonValue.Num(acquisitionDoubleText(gear.loadManual,gear.acquisitionLoadToken,AcquisitionDoubleLeaf.ManualLoad)) else jsonNumber(gear.loadManual),
         "items" to jsonArray(gear.items.map { item ->
             jsonObject(
                 "uid" to jsonString(item.uid),
                 "catalogId" to item.catalogId?.let(::jsonString),
                 "name" to jsonString(item.name),
                 "quantity" to jsonNumber(item.quantity),
-                "load" to jsonNumber(item.load),
+                "load" to if(acquisition) JsonValue.Num(acquisitionDoubleText(item.load,item.acquisitionLoadToken,AcquisitionDoubleLeaf.ItemLoad,item.uid)) else jsonNumber(item.load),
                 "carried" to jsonBoolean(item.carried),
                 "description" to jsonString(item.description),
                 "category" to jsonString(item.category),
@@ -294,7 +301,7 @@ object SnapshotCodec {
             developmentOverrides = developmentOverrides,
             customDevelopmentEntries = customDevelopmentEntries,
             magic = decodeMagic(root.objectValue("magic"), idFactory),
-            gear = decodeGear(root.objectValue("gear"), idFactory),
+            gear = decodeGear(root.objectValue("gear"), idFactory, preserveValues),
         ).let { if (preserveValues) it else it.normalized() }
     }
 
@@ -387,7 +394,7 @@ object SnapshotCodec {
         return CharacterMagic(root.int("manaRank", 0), root.int("power", 0), schools, spells)
     }
 
-    private fun decodeGear(root: JsonValue.Obj?, idFactory: () -> String): CharacterGear {
+    private fun decodeGear(root: JsonValue.Obj?, idFactory: () -> String, acquisition:Boolean=false): CharacterGear {
         if (root == null) return CharacterGear()
         val items = root.array("items").mapNotNull { value ->
             val item = value.asObject() ?: return@mapNotNull null
@@ -403,9 +410,12 @@ object SnapshotCodec {
                 section = item.string("section", "Предметы"),
                 fields = item.stringMap("fields"),
                 custom = item.bool("custom", false),
+                acquisitionLoadToken = if(acquisition) AcquisitionDoubleToken.capture((item.values.getValue("load") as JsonValue.Num).raw,item.double("load",0.0),AcquisitionDoubleLeaf.ItemLoad,item.string("uid")) else null,
             )
         }
-        return CharacterGear(root.bool("loadAutomatic", true), root.double("loadManual", 0.0), items)
+        val manual=root.double("loadManual",0.0)
+        return CharacterGear(root.bool("loadAutomatic",true),manual,items,
+            if(acquisition) AcquisitionDoubleToken.capture((root.values.getValue("loadManual") as JsonValue.Num).raw,manual,AcquisitionDoubleLeaf.ManualLoad) else null)
     }
 }
 

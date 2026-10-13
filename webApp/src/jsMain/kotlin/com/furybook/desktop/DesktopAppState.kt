@@ -5,6 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.furybook.content.FcpComposition
 import com.furybook.content.FcpManifest
+import com.furybook.dubl.acquisition.*
+import com.furybook.dubl.data.CharacterStore
+import com.furybook.dubl.data.CharacterExtrasStore
+import com.furybook.dubl.data.CharacterTransferRejectReason
+import com.furybook.content.FcpContentPack
+import com.furybook.content.FcpTextSource
+import com.furybook.web.BrowserAcquisitionStore
 import com.furybook.dubl.application.DublApplication
 import com.furybook.dubl.application.CharacterTransferImportResult
 import com.furybook.dubl.content.DublChiFcp
@@ -26,17 +33,41 @@ import com.furybook.web.WebCloudSync
 import com.furybook.web.webUuid
 
 class DesktopAppState(
-    resourceTexts: Map<String, String>,
+    private val resourceTexts: Map<String, String>,
     private val cloudSync: WebCloudSync? = null,
+    private val acquisitionStore: BrowserAcquisitionStore? = null,
+    initialCanonicalStates: Map<String,StoredCharacter> = emptyMap(),
+    val localAcquisitionEnabled:Boolean = false,
 ) {
     private val characterStore = BrowserCharacterStore()
     private val extrasStore = BrowserCharacterExtrasStore()
-    private val application = DublApplication(
-        characterStore = characterStore,
-        extrasStore = extrasStore,
-        idFactory = ::webUuid,
-        customConditionIdFactory = ::webUuid,
-    )
+    private var canonicalStates = initialCanonicalStates.toMap()
+    private var readOnlySelection:String? = null
+    private val canonicalMode get() = localAcquisitionEnabled || canonicalStates.isNotEmpty()
+    val cloudLedgerV2:Boolean = false
+    var storageError:String? by mutableStateOf(null);private set
+    private val acquisitionService by lazy { AcquisitionService(requireNotNull(acquisitionStore),::acquisitionCatalog,::webUuid) }
+    private fun acquisitionCatalog():AcquisitionCatalog {
+        val source=FcpTextSource { resourceTexts[it] }
+        return loadAcquisitionCatalog(contentPackComposition.active.map { FcpContentPack.load("fcp/${it.id}",source) },chiPackEnabled).catalog
+    }
+    private fun createApplication():DublApplication {
+        if(!canonicalMode) return DublApplication(characterStore,extrasStore,::webUuid,::webUuid)
+        val original=characterStore.load()
+        val characters=original.characters.map { canonicalStates[it.id]?.character ?: it }.toMutableList()
+        canonicalStates.values.filter { value -> characters.none { it.id==value.character.id } }.forEach { characters += it.character }
+        val view=AppSnapshot(characters,readOnlySelection?.takeIf { id -> characters.any { it.id==id } } ?: original.activeCharacterId)
+        val readonly=object:CharacterStore {
+            override fun load()=view
+            override fun save(snapshot:AppSnapshot)=error("Legacy writer cannot change a canonical browser view")
+        }
+        val readonlyExtras=object:CharacterExtrasStore {
+            override fun load(characterId:String)=canonicalStates[characterId]?.extras ?: extrasStore.load(characterId)
+            override fun save(characterId:String,extras:CharacterSheetExtras)=error("Legacy extras writer cannot change a canonical browser view")
+        }
+        return DublApplication(readonly,readonlyExtras,::webUuid,::webUuid)
+    }
+    private var application = createApplication()
     private val catalogLoader = WebCatalogLoader(resourceTexts)
 
     val corePackManifest = catalogLoader.manifest
@@ -80,7 +111,7 @@ class DesktopAppState(
         )
 
     init {
-        application.equipment.syncCatalogLoads(magicEquipmentCatalog.gear)
+        if (!canonicalMode) application.equipment.syncCatalogLoads(magicEquipmentCatalog.gear)
         refresh()
     }
 
@@ -112,6 +143,7 @@ class DesktopAppState(
     }
 
     fun setChiPackActive(enabled: Boolean) {
+        if(canonicalMode) { storageError="Состав канонического листа меняется только подтверждённой операцией";return }
         if (enabled) catalogLoader.verifyChiPack()
         BrowserPackState.chiEnabled = enabled
         chiPackEnabled = enabled
@@ -130,13 +162,49 @@ class DesktopAppState(
     }
 
     private fun scheduleCloudSync() {
-        cloudSync?.schedule(SnapshotCodec.encode(snapshot), extrasStore.raw(), chiPackEnabled)
+        if (!canonicalMode) cloudSync?.schedule(SnapshotCodec.encode(snapshot), extrasStore.raw(), chiPackEnabled)
     }
 
-    private inline fun <T> sync(action: () -> T): T {
-        val result = action()
-        refresh()
-        scheduleCloudSync()
+    private inline fun <T> sync(action: () -> T): T? {
+        if(canonicalMode) {
+            storageError="Канонический лист доступен для чтения. Используйте подтверждённую операцию журнала; выпуск локальных покупок пока выключен."
+            return null
+        }
+        return try { val result=action();refresh();scheduleCloudSync();result }
+            catch(failure:Exception) { storageError="Ошибка сохранения: ${failure.message}";application=createApplication();refresh();null }
+    }
+    private fun requireLocalWrites() {
+        check(localAcquisitionEnabled && acquisitionStore?.capabilities?.localDurable==true) { "Local durable acquisitions are disabled or unavailable" }
+    }
+    private suspend fun reloadCanonicalView() {
+        val store=requireNotNull(acquisitionStore)
+        val loaded=linkedMapOf<String,StoredCharacter>()
+        for(id in store.characterIds()) loaded[id]=(store.load(id) as? LoadResult.Loaded)?.state ?: error("Canonical browser head is unavailable")
+        canonicalStates=loaded.toMap();application=createApplication();refresh()
+    }
+    suspend fun previewLocalAcquisition(request:AcquisitionRequest):AcquisitionPlan {
+        requireLocalWrites();return acquisitionService.preview(request)
+    }
+    suspend fun applyLocalAcquisition(command:ConfirmAcquisition):ApplyResult {
+        requireLocalWrites()
+        val result=acquisitionService.apply(command)
+        storageError=when(result) { is ApplyResult.StorageFailure->result.reason;is ApplyResult.Blocked->result.issues.joinToString { it.reason };is ApplyResult.Stale->"Предпросмотр устарел";is ApplyResult.IdentityConflict->result.reason;else->null }
+        if(result is ApplyResult.Applied || result is ApplyResult.AlreadyApplied || result is ApplyResult.AlreadyUndone)
+            runCatching { reloadCanonicalView() }.onFailure { storageError="Сохранено, но просмотр не обновился: ${it.message}" }
+        return result
+    }
+    suspend fun mutateCanonical(command:CanonicalMutation):MutationResult {
+        requireLocalWrites()
+        val result=CharacterMutationCoordinator(requireNotNull(acquisitionStore),::acquisitionCatalog,::webUuid).mutate(command)
+        storageError=when(result) { is MutationResult.StorageFailure->result.reason;is MutationResult.Blocked->result.reason;is MutationResult.IdentityConflict->result.reason;is MutationResult.Stale->"Лист изменился";else->null }
+        if(result is MutationResult.Applied || result is MutationResult.AlreadyApplied || result is MutationResult.AlreadyUndone) reloadCanonicalView()
+        return result
+    }
+    suspend fun undoCanonical(operationId:String,expectedRevision:Long):ApplyResult {
+        requireLocalWrites()
+        val result=AcquisitionUndo(requireNotNull(acquisitionStore)).undo(snapshot.activeCharacterId,operationId,expectedRevision)
+        if(result is ApplyResult.Applied || result is ApplyResult.AlreadyApplied || result is ApplyResult.AlreadyUndone) reloadCanonicalView()
+        storageError=(result as? ApplyResult.StorageFailure)?.reason
         return result
     }
 
@@ -205,20 +273,20 @@ class DesktopAppState(
     fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) = sync { application.skills.setPreferredAttribute(skillId, attribute) }
 
     fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int = 0) = sync { application.development.setRank(entryId, rank, optionIndex) }
-    fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult = sync { application.development.acquire(developmentCatalog, request) }
+    fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult = sync { application.development.acquire(developmentCatalog, request) } ?: DevelopmentAcquisitionResult(false, DevelopmentAcquisitionPlanner(activeCharacter,developmentCatalog).plan(request),storageError ?: "Storage unavailable")
     fun setDevelopmentOverride(entry: DevelopmentEntry) = sync { application.development.setOverride(entry) }
     fun resetDevelopmentOverride(entryId: String) = sync { application.development.resetOverride(entryId) }
     fun addCustomDevelopment(entry: DevelopmentEntry): String? = sync { application.development.addCustom(entry) }
-    fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean = sync { application.development.updateCustom(entry) }
+    fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean = sync { application.development.updateCustom(entry) } ?: false
     fun removeCustomDevelopment(entryId: String) = sync { application.development.removeCustom(entryId) }
 
     fun setMagicManaRank(rank: Int) = sync { application.magic.setManaRank(rank) }
     fun setMagicSchoolPower(name: String, power: Int) = sync { application.magic.setSchoolPower(name, power) }
-    fun addMagicSchool(name: String, rank: Int, note: String): Boolean = sync { application.magic.addSchool(name, rank, note) }
-    fun updateMagicSchool(index: Int, name: String, rank: Int, note: String): Boolean = sync { application.magic.updateSchool(index, name, rank, note) }
+    fun addMagicSchool(name: String, rank: Int, note: String): Boolean = sync { application.magic.addSchool(name, rank, note) } ?: false
+    fun updateMagicSchool(index: Int, name: String, rank: Int, note: String): Boolean = sync { application.magic.updateSchool(index, name, rank, note) } ?: false
     fun removeMagicSchool(index: Int) = sync { application.magic.removeSchool(index) }
-    fun addCatalogSpell(entry: SpellCatalogEntry): Boolean = sync { application.magic.addCatalogSpell(entry) }
-    fun addCustomSpell(spell: KnownSpell): String = sync { application.magic.addCustomSpell(spell) }
+    fun addCatalogSpell(entry: SpellCatalogEntry): Boolean = sync { application.magic.addCatalogSpell(entry) } ?: false
+    fun addCustomSpell(spell: KnownSpell): String = sync { application.magic.addCustomSpell(spell) } ?: ""
     fun updateSpell(spell: KnownSpell) = sync { application.magic.updateSpell(spell) }
     fun setSpellLearned(uid: String, learned: Boolean) = sync { application.magic.setSpellLearned(uid, learned) }
     fun removeSpell(uid: String) = sync { application.magic.removeSpell(uid) }
@@ -226,8 +294,8 @@ class DesktopAppState(
     fun setGearLoadAutomatic(enabled: Boolean) = sync { application.equipment.setLoadAutomatic(enabled) }
     fun setGearManualLoad(value: Double) = sync { application.equipment.setManualLoad(value) }
     fun syncCatalogGearLoads(entries: List<GearCatalogEntry>) = sync { application.equipment.syncCatalogLoads(entries) }
-    fun addCatalogGear(entry: GearCatalogEntry): String = sync { application.equipment.addCatalog(entry) }
-    fun addCustomGear(item: GearItem): String = sync { application.equipment.addCustom(item) }
+    fun addCatalogGear(entry: GearCatalogEntry): String = sync { application.equipment.addCatalog(entry) } ?: ""
+    fun addCustomGear(item: GearItem): String = sync { application.equipment.addCustom(item) } ?: ""
     fun updateGearItem(item: GearItem) = sync { application.equipment.updateItem(item) }
     fun setGearItemCarried(uid: String, carried: Boolean) = sync { application.equipment.setItemCarried(uid, carried) }
     fun setGearItemQuantity(uid: String, quantity: Int) = sync { application.equipment.setItemQuantity(uid, quantity) }
@@ -250,11 +318,14 @@ class DesktopAppState(
     fun setCustomConditionActive(id: String, active: Boolean) = sync { application.sheet.setCustomConditionActive(id, active) }
     fun removeCustomCondition(id: String) = sync { application.sheet.removeCustomCondition(id) }
 
-    fun exportActiveCharacter(): String = application.transfer.exportActive()
-    fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) }
+    fun exportActiveCharacter(): String = canonicalStates[snapshot.activeCharacterId]?.let(::encodeEnvelope) ?: application.transfer.exportActive()
+    fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) } ?: CharacterTransferImportResult.Rejected(CharacterTransferRejectReason.INVALID_FILE)
 
     fun createCharacter() = sync { application.character.createCharacter() }
-    fun selectCharacter(id: String) = sync { application.character.selectCharacter(id) }
+    fun selectCharacter(id: String) {
+        if(canonicalMode) { require(snapshot.characters.any { it.id==id });readOnlySelection=id;application=createApplication();refresh() }
+        else sync { application.character.selectCharacter(id) }
+    }
     fun deleteActive() = sync { application.character.deleteActive() }
-    fun undoLast(): Boolean = sync { application.undoLast() }
+    fun undoLast(): Boolean = sync { application.undoLast() } ?: false
 }
