@@ -28,3 +28,14 @@ fun incredibleHealthPerRank(size: Int): Int = when {
     size >= 15 -> 1024
     else -> 1 shl (size - 5)
 }
+
+/** Core source: passive Awareness is learned Awareness + Perception, plus 2/rank Vigilance. */
+val DublCharacter.passiveAwareness: Int
+    get() = (resolveSkill("awareness")?.rank ?: 0) + perception +
+        if ("skill_effect_022_d4dfae50b28b" in disabledSkillEffectIds) 0
+        else 2 * developmentRank(DevelopmentEffectIds.VIGILANCE)
+
+/** Bonus only: never substitute this for armor supplied by equipment or other rules. */
+val DublCharacter.naturalArmorDevelopmentBonus: Int
+    get() = if ("skill_effect_213_cae701fac661" in disabledSkillEffectIds) 0
+        else developmentRank(DevelopmentEffectIds.TOUGH_MUSCULATURE)

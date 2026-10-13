@@ -80,7 +80,7 @@ class SkillEffectRules(
 
     fun forSkill(skill: ResolvedSkill): SkillRollEffectResolution {
         val relevant = configuredForSkill(skill).filter { effect ->
-            effect.id !in character.disabledSkillEffectIds
+            effect.id !in character.disabledSkillEffectIds && effect.skillConditionsHold(skill)
         }
         val automatic = relevant.mapNotNull { effect ->
             if (effect.mode != SkillEffectMode.AUTO_BONUS) return@mapNotNull null
@@ -109,7 +109,13 @@ class SkillEffectRules(
                     label = effect.toggleLabel,
                     sourceName = effect.sourceName,
                     description = effect.effectText,
-                    hindranceDice = if (effect.perRank) rank.coerceAtLeast(1) else 1,
+                    hindranceDice = when (effect.developmentId) {
+                        // This feature removes only vision-related penalties. It
+                        // must never ADD a hindrance or erase unrelated ones.
+                        "feat_3502559c63707e6a" -> 0
+                        "feat_dad6c142bda7893e" -> if (rank >= 2) 0 else 1
+                        else -> if (effect.perRank) rank.coerceAtLeast(1) else 1
+                    },
                 )
                 SkillEffectMode.TOGGLE_RULE -> SkillRollEffectOption(
                     id = effect.id,
@@ -130,13 +136,44 @@ class SkillEffectRules(
         }
         return SkillRollEffectResolution(
             automaticContributions = automatic,
-            options = options,
+            options = options + contextOptions(RollContext.SKILL),
             reminders = reminders,
         )
     }
 
     fun forContext(context: RollContext): List<SkillEffectDefinition> = effectCatalog.effects.filter { effect ->
         effect.id !in character.disabledSkillEffectIds && effect.rollContext == context && ownedRank(effect) > 0
+    }
+
+    /** Zero-cost situational effects. Selection confirms the stated external
+     * condition for THIS roll only; it does not invent encounter state. */
+    fun contextOptions(context: RollContext): List<SkillRollEffectOption> = effectCatalog.effects.mapNotNull { effect ->
+        if (effect.id in character.disabledSkillEffectIds || ownedRank(effect) <= 0) return@mapNotNull null
+        val condition = when (effect.developmentId) {
+            "feat_255d30b26489a033" -> if (context in setOf(RollContext.ATTACK, RollContext.FLURRY))
+                "Налёт: мультидействие атака + движение не менее 5 м" else null
+            "feat_2f6cc2a6bb5fbef5" -> if (context == RollContext.DODGE)
+                "Сфокусированное уклонение: уворачиваюсь от выбранной цели" else null
+            "feat_108ac1d6e40fa059" -> if (context == RollContext.FEINT)
+                "Соколиные перья: финт минимум за 2 ОД с плащом" else null
+            "feat_e51286dcfb04695d" -> if (context !in setOf(RollContext.ATTACK, RollContext.FLURRY, RollContext.BREAK_ITEM,
+                RollContext.FORTITUDE, RollContext.REFLEXES, RollContext.DODGE))
+                "Командный игрок: союзник не далее 3 м" else null
+            else -> null
+        } ?: return@mapNotNull null
+        val numeric = if (effect.developmentId == "feat_e51286dcfb04695d") 1 else 0
+        SkillRollEffectOption(effect.id,condition,effect.sourceName,effect.effectText,
+            numericBonus=numeric,advantageDice=if(numeric==0) 1 else 0)
+    }.distinctBy { it.id }
+
+    /** Source-qualified restrictions on the effect, not acquisition eligibility. */
+    private fun SkillEffectDefinition.skillConditionsHold(skill: ResolvedSkill): Boolean = when (developmentId) {
+        "feat_3233f2da5c693e34", // Ас: driving/piloting with at least four ranks.
+        "feat_f33c232811919ee5" -> skill.rank >= 4 // Талантливый исполнитель.
+        "feat_1a9f2f0b9135c3d8" -> skill.rank >= 5 // Creature-identification bonus.
+        "feat_4e8ea7dbf3fb9784" -> skill.rank >= 1 && !skill.isSecretKnowledge()
+        "feat_0bf4bbf1c46717a4" -> skill.rank >= 1
+        else -> true
     }
 
     private fun ownedRank(effect: SkillEffectDefinition): Int {

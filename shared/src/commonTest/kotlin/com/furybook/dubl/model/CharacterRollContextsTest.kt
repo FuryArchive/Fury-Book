@@ -18,9 +18,24 @@ class CharacterRollContextsTest {
         ),
         development = mapOf(
             DevelopmentEffectIds.FENCER to OwnedDevelopment(3),
+            "feat_e22fc0ae2cd61f3a" to OwnedDevelopment(1),
             DevelopmentEffectIds.FEINTER to OwnedDevelopment(2),
         ),
     )
+
+    @Test fun untrained_parry_halves_full_bonus_and_rounds_up() {
+        val untrained = character.copy(development = character.development - "feat_e22fc0ae2cd61f3a")
+        assertEquals(7, untrained.rollPreset(RollContext.PARRY, "melee_weapon", AttributeId.DEXTERITY).bonus)
+        assertEquals(10, untrained.rollPreset(RollContext.ATTACK, "melee_weapon", AttributeId.DEXTERITY).bonus)
+    }
+
+    @Test fun false_movement_unlocks_dexterity_only_for_feint() {
+        val trained = character.copy(development = character.development + ("feat_1e5dba9becf1a19d" to OwnedDevelopment(1)))
+        assertEquals(listOf(AttributeId.CHARISMA), character.allowedRollAttributes(RollContext.FEINT,"eloquence"))
+        assertEquals(listOf(AttributeId.CHARISMA,AttributeId.DEXTERITY), trained.allowedRollAttributes(RollContext.FEINT,"eloquence"))
+        assertEquals(null,character.rollPreset(RollContext.FEINT,"eloquence",AttributeId.DEXTERITY).bonus)
+        assertEquals(9,trained.rollPreset(RollContext.FEINT,"eloquence",AttributeId.DEXTERITY).bonus)
+    }
 
     @Test
     fun fencerAppliesOnlyToParry() {

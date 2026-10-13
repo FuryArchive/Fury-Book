@@ -202,6 +202,12 @@ private fun DublCharacter.skillCalculationWithSelectedAttribute(
 
     total += skill.rank
     contributions += SkillContribution("Ранг", skill.rank)
+    val sharedPerformanceRank = effectivePerformanceRank(skill)
+    if (sharedPerformanceRank > skill.rank) {
+        val bonus = sharedPerformanceRank - skill.rank
+        total += bonus
+        contributions += SkillContribution("Разносторонний исполнитель", bonus)
+    }
 
     if (skill.modifier != 0) {
         total += skill.modifier
@@ -209,7 +215,7 @@ private fun DublCharacter.skillCalculationWithSelectedAttribute(
     }
 
     if (skill.rank == 0) {
-        if (!skill.untrained.usable) {
+        if (!skill.untrained.usable && !eruditionAllowsUntrained(skill)) {
             return SkillCalculation(
                 total = null,
                 contributions = contributions,
@@ -252,3 +258,21 @@ fun DublCharacter.skillNextRankCost(currentRank: Int): Int? {
     if (current >= 10) return null
     return skillXpCostForRank(current + 1) - skillXpCostForRank(current)
 }
+
+/** Source effect: highest learned performance rank, without changing saved ranks. */
+fun DublCharacter.effectivePerformanceRank(skill: ResolvedSkill): Int {
+    if (skill.rank < 1 || skill.definition?.id !in setOf("performance_vocal", "performance_template") ||
+        developmentRank("feat_0bf4bbf1c46717a4") < 1 ||
+        "skill_effect_051_e8064c1e7ba7" in disabledSkillEffectIds) return skill.rank
+    return resolvedSkills(includeHidden = true)
+        .filter { it.definition?.id in setOf("performance_vocal", "performance_template") }
+        .maxOfOrNull { it.rank }?.coerceAtLeast(skill.rank) ?: skill.rank
+}
+
+fun ResolvedSkill.isSecretKnowledge(): Boolean =
+    developmentNormalize(name).contains("тайн")
+
+fun DublCharacter.eruditionAllowsUntrained(skill: ResolvedSkill): Boolean =
+    skill.definition?.id in setOf("knowledge_academic", "knowledge_template") &&
+        !skill.isSecretKnowledge() && developmentRank("feat_4e8ea7dbf3fb9784") > 0 &&
+        "skill_effect_046_77fd048a901f" !in disabledSkillEffectIds

@@ -1,5 +1,7 @@
 package com.furybook.desktop.screens
 
+import com.furybook.dubl.model.allowedRollAttributes
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -272,10 +274,11 @@ fun ContextRollDialog(
     var skillMenu by remember { mutableStateOf(false) }
     var attributeMenu by remember { mutableStateOf(false) }
     var flurryProfile by remember(context) { mutableStateOf(FlurryWeaponProfile.LIGHT) }
+    var selectedContextEffects by remember(context, character.id) { mutableStateOf(emptySet<String>()) }
     var shortFlurry by remember(context) { mutableStateOf(false) }
     var flurryProfileMenu by remember { mutableStateOf(false) }
 
-    val attrOptions = if (context == RollContext.ATTRIBUTE) AttributeId.entries else context.allowedAttributes(skill?.id)
+    val attrOptions = if (context == RollContext.ATTRIBUTE) AttributeId.entries else character.allowedRollAttributes(context, skill?.id)
     val selectedAttribute = initialAttribute?.takeIf { it in attrOptions } ?: attribute?.takeIf { it in attrOptions } ?: attrOptions.firstOrNull()
     val basePreset = character.rollPreset(context, skill?.id, selectedAttribute)
     val flurryRule = if (context == RollContext.FLURRY) flurryProfile.rule(shortFlurry) else null
@@ -288,6 +291,8 @@ fun ContextRollDialog(
             formulaText = "${basePreset.formulaText} + $label",
         )
     } else basePreset
+    val contextOptions = SkillEffectRules(character, developmentCatalog, effectCatalog).contextOptions(context)
+    val contextTotals = contextOptions.selectedTotals(selectedContextEffects)
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
     val reminders = SkillEffectRules(character, developmentCatalog, effectCatalog).let { rules ->
         if (context == RollContext.FLURRY) {
@@ -295,7 +300,7 @@ fun ContextRollDialog(
         } else {
             rules.forContext(context)
         }
-    }.filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels }
+    }.filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels || it.id in contextOptions.map { option -> option.id } }
 
     FuryDialog(
         onDismissRequest = onDismiss,
@@ -359,6 +364,15 @@ fun ContextRollDialog(
                     OutlinedTextField(targetText, { targetText = it.take(4) }, label = { Text("Цель / СЛ") }, modifier = Modifier.weight(1f), singleLine = true)
                 }
                 preset.contributions.forEach { contribution -> Text("${contribution.label}: ${signed(contribution.value)}", color = DublMuted) }
+                contextOptions.forEach { option ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(checked = option.id in selectedContextEffects, onCheckedChange = { selected ->
+                            selectedContextEffects = if (selected) selectedContextEffects + option.id else selectedContextEffects - option.id
+                            result = null
+                        })
+                        Text(option.label)
+                    }
+                }
                 reminders.forEach { reminder -> Text("${reminder.sourceName}: ${reminder.effectText}", color = DublMuted) }
                 Text(preset.formulaText, color = DublMuted)
                 result?.let { roll ->
@@ -375,9 +389,9 @@ fun ContextRollDialog(
         },
         confirmButton = {
             TextButton(enabled = preset.available, onClick = {
-                val bonus = preset.bonus ?: return@TextButton
-                val adv = advantageText.toIntOrNull()?.coerceIn(0, 9) ?: 0
-                val hind = hindranceText.toIntOrNull()?.coerceIn(0, 9) ?: 0
+                val bonus = (preset.bonus ?: return@TextButton) + contextTotals.numericBonus
+                val adv = (advantageText.toIntOrNull()?.coerceIn(0, 9) ?: 0) + contextTotals.advantageDice
+                val hind = (hindranceText.toIntOrNull()?.coerceIn(0, 9) ?: 0) + contextTotals.hindranceDice
                 if (adv > 0 && hind > 0) return@TextButton
                 val mode = when { adv > 0 -> RollMode.ADVANTAGE; hind > 0 -> RollMode.HINDRANCE; else -> RollMode.NORMAL }
                 result = rollCheck(

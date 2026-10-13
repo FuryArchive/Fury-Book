@@ -74,6 +74,12 @@ fun RollContext.allowedAttributes(skillId: String?): List<AttributeId> = when (t
     else -> emptyList()
 }
 
+/** Explicit owned alternative, not an unconditional expansion of the core rule. */
+fun DublCharacter.allowedRollAttributes(context: RollContext, skillId: String?): List<AttributeId> =
+    if (context == RollContext.FEINT && developmentRank("feat_1e5dba9becf1a19d") > 0)
+        listOf(AttributeId.CHARISMA, AttributeId.DEXTERITY)
+    else context.allowedAttributes(skillId)
+
 data class RollContribution(
     val label: String,
     val value: Int,
@@ -138,11 +144,22 @@ fun DublCharacter.rollPreset(
         RollContext.FLURRY -> attackLikePreset(context, skillId ?: "melee_weapon", attribute)
         RollContext.PARRY -> {
             val base = attackLikePreset(context, skillId ?: "melee_weapon", attribute)
-            base.withDevelopmentBonus("Фехтовальщик", developmentRank(DevelopmentEffectIds.FENCER))
+            val full = base.withDevelopmentBonus("Фехтовальщик", developmentRank(DevelopmentEffectIds.FENCER))
+            val total = full.bonus
+            if (developmentRank("feat_e22fc0ae2cd61f3a") > 0 || total == null) full
+            else {
+                // Core general division rule rounds fractions upward, including negative values.
+                val half = total / 2 + if (total > 0 && total % 2 != 0) 1 else 0
+                full.copy(bonus = half,
+                    contributions = full.contributions + RollContribution("Без навыка Парирование: половина бонуса", half-total),
+                    formulaText = "2d6 + половина бонуса парирования (округление вверх)")
+            }
         }
         RollContext.FEINT -> {
             val chosenSkill = skillId ?: "eloquence"
             val chosenAttribute = attribute ?: AttributeId.CHARISMA
+            if (chosenAttribute !in allowedRollAttributes(context, chosenSkill))
+                return unavailablePreset(context, "Для финта с Ловкостью требуется Ложное движение")
             val base = skillBasedPreset(context, chosenSkill, chosenAttribute)
             base.withDevelopmentBonus("Финтовальщик", developmentRank(DevelopmentEffectIds.FEINTER))
         }

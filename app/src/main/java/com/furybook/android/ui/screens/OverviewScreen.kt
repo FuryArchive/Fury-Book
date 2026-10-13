@@ -1,5 +1,10 @@
 package com.furybook.android.ui.screens
 
+import com.furybook.dubl.model.allowedRollAttributes
+
+import com.furybook.dubl.model.passiveAwareness
+import com.furybook.dubl.model.naturalArmorDevelopmentBonus
+
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -1701,7 +1706,7 @@ private fun ContextRollSheet(
     var selectedSkillId by remember(context, character.id) {
         mutableStateOf(skillOptions.firstOrNull()?.id)
     }
-    fun attributesFor(skillId: String?): List<AttributeId> = context.allowedAttributes(skillId)
+    fun attributesFor(skillId: String?): List<AttributeId> = character.allowedRollAttributes(context, skillId)
     var selectedAttribute by remember(context, selectedSkillId, character.id) {
         mutableStateOf(attributesFor(selectedSkillId).firstOrNull())
     }
@@ -1720,12 +1725,13 @@ private fun ContextRollSheet(
     } else {
         basePreset
     }
+    val contextOptions = SkillEffectRules(character, developmentCatalog, effectCatalog).contextOptions(context)
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
     val reminderContext = if (context == RollContext.FLURRY) RollContext.ATTACK else context
     val reminders = remember(character, reminderContext, developmentCatalog, effectCatalog, alreadyAppliedLabels) {
         SkillEffectRules(character, developmentCatalog, effectCatalog)
             .forContext(reminderContext)
-            .filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels }
+            .filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels || it.id in contextOptions.map { option -> option.id } }
     }
     CheckRollSheet(
         title = context.title,
@@ -1744,6 +1750,7 @@ private fun ContextRollSheet(
         onAttributeSelected = { selectedAttribute = it },
         automaticContributions = preset.contributions,
         effectReminders = reminders,
+        effectOptions = contextOptions,
         flurryProfile = flurryProfile.takeIf { context == RollContext.FLURRY },
         shortFlurry = shortFlurry,
         onFlurryProfile = { flurryProfile = it },
@@ -1784,6 +1791,8 @@ private fun KeyStats(
                 }
             }
         }
+        Text("Пассивная внимательность: ${character.passiveAwareness}")
+        Text("Природная броня от навыков: +${character.naturalArmorDevelopmentBonus}")
     }
 }
 

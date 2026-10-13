@@ -1,5 +1,8 @@
 package com.furybook.desktop.screens
 
+import com.furybook.dubl.model.passiveAwareness
+import com.furybook.dubl.model.naturalArmorDevelopmentBonus
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -918,6 +921,8 @@ private fun HeroMetricsStrip(
         Metric(DesktopIconKind.FORTITUDE, "Стойкость", character.fortitude.toString(), RollContext.FORTITUDE),
         Metric(DesktopIconKind.RUN, "Бег", formatNumber(character.runFull), RollContext.RUN),
         Metric(DesktopIconKind.SIZE, "Размер", character.size.toString(), null),
+        Metric(DesktopIconKind.PERCEPTION, "Пассивная внимательность", character.passiveAwareness.toString(), null),
+        Metric(DesktopIconKind.DEFENSE, "Бонус природной брони", "+${character.naturalArmorDevelopmentBonus}", null),
     )
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
