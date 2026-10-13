@@ -7,6 +7,7 @@ data class SkillRollAlternative(
     val sourceText: String,
     val skill: ResolvedSkill,
     val attribute: AttributeId,
+    val advantageDice: Int = 0,
 )
 
 fun DublCharacter.skillRollAlternatives(
@@ -61,4 +62,28 @@ fun DublCharacter.skillRollAlternatives(
         else -> return@mapNotNull null
     }
     SkillRollAlternative(effect.id, "${effect.sourceName}: $condition", effect.effectText, replacement, attribute)
-}.distinctBy { it.id }
+}.plus(skillRollPresets(skill, catalog)).distinctBy { it.id }
+
+/** Bounded, no-resource presets with explicit source conditions. */
+private fun DublCharacter.skillRollPresets(
+    skill: ResolvedSkill,
+    catalog: SkillEffectCatalog,
+): List<SkillRollAlternative> = catalog.effects.flatMap { effect ->
+    if (effect.mode != SkillEffectMode.PRESET || effect.id in disabledSkillEffectIds ||
+        developmentRank(effect.developmentId) <= 0) return@flatMap emptyList()
+    when (effect.developmentId) {
+        "feat_b6173be4e251982d" -> if (skill.definition?.id == "awareness") listOf(
+            SkillRollAlternative(effect.id, "Чтение по губам: Внимательность + Интеллект",
+                effect.effectText, skill, AttributeId.INTELLIGENCE)
+        ) else emptyList()
+        "feat_e63bcf4c87dd83e1" -> if (skill.definition?.id == "search") listOf(
+            "Область не более 3×3 м" to 1,
+            "Область 1,5×1,5 м" to 2,
+            "Конкретный предмет" to 3,
+        ).map { (area, dice) ->
+            SkillRollAlternative("${effect.id}:$dice", "Целенаправленный поиск: $area (+$dice ПФ)",
+                effect.effectText, skill, AttributeId.INTELLIGENCE, advantageDice = dice)
+        } else emptyList()
+        else -> emptyList()
+    }
+}

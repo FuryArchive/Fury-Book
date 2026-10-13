@@ -3381,13 +3381,14 @@ internal fun DublSkillRollSheet(
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
     CheckRollSheet(
         title = skill.name,
-        bonusTitle = "Бонус умения · ${initialAttribute.shortTitle}",
+        bonusTitle = "Бонус умения · ${(alternative?.attribute ?: initialAttribute).shortTitle}",
         checkBonus = calculation.total?.plus(effects.automaticBonus),
         formulaText = calculation.formulaText(effectiveSkill, showConfiguredOptions = false),
         rememberKey = "${skill.id}:${initialAttribute.name}:${alternative?.id}",
         selectedAttribute = initialAttribute,
         automaticContributions = effects.automaticContributions,
         effectOptions = effects.options,
+        fixedAdvantage = alternative?.advantageDice ?: 0,
         variantOptions = alternatives.map { it.id to it.label },
         selectedVariant = alternative?.id,
         onVariantSelected = { alternativeId = it },
@@ -3429,6 +3430,7 @@ internal fun DublSkillRollSheet(
         selectedAttribute = selectedAttribute,
         automaticContributions = effects.automaticContributions,
         effectOptions = effects.options,
+        fixedAdvantage = alternative?.advantageDice ?: 0,
         variantOptions = alternatives.map { it.id to it.label },
         selectedVariant = alternative?.id,
         onVariantSelected = { alternativeId = it },
@@ -3459,6 +3461,7 @@ private fun CheckRollSheet(
     effectReminders: List<SkillEffectDefinition> = emptyList(),
     variantOptions: List<Pair<String, String>> = emptyList(),
     selectedVariant: String? = null,
+    fixedAdvantage: Int = 0,
     onVariantSelected: ((String?) -> Unit)? = null,
     onAttributeSelected: ((AttributeId) -> Unit)? = null,
     flurryProfile: FlurryWeaponProfile? = null,
@@ -3479,7 +3482,7 @@ private fun CheckRollSheet(
     val targetValue = targetText.toIntOrNull()?.coerceIn(-999, 999)
     val selectedEffectTotals = effectOptions.selectedTotals(selectedEffectIds)
     val effectiveCheckBonus = checkBonus?.plus(selectedEffectTotals.numericBonus)
-    val totalAdvantage = advantageCount + selectedEffectTotals.advantageDice
+    val totalAdvantage = advantageCount + selectedEffectTotals.advantageDice + fixedAdvantage
     val totalHindrance = hindranceCount + selectedEffectTotals.hindranceDice
     val mode = when {
         totalAdvantage > 0 -> RollMode.ADVANTAGE
@@ -3803,7 +3806,11 @@ private fun CheckRollSheet(
                 }
 
                 Spacer(Modifier.height(12.dp))
+                if (totalAdvantage > 0 && totalHindrance > 0) {
+                    Text("Уберите помехи или выберите обычную проверку: совместное разрешение ПФ и помех не определено.", color = DublDanger)
+                }
                 Button(
+                    enabled = !(totalAdvantage > 0 && totalHindrance > 0),
                     onClick = {
                         result = rollCheck(
                             mode = mode,

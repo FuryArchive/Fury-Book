@@ -153,7 +153,7 @@ fun SkillRollDialog(
                     }
                     alternative?.let { Text(it.sourceText, color = DublMuted) }
                 }
-                OutlinedButton(enabled = alternative == null, onClick = { attrMenu = true }) { Text("Характеристика: ${attribute.title}") }
+                OutlinedButton(enabled = alternative == null, onClick = { attrMenu = true }) { Text("Характеристика: ${effectiveAttribute.title}") }
                 DropdownMenu(expanded = attrMenu, onDismissRequest = { attrMenu = false }) {
                     attributes.forEach { option ->
                         DropdownMenuItem(text = { Text(option.title) }, onClick = { attribute = option; attrMenu = false })
@@ -205,6 +205,9 @@ fun SkillRollDialog(
                         }
                     }
                 }
+                if ((alternative?.advantageDice ?: 0) > 0 && (mode == RollMode.HINDRANCE || effects.options.selectedTotals(selectedEffects).hindranceDice > 0)) {
+                    Text("Уберите помехи или выберите обычную проверку: совместное разрешение ПФ и помех не определено.", color = DublMuted)
+                }
                 effects.reminders.forEach { reminder ->
                     Text("${reminder.sourceName}: ${reminder.effectText}", color = DublMuted)
                 }
@@ -244,7 +247,7 @@ fun SkillRollDialog(
                     val selectedTotals = effects.options.selectedTotals(selectedEffects)
                     val autoBonus = effects.automaticBonus
                     val toggledBonus = selectedTotals.numericBonus
-                    val selectedAdvantage = selectedTotals.advantageDice
+                    val selectedAdvantage = selectedTotals.advantageDice + (alternative?.advantageDice ?: 0)
                     val selectedHindrance = selectedTotals.hindranceDice
                     val manual = effectCountText.toIntOrNull()?.coerceIn(1, 9) ?: 1
                     val manualAdvantage = if (mode == RollMode.ADVANTAGE) manual else 0
@@ -261,7 +264,7 @@ fun SkillRollDialog(
                         mode = effectiveMode,
                         effectCount = when (effectiveMode) { RollMode.ADVANTAGE -> adv; RollMode.HINDRANCE -> hind; RollMode.NORMAL -> 0 },
                         checkBonus = base + autoBonus + toggledBonus,
-                        checkBonusLabel = "${skill.name} + ${attribute.title}",
+                        checkBonusLabel = "${effectiveSkill.name} + ${effectiveAttribute.title}",
                         situationalBonus = situationalText.toIntOrNull()?.coerceIn(-99, 99) ?: 0,
                     )
                 },

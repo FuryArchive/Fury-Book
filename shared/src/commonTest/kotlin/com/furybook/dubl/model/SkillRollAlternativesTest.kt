@@ -38,4 +38,22 @@ class SkillRollAlternativesTest {
         assertEquals(AttributeId.INTELLIGENCE,character.skillRollAlternatives(character.resolveSkill("eloquence")!!,catalog).single().attribute)
         assertEquals("intimidation",character.skillRollAlternatives(character.resolveSkill("leadership")!!,catalog).single().skill.id)
     }
+    @Test fun source_presets_are_exclusive_and_do_not_invent_resource_actions() {
+        val lip="feat_b6173be4e251982d"; val search="feat_e63bcf4c87dd83e1"
+        val c=character.copy(development=mapOf(lip to OwnedDevelopment(1),search to OwnedDevelopment(1)))
+        val presets=SkillEffectCatalog("test",listOf(lip,search).mapIndexed { i,id ->
+            SkillEffectDefinition("preset-$i",i,"Source","Source condition","","","",SkillEffectMode.PRESET,
+                RollContext.SKILL,emptyList(),0,false,"",id)
+        })
+        val reading=c.skillRollAlternatives(c.resolveSkill("awareness")!!,presets).single()
+        assertEquals(AttributeId.INTELLIGENCE,reading.attribute)
+        assertEquals(0,reading.advantageDice)
+        val searching=c.skillRollAlternatives(c.resolveSkill("search")!!,presets)
+        assertEquals(listOf(1,2,3),searching.map { it.advantageDice })
+        assertEquals(3,searching.map { it.id }.toSet().size)
+        assertTrue(searching.all { it.attribute==AttributeId.INTELLIGENCE && it.skill.id=="search" })
+        assertTrue(c.skillRollAlternatives(c.resolveSkill("medicine")!!,presets).isEmpty())
+        assertTrue(c.copy(disabledSkillEffectIds=setOf("preset-1"))
+            .skillRollAlternatives(c.resolveSkill("search")!!,presets).isEmpty())
+    }
 }
