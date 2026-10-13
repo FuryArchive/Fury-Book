@@ -642,14 +642,57 @@ class AcquisitionUiTest {
         onNodeWithTag("acquisition.cancel").performClick();assertEquals(before,java.nio.file.Files.readString(store.envelopePath(legacy.id)))
         assertEquals(raw,java.nio.file.Files.readString(path))
     }
+    @Composable private fun MatrixContent(model:AcquisitionUiModel,history:List<AcquisitionReceiptView> = emptyList()) {
+        // Same opaque Material Surface/content-color context as production cards and dialogs.
+        androidx.compose.material3.Surface(Modifier.fillMaxSize(),color=androidx.compose.material3.MaterialTheme.colorScheme.background,
+            contentColor=androidx.compose.material3.MaterialTheme.colorScheme.onBackground) {
+        Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.weight(1f).testTag("matrix.card")) { AcquisitionCardSummary(model) }
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).testTag("matrix.preview")) { AcquisitionPlanContent(model) }
+            Column(Modifier.weight(1f).testTag("matrix.history")) { AcquisitionHistoryContent(history) }
+        }
+        }
+    }
+    private fun androidx.compose.ui.test.DesktopComposeUiTest.captureMatrixDraw(model:AcquisitionUiModel,receipt:Boolean=false):Pair<androidx.compose.ui.graphics.ImageBitmap,Long> {
+        mainClock.advanceTimeByFrame();waitForIdle()
+        val regions=mutableListOf<androidx.compose.ui.geometry.Rect>()
+        for(parent in listOf("matrix.card","matrix.preview")) {
+            for((tag,text) in listOf("acquisition.price" to acquisitionPrice(model.price),"acquisition.status" to model.summary)) {
+                val node=onNode(hasTestTag(tag) and hasAnyAncestor(hasTestTag(parent)),useUnmergedTree=true)
+                node.assertTextEquals(text).assertIsDisplayed();regions+=node.fetchSemanticsNode().boundsInRoot
+            }
+        }
+        val history=if(receipt) onNode(hasTestTag("acquisition.price") and hasAnyAncestor(hasTestTag("matrix.history")),useUnmergedTree=true)
+            .assertTextEquals(acquisitionAmount(model.receipt!!.cost)) else onNodeWithTag("acquisition.history.empty").assertTextEquals("Нет подтверждённой покупки")
+        history.assertIsDisplayed();regions+=history.fetchSemanticsNode().boundsInRoot
+        val frame=captureToImage()
+        return frame to AcquisitionUiEvidence.assertOpaqueGlyphs(frame,regions)
+    }
+    @Test fun renderer_pixel_pilot_known_unknown_choice_blocked_and_saved_receipt() = runDesktopComposeUiTest(width=1440,height=1000,testTimeout=120.seconds) {
+        val f=AcquisitionUiFixtures();val before=f.saved();val scope=AcquisitionScope("pilot","ui-A",0,0,0)
+        val request=AcquisitionRequest("ui-A",listOf(AcquisitionTarget(DefinitionRef("dubl-3.69",AcquisitionUiFixtures.SYNTHETIC_ID),targetRank=1)))
+        val service=AcquisitionService(f.store,{f.catalog},{"pilot-operation"});val plan=runBlocking { service.preview(request) }
+        val known=AcquisitionPresentation.present(scope,AcquisitionQuoteKey("pilot",0),plan,before,f.catalog,AcquisitionCapabilities(true,false,true))
+        val saved=assertIs<ApplyResult.Applied>(runBlocking { service.apply(ConfirmAcquisition("pilot-operation","ui-A",request,plan.baseRevision,plan.previewToken)) }).receipt
+        val receipt=AcquisitionPresentation.receipt(saved,f.catalog,false,f.saved().ledger.entries.single())
+        val states=listOf("known" to known,"unknown" to known.copy(phase=AcquisitionUiPhase.Blocked,summary="Цена источника не определена",price=AcquisitionDisplayedPrice.Unknown(),canConfirm=false),
+            "choice" to known.copy(phase=AcquisitionUiPhase.ChoiceRequired,summary="Выберите вариант явно",canConfirm=false),
+            "blocked" to known.copy(phase=AcquisitionUiPhase.Blocked,summary="Недостаточно средств",canConfirm=false),
+            "receipt" to known.copy(phase=AcquisitionUiPhase.Committed,summary="Сохранено на устройстве",canConfirm=false,receipt=receipt))
+        var current by mutableStateOf(states.first().second)
+        setContent { DublTheme { DesktopVisualTheme { MatrixContent(current,listOfNotNull(current.receipt)) } } }
+        val fingerprints=linkedSetOf<Long>()
+        for((label,model) in states) {
+            runOnIdle { current=model };val(frame,fingerprint)=captureMatrixDraw(model,model.receipt!=null)
+            fingerprints+=fingerprint;AcquisitionUiEvidence.screenshot("pilot-$label",frame)
+            println("T18B_PIXEL_PILOT $label fingerprint=$fingerprint")
+        }
+        assertEquals(states.size,fingerprints.size,"Every new expected state must have a freshly drawn pixel fingerprint")
+    }
     @Test fun all_83818_cases_render_actual_card_preview_and_absent_receipt_content() = runDesktopComposeUiTest(width=1440,height=1000,testTimeout=5400.seconds) {
         var current by mutableStateOf<AcquisitionUiModel?>(null)
         setContent { DublTheme { DesktopVisualTheme { current?.let { model ->
-            Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-                Column(Modifier.weight(1f).testTag("matrix.card")) { AcquisitionCardSummary(model) }
-                Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).testTag("matrix.preview")) { AcquisitionPlanContent(model) }
-                Column(Modifier.weight(1f).testTag("matrix.history")) { AcquisitionHistoryContent(emptyList()) }
-            }
+            MatrixContent(model)
         } } } }
         val seen=linkedSetOf<String>();var observations=0
         val directory=File(System.getProperty("furybook.acquisition.ui.evidence")).also { it.mkdirs() }
@@ -672,8 +715,9 @@ class AcquisitionUiTest {
                 onNodeWithTag("acquisition.history.empty").assertTextEquals("Нет подтверждённой покупки").assertIsDisplayed()
                 onAllNodesWithTag("acquisition.receipt").assertCountEquals(0)
                 assertNull(model.receipt,"$id is not a saved receipt")
-                evidence.write("$observations\t$id\t${model.phase}\tcard-preview-history-rendered\treceipt-absent\n");evidence.flush()
-                if(observations==1 || seen.size==83818) AcquisitionUiEvidence.screenshot("matrix-$observations",captureToImage())
+                val(frame,pixelFingerprint)=captureMatrixDraw(model)
+                evidence.write("$observations\t$id\t${model.phase}\tcard-preview-history-rendered\treceipt-absent\tpixels:$pixelFingerprint\n");evidence.flush()
+                if(observations==1 || seen.size==83818) AcquisitionUiEvidence.screenshot("matrix-$observations",frame)
                 if(observations%1000==0) println("T18B_RENDERER_CASES unique=${seen.size} observations=$observations id=$id")
             }
         }
