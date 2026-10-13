@@ -7,7 +7,8 @@ data class AcquisitionReviewDetails(val scope:AcquisitionScope,val key:Acquisiti
     val abilityChoices:List<AcquisitionAbilitySelection>,val requirements:List<AcquisitionRequirementEvidence>)
 data class AcquisitionAbilitySelection(val targetIndex:Int,val definition:DefinitionRef,val label:String,val selectedId:String?,
     val options:List<AcquisitionChoiceOptionView>,val unresolved:Boolean)
-data class AcquisitionRequirementEvidence(val targetIndex:Int,val proof:AcquisitionWitnessProof)
+/** proof is the exact planned outcome; baseProof retains acknowledged pre-plan evidence. */
+data class AcquisitionRequirementEvidence(val targetIndex:Int,val proof:AcquisitionWitnessProof,val baseProof:AcquisitionWitnessProof)
 data class AcquisitionWitnessView(val witness:RequirementWitness,val label:String)
 data class AcquisitionWitnessProof(val nodeId:String,val status:RequirementStatus,val witnesses:List<AcquisitionWitnessView>,val children:List<AcquisitionWitnessProof>)
 
@@ -15,7 +16,7 @@ data class AcquisitionWitnessProof(val nodeId:String,val status:RequirementStatu
 private fun abilityLabel(id:String,index:Int):String=when(id) { "morale"->"Мораль";"chi"->"Ци";else->"Вариант ${index+1}" }
 internal fun AcquisitionRequest.withTarget(index:Int,target:AcquisitionTarget)=AcquisitionRequest(characterId,
     targets.mapIndexed { i,old -> if(i==index)target else old },choiceSelections,includeTargets,prerequisiteSelections,externalConfirmations)
-internal fun acquisitionReviewDetails(scope:AcquisitionScope,key:AcquisitionQuoteKey,request:AcquisitionRequest,state:StoredCharacter,catalog:AcquisitionCatalog):AcquisitionReviewDetails {
+internal fun acquisitionReviewDetails(scope:AcquisitionScope,key:AcquisitionQuoteKey,request:AcquisitionRequest,state:StoredCharacter,catalog:AcquisitionCatalog,reviewedPlan:AcquisitionPlan?=null):AcquisitionReviewDetails {
     val labels=AcquisitionLabels(catalog);val instances=instanceViews(state,catalog)
     fun witness(value:RequirementWitness)=AcquisitionWitnessView(value,when(value) {
         is RequirementWitness.OwnedInstance->(instances.firstOrNull { it.instanceId==value.instanceId }?.label
@@ -27,6 +28,9 @@ internal fun acquisitionReviewDetails(scope:AcquisitionScope,key:AcquisitionQuot
     fun proof(value:RequirementResult):AcquisitionWitnessProof=AcquisitionWitnessProof(value.nodeId,value.status,
         EnvelopeList(value.witnesses.map(::witness)),EnvelopeList(value.children.map(::proof)))
     val context=acquisitionContext(state,catalog,request.externalConfirmations)
+    val exact=reviewedPlan ?: plan(request,state,catalog)
+    require(exact.request.canonical==request.canonical && exact.baseRevision==state.revision &&
+        exact.catalogRevision==catalog.catalogRevision && exact.resolutionRevision==catalog.resolutionRevision)
     return AcquisitionReviewDetails(scope,key,request,state.revision,catalog.catalogRevision,catalog.resolutionRevision,
         EnvelopeList(request.targets.mapIndexedNotNull { index,target ->
             val definition=catalog.definitions[target.definition] ?: return@mapIndexedNotNull null
@@ -37,5 +41,5 @@ internal fun acquisitionReviewDetails(scope:AcquisitionScope,key:AcquisitionQuot
                     val selected=plan(request.withTarget(index,target.copy(optionId=id)),state,catalog)
                     AcquisitionChoiceOptionView(id,abilityLabel(id,number),selected.cost?.let { AcquisitionDisplayedPrice.Known(it) } ?: AcquisitionDisplayedPrice.Unknown())
                 }),ids==null)
-        }),EnvelopeList(request.targets.mapIndexedNotNull { index,target -> catalog.definitions[target.definition]?.requirements?.let { AcquisitionRequirementEvidence(index,proof(evaluate(it,context))) } }))
+        }),EnvelopeList(request.targets.mapIndexedNotNull { index,target -> catalog.definitions[target.definition]?.requirements?.let { AcquisitionRequirementEvidence(index,proof(evaluate(it,exact.projectedContext)),proof(evaluate(it,context))) } }))
 }

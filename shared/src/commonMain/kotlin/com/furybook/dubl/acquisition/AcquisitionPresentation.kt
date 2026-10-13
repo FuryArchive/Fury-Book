@@ -1,5 +1,7 @@
 package com.furybook.dubl.acquisition
 
+import com.furybook.dubl.model.AttributeId
+
 /** View identity differs from the new target when confirming initial funding. No credentials. */
 data class AcquisitionScope(val storageScopeId: String, val characterId: String,
     val controllerGeneration: Long, val selectionGeneration: Long, val accountGeneration: Long,
@@ -13,7 +15,7 @@ sealed interface AcquisitionDisplayedPrice {
 enum class AcquisitionSyncStatus { LocalOnlyUnavailable, Pending, Synced, Retryable, Conflict, Unavailable }
 data class AcquisitionSyncView(val status: AcquisitionSyncStatus, val pendingCount: Int = 0, val serverRevision: Long? = null)
 data class AcquisitionDisplayRow(val definition: DefinitionRef?, val label: String, val fromRank: Int?, val toRank: Int?,
-    val price: AcquisitionDisplayedPrice, val isTarget: Boolean, val alreadyOwned: Boolean = false)
+    val price: AcquisitionDisplayedPrice, val isTarget: Boolean, val alreadyOwned: Boolean = false, val excludedTarget: Boolean = false)
 data class AcquisitionChoiceView(val id: String, val label: String, val options: List<AcquisitionChoiceOptionView>, val selectedId: String?)
 data class AcquisitionChoiceOptionView(val id: String, val label: String, val price: AcquisitionDisplayedPrice)
 data class AcquisitionRequirementView(val nodeId: String, val label: String, val status: RequirementStatus,
@@ -30,7 +32,9 @@ data class AcquisitionUiModel(val scope: AcquisitionScope, val key: AcquisitionQ
     val receipt: AcquisitionReceiptView? = null, val sync: AcquisitionSyncView = AcquisitionSyncView(AcquisitionSyncStatus.Unavailable),
     val viewRefreshError: String? = null, val funding: NewCharacterFundingReview? = null,
     val request: AcquisitionRequest? = null, val selections: List<AcquisitionSelectionPrompt> = emptyList(),
-    val reason: String? = null, val balanceDelta: Amount? = null)
+    val reason: String? = null, val balanceDelta: Amount? = null,
+    /** requirements describes the exact plan projection; these are the acknowledged pre-plan facts. */
+    val baseRequirements: List<AcquisitionRequirementView> = emptyList())
 
 /** Missing labels never fall back to stable identifiers. Labels are not rule/identity authority. */
 class AcquisitionLabels(private val catalog: AcquisitionCatalog) {
@@ -68,21 +72,44 @@ object AcquisitionPresentation {
         }
         val blocks=plan.issues.map { AcquisitionBlock(it.status, explanation(it.status),it.definition?.let(labels::definition),it.sourceRef?.originalText) }.toMutableList()
         if(!capabilities.localDurable || !capabilities.formatWritable) blocks+=AcquisitionBlock(RequirementStatus.Conflict,"Надёжное локальное сохранение недоступно. Доступны просмотр и экспорт.",null,null)
+        fun matches(target:AcquisitionTarget,change:AcquisitionChange)=target.definition==change.definition &&
+            (target.instanceId==null || target.instanceId==change.instanceId) && target.parameters==change.parameters && target.optionId==change.optionId
         val rows=plan.changes.mapIndexed { index,change -> AcquisitionDisplayRow(change.definition,labels.definition(change.definition),change.fromRank,change.toRank,
-            plan.prices.getOrNull(index)?.let(::price) ?: AcquisitionDisplayedPrice.Unknown(),plan.request.targets.any { it.definition==change.definition }) }.toMutableList()
-        for(target in plan.request.targets) if(rows.none { it.definition==target.definition }) rows+=AcquisitionDisplayRow(target.definition,labels.definition(target.definition),null,target.targetRank,
-            if(plan.executable) AcquisitionDisplayedPrice.Known(Amount.ZERO) else AcquisitionDisplayedPrice.Unknown(),true,plan.executable)
+            plan.prices.getOrNull(index)?.let(::price) ?: AcquisitionDisplayedPrice.Unknown(),plan.request.targets.any { matches(it,change) }) }.toMutableList()
+        for(target in plan.request.targets) if(plan.changes.none { matches(target,it) }) {
+            val owned=attained(target,state,catalog)
+            val excluded=!plan.request.includeTargets
+            rows+=AcquisitionDisplayRow(target.definition,labels.definition(target.definition),null,target.targetRank,
+                if(owned || excluded) AcquisitionDisplayedPrice.Known(Amount.ZERO) else AcquisitionDisplayedPrice.Unknown(),true,owned,excluded)
+        }
         val context=acquisitionContext(state,catalog,plan.request.externalConfirmations)
-        val requirements=plan.request.targets.mapNotNull { catalog.definitions[it.definition]?.requirements }.map { requirement(it,evaluate(it,context),labels) }
+        val nodes=plan.request.targets.mapNotNull { catalog.definitions[it.definition]?.requirements }
+        val requirements=nodes.map { requirement(it,evaluate(it,plan.projectedContext),labels) }
+        val baseRequirements=nodes.map { requirement(it,evaluate(it,context),labels) }
         return AcquisitionUiModel(scope,key,phase,when(phase) {
-            AcquisitionUiPhase.Ready -> if(plan.changes.isEmpty()) "Уже приобретено" else "Проверьте цену и подтвердите"
+            AcquisitionUiPhase.Ready -> when {
+                !plan.request.includeTargets -> if(plan.changes.isEmpty()) "Требования выполнены; цель не приобретается" else "Проверьте цену требований и подтвердите"
+                plan.changes.isEmpty() -> if(rows.isNotEmpty() && rows.all { it.alreadyOwned }) "Уже приобретено" else "Изменений нет"
+                else -> "Проверьте цену и подтвердите"
+            }
             AcquisitionUiPhase.ChoiceRequired -> "Выберите вариант, экземпляр или параметр"
             else -> "Покупка недоступна"
         },plan.cost?.let { AcquisitionDisplayedPrice.Known(it) } ?: AcquisitionDisplayedPrice.Unknown(),plan.remaining,
             EnvelopeList(rows),EnvelopeList(requirements),EnvelopeList(plan.questions.map { question -> AcquisitionChoiceView(question.id,"Выберите вариант",
                 EnvelopeList(question.options.mapIndexed { index,option -> AcquisitionChoiceOptionView(option.id,
                     option.changes.joinToString { labels.definition(it.definition) }.ifBlank { "Вариант ${index+1}" },price(option.quote)) }),question.selectedId) }),
-            EnvelopeList(blocks),phase==AcquisitionUiPhase.Ready,sync=sync(state,capabilities),request=plan.request,selections=selectionPrompts(plan.request,state,catalog))
+            EnvelopeList(blocks),phase==AcquisitionUiPhase.Ready,sync=sync(state,capabilities),request=plan.request,selections=selectionPrompts(plan.request,state,catalog),baseRequirements=EnvelopeList(baseRequirements))
+    }
+    /** A canonical ownership fact, independent of executability or an empty plan. */
+    private fun attained(target:AcquisitionTarget,state:StoredCharacter,catalog:AcquisitionCatalog):Boolean {
+        val definition=catalog.definitions[target.definition] ?: return false
+        if(definition.kind==AcquisitionKind.ATTRIBUTE) {
+            val attribute=AttributeId.entries.singleOrNull { target.definition==DefinitionRef("dubl-3.69","attribute:${it.name}") } ?: return false
+            return target.parameters.isEmpty() && target.optionId==null && (state.character.attributes[attribute]?.base ?: return false)>=target.targetRank
+        }
+        val owned=if(target.instanceId!=null) state.instances.singleOrNull { it.instanceId==target.instanceId && it.definition==target.definition }
+            else if(definition.repeatPolicy==RepeatPolicy.Single) state.instances.singleOrNull { it.definition==target.definition } else null
+        return owned!=null && owned.rank>=target.targetRank && owned.parameters==target.parameters && owned.abilityOptionId==target.optionId
     }
     fun receipt(receipt: Receipt, catalog: AcquisitionCatalog, replayed: Boolean) = AcquisitionReceiptView(receipt.result.cost,receipt.result.remaining,receipt.status,replayed,
         EnvelopeList(receipt.result.changes.map { AcquisitionDisplayRow(it.definition,AcquisitionLabels(catalog).definition(it.definition),it.fromRank,it.toRank,

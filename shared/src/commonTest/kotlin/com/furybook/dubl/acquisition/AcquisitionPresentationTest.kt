@@ -176,7 +176,10 @@ class AcquisitionPresentationTest {
         val policySource=RuleSourceRef("policy","1","Once only funding",resolutionId="UR_NEW_CHARACTER_INITIAL_AP_PER_1000_XP",resolutionRevision="rules")
         val c=catalog().copy(creationFundingPolicy=CreationFundingPolicy("UR_NEW_CHARACTER_INITIAL_AP_PER_1000_XP",1000,policySource))
         val a=app(backing,c){"new-${++ids}"}
-        val control=AcquisitionController(ApplicationAcquisitionCommandPort(a,backing,{c},{AcquisitionCapabilities(true,false,true)},{it.viewCharacterId=="hero"},{value,_->published=value}),{scope},{"unexpected"})
+        var selected=scope;var ownerCurrent=true
+        val control=AcquisitionController(ApplicationAcquisitionCommandPort(a,backing,{c},{AcquisitionCapabilities(true,false,true)},
+            { ownerCurrent && it.storageScopeId==selected.storageScopeId && it.accountGeneration==selected.accountGeneration && it.viewCharacterId==selected.viewCharacterId && it.selectionGeneration==selected.selectionGeneration },
+            {value,_->published=value}),{selected},{"unexpected"})
         val review=control.reviewNewCharacterFunding(2500)
         assertEquals(0,ids);assertEquals(2L,review.funding?.initialAP)
         assertEquals(AcquisitionUiPhase.Committed,control.confirm(review.key).phase)
@@ -184,6 +187,12 @@ class AcquisitionPresentationTest {
         assertEquals(2,ids);assertEquals("hero",published?.viewCharacterId);assertEquals("new-2",published?.characterId)
         val saved=assertIs<LoadResult.Loaded>(backing.load("new-2")).state
         assertEquals(Amount(2500,2),balance(saved.ledger));assertTrue(saved.receipts.isEmpty());assertTrue(saved.outbox.isEmpty())
+        selected=scope.copy(characterId="new-2",viewCharacterId="new-2",selectionGeneration=1)
+        val duplicate=control.confirm(review.key)
+        assertEquals(AcquisitionUiPhase.Committed,duplicate.phase);assertEquals("hero",duplicate.scope.viewCharacterId);assertEquals(2,ids)
+        ownerCurrent=false;assertFailsWith<IllegalStateException> { control.confirm(review.key) }
+        ownerCurrent=true;selected=selected.copy(storageScopeId="other-owner",accountGeneration=1)
+        assertFailsWith<IllegalStateException> { control.confirm(review.key) };assertEquals(2,ids)
     }
     @Test fun response_for_another_operation_is_conflict_not_success()=run {
         val backing=store();val c=catalog()

@@ -109,7 +109,7 @@ class AcquisitionPresentationSession(private val port:AcquisitionCommandPort,pri
         check(model?.key==key && current() && state.revision==expectedRevision) { "Review changed; quote again" }
         val activeCatalog=port.catalog
         check(activeCatalog.catalogRevision==catalog.catalogRevision && activeCatalog.resolutionRevision==catalog.resolutionRevision) { "Catalog changed" }
-        return acquisitionReviewDetails(checkNotNull(model).scope,key,request,state,catalog)
+        return acquisitionReviewDetails(checkNotNull(model).scope,key,request,state,catalog,plan)
     }
     suspend fun selectAbilityOption(key:AcquisitionQuoteKey,index:Int,optionId:String):AcquisitionUiModel {
         require(key==model?.key && pending==null);check(current())

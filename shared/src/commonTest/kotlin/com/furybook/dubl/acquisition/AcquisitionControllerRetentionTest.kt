@@ -95,4 +95,28 @@ class AcquisitionControllerRetentionTest {
         assertEquals(AcquisitionUiPhase.Committed,control.retrySameCommand().phase)
         assertEquals(2,writes);assertEquals(1,ids)
     }
+    @Test fun old_quote_keys_never_return_pending_or_committed_models_to_a_revoked_or_different_owner()=run {
+        for(committed in listOf(false,true)) for(revoked in listOf(false,true)) {
+            val backing=InMemoryAcquisitionStore(mapOf("A" to encodeEnvelope(state("A"))));var writes=0;var ids=0
+            val store=object:AcquisitionStore by backing { override suspend fun compareAndSet(characterId:String,expectedStorageRevision:Long,next:StoredCharacter):CommitResult {
+                writes++;return if(committed)backing.compareAndSet(characterId,expectedStorageRevision,next) else CommitResult.StorageFailure("pending")
+            }}
+            var selected=AcquisitionScope("owner-store","A",0,0,0);var ownerCurrent=true
+            val control=AcquisitionController(ApplicationAcquisitionCommandPort(application(store),store,{catalog},{AcquisitionCapabilities(true,false,true)},
+                {ownerCurrent && it==selected}),{selected},{"operation-${++ids}"})
+            val key=control.preview(request("A")).key
+            assertEquals(if(committed)AcquisitionUiPhase.Committed else AcquisitionUiPhase.Failed,control.confirm(key).phase)
+            if(revoked)ownerCurrent=false else selected=selected.copy(storageScopeId="different-owner",accountGeneration=1)
+            assertNull(control.model)
+            assertFailsWith<IllegalStateException> { control.confirm(key) }
+            assertFailsWith<IllegalStateException> { control.readReviewDetails(key) }
+            assertFailsWith<IllegalStateException> { control.refresh(key) }
+            assertEquals(1,writes);assertEquals(1,ids)
+            ownerCurrent=true;selected=AcquisitionScope("owner-store","A",0,2,0)
+            assertEquals("operation-1",control.retainedOperationId)
+            assertEquals(if(committed)AcquisitionUiPhase.Committed else AcquisitionUiPhase.Failed,control.confirm(key).phase)
+            assertEquals(1,writes);assertEquals(1,ids)
+        }
+    }
+
 }

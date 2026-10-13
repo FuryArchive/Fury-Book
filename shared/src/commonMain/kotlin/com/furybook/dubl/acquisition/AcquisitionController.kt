@@ -19,10 +19,23 @@ class AcquisitionController(private val port:AcquisitionCommandPort,private val 
         return value
     }
     private fun current()=checkNotNull(selected(false)) { "No retained review for this owner and character" }
-    private fun forKey(key:AcquisitionQuoteKey):AcquisitionPresentationSession {
+    private fun forKey(key:AcquisitionQuoteKey,completedCreationReceipt:Boolean=false):AcquisitionPresentationSession {
         val value=checkNotNull(sessions.values.firstOrNull { it.model?.key==key }) { "Review is no longer available" }
         val captured=scope()
-        if(value.model?.scope?.let(::binding)==binding(captured)) value.activate(captured)
+        val view=checkNotNull(value.model);val origin=view.scope
+        check(port.isCurrent(captured)) { "Captured owner is no longer valid" }
+        if(binding(origin)!=binding(captured)) {
+            // Creation may select its acknowledged target. Return only that saved result;
+            // never reactivate/rebind the originating session or dispatch another command.
+            check(completedCreationReceipt && view.phase==AcquisitionUiPhase.Committed && view.funding!=null &&
+                origin.characterId!=origin.viewCharacterId && captured.characterId==origin.characterId && captured.viewCharacterId==origin.characterId &&
+                origin.storageScopeId==captured.storageScopeId && origin.controllerGeneration==captured.controllerGeneration && origin.accountGeneration==captured.accountGeneration) {
+                "Review is unavailable for the current owner and view"
+            }
+        } else {
+            value.activate(captured)
+            check(port.isCurrent(checkNotNull(value.model).scope)) { "Captured review changed" }
+        }
         return value
     }
     val model get()=selected(false)?.model
@@ -50,7 +63,7 @@ class AcquisitionController(private val port:AcquisitionCommandPort,private val 
         if(catalog.catalogRevision!=plan.catalogRevision || catalog.resolutionRevision!=plan.resolutionRevision)
             return unavailable(AcquisitionUiPhase.Stale,"Каталог изменился")
         return AcquisitionReview(AcquisitionPresentation.present(captured,key,plan,loaded.state,catalog,port.capabilities).copy(canConfirm=false),
-            acquisitionReviewDetails(captured,key,request,loaded.state,catalog))
+            acquisitionReviewDetails(captured,key,request,loaded.state,catalog,plan))
     }
     suspend fun quoteCard(request:AcquisitionRequest)=quoteCardReview(request).model
     suspend fun readReviewDetails(key:AcquisitionQuoteKey)=forKey(key).readReviewDetails(key)
@@ -61,7 +74,11 @@ class AcquisitionController(private val port:AcquisitionCommandPort,private val 
     suspend fun preview(request:AcquisitionRequest)=checkNotNull(selected(true)).open(scope(),request)
     suspend fun replaceSelections(key:AcquisitionQuoteKey,request:AcquisitionRequest)=forKey(key).replaceSelections(key,request)
     suspend fun refresh(key:AcquisitionQuoteKey)=forKey(key).refresh(key)
-    suspend fun confirm(key:AcquisitionQuoteKey)=forKey(key).confirm(key)
+    suspend fun confirm(key:AcquisitionQuoteKey):AcquisitionUiModel {
+        val session=forKey(key,completedCreationReceipt=true);val view=checkNotNull(session.model)
+        if(view.phase==AcquisitionUiPhase.Committed && view.funding!=null) return view
+        return session.confirm(key)
+    }
     suspend fun retrySameCommand()=current().retrySameCommand()
     suspend fun reconcilePending()=current().reconcilePending()
     fun dismiss() { selected(false)?.dismiss() }

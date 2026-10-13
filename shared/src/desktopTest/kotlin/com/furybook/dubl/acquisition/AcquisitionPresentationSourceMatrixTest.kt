@@ -48,7 +48,7 @@ class AcquisitionPresentationSourceMatrixTest {
         val overlay=JsonReader(File(folder,"author_expected_price_updates.json").readText()).read() as JsonValue.Obj
         val patches=(overlay.values.getValue("updates") as JsonValue.Obj).values
         val fixtures=AcquisitionPriceFixtures({error("Exact row only")},catalog)
-        var rows=0;var unverified=0;var routes=0;var unresolvedNumeric=0;var knownNumericUnverified=0;var actualBlocked=0;var unsupportedDiscount=0;var missingWitness=0;var symbolicRank=0
+        var rows=0;var unverified=0;var routes=0;var unresolvedNumeric=0;var knownNumericUnverified=0;var actualBlocked=0;var unsupportedDiscount=0;var missingWitness=0;var symbolicRank=0;var confirmedShown=0;var confirmedBlocked=0;var confirmedCompoundGap=0;var confirmedReceiptEligible=0
         val progress=System.getProperty("furybook.acquisition.sourceMatrix.progress")?.let { File(it).bufferedWriter() }
         try { File(folder,"expected_prices.json").forEachLine { line ->
             if(!line.startsWith("{\"caseId\":"))return@forEachLine
@@ -75,8 +75,9 @@ class AcquisitionPresentationSourceMatrixTest {
                 progress?.apply { write("$rows|$unverified|$routes|symbolic-rank|$id\n");flush() }
                 return@forEachLine
             }
+            val confirmedFixture=if(unresolved)null else fixtures.decode(jsonStringify(JsonValue.Obj(values)))
             val input=if(unresolved)unresolvedInput(row,catalog) else {
-                val f=fixtures.decode(jsonStringify(JsonValue.Obj(values)))
+                val f=checkNotNull(confirmedFixture)
                 val attrs=DublCharacter("oracle").attributes+f.context.character.attributes
                 val attribute=AttributeId.entries.singleOrNull { "attribute:${it.name}"==f.change.definition.entryId }
                 val character=f.context.character.copy(attributes=if(attribute==null)attrs else attrs+(attribute to AttributeValue(f.change.fromRank)),creationComplete=f.context.creationPhase==RequirementNode.CreationPhase.Phase.Finalized)
@@ -88,11 +89,39 @@ class AcquisitionPresentationSourceMatrixTest {
             val direct=AcquisitionCommandRouting.request(AcquisitionIntent.Target(kind,input.target),scope,input.state,input.catalog)
             val bulk=AcquisitionCommandRouting.request(AcquisitionIntent.BulkTargets(request),scope,input.state,input.catalog)
             assertEquals(direct::class,bulk::class,id)
+            var reviewed:AcquisitionPlan?=null
             if(direct is AcquisitionRouteResult.QuoteRequest && bulk is AcquisitionRouteResult.QuoteRequest) {
                 assertEquals(request.canonical,direct.request.canonical,id);assertEquals(direct.request.canonical,bulk.request.canonical,id)
                 val a=plan(direct.request,input.state,input.catalog);val b=plan(bulk.request,input.state,input.catalog)
-                assertEquals(a.previewToken,b.previewToken,id);assertEquals(a.cost,b.cost,id);assertEquals(a.remaining,b.remaining,id);assertEquals(a.executable,b.executable,id);routes++
+                assertEquals(a.previewToken,b.previewToken,id);assertEquals(a.cost,b.cost,id);assertEquals(a.remaining,b.remaining,id);assertEquals(a.executable,b.executable,id);routes++;reviewed=a
             } else assertEquals(direct,bulk,id)
+            val actual=reviewed ?: plan(request,input.state,input.catalog)
+            val current=AcquisitionPresentation.present(scope,AcquisitionQuoteKey(id,0),actual,input.state,input.catalog,caps)
+            assertEquals(actual.cost,(current.price as? AcquisitionDisplayedPrice.Known)?.amount,id)
+            assertEquals(actual.remaining,current.remaining,id);assertEquals(request.canonical,current.request?.canonical,id)
+            assertEquals(actual.executable,current.canConfirm,id)
+            val requirement=input.catalog.definitions.getValue(input.target.definition).requirements
+            assertEquals(evaluate(requirement,actual.projectedContext).status,current.requirements.single().status,id)
+            assertEquals(evaluate(requirement,acquisitionContext(input.state,input.catalog,request.externalConfirmations)).status,current.baseRequirements.single().status,id)
+            assertTrue(current.rows.none { it.label==input.target.definition.entryId },id)
+            confirmedFixture?.let { f ->
+                val numerical=assertIs<PriceResult.Known>(quote(f.change,f.context),id)
+                val expectedQuote=f.knownQuote ?: f.expected.cost
+                assertEquals(expectedQuote,numerical.cost,id)
+                assertEquals(expectedQuote,assertIs<AcquisitionDisplayedPrice.Known>(AcquisitionPresentation.price(numerical)).amount,id)
+                assertEquals(f.expected.remaining,f.opening-f.expected.cost,id)
+                assertEquals(f.expected.undoBalance,f.expected.remaining+f.expected.cost,id)
+                confirmedShown++
+                val outcome=if(!actual.executable) {
+                    assertFalse(current.canConfirm,id);confirmedBlocked++;"admission-blocked"
+                } else if(actual.cost!=f.expected.cost || actual.changes.any { it.definition!=f.change.definition }) {
+                    confirmedCompoundGap++;"compound-fixture-gap"
+                } else {
+                    assertEquals(f.expected.cost,assertIs<AcquisitionDisplayedPrice.Known>(current.price).amount,id)
+                    assertEquals(f.expected.remaining,current.remaining,id);confirmedReceiptEligible++;"receipt-eligible-reused-financial-evidence"
+                }
+                progress?.apply { write("$rows|$unverified|$routes|classified:$outcome|$id\n");flush() }
+            }
             if(unresolved) {
                 unverified++
                 val questions=(row.values.getValue("blockingQuestion") as JsonValue.Arr).values
@@ -104,7 +133,6 @@ class AcquisitionPresentationSourceMatrixTest {
                 val numerical=quote(change,acquisitionContext(input.state,input.catalog))
                 val numericDisplay=AcquisitionPresentation.price(numerical)
                 when(numerical) { is PriceResult.Unknown->{unresolvedNumeric++;assertEquals("Цена не определена",assertIs<AcquisitionDisplayedPrice.Unknown>(numericDisplay).message,id)};is PriceResult.Known->{knownNumericUnverified++;assertEquals(numerical.cost,assertIs<AcquisitionDisplayedPrice.Known>(numericDisplay).amount,id)} }
-                val actual=plan(request,input.state,input.catalog)
                 if(!actual.executable)actualBlocked++
                 // Source-only dimensions have no production request field. This is an explicit
                 // presentation-boundary fixture, not a claim that actual admission models them.
@@ -118,6 +146,8 @@ class AcquisitionPresentationSourceMatrixTest {
         }
         } finally { progress?.close() }
         assertEquals(83818,rows);assertEquals(37745,unverified);assertEquals(unverified,unresolvedNumeric+knownNumericUnverified+symbolicRank);assertEquals(2442,symbolicRank)
+        assertEquals(46073,confirmedShown);assertEquals(27606,confirmedBlocked);assertEquals(2008,confirmedCompoundGap);assertEquals(16459,confirmedReceiptEligible)
+        println("T17_PRESENTATION_REFRESH confirmedShown=$confirmedShown confirmedAdmissionBlocked=$confirmedBlocked confirmedCompoundFixtureGap=$confirmedCompoundGap confirmedReceiptEligibleReused=$confirmedReceiptEligible")
         println("T17_SOURCE_MATRIX rows=$rows exactDirectBulkPlans=$routes sourceUnverified=$unverified numericUnknown=$unresolvedNumeric numericKnownButUnverified=$knownNumericUnverified symbolicRankUnencodable=$symbolicRank actualAdmissionBlocked=$actualBlocked unsupportedDiscountDimension=$unsupportedDiscount unprojectedPrerequisiteRows=$missingWitness")
     }
 }
