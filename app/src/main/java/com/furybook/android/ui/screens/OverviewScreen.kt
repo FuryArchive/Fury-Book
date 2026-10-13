@@ -140,6 +140,7 @@ import com.furybook.dubl.model.SheetGroup
 import com.furybook.dubl.model.SheetGroupingRules
 import com.furybook.dubl.model.SkillCategory
 import com.furybook.dubl.model.SkillEffectDefinition
+import com.furybook.dubl.model.calculation
 import com.furybook.dubl.model.skillRollAlternatives
 import com.furybook.dubl.model.SkillEffectRules
 import com.furybook.dubl.model.SkillRollEffectOption
@@ -3377,7 +3378,7 @@ internal fun DublSkillRollSheet(
     val alternatives = character.skillRollAlternatives(skill, effectCatalog)
     val alternative = alternatives.firstOrNull { it.id == alternativeId }
     val effectiveSkill = alternative?.skill ?: skill
-    val calculation = character.skillCalculationForRoll(effectiveSkill, alternative?.attribute ?: initialAttribute)
+    val calculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, initialAttribute)
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
     CheckRollSheet(
         title = skill.name,
@@ -3418,7 +3419,7 @@ internal fun DublSkillRollSheet(
     val alternatives = character.skillRollAlternatives(skill, effectCatalog)
     val alternative = alternatives.firstOrNull { it.id == alternativeId }
     val effectiveSkill = alternative?.skill ?: skill
-    val calculation = character.skillCalculationForRoll(effectiveSkill, alternative?.attribute ?: selectedAttribute)
+    val calculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, selectedAttribute)
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
     CheckRollSheet(
         title = skill.name,

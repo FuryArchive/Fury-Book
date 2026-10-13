@@ -8,6 +8,8 @@ data class SkillRollAlternative(
     val skill: ResolvedSkill,
     val attribute: AttributeId,
     val advantageDice: Int = 0,
+    val synergyPartner: ResolvedSkill? = null,
+    val synergyContributions: List<SkillContribution> = emptyList(),
 )
 
 fun DublCharacter.skillRollAlternatives(
@@ -19,6 +21,7 @@ fun DublCharacter.skillRollAlternatives(
     val originalId = skill.definition?.id ?: return@mapNotNull null
     var replacement = skill
     var attribute = skill.stockAttribute
+    var synergy: ResolvedSkill? = null
     val condition = when (effect.developmentId) {
         "feat_ef01c79bad95bc11" -> {
             if (originalId != "riding") return@mapNotNull null
@@ -37,6 +40,13 @@ fun DublCharacter.skillRollAlternatives(
             replacement = resolveSkill("survival") ?: return@mapNotNull null
             attribute = replacement.stockAttribute
             "Прячусь в дикой местности: Выживание вместо Скрытности"
+        }
+        "feat_a5d3b291d6db6600", "feat_cfa9aa3e8740f026" -> {
+            if (originalId !in setOf("survival", "search")) return@mapNotNull null
+            replacement = resolveSkill("search") ?: return@mapNotNull null
+            attribute = if (effect.developmentId == "feat_a5d3b291d6db6600") AttributeId.PERCEPTION else AttributeId.INTELLIGENCE
+            if (developmentRank(effect.developmentId) >= 2) synergy = resolveSkill("survival")
+            "Читаю следы: Поиск + ${attribute.title}" + if (synergy != null) "; синергия с Выживанием" else ""
         }
         "feat_80cb914af7c6df13" -> {
             if (originalId != "eloquence") return@mapNotNull null
@@ -61,7 +71,8 @@ fun DublCharacter.skillRollAlternatives(
         }
         else -> return@mapNotNull null
     }
-    SkillRollAlternative(effect.id, "${effect.sourceName}: $condition", effect.effectText, replacement, attribute)
+    SkillRollAlternative(effect.id, "${effect.sourceName}: $condition", effect.effectText, replacement, attribute,
+        synergyPartner = synergy, synergyContributions = if (synergy != null) synergyBonuses(replacement, synergy, catalog) else emptyList())
 }.plus(skillRollPresets(skill, catalog)).distinctBy { it.id }
 
 /** Bounded, no-resource presets with explicit source conditions. */
@@ -87,3 +98,27 @@ private fun DublCharacter.skillRollPresets(
         else -> emptyList()
     }
 }
+
+/** Uses actual learned ranks for eligibility/effects; synergy never edits them. */
+fun SkillRollAlternative.calculation(character: DublCharacter): SkillCalculation {
+    val base = character.skillCalculationForRoll(skill, attribute)
+    val partner = synergyPartner ?: return base
+    if (base.total == null) return base
+    val rankBonus = SkillCheckRules.synergyCombinedRank(skill.rank, partner.rank) - skill.rank
+    val contributions = listOf(SkillContribution("Синергия: ${skill.name} + ${partner.name}", rankBonus)) + synergyContributions
+    return base.copy(total = base.total + contributions.sumOf { it.value }, contributions = base.contributions + contributions)
+}
+
+private fun DublCharacter.synergyBonuses(first: ResolvedSkill, second: ResolvedSkill, catalog: SkillEffectCatalog): List<SkillContribution> =
+    catalog.effects.filter { it.id !in disabledSkillEffectIds && developmentRank(it.developmentId) > 0 }.mapNotNull { effect ->
+        val value = when (effect.developmentId) {
+            "feat_95b19d58202e83b8" -> 1
+            "feat_d2afd80ad8e35bd6" -> when {
+                minOf(first.rank, second.rank) >= 10 -> 2
+                minOf(first.rank, second.rank) >= 5 -> 1
+                else -> 0
+            }
+            else -> 0
+        }
+        if (value == 0) null else SkillContribution(effect.sourceName, value)
+    }

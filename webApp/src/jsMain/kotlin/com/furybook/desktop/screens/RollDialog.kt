@@ -42,6 +42,7 @@ import com.furybook.dubl.model.rollFollowUp
 import com.furybook.dubl.model.rollPreset
 import com.furybook.dubl.model.rule
 import com.furybook.dubl.model.skillCalculationForRoll
+import com.furybook.dubl.model.calculation
 import com.furybook.dubl.model.skillRollAlternatives
 import com.furybook.dubl.model.selectedTotals
 import com.furybook.ui.theme.DublMuted
@@ -134,7 +135,7 @@ fun SkillRollDialog(
     val effectiveSkill = alternative?.skill ?: skill
     val effectiveAttribute = alternative?.attribute ?: attribute
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
-    val calculation = character.skillCalculationForRoll(effectiveSkill, effectiveAttribute)
+    val calculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, effectiveAttribute)
 
     FuryDialog(
         onDismissRequest = onDismiss,

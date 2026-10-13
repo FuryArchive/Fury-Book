@@ -26,6 +26,8 @@ Targeted model tests and compilation of Android, Desktop and Web succeeded for t
 
 - Counted prerequisites now support two distinct learned skills, two Knowledge instances at the stated rank, and any two different attributes. Attribute alternatives enumerate distinct pairs; skill instances cannot count their ranks as multiple skills. Requirement prefixes retain their original source wording. The expanded importer suite passes all 22 tests.
 
+- Trail Reading and Trail Analysis now select their source-defined Perception/Intelligence formulas. Rank two applies the existing two-skill synergy rule without modifying learned ranks, with Adjacent Specialist/Perfect Synergy contributions. Corrected the stale Trail Reading description against current corebook P10474 (Perception, not Intelligence), retaining the current occurrence references. Six alternative/preset tests plus the requirement evaluator tests and all three platform compilers pass; three source-effect contract tests pass.
+
 ## Remaining scope
 
 The 283-row effect catalogue still contains stateful, encounter, conditional, alternative, reroll and rule-gap entries which are not fully automated. Reminder text is not implementation. Requirements with unresolved source facts remain blocked rather than guessed. Encounter/resource actions, attribution of situational penalties and remaining formula transitions need implementation before claiming full automation.

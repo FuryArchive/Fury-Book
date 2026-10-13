@@ -56,4 +56,27 @@ class SkillRollAlternativesTest {
         assertTrue(c.copy(disabledSkillEffectIds=setOf("preset-1"))
             .skillRollAlternatives(c.resolveSkill("search")!!,presets).isEmpty())
     }
+    @Test fun trail_variants_keep_current_source_attributes_and_real_ranks() {
+        val reading="feat_a5d3b291d6db6600"; val analysis="feat_cfa9aa3e8740f026"
+        val adjacent="feat_95b19d58202e83b8"; val perfect="feat_d2afd80ad8e35bd6"
+        val catalog=SkillEffectCatalog("test",listOf(reading,analysis,adjacent,perfect).mapIndexed { i,id ->
+            SkillEffectDefinition("trail-$i",i,"Source","Current source","","","",SkillEffectMode.ALTERNATIVE,
+                RollContext.SKILL,emptyList(),0,false,"",id)
+        })
+        val c=character.copy(skills=mapOf("search" to CharacterSkill("search","search",rank=5),
+            "survival" to CharacterSkill("survival","survival",rank=7)),
+            development=mapOf(reading to OwnedDevelopment(2),analysis to OwnedDevelopment(1),
+                adjacent to OwnedDevelopment(1),perfect to OwnedDevelopment(1)))
+        val variants=c.skillRollAlternatives(c.resolveSkill("survival")!!,catalog)
+        assertEquals(listOf(AttributeId.PERCEPTION,AttributeId.INTELLIGENCE),variants.map { it.attribute })
+        val readingRoll=variants.first()
+        val base=c.skillCalculationForRoll(readingRoll.skill,readingRoll.attribute).total!!
+        // max(5,7) + ceil(5/2) = 10: +5 to original search rank, +1 each synergy feature.
+        assertEquals(base+7,readingRoll.calculation(c).total)
+        assertEquals(5,readingRoll.skill.rank)
+        assertEquals(5,c.resolveSkill("search")!!.rank)
+        assertNull(variants.last().synergyPartner)
+        val disabled=c.copy(disabledSkillEffectIds=setOf("trail-2","trail-3"))
+        assertEquals(base+5,disabled.skillRollAlternatives(disabled.resolveSkill("survival")!!,catalog).first().calculation(disabled).total)
+    }
 }
