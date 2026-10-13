@@ -167,6 +167,7 @@ private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
             ownerScope={ cloudController.session?.userId to cloudController.accountGeneration })
     }
     DisposableEffect(controller) { onDispose { controller.dispose() } }
+    DisposableEffect(cloudController) { onDispose { cloudController.dispose() } }
     if(bootstrap.source.gate.readOnly) {
         Column(Modifier.fillMaxSize().padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Text("Локальный журнал: просмотр",style=MaterialTheme.typography.titleLarge)

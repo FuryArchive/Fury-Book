@@ -81,6 +81,45 @@ class AndroidFuryCloudGateway(context: Context) : FuryCloudAuth, FuryCloudTransp
         response.body
     }
 
+    /** Legacy calls retain their admitted owner's credentials across IO dispatch and refresh. */
+    internal fun scopedLegacyTransport(ownership: AndroidLegacyCloudOwnership, lease: AndroidLegacyCloudOwnership.Lease): FuryCloudTransport =
+        object : FuryCloudTransport {
+            override suspend fun rpc(function: String, jsonBody: String): String = withContext(Dispatchers.IO) {
+                var admitted = ownership.sessionBoundary(lease,
+                    matches = { sessionStore.load()?.userId == lease.ownerId },
+                    action = { sessionStore.load() ?: throw StaleLegacyCloudOwnership() })
+                ownership.sessionBoundary(lease, { sessionStore.load() == admitted }) { Unit }
+                var response = request("/rest/v1/rpc/$function", jsonBody, admitted.accessToken)
+                ownership.sessionBoundary(lease, { sessionStore.load() == admitted }) { Unit }
+                if (response.code == 401) {
+                    val beforeRefresh = admitted
+                    ownership.sessionBoundary(lease, { sessionStore.load() == beforeRefresh }) { Unit }
+                    val refreshed = request(
+                        path = "/auth/v1/token?grant_type=refresh_token",
+                        body = FuryAuthProtocol.refreshBody(beforeRefresh.refreshToken),
+                        bearer = null,
+                    )
+                    ownership.check(lease)
+                    if (refreshed.code !in 200..299) {
+                        ownership.sessionBoundary(lease, { sessionStore.load() == beforeRefresh }) { sessionStore.clear() }
+                        error("Сессия Fury Account истекла. Войдите снова.")
+                    }
+                    val parsed = FuryAuthProtocol.parseSession(refreshed.body)
+                    if (parsed.userId != lease.ownerId) throw StaleLegacyCloudOwnership()
+                    ownership.sessionBoundary(lease, { sessionStore.load() == beforeRefresh }) { sessionStore.save(parsed) }
+                    admitted = parsed
+                    ownership.sessionBoundary(lease, { sessionStore.load() == admitted }) { Unit }
+                    response = request("/rest/v1/rpc/$function", jsonBody, admitted.accessToken)
+                    ownership.sessionBoundary(lease, { sessionStore.load() == admitted }) { Unit }
+                }
+                if (response.code !in 200..299) {
+                    val parsed = FuryAuthProtocol.parseError(response.body)
+                    error(parsed.ifBlank { "Fury Cloud: HTTP ${response.code}" })
+                }
+                ownership.sessionBoundary(lease, { sessionStore.load() == admitted }) { response.body }
+            }
+        }
+
     private fun refresh(refreshToken: String): FuryAuthSession {
         val response = request(
             path = "/auth/v1/token?grant_type=refresh_token",
