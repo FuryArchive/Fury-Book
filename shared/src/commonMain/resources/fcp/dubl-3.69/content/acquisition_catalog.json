@@ -3912,7 +3912,7 @@
         }
       },
       "requirements": {
-        "type": "Unresolved",
+        "type": "DistinctCount",
         "nodeId": "feat_4e8ea7dbf3fb9784/requirements",
         "sourceRef": {
           "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -3921,7 +3921,24 @@
           "paragraph": 10517,
           "originalText": "Требование: Два и более Знаний 4 ранга"
         },
-        "reason": "missing-reference:Два и более Знаний 4 ранга"
+        "predicate": {
+          "type": "SkillFamily",
+          "nodeId": "feat_4e8ea7dbf3fb9784/requirements/candidate",
+          "sourceRef": {
+            "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+            "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+            "sheet": "t.9xkxyxwswfn9",
+            "paragraph": 10517,
+            "originalText": "Два и более Знаний 4 ранга"
+          },
+          "packId": "dubl-3.69",
+          "familyId": "knowledge",
+          "operator": "GE",
+          "operand": 4
+        },
+        "uniqueness": "Instance",
+        "operator": "GE",
+        "operand": 2
       }
     },
     {
@@ -19974,7 +19991,7 @@
             "operand": 1
           },
           {
-            "type": "Unresolved",
+            "type": "AnyOf",
             "nodeId": "feat_d2afd80ad8e35bd6/requirements/1",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -19983,10 +20000,1159 @@
               "paragraph": 11682,
               "originalText": "Любые две характеристики 5"
             },
-            "reason": "missing-reference:Любые две характеристики"
+            "children": [
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+DEX",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+DEX/STR",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "STR",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+DEX/DEX",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "DEX",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+CON",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+CON/STR",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "STR",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+CON/CON",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CON",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+SPD",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+SPD/STR",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "STR",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+SPD/SPD",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "SPD",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+PER",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+PER/STR",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "STR",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+PER/PER",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "PER",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+INT",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+INT/STR",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "STR",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+INT/INT",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "INT",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+WIL",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+WIL/STR",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "STR",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+WIL/WIL",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "WIL",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+CHA",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+CHA/STR",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "STR",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/STR+CHA/CHA",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CHA",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+CON",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+CON/DEX",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "DEX",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+CON/CON",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CON",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+SPD",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+SPD/DEX",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "DEX",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+SPD/SPD",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "SPD",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+PER",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+PER/DEX",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "DEX",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+PER/PER",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "PER",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+INT",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+INT/DEX",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "DEX",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+INT/INT",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "INT",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+WIL",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+WIL/DEX",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "DEX",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+WIL/WIL",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "WIL",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+CHA",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+CHA/DEX",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "DEX",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/DEX+CHA/CHA",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CHA",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+SPD",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+SPD/CON",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CON",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+SPD/SPD",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "SPD",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+PER",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+PER/CON",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CON",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+PER/PER",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "PER",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+INT",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+INT/CON",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CON",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+INT/INT",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "INT",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+WIL",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+WIL/CON",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CON",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+WIL/WIL",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "WIL",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+CHA",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+CHA/CON",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CON",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/CON+CHA/CHA",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CHA",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+PER",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+PER/SPD",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "SPD",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+PER/PER",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "PER",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+INT",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+INT/SPD",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "SPD",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+INT/INT",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "INT",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+WIL",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+WIL/SPD",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "SPD",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+WIL/WIL",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "WIL",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+CHA",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+CHA/SPD",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "SPD",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/SPD+CHA/CHA",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CHA",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/PER+INT",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/PER+INT/PER",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "PER",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/PER+INT/INT",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "INT",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/PER+WIL",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/PER+WIL/PER",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "PER",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/PER+WIL/WIL",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "WIL",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/PER+CHA",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/PER+CHA/PER",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "PER",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/PER+CHA/CHA",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CHA",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/INT+WIL",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/INT+WIL/INT",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "INT",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/INT+WIL/WIL",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "WIL",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/INT+CHA",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/INT+CHA/INT",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "INT",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/INT+CHA/CHA",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CHA",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              },
+              {
+                "type": "AllOf",
+                "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/WIL+CHA",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 11682,
+                  "originalText": "Любые две характеристики 5"
+                },
+                "children": [
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/WIL+CHA/WIL",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "WIL",
+                    "operand": 5,
+                    "operator": "GE"
+                  },
+                  {
+                    "type": "Attribute",
+                    "nodeId": "feat_d2afd80ad8e35bd6/requirements/1/WIL+CHA/CHA",
+                    "sourceRef": {
+                      "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                      "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                      "sheet": "t.9xkxyxwswfn9",
+                      "paragraph": 11682,
+                      "originalText": "Любые две характеристики 5"
+                    },
+                    "attributeId": "CHA",
+                    "operand": 5,
+                    "operator": "GE"
+                  }
+                ]
+              }
+            ]
           },
           {
-            "type": "Unresolved",
+            "type": "DistinctCount",
             "nodeId": "feat_d2afd80ad8e35bd6/requirements/2",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -19995,7 +21161,427 @@
               "paragraph": 11682,
               "originalText": "Любые два умения 5 ранг"
             },
-            "reason": "missing-reference:Любые два умения 5 ранг"
+            "predicate": {
+              "type": "AnyOf",
+              "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate",
+              "sourceRef": {
+                "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                "sheet": "t.9xkxyxwswfn9",
+                "paragraph": 11682,
+                "originalText": "Любые два умения 5 ранг"
+              },
+              "children": [
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/athletics",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "athletics",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/barter",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "barter",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/awareness",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "awareness",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/riding",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "riding",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/lockpicking",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "lockpicking",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/driving",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "driving",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/survival",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "survival",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/animal_handling",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "animal_handling",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/intimidation",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "intimidation",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/knowledge_academic",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "knowledge_academic",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/knowledge_template",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "knowledge_template",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/engineering_repair",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "engineering_repair",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/performance_vocal",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "performance_vocal",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/performance_template",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "performance_template",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/leadership",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "leadership",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/eloquence",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "eloquence",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/medicine",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "medicine",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/piloting",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "piloting",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/search",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "search",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/profession_template",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "profession_template",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/craft_template",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "craft_template",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/stealth",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "stealth",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/shooting",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "shooting",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/melee_weapon",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "melee_weapon",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/throwing",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "throwing",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/unarmed",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "unarmed",
+                  "operator": "GE",
+                  "operand": 5
+                },
+                {
+                  "type": "SkillFamily",
+                  "nodeId": "feat_d2afd80ad8e35bd6/requirements/2/candidate/computers",
+                  "sourceRef": {
+                    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                    "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                    "sheet": "t.9xkxyxwswfn9",
+                    "paragraph": 11682,
+                    "originalText": "Любые два умения 5 ранг"
+                  },
+                  "packId": "dubl-3.69",
+                  "familyId": "computers",
+                  "operator": "GE",
+                  "operand": 5
+                }
+              ]
+            },
+            "uniqueness": "Instance",
+            "operator": "GE",
+            "operand": 2
           }
         ]
       }
@@ -114084,20 +115670,6 @@
       }
     },
     {
-      "kind": "missing-reference",
-      "definitionId": "feat_4e8ea7dbf3fb9784",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_4e8ea7dbf3fb9784/requirements",
-      "message": "missing-reference:Два и более Знаний 4 ранга",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 10517,
-        "originalText": "Требование: Два и более Знаний 4 ранга"
-      }
-    },
-    {
       "kind": "source-unverified",
       "definitionId": "feat_1a9f2f0b9135c3d8",
       "packId": "dubl-3.69",
@@ -114473,34 +116045,6 @@
         "sheet": "t.9xkxyxwswfn9",
         "paragraph": 11649,
         "originalText": "Требование: Любое умение к которому применима синергия 4 ранга"
-      }
-    },
-    {
-      "kind": "missing-reference",
-      "definitionId": "feat_d2afd80ad8e35bd6",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_d2afd80ad8e35bd6/requirements/1",
-      "message": "missing-reference:Любые две характеристики",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 11682,
-        "originalText": "Любые две характеристики 5"
-      }
-    },
-    {
-      "kind": "missing-reference",
-      "definitionId": "feat_d2afd80ad8e35bd6",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_d2afd80ad8e35bd6/requirements/2",
-      "message": "missing-reference:Любые два умения 5 ранг",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 11682,
-        "originalText": "Любые два умения 5 ранг"
       }
     },
     {
@@ -136377,5 +137921,5 @@
       "resolutionRevision": "cff687788481ae6a282a7b49ca6c608aeb2d1546f91df3aa7d1e77de26a276f0"
     }
   },
-  "catalogRevision": "ddd29f17e52863b7c3b07c06d10f84b78330a639f2d5455c5b7dd82a543b8488"
+  "catalogRevision": "b29cec73eb6bafd71bd3cdb0c16a0191def40fe5e0c74def37f35ee25400fb41"
 }

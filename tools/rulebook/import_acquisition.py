@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
+import itertools
 import json
 import re
 from collections import defaultdict
@@ -84,6 +85,7 @@ def parse_requirement(text, node_id, source, definitions):
     """
     raw = text.strip().rstrip('.')
     local = dict(source, originalText=text)
+    raw = re.sub(r'^Требовани[ея]:\s*', '', raw, flags=re.I)
     def sub(value, suffix):
         return parse_requirement(value.strip(), f'{node_id}/{suffix}', source, definitions)
     if raw in ('-', '—'):
@@ -111,6 +113,24 @@ def parse_requirement(text, node_id, source, definitions):
         return node('Unresolved', node_id, local, reason='unresolved-qualified-or-compound-requirement')
     if ' или ' in raw:
         return node('AnyOf', node_id, local, children=[sub(x, i) for i, x in enumerate(raw.split(' или '))])
+    two_attributes = re.fullmatch(r'Любые две характеристики\s+(\d+)(?:\s+ранг(?:а|ов)?)?', raw, re.I)
+    if two_attributes:
+        rank = int(two_attributes[1])
+        return node('AnyOf', node_id, local, children=[
+            node('AllOf', node_id+'/'+first+'+'+second, local, children=[
+                node('Attribute', node_id+'/'+first+'+'+second+'/'+key, local, attributeId=key, operand=rank, operator='GE')
+                for key in (first, second)])
+            for first, second in itertools.combinations(ATTRIBUTES.values(), 2)])
+    two_skills = re.fullmatch(r'Любые два умения\s+(\d+)(?:\s+ранг(?:а|ов)?)?', raw, re.I)
+    two_knowledge = re.fullmatch(r'Два и более Знаний\s+(\d+)\s+ранг(?:а|ов)?', raw, re.I)
+    if two_skills or two_knowledge:
+        rank = int((two_skills or two_knowledge)[1])
+        predicate = sub(f'Любое умение {rank}' if two_skills else f'Знание (Любое) {rank}', 'candidate')
+        def retain_original(n):
+            n['sourceRef'] = local
+            for child in n.get('children', []): retain_original(child)
+        retain_original(predicate)
+        return node('DistinctCount', node_id, local, predicate=predicate, uniqueness='Instance', operator='GE', operand=2)
     any_attribute = re.fullmatch(r'Любая характеристика\s+(\d+)(?:\s+ранг(?:а|ов)?)?', raw, re.I)
     if any_attribute:
         return node('AnyOf', node_id, local, children=[

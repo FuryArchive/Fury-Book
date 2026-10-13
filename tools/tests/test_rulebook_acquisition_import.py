@@ -336,7 +336,7 @@ def test_closed_source_any_attribute_and_any_skill_requirements():
     skills=parse_requirement('Любое умение 4','s',source,defs)
     assert skills['type']=='AnyOf'
     assert {x['familyId'] for x in skills['children']}=={'athletics','knowledge_template'}
-    assert parse_requirement('Любые два умения 5 ранга','s',source,defs)['type']=='Unresolved'
+    assert parse_requirement('Любые три умения 5 ранга','s',source,defs)['type']=='Unresolved'
 
 
 def test_closed_abbreviations_and_any_knowledge_keep_original_source_text():
@@ -356,3 +356,21 @@ def test_closed_abbreviations_and_any_knowledge_keep_original_source_text():
         n=parse_requirement(raw,'n',source,defs)
         assert n['type']=='SkillFamily' and n['familyId']=='knowledge' and n['operand']==5
     assert parse_requirement('Знание (Тайное) 5','n',source,defs)['type']=='Unresolved'
+
+
+def test_two_distinct_skills_knowledge_and_attribute_pairs_preserve_source():
+    from tools.rulebook.import_acquisition import parse_requirement
+    source={'documentId':'book','documentVersion':'1','originalText':'exact'}
+    defs=[{'ref':{'packId':'dubl-3.69','entryId':'athletics'},'name':'Атлетика','kind':'SKILL'}]
+    raw='Требование: Два и более Знаний 4 ранга'
+    knowledge=parse_requirement(raw,'k',source,defs)
+    assert knowledge['type']=='DistinctCount' and knowledge['uniqueness']=='Instance'
+    assert knowledge['operand']==2 and knowledge['predicate']['operand']==4
+    assert knowledge['predicate']['familyId']=='knowledge'
+    assert knowledge['sourceRef']['originalText']==raw
+    skills=parse_requirement('Любые два умения 5 ранг','s',source,defs)
+    assert skills['type']=='DistinctCount' and skills['predicate']['type']=='AnyOf'
+    pairs=parse_requirement('Любые две характеристики 5','a',source,defs)
+    assert pairs['type']=='AnyOf' and len(pairs['children'])==28
+    assert all(len(x['children'])==2 and len({y['attributeId'] for y in x['children']})==2 for x in pairs['children'])
+    assert all(y['operand']==5 for x in pairs['children'] for y in x['children'])

@@ -24,6 +24,8 @@ Targeted model tests and compilation of Android, Desktop and Web succeeded for t
 
 - Added no-resource presets for lip reading (Awareness + Intelligence) and three mutually exclusive targeted-search scopes (+1/+2/+3 positive-factor dice). All three UIs apply the selected formula and label it correctly; mixed positive/negative factors remain explicitly blocked rather than silently canceled. Five alternative/preset model tests and all three compilers pass.
 
+- Counted prerequisites now support two distinct learned skills, two Knowledge instances at the stated rank, and any two different attributes. Attribute alternatives enumerate distinct pairs; skill instances cannot count their ranks as multiple skills. Requirement prefixes retain their original source wording. The expanded importer suite passes all 22 tests.
+
 ## Remaining scope
 
 The 283-row effect catalogue still contains stateful, encounter, conditional, alternative, reroll and rule-gap entries which are not fully automated. Reminder text is not implementation. Requirements with unresolved source facts remain blocked rather than guessed. Encounter/resource actions, attribution of situational penalties and remaining formula transitions need implementation before claiming full automation.
