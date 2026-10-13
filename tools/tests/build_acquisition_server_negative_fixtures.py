@@ -195,3 +195,34 @@ if extra.exists():
         case('bad-fix1-backup-'+name,'legacy-migrated',lambda v,e=edit:captured_raw_edit(v,e))
     (root/'supabase/tests/acquisition_v2_fix1_invalid_fixtures.sql').write_text('-- Lossless representation/provenance regressions from public producer fixtures.\n'+'\n'.join(rows)+'\n')
     print('Admission negative fixtures:',len(rows))
+
+extra2=root/'supabase/tests/acquisition_v2_fix2_fixtures.sql'
+if extra2.exists():
+    for name,dto,wire in re.findall(r"VALUES \('([^']+)', \$dto\$(.*?)\$dto\$::jsonb, \$wire\$(.*?)\$wire\$\);",extra2.read_text()):
+        value=json.loads(wire,parse_int=Number,parse_float=Number)
+        assert render(value)==wire, 'Independent compatibility renderer differs '+name
+        fixtures[name]=(json.loads(dto),value,wire)
+    rows=[]
+    malformed=['','+','-','١.١','١x','−١','＋١',' ١','١ ','²','𝟙','2147483648','-2147483649','٢١٤٧٤٨٣٦٤٨','-٢١٤٧٤٨٣٦٤٩','1\x00','1\ud800']
+    for i,value in enumerate(malformed):
+        case('bad-fix2-integer-string-'+str(i),'fix2-arabic',lambda v,t=value:captured_raw_edit(v,lambda r:r['characters'][0].__setitem__('experience',t)))
+    for i,value in enumerate([Number('1.5'),Number('2147483648'),None,True,[],{}]):
+        case('bad-fix2-integer-type-'+str(i),'fix2-arabic',lambda v,t=value:captured_raw_edit(v,lambda r:r['characters'][0].__setitem__('experience',t)))
+    def exact_raw_replace(v,raw):
+        import hashlib
+        origin=v['ledger']['opening']['legacyMigration']['origin'];origin['raw']=raw
+        fp='sha256-utf16be:'+hashlib.sha256(raw.encode('utf-16-be','surrogatepass')).hexdigest()
+        v['ledger']['opening']['sourceFingerprint']=fp
+        fields=[origin['characterId'],str(origin['schema']),origin['sourceRevision'],fp]
+        framed=''.join(str(len(s.encode('utf-16-be','surrogatepass'))//2)+':'+s for s in fields)
+        v['ledger']['opening']['migrationId']='legacy-v11:sha256-utf16be:'+hashlib.sha256(framed.encode('utf-16-be','surrogatepass')).hexdigest()
+    for name,raw in [
+        ('raw-control','{"schema":11,"characters":[{"id":"fix2-arabic","name":"Bad\x00raw"}]}'),
+        ('raw-escape','{"schema":11,"characters":[{"id":"fix2-arabic","name":"Bad\\\ud800raw"}]}'),
+        ('raw-token','{"schema":11,"characters":[{"id":"fix2-arabic","experience":\ud800}]}'),
+    ]:
+        case('bad-fix2-'+name,'fix2-arabic',lambda v,t=raw:exact_raw_replace(v,t))
+    case('bad-fix2-ownership-removed','fix2-school-nul',lambda v:v['ledger']['opening']['legacyMigration'].__setitem__('ownershipRecords',[]))
+    case('bad-fix2-ownership-substituted','fix2-school-high',lambda v:v['ledger']['opening']['legacyMigration']['ownershipRecords'][0].__setitem__('ownershipKey','school:replacement'))
+    (root/'supabase/tests/acquisition_v2_fix2_invalid_fixtures.sql').write_text('-- Malformed present legacy values remain rejected; original raw fingerprints are recomputed.\n'+'\n'.join(rows)+'\n')
+    print('Legacy compatibility negative fixtures:',len(rows))

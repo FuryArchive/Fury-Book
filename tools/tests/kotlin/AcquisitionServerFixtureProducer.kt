@@ -83,7 +83,85 @@ private suspend fun verifyRefusalRetainsQueue(state:StoredCharacter,reasons:List
     }
     System.err.println("PUBLIC_REFUSAL_RETRY_QUEUE_AND_RAW_PRESERVATION_PASS ${reasons.size} reasons x 2 retries")
 }
+private suspend fun fix2Fixtures(ackFile:String?=null,refusalFile:String?=null) {
+    println("-- Public legacy compatibility fixtures; original raw backups and fingerprints are retained.")
+    suspend fun migrated(name:String,fields:String,otherRows:List<String> = emptyList(),sourceRevision:String="fix2-source",literalSurrogate:Boolean=false,ownershipMappings:Map<String,DefinitionRef> = emptyMap()):StoredCharacter {
+        var raw="{\"schema\":11,\"activeCharacterId\":"+quote(name)+",\"characters\":[{\"id\":"+quote(name)+","+fields+"}"+(if(otherRows.isEmpty()) "" else ","+otherRows.joinToString(","))+"]}"
+        if(literalSurrogate) raw=raw.replace("\\uD800","\uD800")
+        val origin=LegacyOrigin(name,11,sourceRevision,raw,listOf("dubl-3.69"),ownershipMappings)
+        val prepared=prepareLegacy(raw,origin,null)
+        check(prepared is MigrationResult.NeedsBalanceConfirmation) { "Public legacy fixture refused $name: $prepared" }
+        return confirmLegacyBalance(prepared.pending,Amount(21,4),"Explicit funding, original history unknown")
+    }
+    suspend fun emit(name:String,fields:String,otherRows:List<String> = emptyList(),literalSurrogate:Boolean=false) {
+        val state=grant(migrated(name,fields,otherRows,literalSurrogate=literalSurrogate),name+"-op",0)
+        val wire=encodeSyncEnvelope(state);check(encodeSyncEnvelope(decodeSyncEnvelope(wire))==wire)
+        push(name,state,0)
+    }
+    emit("fix2-ascii-control","\"experience\":\"+0001\",\"xpAdjustment\":\"-0\"")
+    emit("fix2-arabic","\"experience\":\"١\"")
+    val zeros=(0..65535).filter { Character.digit(it.toChar(),10)==0 }
+    check(zeros.all { z -> (0..9).all { Character.digit((z+it).toChar(),10)==it } })
+    val digitRows=zeros.mapIndexed { index,z ->
+        val digits=(0..9).map { (z+it).toChar() }.joinToString("")
+        check(digits.toIntOrNull()==123456789)
+        "{\"id\":\"digit-$index\",\"experience\":"+quote(digits)+"}"
+    }
+    System.err.println("PUBLIC_LEGACY_BMP_DECIMAL_DIGITS ${zeros.size*10} units; zero starts: ${zeros.joinToString(",")}")
+    emit("fix2-digits","\"experience\":\"١\"",digitRows)
+    val boundaries=listOf("+000٢١٤٧٤٨٣٦٤٧","-२१४७४८३६४८","-０","+0","000000000000000000000000000001","0١2३")
+    check(boundaries.map { it.toIntOrNull() }==listOf(Int.MAX_VALUE,Int.MIN_VALUE,0,0,1,123))
+    emit("fix2-boundaries","\"experience\":\"+０\",\"xpAdjustment\":\"-٢١٤٧٤٨٣٦٤٨\"",boundaries.mapIndexed { i,v -> "{\"id\":\"boundary-$i\",\"experience\":"+quote(v)+"}" }+"{\"id\":\"integral-number\",\"experience\":1.00E+0,\"xpAdjustment\":-0}")
+    fun schools(values:List<Pair<String,Int>>)="\"magic\":{\"schools\":["+values.joinToString(",") { (label,rank) -> "{\"name\":"+quote(label)+",\"rank\":$rank}" }+"]}"
+    emit("fix2-school-known",schools(listOf(" боевая " to 1,"Боевая магия" to 2,"молитвы" to 1,"İ" to 1,"i\u0307" to 2,"ΟΣ" to 1,"ος" to 2,"𐐀" to 1,"𐐨" to 2)))
+    for((suffix,label) in listOf("nul" to "Null\u0000School","high" to "High\uD800School","low" to "Low\uDC00School")) emit("fix2-school-$suffix",schools(listOf(label to 1)))
+    emit("fix2-school-merge",schools(listOf(" боевая " to 2,"Боевая магия" to 3,"İ" to 1,"i\u0307" to 3,"ΟΣ" to 2,"ος" to 2,"Unknown\u0000SCHOOL" to 1,"unknown\u0000school" to 4,"Case\uD800Tie" to 3,"case\uD800tie" to 3)))
+    emit("fix2-school-context",schools(listOf("ΑΣ\u0000Α" to 1,"ας\u0000α" to 2,"ΑΣ\uD800Α" to 3,"ας\uD800α" to 3,"𐐀" to 1,"𐐨" to 2,"😀 school" to 1,"-" to 1," \u2003 " to 1)))
+    emit("fix2-school-literal",schools(listOf("Literal\uD800School" to 1)),literalSurrogate=true)
+    val mappedName="fix2-school-mapped";val mappedLabel="Mapped\u0000\uD800School"
+    val mapped=migrated(mappedName,schools(listOf(mappedLabel to 1)),ownershipMappings=mapOf(legacySchoolOwnershipKey(mappedLabel) to DefinitionRef("dubl-3.69","magic-school:боевая магия")))
+    val mappedState=grant(mapped,mappedName+"-op",0)
+    val mappedWire=encodeSyncEnvelope(mappedState);check(encodeSyncEnvelope(decodeSyncEnvelope(mappedWire))==mappedWire)
+    push(mappedName,mappedState,0)
+    emit("fix2-identities","\"development\":[{\"id\":"+quote("Dev\u0000\uD800")+",\"rank\":1}],\"skills\":[{\"id\":"+quote("Skill\uDC00")+",\"definitionId\":"+quote("Definition\u0000\uD800")+",\"rank\":1}],\"magic\":{\"spells\":[{\"uid\":"+quote("Spell\u0000\uD800")+",\"catalogId\":"+quote("Catalog\uDC00")+",\"learned\":true}]}")
+    emit("fix2-generated","\"customResources\":[{\"uid\":"+quote("Resource\u0000\uD800")+"},{\"name\":\"Generated\"}],\"magic\":{\"spells\":[{\"learned\":true}]},\"gear\":{\"items\":[{}]}",listOf("{\"id\":\"prior-ids\",\"customResources\":[{}],\"magic\":{\"spells\":[{}]},\"gear\":{\"items\":[{}]}}"))
+    val name="fix2-confirmed-identities";val entry="Owned\u0000\uD800";val sourceRevision="Revision\u0000\uDC00"
+    val state=migrated(name,"\"development\":[{\"id\":"+quote(entry)+",\"rank\":1}]",sourceRevision=sourceRevision)
+    val source=RuleSourceRef("synthetic-fixture","1","Synthetic compatibility fixture, never a product oracle")
+    val ref=DefinitionRef("synthetic",entry);val parameter="Parameter\u0000\uD800";val value="Value\u0000\uDC00"
+    val definition=AcquisitionDefinition(ref,AcquisitionKind.DEVELOPMENT,1,RepeatPolicy.Single,RequirementNode.AllOf("none",source,emptyList(),NoRequirementsEvidence(source,"None")),PriceRule.Fixed(1,0,source),SourceStatus.Confirmed,"Fixture",source,listOf(ParameterDefinition(parameter,ParameterDomain.UserDefinedIds)))
+    val store=FixtureStore(state);val catalog=AcquisitionCatalog(mapOf(ref to definition),"synthetic-catalog","synthetic-resolution")
+    val origin=AcquisitionOrigin.Legacy(name,"11",sourceRevision,state.ledger.opening.sourceFingerprint,"development:$entry")
+    val instanceId=legacyInstanceId(ref,origin)
+    val mutation=CharacterMutationCoordinator(store,{catalog},{"unused"})
+    check(mutation.mutate(CanonicalMutation(name+"-op",name,0,MutationPayload.ConfirmLegacyParameter(instanceId,mapOf(parameter to value),LegacyOwnershipResolution("development:$entry",ref,1)),"Explicit original holding confirmation")) is MutationResult.Applied)
+    push(name,store.state,0)
+    val copied=copyAcquisitionCharacter(store.state,"fix2-confirmed-copy","fix2-copy-import")
+    push("fix2-confirmed-copy",copied,0)
+    val copied2=copyAcquisitionCharacter(copied,"fix2-confirmed-copy2","fix2-copy2-import")
+    push("fix2-confirmed-copy2",copied2,0)
+    if(ackFile!=null) {
+        val ack=AcquisitionSyncWire.decodeResult(java.io.File(ackFile).readText()) as AcquisitionPushResult.Acknowledged
+        val wire=encodeSyncEnvelope(copied2)
+        check(ack.payloadCanonical==wire && ack.operationId==copied2.ledger.entries.last().operationId && ack.serverRevision==1L)
+        val ackStore=FixtureStore(copied2)
+        val transport=object:AcquisitionSyncTransport {
+            override suspend fun push(request:AcquisitionPush):AcquisitionPushResult {
+                check(request.payloadCanonical==wire && request.operationId==ack.operationId && request.parentServerRevision==0L)
+                AcquisitionSyncWire.encodePush(request);return ack
+            }
+            override suspend fun resolve(request:AcquisitionResolution):AcquisitionPushResult=error("Not a resolution")
+        }
+        val archive=object:AcquisitionConflictArchive { override suspend fun preserve(conflict:ArchivedAcquisitionConflict):CommitResult=error("No conflict expected") }
+        val protocol=AcquisitionSyncProtocol(ackStore,transport,archive,AcquisitionCapabilities(true,true,true),{"unused"})
+        check(protocol.syncPending(copied2.character.id) is SyncEnvelopeResult.Synced)
+        check(ackStore.state.outbox.isEmpty() && encodeSyncEnvelope(ackStore.state)==wire && ackStore.state.syncMetadata.serverRevision==1L)
+        System.err.println("PUBLIC_OBSERVED_SERVER_ACK_BYTE_EXACT_QUEUE_CONSUMPTION_PASS")
+        if(refusalFile!=null) verifyRefusalRetainsQueue(copied2,java.io.File(refusalFile).readLines().filter {it.isNotBlank()}.distinct())
+    }
+}
 fun main(args: Array<String>) = runBlocking {
+    if (args.firstOrNull() == "--fix-2") { fix2Fixtures(args.getOrNull(1),args.getOrNull(2)); return@runBlocking }
     if (args.firstOrNull() == "--check-admission") {
         val file = java.io.File(args[1])
         var count = 0
