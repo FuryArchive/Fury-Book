@@ -38,9 +38,18 @@ class DesktopAcquisitionRoutingTest {
             val quote=state.acquisition.preview(AcquisitionIntent.attribute(AttributeId.STRENGTH,1))
             stage("attribute-quoted")
             assertEquals(AcquisitionUiPhase.Ready,quote.phase)
+            val beforeRefusal=assertNotNull(store.rawForExport(id))
+            assertNull(state.acquisition.retainedOperationId)
             ownerId="different-owner"
-            assertEquals(AcquisitionUiPhase.Stale,state.acquisition.confirm(quote.key).phase)
+            assertNull(state.acquisition.model)
+            assertNull(state.acquisition.retainedOperationId)
+            val refusal=assertFailsWith<IllegalStateException> { state.acquisition.confirm(quote.key) }
+            assertEquals("Captured owner is no longer valid",refusal.message)
+            assertNull(state.acquisition.model)
+            assertNull(state.acquisition.retainedOperationId)
             ownerId="t17-owner"
+            assertNull(state.acquisition.retainedOperationId)
+            assertEquals(beforeRefusal,store.rawForExport(id))
             assertTrue((store.load(id) as LoadResult.Loaded).state.receipts.isEmpty())
             val disabled=DesktopAppState(texts,acquisitionStore=store,initialCanonicalStates=mapOf(id to (store.load(id) as LoadResult.Loaded).state))
             assertFalse(disabled.reviewNewCharacterFunding(2500).canConfirm)
