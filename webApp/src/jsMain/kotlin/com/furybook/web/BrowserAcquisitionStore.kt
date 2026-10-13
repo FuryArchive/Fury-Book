@@ -145,8 +145,8 @@ class BrowserAcquisitionStore(
             if(loaded is LoadResult.MigrationRequired) return LoadResult.Corrupt(raw,"Legacy snapshot found in acquisition container")
             if(loaded is LoadResult.Loaded) {
                 if(loaded.state.character.id!=characterId) return LoadResult.Corrupt(raw,"Character scope differs")
-                if(sourceState is BrowserLegacySourceState.Changed) return changedConflict(raw)
-                loaded.state.ledger.opening.legacyMigration?.origin?.let { origin ->
+                if(sourceState is BrowserLegacySourceState.Changed && loaded.state.copySources.isEmpty()) return changedConflict(raw)
+                loaded.state.localLegacySourceFence()?.let { origin ->
                     if(origin.extrasSource==null || backup==null) return LoadResult.Unsupported(raw,"Exact legacy source backup unavailable")
                     if(origin.raw!=backup.snapshotRaw || origin.extrasSource?.raw!=backup.extrasRaw)
                         return LoadResult.Corrupt(raw,"Legacy backup differs from migration origin")
@@ -242,11 +242,11 @@ class BrowserAcquisitionStore(
                     if(backup!=null && currentSource()==BrowserLegacySourceState.NotLoaded) {
                         set(CommitResult.StorageFailure("Current legacy source has not loaded; archived source cannot authorize initialization"));return@read
                     }
-                    expectedStorageRevision == -1L && captured.storageRevision==0L && captured.ledger.opening.legacyMigration==null
+                    expectedStorageRevision == -1L && captured.storageRevision==0L && (captured.ledger.opening.legacyMigration==null || captured.copySources.isNotEmpty())
                 }
                 is LoadResult.MigrationRequired -> {
                     val actual=(currentSource() as? BrowserLegacySourceState.Present)?.source
-                    val origin=captured.ledger.opening.legacyMigration?.origin
+                    val origin=captured.localLegacySourceFence()
                     if(origin==null || origin.extrasSource==null || actual==null) { set(CommitResult.StorageFailure("Legacy source requires explicit migration"));return@read }
                     migrationSource=actual
                     val extras=decodeBrowserLegacyExtras(actual.extrasRaw)[characterId] ?: com.furybook.dubl.model.CharacterSheetExtras()

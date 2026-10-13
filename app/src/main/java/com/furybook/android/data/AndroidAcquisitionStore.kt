@@ -52,13 +52,13 @@ class AndroidAcquisitionStore(
                     is LoadResult.Missing -> if (expectedStorageRevision != -1L || captured.storageRevision != 0L) return@locked CommitResult.Conflict
                     is LoadResult.MigrationRequired -> {
                         if (expectedStorageRevision != -1L || captured.storageRevision != 0L) return@locked CommitResult.Conflict
-                        val origin = captured.ledger.opening.legacyMigration?.origin ?: return@locked CommitResult.StorageFailure("Explicit legacy migration is required")
+                        val origin = captured.localLegacySourceFence() ?: return@locked CommitResult.StorageFailure("Explicit legacy migration is required")
                         if (!legacySource.unchanged(origin)) return@locked CommitResult.Conflict
                         require(captured.extras == legacySource.capturedOrigin(origin).extras(characterId)) { "Initial migration must preserve legacy extras" }
                     }
                     else -> return@locked CommitResult.StorageFailure("Existing source/container requires recovery: ${existing::class.simpleName}")
                 }
-                val origin = captured.ledger.opening.legacyMigration?.origin
+                val origin = captured.localLegacySourceFence()
                 if (origin != null && !legacySource.unchanged(origin)) return@locked CommitResult.Conflict
                 durableReplace(envelopePath(characterId), encoded) {
                     if (origin != null) require(legacySource.unchanged(origin)) { "Legacy source changed before replace" }
@@ -137,7 +137,7 @@ class AndroidAcquisitionStore(
             if (loaded is LoadResult.MigrationRequired) return LoadResult.Corrupt(raw, "Legacy data in versioned container")
             if (loaded is LoadResult.Loaded) {
                 if (loaded.state.character.id != characterId) return LoadResult.Corrupt(raw, "Wrong character scope")
-                val origin = loaded.state.ledger.opening.legacyMigration?.origin
+                val origin = loaded.state.localLegacySourceFence()
                 if (origin != null) try {
                     if (origin.extrasSource?.raw == null) return LoadResult.Unsupported(raw, "Exact Android preference backup is missing")
                     if (!legacySource.unchanged(origin)) {

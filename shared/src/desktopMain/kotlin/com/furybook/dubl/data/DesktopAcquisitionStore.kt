@@ -109,7 +109,7 @@ class DesktopAcquisitionStore(
                     return@locked CommitResult.Conflict
                 is LoadResult.MigrationRequired -> {
                     if (expectedStorageRevision != -1L || captured.storageRevision != 0L) return@locked CommitResult.Conflict
-                    val origin = captured.ledger.opening.legacyMigration?.origin
+                    val origin = captured.localLegacySourceFence()
                         ?: return@locked CommitResult.StorageFailure("Legacy source requires an explicit migration")
                     if (origin.raw != current.raw || origin.extrasSource == null || !sourceUnchanged(origin))
                         return@locked CommitResult.Conflict
@@ -121,7 +121,7 @@ class DesktopAcquisitionStore(
                 is LoadResult.Corrupt -> return@locked CommitResult.StorageFailure("Corrupt envelope/source: ${current.reason}")
                 is LoadResult.Unsupported -> return@locked CommitResult.StorageFailure("Unsupported envelope/source: ${current.reason}")
             }
-            captured.ledger.opening.legacyMigration?.origin?.let {
+            captured.localLegacySourceFence()?.let {
                 if (!sourceUnchanged(it)) return@locked CommitResult.Conflict
             }
             durableReplace(envelopePath(characterId), encoded)
@@ -139,7 +139,7 @@ class DesktopAcquisitionStore(
             val loaded = decodeEnvelope(raw)
             if (loaded is LoadResult.Loaded) {
                 if (loaded.state.character.id != characterId) return LoadResult.Corrupt(raw, "Envelope character scope differs")
-                loaded.state.ledger.opening.legacyMigration?.origin?.let { origin ->
+                loaded.state.localLegacySourceFence()?.let { origin ->
                     if (origin.extrasSource == null) return LoadResult.Unsupported(raw,
                         "Legacy migration lacks the exact sheet-extras source; preserve/export it for review")
                     if (!sourceUnchanged(origin)) return LoadResult.LegacyImportConflict(raw,

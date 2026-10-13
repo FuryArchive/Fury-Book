@@ -16,6 +16,19 @@ import java.nio.file.StandardCopyOption
 class AndroidAcquisitionStoreJvmTest {
     private fun store(root:Path, fault:(AndroidAcquisitionWriteStage)->Unit = {}) = AndroidAcquisitionStore(
         root, AndroidLegacyAcquisitionSource(root.resolve("shared_prefs")), JvmFileOps, fault=fault)
+    @Test fun independent_migrated_copy_retains_provenance_without_foreign_preferences() = runBlocking {
+        val raw=com.furybook.dubl.data.SnapshotCodec.encode(AppSnapshot(listOf(DublCharacter("real")),"real"))
+        val origin=LegacyOrigin("real",com.furybook.dubl.data.SnapshotCodec.SCHEMA,legacySourceFingerprint(raw),raw,listOf("dubl-3.69"),extrasSource=LegacyExtrasSource(null))
+        val pending=(prepareLegacy(raw,origin,null) as MigrationResult.NeedsBalanceConfirmation).pending
+        val original=confirmLegacyBalance(pending,Amount(100,10),"Known test balance")
+        val copied=copyAcquisitionCharacter(original,"independent","copy-operation")
+        val root=Files.createTempDirectory("f1-independent");val target=store(root)
+        assertEquals(CommitResult.Committed,target.compareAndSet("independent",-1,copied))
+        val reopened=(store(root).load("independent") as LoadResult.Loaded).state
+        assertEquals(copied,reopened);assertEquals(original.ledger.opening,reopened.ledger.opening)
+        assertEquals(CommitResult.Committed,target.compareAndSet("independent",0,reopened.copy(storageRevision=1)))
+        assertFalse(Files.exists(root.resolve("shared_prefs")))
+    }
     @Test fun reopen_after_ack_keeps_receipt() = runBlocking {
         val root=Files.createTempDirectory("t13-host")
         val original=store(root)

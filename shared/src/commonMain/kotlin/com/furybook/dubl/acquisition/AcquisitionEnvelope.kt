@@ -76,3 +76,17 @@ class StoredCharacter(
         formatVersion: Int = this.formatVersion, copySources: List<AcquisitionCopySource> = this.copySources, syncProofs:List<AcquisitionSyncProof> = this.syncProofs) = StoredCharacter(reconcileAcquisitionDoubleTokens(character,this.character), extras, instances, ledger, receipts, outbox,
         syncMetadata, revision, storageRevision, creationPhase, formatVersion, copySources, syncProofs)
 }
+
+/**
+ * Local legacy-file drift fence, not historical provenance.
+ * Call only after encode/decode validation of the complete envelope: that codec
+ * proves the copy ancestry, import receipt and unchanged inherited opening.
+ * An independent copy keeps that evidence but does not depend on files belonging
+ * to its original character on another device. Original migrations stay fenced.
+ */
+fun StoredCharacter.localLegacySourceFence(): LegacyOrigin? {
+    val origin = ledger.opening.legacyMigration?.origin ?: return null
+    if (copySources.isEmpty()) return origin
+    require(copySources.last().destinationCharacterId == character.id) { "Copy destination scope differs" }
+    return null
+}

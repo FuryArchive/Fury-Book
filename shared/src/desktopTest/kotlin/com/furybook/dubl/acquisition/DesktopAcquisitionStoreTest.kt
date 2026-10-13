@@ -24,6 +24,27 @@ class DesktopAcquisitionStoreTest {
         val preview = service.preview(request)
         return service.apply(ConfirmAcquisition(operationId, "real", request, preview.baseRevision, preview.previewToken))
     }
+    @Test fun independent_migrated_copy_reopens_and_writes_without_foreign_legacy_files() = runBlocking {
+        val originalRoot=directory()
+        val raw=SnapshotCodec.encode(AppSnapshot(listOf(DublCharacter("real")),"real"))
+        Files.writeString(originalRoot.resolve("characters.json"),raw)
+        val originalStore=DesktopAcquisitionStore(originalRoot)
+        val pending=assertIs<MigrationResult.NeedsBalanceConfirmation>(originalStore.prepareMigration("real",listOf("dubl-3.69"),null)).pending
+        val original=confirmLegacyBalance(pending,Amount(100,10),"Known test balance")
+        assertEquals(CommitResult.Committed,originalStore.compareAndSet("real",-1,original))
+        val copied=copyAcquisitionCharacter(original,"independent","copy-operation")
+        val targetRoot=directory();val target=DesktopAcquisitionStore(targetRoot)
+        assertEquals(CommitResult.Committed,target.compareAndSet("independent",-1,copied))
+        val reopened=assertIs<LoadResult.Loaded>(DesktopAcquisitionStore(targetRoot).load("independent")).state
+        assertEquals(copied,reopened);assertEquals(original.ledger.opening,reopened.ledger.opening)
+        assertEquals(CommitResult.Committed,target.compareAndSet("independent",0,reopened.copy(storageRevision=1)))
+        assertFalse(Files.exists(targetRoot.resolve("characters.json")))
+        assertFalse(Files.exists(targetRoot.resolve("sheet-extras.json")))
+        Files.writeString(originalRoot.resolve("characters.json"),raw+"\n")
+        assertIs<LoadResult.LegacyImportConflict>(originalStore.load("real"))
+        assertIs<LoadResult.Loaded>(target.load("independent"))
+        Unit
+    }
     @Test fun temp_fault_before_replace_preserves_100_and_old_bytes() = runBlocking {
         val dir = directory(); val normal = DesktopAcquisitionStore(dir)
         assertEquals(CommitResult.Committed, normal.compareAndSet("real", -1, state()))

@@ -17,6 +17,23 @@ class BrowserAcquisitionStoreTest {
         Ledger(Opening("opening","source",Amount(100,0),RequirementNode.CreationPhase.Phase.Creating,OpeningProvenance.NewCharacter),emptyList()),
         emptyList(),emptyList(),SyncMetadata(0),0,storage,RequirementNode.CreationPhase.Phase.Creating)
     private fun test(body:suspend CoroutineScope.()->Unit):Promise<Unit> = MainScope().promise { body() }
+    @Test fun independent_migrated_copy_needs_no_foreign_backup()=test {
+        val raw=SnapshotCodec.encode(AppSnapshot(listOf(DublCharacter("hero")),"hero"))
+        val origin=LegacyOrigin("hero",SnapshotCodec.SCHEMA,legacySourceFingerprint(raw),raw,listOf("dubl-3.69"),extrasSource=LegacyExtrasSource(null))
+        val pending=assertIs<MigrationResult.NeedsBalanceConfirmation>(prepareLegacy(raw,origin,null)).pending
+        val original=confirmLegacyBalance(pending,Amount(100,0),"Known synthetic balance")
+        val copied=copyAcquisitionCharacter(original,"independent","copy-operation")
+        val name="f1-copy-"+webUuid()
+        val target=BrowserAcquisitionStore(owner(),name,localWritesEnabled=true,legacySource={null})
+        assertTrue(target.initialize())
+        assertEquals(CommitResult.Committed,target.compareAndSet("independent",-1,copied));target.close()
+        val reopened=BrowserAcquisitionStore(owner(),name,localWritesEnabled=true,legacySource={null})
+        assertTrue(reopened.initialize())
+        val saved=assertIs<LoadResult.Loaded>(reopened.load("independent")).state
+        assertEquals(copied,saved);assertEquals(original.ledger.opening,saved.ledger.opening)
+        assertEquals(CommitResult.Committed,reopened.compareAndSet("independent",0,saved.copy(storageRevision=1)))
+        reopened.close()
+    }
     @Test fun real_idb_atomic_cas_whole_envelope_and_exact_long()=test {
         val name="furybook-test-cas-"+webUuid()
         val a=BrowserAcquisitionStore(owner(),name,localWritesEnabled=true)
