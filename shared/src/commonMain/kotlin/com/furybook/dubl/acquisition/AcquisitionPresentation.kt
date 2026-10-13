@@ -23,7 +23,8 @@ data class AcquisitionRequirementView(val nodeId: String, val label: String, val
     val children: List<AcquisitionRequirementView>, val sourceText: String)
 data class AcquisitionBlock(val status: RequirementStatus, val message: String, val label: String?, val sourceText: String?)
 data class AcquisitionReceiptView(val cost: Amount, val remaining: Amount, val status: ReceiptStatus,
-    val replayed: Boolean, val rows: List<AcquisitionDisplayRow>, val currentBalance: Amount? = null)
+    val replayed: Boolean, val rows: List<AcquisitionDisplayRow>, val currentBalance: Amount? = null,
+    val savedOperation: AcquisitionSavedOperation? = null)
 data class AcquisitionUiModel(val scope: AcquisitionScope, val key: AcquisitionQuoteKey, val phase: AcquisitionUiPhase,
     val summary: String, val price: AcquisitionDisplayedPrice = AcquisitionDisplayedPrice.Unknown(), val remaining: Amount? = null,
     val rows: List<AcquisitionDisplayRow> = emptyList(), val requirements: List<AcquisitionRequirementView> = emptyList(),
@@ -111,9 +112,9 @@ object AcquisitionPresentation {
             else if(definition.repeatPolicy==RepeatPolicy.Single) state.instances.singleOrNull { it.definition==target.definition } else null
         return owned!=null && owned.rank>=target.targetRank && owned.parameters==target.parameters && owned.abilityOptionId==target.optionId
     }
-    fun receipt(receipt: Receipt, catalog: AcquisitionCatalog, replayed: Boolean) = AcquisitionReceiptView(receipt.result.cost,receipt.result.remaining,receipt.status,replayed,
+    fun receipt(receipt: Receipt, catalog: AcquisitionCatalog, replayed: Boolean, entry: LedgerEntry? = null) = AcquisitionReceiptView(receipt.result.cost,receipt.result.remaining,receipt.status,replayed,
         EnvelopeList(receipt.result.changes.map { AcquisitionDisplayRow(it.definition,AcquisitionLabels(catalog).definition(it.definition),it.fromRank,it.toRank,
-            AcquisitionDisplayedPrice.Unknown("Стоимость сохранена в итоге операции"),true) }))
+            AcquisitionDisplayedPrice.Unknown("Стоимость сохранена в итоге операции"),true) }), savedOperation=savedAcquisitionOperation(receipt,entry))
     fun sync(state: StoredCharacter, capabilities: AcquisitionCapabilities) = AcquisitionSyncView(when {
         state.syncMetadata.remoteConflictCanonical!=null || state.syncMetadata.pendingResolution!=null -> AcquisitionSyncStatus.Conflict
         !capabilities.canSync -> AcquisitionSyncStatus.LocalOnlyUnavailable

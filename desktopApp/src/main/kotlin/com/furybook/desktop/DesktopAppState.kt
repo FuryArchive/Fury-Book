@@ -44,6 +44,8 @@ class DesktopAppState(
     private val extrasStore: CharacterExtrasStore = DesktopCharacterExtrasStore(),
     val localAcquisitionEnabled: Boolean = false,
     private val acquisitionStore: DesktopAcquisitionStore? = DesktopAcquisitionStore(),
+    private val acquisitionCatalogProvider: (() -> AcquisitionCatalog)? = null,
+    private val developmentCatalogOverride: DevelopmentCatalog? = null,
 ) {
     val canonicalMode: Boolean = localAcquisitionEnabled || acquisitionStore?.hasProtectedHeads() != false
     val readOnlyCanonicalMode: Boolean get() = canonicalMode && !localAcquisitionEnabled
@@ -59,7 +61,7 @@ class DesktopAppState(
         private set
     private val acquisitionService by lazy { AcquisitionService(requireNotNull(acquisitionStore), ::acquisitionCatalog) { UUID.randomUUID().toString() } }
     private var canonicalView: AppSnapshot? = null
-    private var canonicalLoads: Map<String, LoadResult> = emptyMap()
+    private var canonicalLoads: Map<String, LoadResult> by mutableStateOf(emptyMap())
     private var selectionGeneration = 0L
     private var controllerGeneration = 0L
     private var disposed = false
@@ -70,7 +72,15 @@ class DesktopAppState(
     private var application = createApplication()
     private var legacyStorageBlocked = false
 
+    @Volatile private var capturedAcquisitionCatalog: AcquisitionCatalog? = null
+    private val acquisitionContentLoad = Mutex()
+    var contentRevision: Int by mutableStateOf(0)
+        private set
     private fun acquisitionCatalog(): AcquisitionCatalog {
+        acquisitionCatalogProvider?.let { return it() }
+        return checkNotNull(capturedAcquisitionCatalog) { "Canonical catalog is loading" }
+    }
+    private fun loadAcquisitionContent(): AcquisitionCatalog {
         val source = FcpTextSource { path -> javaClass.classLoader.getResource(path)?.readText() }
         val packs = contentPackComposition.active.map { manifest ->
             if (manifest.id == DublFcp.PACK_ID || manifest.id == DublChiFcp.PACK_ID)
@@ -142,6 +152,7 @@ class DesktopAppState(
         check(canonicalMode)
         try {
         val generation=selectionGeneration
+        refreshCanonicalContent()
         val loaded=withContext(Dispatchers.IO) {
             val store=checkNotNull(acquisitionStore);val original=characterStore.load()
             val ids=(original.characters.map { it.id }+store.characterIds()).distinct()
@@ -182,7 +193,7 @@ class DesktopAppState(
         private set
 
     val conditionCatalog = catalogLoader.loadConditions()
-    private var canonicalDevelopmentCatalog: DevelopmentCatalog by mutableStateOf(composeCanonicalDevelopmentCatalog())
+    private var canonicalDevelopmentCatalog: DevelopmentCatalog by mutableStateOf(developmentCatalogOverride ?: composeCanonicalDevelopmentCatalog())
     val developmentCatalog: DevelopmentCatalog
         get() = activeCharacter
             .effectiveDevelopmentCatalog(canonicalDevelopmentCatalog)
@@ -257,6 +268,7 @@ class DesktopAppState(
         )
         contentPackPreferences.putBoolean(installed.manifest.id, false)
         installedPackRevision += 1
+        capturedAcquisitionCatalog = null; contentRevision++
         canonicalDevelopmentCatalog = composeCanonicalDevelopmentCatalog()
         return installed.manifest
     }
@@ -286,6 +298,7 @@ class DesktopAppState(
                 contentPackPreferences.putBoolean(packId, enabled)
                 canonicalDevelopmentCatalog = composeCanonicalDevelopmentCatalog()
                 installedPackRevision += 1
+        capturedAcquisitionCatalog = null; contentRevision++
                 refresh()
             }
         }
@@ -295,6 +308,7 @@ class DesktopAppState(
         if (enabled) catalogLoader.verifyChiPack()
         contentPackPreferences.putBoolean(DublChiFcp.PACK_ID, enabled)
         chiPackEnabled = enabled
+        capturedAcquisitionCatalog = null; contentRevision++
         canonicalDevelopmentCatalog = composeCanonicalDevelopmentCatalog()
         chiCatalog = if (enabled) catalogLoader.loadChi() else ChiCatalog("disabled", emptyList(), emptyList())
         refresh()
@@ -333,6 +347,29 @@ class DesktopAppState(
     fun refresh() {
         snapshot = application.snapshot
         extras = application.activeExtras
+    }
+
+    /** The root routes protected descriptive actions into one detached explicit review. */
+    var onCanonicalNonFinancialReview: ((DublApplication.() -> Unit) -> Unit)? = null
+    private fun <T> descriptive(edit: DublApplication.() -> T): T? {
+        if (canonicalMode) {
+            val review=onCanonicalNonFinancialReview
+            if (review == null) storageError="Редактор недоступен; сохранённый лист не изменён"
+            else review { edit(); Unit }
+            return null
+        }
+        return sync { application.edit() }
+    }
+    suspend fun refreshCanonicalContent() = acquisitionContentLoad.withLock {
+        if (canonicalMode && acquisitionCatalogProvider == null && capturedAcquisitionCatalog == null) {
+            val generation=contentRevision
+            val captured=withContext(Dispatchers.IO) { loadAcquisitionContent() }
+            if(!disposed && generation==contentRevision) {
+                capturedAcquisitionCatalog=captured
+                // Publish after the off-main load, so visible quotes retry against the installed catalog.
+                contentRevision++
+            }
+        }
     }
 
     private inline fun <T> sync(action: () -> T): T? {
@@ -455,7 +492,7 @@ class DesktopAppState(
         sync { application.character.setProfile(name, concept, experience, size, legs, manaEnabled) }
     fun setIdentity(name: String, concept: String, size: Int, legs: Int, manaEnabled: Boolean) =
         sync { application.character.setIdentity(name, concept, size, legs, manaEnabled) }
-    fun setName(name: String) = sync { application.character.setName(name) }
+    fun setName(name: String) = descriptive { character.setName(name) }
     fun setSize(size: Int) = sync { application.character.setSize(size) }
     fun setLegs(legs: Int) = sync { application.character.setLegs(legs) }
     fun changeAttribute(id: AttributeId, delta: Int) = sync { application.character.changeAttribute(id, delta) }
@@ -467,10 +504,10 @@ class DesktopAppState(
         sync { application.character.setEconomy(total, creation, adjustment, abilityPointsOverride) }
     fun completeCreation() = sync { application.character.completeCreation() }
     fun reopenCreation() = sync { application.character.reopenCreation() }
-    fun changeHp(delta: Int) = sync { application.character.changeHp(delta) }
-    fun changeEndurance(delta: Int) = sync { application.character.changeEndurance(delta) }
-    fun changeMana(delta: Int) = sync { application.magic.changeMana(delta) }
-    fun changeChi(delta: Int) = sync { application.development.changeChi(delta) }
+    fun changeHp(delta: Int) = descriptive { character.changeHp(delta) }
+    fun changeEndurance(delta: Int) = descriptive { character.changeEndurance(delta) }
+    fun changeMana(delta: Int) = descriptive { magic.changeMana(delta) }
+    fun changeChi(delta: Int) = descriptive { development.changeChi(delta) }
     fun changeResource(resource: CharacterSheetResourceId, delta: Int) = when (resource) {
         CharacterSheetResourceId.HEALTH -> changeHp(delta)
         CharacterSheetResourceId.ENDURANCE -> changeEndurance(delta)
@@ -479,41 +516,41 @@ class DesktopAppState(
     }
     fun setChiEnabled(enabled: Boolean) = sync { application.development.setChiEnabled(enabled) }
     fun setChiBonusRanks(rank: Int) = sync { application.development.setChiBonusRanks(rank) }
-    fun restoreChi() = sync { application.development.restoreChi() }
+    fun restoreChi() = descriptive { development.restoreChi() }
     fun restoreMountedResource(resource: CharacterSheetResourceId) = when (resource) {
         CharacterSheetResourceId.CHI -> restoreChi()
         else -> Unit
     }
-    fun setHealthMaximumOverride(value: Int?) = sync { application.character.setHealthMaximumOverride(value) }
-    fun setEnduranceMaximumOverride(value: Int?) = sync { application.character.setEnduranceMaximumOverride(value) }
-    fun setManaMaximumOverride(value: Int?) = sync { application.character.setManaMaximumOverride(value) }
+    fun setHealthMaximumOverride(value: Int?) = descriptive { character.setHealthMaximumOverride(value) }
+    fun setEnduranceMaximumOverride(value: Int?) = descriptive { character.setEnduranceMaximumOverride(value) }
+    fun setManaMaximumOverride(value: Int?) = descriptive { character.setManaMaximumOverride(value) }
 
     fun addCustomResource(name: String, maximum: Int, current: Int = maximum): String? =
-        sync { application.character.addCustomResource(name, maximum, current) }
+        descriptive { character.addCustomResource(name, maximum, current) }
     fun updateCustomResource(uid: String, name: String, current: Int, maximum: Int) =
-        sync { application.character.updateCustomResource(uid, name, current, maximum) }
-    fun changeCustomResource(uid: String, delta: Int) = sync { application.character.changeCustomResource(uid, delta) }
-    fun removeCustomResource(uid: String) = sync { application.character.removeCustomResource(uid) }
+        descriptive { character.updateCustomResource(uid, name, current, maximum) }
+    fun changeCustomResource(uid: String, delta: Int) = descriptive { character.changeCustomResource(uid, delta) }
+    fun removeCustomResource(uid: String) = descriptive { character.removeCustomResource(uid) }
 
     fun changeSkillRank(skillId: String, delta: Int) = sync { application.skills.changeRank(skillId, delta) }
-    fun setSkillAttributes(skillId: String, attributes: List<AttributeId>) = sync { application.skills.setAttributes(skillId, attributes) }
-    fun setSkillModifier(skillId: String, modifier: Int) = sync { application.skills.setModifier(skillId, modifier) }
-    fun setSkillFormulaNote(skillId: String, note: String) = sync { application.skills.setFormulaNote(skillId, note) }
-    fun setSkillNameOverride(skillId: String, name: String) = sync { application.skills.setNameOverride(skillId, name) }
-    fun setSkillDescriptionOverride(skillId: String, description: String) = sync { application.skills.setDescriptionOverride(skillId, description) }
-    fun setSkillCategoryOverride(skillId: String, category: SkillCategory?) = sync { application.skills.setCategoryOverride(skillId, category) }
-    fun setSkillUntrainedOverride(skillId: String, rule: UntrainedRule?) = sync { application.skills.setUntrainedOverride(skillId, rule) }
-    fun setSkillAutoOverrides(skillId: String, auto6: String?, auto12: String?) = sync { application.skills.setAutoOverrides(skillId, auto6, auto12) }
-    fun resetSkillDefinitionOverrides(skillId: String) = sync { application.skills.resetDefinitionOverrides(skillId) }
-    fun hideSkill(skillId: String) = sync { application.skills.hide(skillId) }
-    fun restoreSkill(skillId: String) = sync { application.skills.restore(skillId) }
-    fun restoreAllSkills() = sync { application.skills.restoreAll() }
-    fun setSkillEffectEnabled(effectId: String, enabled: Boolean) = sync { application.skills.setEffectEnabled(effectId, enabled) }
+    fun setSkillAttributes(skillId: String, attributes: List<AttributeId>) = descriptive { skills.setAttributes(skillId, attributes) }
+    fun setSkillModifier(skillId: String, modifier: Int) = descriptive { skills.setModifier(skillId, modifier) }
+    fun setSkillFormulaNote(skillId: String, note: String) = descriptive { skills.setFormulaNote(skillId, note) }
+    fun setSkillNameOverride(skillId: String, name: String) = descriptive { skills.setNameOverride(skillId, name) }
+    fun setSkillDescriptionOverride(skillId: String, description: String) = descriptive { skills.setDescriptionOverride(skillId, description) }
+    fun setSkillCategoryOverride(skillId: String, category: SkillCategory?) = descriptive { skills.setCategoryOverride(skillId, category) }
+    fun setSkillUntrainedOverride(skillId: String, rule: UntrainedRule?) = descriptive { skills.setUntrainedOverride(skillId, rule) }
+    fun setSkillAutoOverrides(skillId: String, auto6: String?, auto12: String?) = descriptive { skills.setAutoOverrides(skillId, auto6, auto12) }
+    fun resetSkillDefinitionOverrides(skillId: String) = descriptive { skills.resetDefinitionOverrides(skillId) }
+    fun hideSkill(skillId: String) = descriptive { skills.hide(skillId) }
+    fun restoreSkill(skillId: String) = descriptive { skills.restore(skillId) }
+    fun restoreAllSkills() = descriptive { skills.restoreAll() }
+    fun setSkillEffectEnabled(effectId: String, enabled: Boolean) = descriptive { skills.setEffectEnabled(effectId, enabled) }
     fun addSpecializedSkill(templateId: String, specialization: String): String? = sync { application.skills.addSpecialized(templateId, specialization) }
     fun addCustomSkill(name: String, description: String, attributes: List<AttributeId>, untrained: UntrainedRule): String? =
         sync { application.skills.addCustom(name, description, attributes, untrained) }
     fun deleteDynamicSkill(skillId: String) = sync { application.skills.deleteDynamic(skillId) }
-    fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) = sync { application.skills.setPreferredAttribute(skillId, attribute) }
+    fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) = descriptive { skills.setPreferredAttribute(skillId, attribute) }
 
     fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int = 0) = sync { application.development.setRank(entryId, rank, optionIndex) }
     fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult = sync { application.development.acquire(developmentCatalog, request) } ?: DevelopmentAcquisitionResult(false, DevelopmentAcquisitionPlanner(activeCharacter, developmentCatalog).plan(request), storageError ?: "Storage unavailable")
@@ -534,32 +571,32 @@ class DesktopAppState(
     fun setSpellLearned(uid: String, learned: Boolean) = sync { application.magic.setSpellLearned(uid, learned) }
     fun removeSpell(uid: String) = sync { application.magic.removeSpell(uid) }
 
-    fun setGearLoadAutomatic(enabled: Boolean) = sync { application.equipment.setLoadAutomatic(enabled) }
-    fun setGearManualLoad(value: Double) = sync { application.equipment.setManualLoad(value) }
+    fun setGearLoadAutomatic(enabled: Boolean) = descriptive { equipment.setLoadAutomatic(enabled) }
+    fun setGearManualLoad(value: Double) = descriptive { equipment.setManualLoad(value) }
     fun syncCatalogGearLoads(entries: List<GearCatalogEntry>) = sync { application.equipment.syncCatalogLoads(entries) }
-    fun addCatalogGear(entry: GearCatalogEntry): String = sync { application.equipment.addCatalog(entry) } ?: ""
-    fun addCustomGear(item: GearItem): String = sync { application.equipment.addCustom(item) } ?: ""
-    fun updateGearItem(item: GearItem) = sync { application.equipment.updateItem(item) }
-    fun setGearItemCarried(uid: String, carried: Boolean) = sync { application.equipment.setItemCarried(uid, carried) }
-    fun setGearItemQuantity(uid: String, quantity: Int) = sync { application.equipment.setItemQuantity(uid, quantity) }
-    fun removeGearItem(uid: String) = sync { application.equipment.removeItem(uid) }
+    fun addCatalogGear(entry: GearCatalogEntry): String = descriptive { equipment.addCatalog(entry) } ?: ""
+    fun addCustomGear(item: GearItem): String = descriptive { equipment.addCustom(item) } ?: ""
+    fun updateGearItem(item: GearItem) = descriptive { equipment.updateItem(item) }
+    fun setGearItemCarried(uid: String, carried: Boolean) = descriptive { equipment.setItemCarried(uid, carried) }
+    fun setGearItemQuantity(uid: String, quantity: Int) = descriptive { equipment.setItemQuantity(uid, quantity) }
+    fun removeGearItem(uid: String) = descriptive { equipment.removeItem(uid) }
 
-    fun setPortrait(uri: String?) = sync { application.sheet.setPortrait(uri) }
-    fun toggleCondition(condition: CharacterConditionId) = sync { application.sheet.toggleCondition(condition) }
-    fun setConditions(conditions: Set<CharacterConditionId>) = sync { application.sheet.setConditions(conditions) }
-    fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) = sync { application.sheet.setResourceHidden(resource, hidden) }
-    fun setSkillGroups(groups: List<SheetGroup>) = sync { application.sheet.setSkillGroups(groups) }
-    fun setDevelopmentGroups(groups: List<SheetGroup>) = sync { application.sheet.setDevelopmentGroups(groups) }
-    fun setNotes(notes: String) = sync { application.sheet.setNotes(notes) }
-    fun addNote(title: String, body: String = ""): String? = sync { application.sheet.addNote(title, body) }
-    fun updateNote(id: String, title: String, body: String) = sync { application.sheet.updateNote(id, title, body) }
-    fun removeNote(id: String) = sync { application.sheet.removeNote(id) }
-    fun setConditionOverride(condition: CharacterConditionId, title: String?, description: String?) = sync { application.sheet.setConditionOverride(condition, title, description) }
-    fun resetConditionOverride(condition: CharacterConditionId) = sync { application.sheet.resetConditionOverride(condition) }
-    fun addCustomCondition(title: String, description: String = "", active: Boolean = false): String? = sync { application.sheet.addCustomCondition(title, description, active) }
-    fun updateCustomCondition(id: String, title: String, description: String, active: Boolean? = null) = sync { application.sheet.updateCustomCondition(id, title, description, active) }
-    fun setCustomConditionActive(id: String, active: Boolean) = sync { application.sheet.setCustomConditionActive(id, active) }
-    fun removeCustomCondition(id: String) = sync { application.sheet.removeCustomCondition(id) }
+    fun setPortrait(uri: String?) = descriptive { sheet.setPortrait(uri) }
+    fun toggleCondition(condition: CharacterConditionId) = descriptive { sheet.toggleCondition(condition) }
+    fun setConditions(conditions: Set<CharacterConditionId>) = descriptive { sheet.setConditions(conditions) }
+    fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) = descriptive { sheet.setResourceHidden(resource, hidden) }
+    fun setSkillGroups(groups: List<SheetGroup>) = descriptive { sheet.setSkillGroups(groups) }
+    fun setDevelopmentGroups(groups: List<SheetGroup>) = descriptive { sheet.setDevelopmentGroups(groups) }
+    fun setNotes(notes: String) = descriptive { sheet.setNotes(notes) }
+    fun addNote(title: String, body: String = ""): String? = descriptive { sheet.addNote(title, body) }
+    fun updateNote(id: String, title: String, body: String) = descriptive { sheet.updateNote(id, title, body) }
+    fun removeNote(id: String) = descriptive { sheet.removeNote(id) }
+    fun setConditionOverride(condition: CharacterConditionId, title: String?, description: String?) = descriptive { sheet.setConditionOverride(condition, title, description) }
+    fun resetConditionOverride(condition: CharacterConditionId) = descriptive { sheet.resetConditionOverride(condition) }
+    fun addCustomCondition(title: String, description: String = "", active: Boolean = false): String? = descriptive { sheet.addCustomCondition(title, description, active) }
+    fun updateCustomCondition(id: String, title: String, description: String, active: Boolean? = null) = descriptive { sheet.updateCustomCondition(id, title, description, active) }
+    fun setCustomConditionActive(id: String, active: Boolean) = descriptive { sheet.setCustomConditionActive(id, active) }
+    fun removeCustomCondition(id: String) = descriptive { sheet.removeCustomCondition(id) }
 
     fun exportActiveCharacter(): String = if (canonicalMode) {
         val loaded = localStoredCharacter()

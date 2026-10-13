@@ -328,7 +328,9 @@ class AcquisitionPresentationSession(private val port:AcquisitionCommandPort,pri
             val state=known ?: (port.load(checkNotNull(pending).characterId) as? LoadResult.Loaded)?.state ?: error("No acknowledged head")
             require(state.character.id==pending?.characterId)
             val view=checkNotNull(model)
-            set(view.copy(sync=AcquisitionPresentation.sync(state,port.capabilities),receipt=view.receipt?.copy(currentBalance=balance(state.ledger))))
+            val saved=state.receipts.singleOrNull { it.operationId==pending?.operationId }
+            val operation=saved?.let { savedAcquisitionOperation(it,state.ledger.entries.singleOrNull { entry -> entry.operationId==it.operationId }) }
+            set(view.copy(sync=AcquisitionPresentation.sync(state,port.capabilities),receipt=view.receipt?.copy(currentBalance=balance(state.ledger),savedOperation=operation ?: view.receipt.savedOperation)))
             if(!current()) return set(checkNotNull(model).copy(viewRefreshError="Сохранено для исходного персонажа; текущий выбор изменился"))
             port.publish(checkNotNull(model).scope,state)
             set(checkNotNull(model).copy(viewRefreshError=null))

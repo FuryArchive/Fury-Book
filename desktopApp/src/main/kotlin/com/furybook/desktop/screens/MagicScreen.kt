@@ -33,11 +33,14 @@ import com.furybook.ui.theme.DublFocus
 import com.furybook.ui.theme.DublGold
 import com.furybook.ui.theme.DublMuted
 import com.furybook.desktop.DesktopAppState
+import com.furybook.dubl.acquisition.*
+import androidx.compose.ui.platform.testTag
 
 private enum class MagicTab(val title: String) { SCHOOLS("Школы"), SPELLBOOK("Книга"), CATALOG("Каталог") }
 
 @Composable
 fun MagicScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
+    val actions=LocalDesktopAcquisition.current
     val character = state.activeCharacter
     var tab by remember(character.id) { mutableStateOf(MagicTab.SCHOOLS) }
     var search by remember(character.id) { mutableStateOf("") }
@@ -80,10 +83,16 @@ fun MagicScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                         onClick = { state.changeMana(1) },
                     ) { Text("+") }
                     Text("Ранг маны ${character.magic.manaRank}/5", color = DublGold)
-                    RankStepper(character.magic.manaRank, max = 5, enabled = !character.creationComplete) { next -> state.setMagicManaRank(next) }
+                    RankStepper(character.magic.manaRank, max = if(state.canonicalMode) Int.MAX_VALUE else 5, enabled = state.canonicalMode || !character.creationComplete) { next ->
+                        if(state.canonicalMode) { if(next>character.magic.manaRank) actions?.openTarget(AcquisitionKind.MANA,"mana:rank",next) else actions?.lowerHolding(AcquisitionKind.MANA,"mana:rank",next) }
+                        else state.setMagicManaRank(next)
+                    }
                     Text("Восстановление ${MagicEquipmentRules.manaRecoveryPerRound(character)}/раунд", color = DublMuted)
                 }
-                Text("XP: ранг маны ${MagicEquipmentRules.manaRankXp(character)} · школы ${MagicEquipmentRules.magicSchoolPowerXp(character)} · заклинания ${MagicEquipmentRules.learnedSpellXp(character)}", color = DublMuted)
+                if(state.canonicalMode) {
+                    Text(actions?.view?.balance?.let(::acquisitionAmount) ?: "Баланс недоступен")
+                    AcquisitionEntrySummary(AcquisitionKind.MANA,"mana:rank",character.magic.manaRank+1)
+                } else Text("XP: ранг маны ${MagicEquipmentRules.manaRankXp(character)} · школы ${MagicEquipmentRules.magicSchoolPowerXp(character)} · заклинания ${MagicEquipmentRules.learnedSpellXp(character)}", color = DublMuted)
             }
         }
 
@@ -94,13 +103,21 @@ fun MagicScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             Checkbox(checked = hideUnlearned, onCheckedChange = { hideUnlearned = it })
                             Text("Только изученные")
-                            Button(onClick = { addSchool = true }) { Text("+ Школа") }
+                            Button(onClick = { if(state.canonicalMode) actions?.chooseDefinition(AcquisitionKind.SCHOOL) else addSchool = true }) { Text("+ Школа") }
                         }
                     }) {
-                        EmptyState("Сила школы определяет доступность заклинаний. Изменения используют ту же XP-модель, что Android.")
+                        EmptyState(if(state.canonicalMode) "Школа выбирается по точной записи и экземпляру. Неизвестная цена не означает бесплатное обучение." else "Сила школы определяет доступность заклинаний.")
                     }
                 }
-                items(MagicEquipmentRules.visibleMagicSchools(character, hideUnlearned), key = { it }) { school ->
+                if(state.canonicalMode) {
+                    items(actions?.view?.instances?.filter { actions.view?.catalog?.definitions?.get(it.definition)?.kind == AcquisitionKind.SCHOOL }.orEmpty(),key={it.instanceId}) { school ->
+                        SectionCard(school.label,Modifier.testTag("acquisition.instance.${school.instanceId}")) {
+                            Text("Сила ${school.rank}")
+                            RankStepper(school.rank,max=Int.MAX_VALUE) { next -> if(next>school.rank) actions?.open(AcquisitionRequest(state.snapshot.activeCharacterId,listOf(AcquisitionTarget(school.definition,school.instanceId,next,school.parameters,school.optionId)))) else actions?.lowerHolding(AcquisitionKind.SCHOOL,school.instanceId,next) }
+                            AcquisitionEntrySummary(AcquisitionKind.SCHOOL,school.instanceId,school.rank+1)
+                        }
+                    }
+                } else items(MagicEquipmentRules.visibleMagicSchools(character, hideUnlearned), key = { it }) { school ->
                     val power = MagicEquipmentRules.schoolPower(character, school)
                     SectionCard(school, action = { OutlinedButton(onClick = { editSchool = school }) { Text("Изменить") } }) {
                         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -126,7 +143,7 @@ fun MagicScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                         Text("${spell.school} · мана ${spell.cost} · ${if (spell.learned) "изучено" else "не изучено"}", color = if (usability.usable) DublFocus else DublMuted)
                         if (spell.description.isNotBlank()) Text(spell.description, color = DublMuted)
                         if (spell.learned && !usability.usable) Text("Требуется сила школы ${usability.requiredPower}", color = androidx.compose.material3.MaterialTheme.colorScheme.error)
-                        Text("XP: ${spell.xpOverride ?: MagicEquipmentRules.learnXpCost(spell.cost)?.toString() ?: "—"}", color = DublGold)
+                        if(state.canonicalMode) AcquisitionEntrySummary(AcquisitionKind.SPELL,spell.catalogId ?: spell.uid,1) else Text("XP: ${spell.xpOverride ?: MagicEquipmentRules.learnXpCost(spell.cost)?.toString() ?: "—"}", color = DublGold)
                     }
                 }
             }
@@ -142,7 +159,8 @@ fun MagicScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             TextButton(onClick = { catalogDetails = spell }) { Text("Подробнее") }
                             Button(
-                                onClick = { state.addCatalogSpell(spell) },
+                                onClick = { if(state.canonicalMode) actions?.openTarget(AcquisitionKind.SPELL,spell.id,1) else state.addCatalogSpell(spell) },
+                                modifier = Modifier.testTag("acquisition.spell.${spell.id}"),
                             ) { Text(if (spell.incomplete) "Добавить и исправить" else "Добавить") }
                         }
                     }) {
@@ -175,7 +193,7 @@ fun MagicScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
             title = { Text("Удалить заклинание?") },
             text = { Text("«$spellName» будет удалено из книги персонажа.") },
             confirmButton = {
-                TextButton(onClick = { state.removeSpell(uid); pendingDeleteSpellUid = null }) { Text("Удалить") }
+                TextButton(onClick = { if(state.canonicalMode) actions?.editManual("Удаление заклинания") { base -> base.copy(magic=base.magic.copy(spells=base.magic.spells.filterNot { it.uid==uid })) } else state.removeSpell(uid); pendingDeleteSpellUid = null }) { Text("Удалить") }
             },
             dismissButton = { TextButton(onClick = { pendingDeleteSpellUid = null }) { Text("Отмена") } },
         )
@@ -266,6 +284,7 @@ private fun SchoolDialog(state: DesktopAppState, school: String, onError: (Strin
 
 @Composable
 private fun SpellDialog(state: DesktopAppState, spell: KnownSpell?, onDelete: (String) -> Unit, onDismiss: () -> Unit) {
+    val actions=LocalDesktopAcquisition.current
     var name by remember(spell?.uid) { mutableStateOf(spell?.name.orEmpty()) }
     var school by remember(spell?.uid) { mutableStateOf(spell?.school.orEmpty()) }
     var cost by remember(spell?.uid) { mutableStateOf((spell?.cost ?: 0).toString()) }
@@ -276,7 +295,7 @@ private fun SpellDialog(state: DesktopAppState, spell: KnownSpell?, onDelete: (S
     var duration by remember(spell?.uid) { mutableStateOf(spell?.duration.orEmpty()) }
     var description by remember(spell?.uid) { mutableStateOf(spell?.description.orEmpty()) }
     var enhancement by remember(spell?.uid) { mutableStateOf(spell?.enhancement.orEmpty()) }
-    var learned by remember(spell?.uid) { mutableStateOf(spell?.learned ?: true) }
+    var learned by remember(spell?.uid) { mutableStateOf(spell?.learned ?: !state.canonicalMode) }
     var xp by remember(spell?.uid) { mutableStateOf(spell?.xpOverride?.toString().orEmpty()) }
 
     FuryDialog(
@@ -297,7 +316,11 @@ private fun SpellDialog(state: DesktopAppState, spell: KnownSpell?, onDelete: (S
                 OutlinedTextField(duration, { duration = it }, label = { Text("Длительность") })
                 OutlinedTextField(description, { description = it }, label = { Text("Описание") })
                 OutlinedTextField(enhancement, { enhancement = it }, label = { Text("Усиление") })
-                Row(verticalAlignment = Alignment.CenterVertically) { Checkbox(learned, { learned = it }); Text("Изучено") }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(learned, { next -> if(state.canonicalMode && next) actions?.openTarget(AcquisitionKind.SPELL,spell?.catalogId ?: spell?.uid.orEmpty(),1) else learned=next })
+                    Text("Изучено")
+                }
+                if(state.canonicalMode) Text("Изучение требует отдельного подтверждённого расчёта; изменение полей — явной ручной коррекции.")
             }
         },
         confirmButton = {
@@ -308,7 +331,10 @@ private fun SpellDialog(state: DesktopAppState, spell: KnownSpell?, onDelete: (S
                     time = time.trim(), range = range.trim(), area = area.trim(), action = action.trim(), duration = duration.trim(),
                     description = description.trim(), enhancement = enhancement.trim(), learned = learned, xpOverride = xp.toIntOrNull()?.coerceAtLeast(0),
                 )
-                if (spell == null) state.addCustomSpell(updated) else state.updateSpell(updated)
+                if(state.canonicalMode) actions?.editManual("Изменение заклинания") { base ->
+                    val exact=if(spell==null) updated.copy(uid=java.util.UUID.randomUUID().toString(),learned=false) else updated
+                    base.copy(magic=base.magic.copy(spells=base.magic.spells.filterNot { it.uid==exact.uid }+exact))
+                } else if (spell == null) state.addCustomSpell(updated) else state.updateSpell(updated)
                 onDismiss()
             }) { Text("Сохранить") }
         },
@@ -323,6 +349,7 @@ private fun SpellDialog(state: DesktopAppState, spell: KnownSpell?, onDelete: (S
 
 @Composable
 private fun CatalogSpellDialog(state: DesktopAppState, spell: SpellCatalogEntry, onDismiss: () -> Unit) {
+    val actions=LocalDesktopAcquisition.current
     val usability = MagicEquipmentRules.spellUsability(state.activeCharacter, spell)
     FuryDialog(
         onDismissRequest = onDismiss,
@@ -344,7 +371,7 @@ private fun CatalogSpellDialog(state: DesktopAppState, spell: SpellCatalogEntry,
         },
         confirmButton = {
             TextButton(
-                onClick = { state.addCatalogSpell(spell); onDismiss() },
+                onClick = { if(state.canonicalMode) actions?.openTarget(AcquisitionKind.SPELL,spell.id,1) else state.addCatalogSpell(spell); onDismiss() },
             ) { Text(if (spell.incomplete) "Добавить и исправить" else "Добавить") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Закрыть") } },

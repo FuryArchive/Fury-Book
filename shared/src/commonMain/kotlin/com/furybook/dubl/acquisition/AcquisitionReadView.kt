@@ -15,7 +15,7 @@ internal fun instanceViews(state:StoredCharacter,catalog:AcquisitionCatalog):Lis
         instance.rank,instance.parameters,instance.abilityOptionId)
 })
 internal fun canonicalView(scope:AcquisitionScope,state:StoredCharacter,catalog:AcquisitionCatalog,capabilities:AcquisitionCapabilities)=AcquisitionCharacterView(
-    scope,state,catalog,balance(state.ledger),EnvelopeList(state.receipts.map { AcquisitionPresentation.receipt(it,catalog,true) }),instanceViews(state,catalog),AcquisitionPresentation.sync(state,capabilities))
+    scope,state,catalog,balance(state.ledger),EnvelopeList(state.receipts.map { AcquisitionPresentation.receipt(it,catalog,true,state.ledger.entries.singleOrNull { entry -> entry.operationId==it.operationId }) }),instanceViews(state,catalog),AcquisitionPresentation.sync(state,capabilities))
 internal fun selectionPrompts(request:AcquisitionRequest,state:StoredCharacter,catalog:AcquisitionCatalog):List<AcquisitionSelectionPrompt> {
     val instances=instanceViews(state,catalog)
     return EnvelopeList(request.targets.mapIndexedNotNull { index,target ->

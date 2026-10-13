@@ -33,6 +33,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.platform.testTag
+import kotlinx.coroutines.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -98,6 +102,7 @@ private data class DevelopmentGridSection(
 
 @Composable
 fun DevelopmentScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
+    if (state.canonicalMode) { CanonicalDevelopmentBrowser(state, modifier); return }
     val character = state.activeCharacter
     val chiTabUi = state.uiMounts(FcpUiSurface.DEVELOPMENT_TABS, FcpUiComponent.DEVELOPMENT_BROWSER).forFeature(DublUiFeature.CHI)
     val chiTabPresentation = chiTabUi?.presentation()
@@ -1147,6 +1152,21 @@ internal fun DevelopmentDetailsDialog(
     isCustom: Boolean,
     onDismiss: () -> Unit,
 ) {
+    val canonical = LocalDesktopAcquisition.current
+    if (state.canonicalMode) {
+        FuryDialog(onDismissRequest=onDismiss,title={Text(entry.name)},text={
+            Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                Text(entry.benefit)
+                if(entry.requirements.isNotBlank()) Text(entry.requirements)
+                AcquisitionEntrySummary(com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT,entry.id,
+                    (canonical?.view?.instances?.singleOrNull { it.definition.entryId==entry.id }?.rank ?: 0)+1)
+                TextButton(onClick=onEditLocal) { Text("Расширенная локальная правка") }
+                if(hasLocalOverride) TextButton(onClick=onResetLocal) {Text("Сбросить локальную правку")}
+                if(isCustom) TextButton(onClick=onDeleteCustom) {Text("Удалить свою запись")}
+            }
+        },confirmButton={TextButton(onClick=onDismiss){Text("Закрыть")}})
+        return
+    }
     val character = state.activeCharacter
     val owned = character.development[entry.id] ?: OwnedDevelopment()
     val rules = DevelopmentRules(character, state.developmentCatalog, DevelopmentProgress(character.development))
@@ -1400,6 +1420,7 @@ internal fun DevelopmentLocalEditDialog(
 
 @Composable
 private fun ChiResourceCard(state: DesktopAppState) {
+    val actions=LocalDesktopAcquisition.current
     val character = state.activeCharacter
     val automaticAccess = character.chiAutomaticAccess
     val progressionBonus = character.chiProgressionBonus
@@ -1409,11 +1430,11 @@ private fun ChiResourceCard(state: DesktopAppState) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Column {
                 Text(if (character.chiActive) "${character.chiCurrent} / ${character.chiMaximum}" else "ЦИ выключено", color = DublFocus, fontWeight = FontWeight.Bold)
-                Text("Доп. ранги: ${character.chiBonusRanks} / 10 · ${CharacterEconomy.CHI_BONUS_RANK_XP} XP за ранг", color = DublMuted)
+                if(state.canonicalMode) AcquisitionEntrySummary(com.furybook.dubl.acquisition.AcquisitionKind.CHI_BONUS,"chi:bonus-ranks",character.chiBonusRanks+1) else Text("Доп. ранги: ${character.chiBonusRanks} / 10 · ${CharacterEconomy.CHI_BONUS_RANK_XP} XP за ранг", color = DublMuted)
             }
             Switch(
                 checked = character.chiActive,
-                onCheckedChange = { enabled -> state.setChiEnabled(enabled) },
+                onCheckedChange = { enabled -> if(state.canonicalMode) actions?.editManual("Изменение доступа Ци") { base -> base.copy(chiEnabled=enabled) } else state.setChiEnabled(enabled) },
                 enabled = !automaticAccess,
             )
             if (character.chiActive) {
@@ -1439,7 +1460,7 @@ private fun ChiResourceCard(state: DesktopAppState) {
         } else {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Бонусные ранги")
-                RankStepper(character.chiBonusRanks, max = 10) { state.setChiBonusRanks(it) }
+                RankStepper(character.chiBonusRanks, max = if(state.canonicalMode) Int.MAX_VALUE else 10) { next -> if(state.canonicalMode) { if(next>character.chiBonusRanks) actions?.openTarget(com.furybook.dubl.acquisition.AcquisitionKind.CHI_BONUS,"chi:bonus-ranks",next) else actions?.lowerHolding(com.furybook.dubl.acquisition.AcquisitionKind.CHI_BONUS,"chi:bonus-ranks",next) } else state.setChiBonusRanks(next) }
             }
             Text(
                 "Максимум: база $baseMaximum + купленный запас ${character.chiBonusRanks} + развитие $progressionBonus = ${character.chiMaximum}.",
@@ -1454,12 +1475,12 @@ private fun ChiResourceCard(state: DesktopAppState) {
 }
 
 @Composable
-private fun ChiTechniquesCard(state: DesktopAppState) {
+private fun ChiTechniquesCard(state: DesktopAppState, query:String="") {
     val character = state.activeCharacter
     val rules = ChiRules(character, state.developmentCatalog)
     SectionCard("Приёмы ЦИ") {
         if (state.chiCatalog.techniques.isEmpty()) EmptyState("Приёмов ЦИ в каталоге нет.")
-        state.chiCatalog.techniques.forEach { technique ->
+        state.chiCatalog.techniques.filter { query.isBlank() || listOf(it.name,it.school,it.action,it.effect,it.requirements).any { text -> text.contains(query,true) } }.forEach { technique ->
             val availability = rules.availability(technique)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
@@ -1478,4 +1499,139 @@ private fun ChiTechniquesCard(state: DesktopAppState) {
 private fun fcpDevelopmentIcon(token: String?): String? = when (token) {
     FcpUiIconToken.CHI -> "◎"
     else -> null
+}
+
+/** Same browser/list/inspector layout, with canonical holdings and Shared quote authority only. */
+@Composable
+private fun CanonicalDevelopmentBrowser(state: DesktopAppState, modifier: Modifier) {
+    val actions = LocalDesktopAcquisition.current ?: return
+    val view = actions.view
+    var tab by remember(state.snapshot.activeCharacterId) { mutableStateOf(DevelopmentTab.REGULAR) }
+    var search by remember(state.snapshot.activeCharacterId) { mutableStateOf("") }
+    var selected by remember(state.snapshot.activeCharacterId) { mutableStateOf<DevelopmentEntry?>(null) }
+    var editing by remember(state.snapshot.activeCharacterId) { mutableStateOf<DevelopmentEntry?>(null) }
+    var filter by remember { mutableStateOf(DevelopmentBrowserFilter.ALL) }
+    var planned by remember(state.snapshot.activeCharacterId) { mutableStateOf(emptySet<String>()) }
+    var reviews by remember(view) { mutableStateOf(emptyMap<String, com.furybook.dubl.acquisition.AcquisitionReview>()) }
+    var hints by remember(view?.catalog) { mutableStateOf<com.furybook.dubl.acquisition.AcquisitionDependencyHints?>(null) }
+    val cache = remember { DesktopDependencyHintCache() }
+    val catalog = remember(state.snapshot, state.contentRevision) { state.developmentCatalog }
+    LaunchedEffect(view, catalog) {
+        if (view == null) return@LaunchedEffect
+        val prepared = withContext(Dispatchers.Default) {
+            val index = cache.get(view.catalog)
+            val quotes = linkedMapOf<String, com.furybook.dubl.acquisition.AcquisitionReview>()
+            for (entry in catalog.entries) {
+                ensureActive()
+                val target = actions.target(com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT, entry.id,
+                    (view.instances.singleOrNull { it.definition.entryId == entry.id }?.rank ?: 0) + 1) ?: continue
+                val request = com.furybook.dubl.acquisition.AcquisitionRequest(view.scope.characterId, listOf(target))
+                try { quotes[entry.id] = state.acquisition.quoteCardReview(request) }
+                catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { }
+            }
+            index to quotes.toMap()
+        }
+        hints = prepared.first; reviews = prepared.second
+    }
+    val source = catalog.entries.filter { entry ->
+        val category = when(tab) {
+            DevelopmentTab.REGULAR -> entry.isRegularDevelopment
+            DevelopmentTab.SPECIAL -> entry.isSpecialDevelopment
+            DevelopmentTab.MARTIAL -> entry.isMartialArt
+            DevelopmentTab.CHI -> entry.isChiDevelopment
+            DevelopmentTab.OWNED -> true
+        }
+        category && (search.isBlank() || listOf(entry.name, entry.benefit, entry.requirements, entry.category).any { it.contains(search, true) }) && when(filter) {
+            DevelopmentBrowserFilter.ALL -> true
+            DevelopmentBrowserFilter.PLAN -> entry.id in planned
+            DevelopmentBrowserFilter.AVAILABLE -> reviews[entry.id]?.model?.phase == com.furybook.dubl.acquisition.AcquisitionUiPhase.Ready
+            DevelopmentBrowserFilter.ALMOST -> reviews[entry.id]?.model?.let { it.phase == com.furybook.dubl.acquisition.AcquisitionUiPhase.Ready && it.rows.count { row -> !row.isTarget && !row.alreadyOwned } == 1 } == true
+        }
+    }.sortedBy { it.name }
+    Column(modifier.fillMaxSize(), verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        SectionCard("Навыки и развитие") {
+            Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                DevelopmentTab.entries.filter { it != DevelopmentTab.CHI || state.chiPackEnabled }.forEach { value ->
+                    FilterChip(selected=tab==value,onClick={tab=value},label={Text(value.title)})
+                }
+            }
+            Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f)) {
+                    OutlinedTextField(search,{search=it},singleLine=true,placeholder={Text("Поиск по навыкам, веткам и стилям")},modifier=Modifier.fillMaxWidth().testTag("development.search"))
+                    Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) { DevelopmentBrowserFilter.entries.forEach { value ->
+                        FilterChip(selected=filter==value,onClick={filter=value},label={Text(value.title)})
+                    } }
+                }
+                Column(Modifier.widthIn(min=220.dp,max=360.dp)) {
+                    Text("Доступный баланс",color=DublMuted)
+                    Text(view?.balance?.let(::acquisitionAmount) ?: "Баланс недоступен",color=DublGold)
+                    Text("Цена и условия: только подтверждённый просмотр",style=MaterialTheme.typography.bodySmall)
+                }
+            }
+            if (planned.isNotEmpty()) Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                Text("План персонажа · ${planned.size}")
+                Button(onClick={actions.openBulk(planned)},modifier=Modifier.testTag("acquisition.open")) { Text("Просмотреть весь план") }
+            }
+        }
+        Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+            LazyColumn(Modifier.weight(1f).fillMaxSize(),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+                if(tab==DevelopmentTab.CHI) {
+                    item { ChiResourceCard(state) }
+                    item { ChiTechniquesCard(state,search) }
+                }
+                if (tab == DevelopmentTab.OWNED) {
+                    val owned=view?.instances?.filter { view.catalog.definitions[it.definition]?.kind == com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT && (search.isBlank() || it.label.contains(search,true)) }.orEmpty()
+                    items(owned,key={it.instanceId}) { item -> SectionCard(item.label,Modifier.testTag("acquisition.instance.${item.instanceId}")) {
+                        Text("Ранг ${item.rank}"); item.optionId?.let { Text("Выбранный вариант сохранён") }
+                        Button(onClick={actions.open(com.furybook.dubl.acquisition.AcquisitionRequest(state.snapshot.activeCharacterId,listOf(com.furybook.dubl.acquisition.AcquisitionTarget(item.definition,item.instanceId,item.rank+1,item.parameters,item.optionId))))},modifier=Modifier.testTag("acquisition.open")) { Text("Следующий ранг этого экземпляра") }
+                        TextButton(onClick={actions.lowerHolding(com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT,item.instanceId,item.rank-1)}) { Text("Уменьшить: ручная коррекция") }
+                    } }
+                    if(owned.isEmpty()) item { EmptyState("Нет подтверждённых приобретений") }
+                } else items(source,key={it.id}) { entry ->
+                    Surface(Modifier.fillMaxWidth().testTag("acquisition.definition.${entry.id}").clickable { selected=entry },shape=RoundedCornerShape(12.dp),
+                        color=if(selected?.id==entry.id) DesktopSurfaceRaised else DesktopSurface,border=BorderStroke(1.dp,DesktopBorder)) {
+                        Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
+                            Text(entry.name,fontWeight=FontWeight.Bold)
+                            val quote=reviews[entry.id]
+                            if(quote==null) Text("Цена уточняется или запись недоступна",Modifier.testTag("acquisition.status")) else AcquisitionCardSummary(quote.model)
+                            if(entry.benefit.isNotBlank()) Text(entry.benefit,color=DublMuted,maxLines=2,overflow=TextOverflow.Ellipsis)
+                            val ref=quote?.model?.request?.targets?.singleOrNull()?.definition
+                            val count=ref?.let { hints?.dependents(it)?.size } ?: 0
+                            if(count>0) Text("Связанные навыки: $count (подсказка, не допуск)",color=DublGold)
+                            Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
+                                TextButton(onClick={quote?.model?.request?.let(actions::open)},enabled=quote?.model?.request!=null,modifier=Modifier.testTag("acquisition.open")) { Text("Просмотреть покупку") }
+                                TextButton(onClick={selected=entry}) { Text("Подробнее") }
+                            }
+                        }
+                    }
+                }
+            }
+            selected?.let { entry ->
+                DesktopPanel(Modifier.widthIn(min=320.dp,max=430.dp).fillMaxHeight()) {
+                    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(14.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+                        Text(entry.name,style=MaterialTheme.typography.titleLarge)
+                        TextButton(onClick={selected=null}) {Text("Закрыть")}
+                        Text(entry.benefit);if(entry.requirements.isNotBlank()) Text(entry.requirements,color=DublMuted)
+                        TextButton(onClick={editing=entry}) { Text("Расширенная локальная правка") }
+                        if(entry.id in view?.state?.character?.developmentOverrides.orEmpty()) TextButton(onClick={actions.editManual("Сброс локальной записи") { base -> base.copy(developmentOverrides=base.developmentOverrides-entry.id) }}) {Text("Сбросить локальную правку")}
+                        if(view?.state?.character?.customDevelopmentEntries?.any { it.id==entry.id }==true) TextButton(onClick={actions.editManual("Удаление локальной записи") { base -> base.copy(customDevelopmentEntries=base.customDevelopmentEntries.filterNot { it.id==entry.id }) }}) {Text("Удалить свою запись")}
+                        if(entry.notes.isNotBlank()) Text(entry.notes,color=DublMuted)
+                        reviews[entry.id]?.let { AcquisitionCardSummary(it.model); AcquisitionRequirementRows(it.model,actions); AcquisitionWitnessRows(it.details) }
+                        TextButton(onClick={planned=if(entry.id in planned) planned-entry.id else planned+entry.id}) { Text(if(entry.id in planned) "Убрать из плана" else "В план") }
+                        Button(onClick={actions.openTarget(com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT,entry.id,(view?.instances?.singleOrNull { it.definition.entryId==entry.id }?.rank ?: 0)+1,false)}) {Text("Добрать только требования")}
+                        Button(onClick={reviews[entry.id]?.model?.request?.let(actions::open)}) {Text("Добрать и взять")}
+                        val ref=reviews[entry.id]?.model?.request?.targets?.singleOrNull()?.definition
+                        ref?.let { hints?.dependents(it) }?.forEach { dependent -> TextButton(onClick={selected=catalog.byId(dependent.entryId)}) {Text(com.furybook.dubl.acquisition.AcquisitionLabels(view!!.catalog).definition(dependent))} }
+                    }
+                }
+            }
+        }
+    }
+    editing?.let { entry -> DevelopmentLocalEditDialog(entry,"Локальная правка",{ updated ->
+        actions.editManual("Локальная правка: ${updated.name}") { base ->
+            if(base.customDevelopmentEntries.any { it.id==updated.id }) base.copy(customDevelopmentEntries=base.customDevelopmentEntries.map { if(it.id==updated.id) updated else it })
+            else base.copy(developmentOverrides=base.developmentOverrides+(updated.id to updated))
+        };editing=null
+    },{editing=null}) }
+
 }

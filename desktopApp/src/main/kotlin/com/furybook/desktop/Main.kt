@@ -34,6 +34,13 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.testTag
+import kotlinx.coroutines.launch
+import com.furybook.desktop.screens.DesktopAcquisitionRoot
+import com.furybook.desktop.screens.LocalDesktopAcquisition
+import com.furybook.desktop.screens.AcquisitionBalanceCard
+import com.furybook.desktop.screens.acquisitionAmount
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -96,7 +103,7 @@ fun main() = application {
 }
 
 @Composable
-private fun DesktopVisualTheme(content: @Composable () -> Unit) {
+internal fun DesktopVisualTheme(content: @Composable () -> Unit) {
     val colors = MaterialTheme.colorScheme
     val typography = MaterialTheme.typography
     MaterialTheme(
@@ -157,13 +164,20 @@ private fun DesktopApp() {
         }
         return
     }
+    DesktopAppContent(state, legacyCloudController)
+}
+
+/** Exact production content shared by the native Window and the supported offscreen host. */
+@Composable
+internal fun DesktopAppContent(state: DesktopAppState, legacyCloudController: DesktopCloudController? = null) {
     if (state.canonicalMode) {
-        LaunchedEffect(state) { runCatching { state.initializeCanonicalView() } }
-        LocalAcquisitionStoragePanel(state)
-        return // Never bind canonical envelopes to legacy cloud save/link/import/delete writers.
+        LaunchedEffect(state) { if (!state.canonicalViewReady) runCatching { state.initializeCanonicalView() } }
+        LaunchedEffect(state, state.contentRevision) { runCatching { state.refreshCanonicalContent() } }
+        if (!state.canonicalViewReady) { LocalAcquisitionStoragePanel(state); return }
+        DesktopAcquisitionRoot(state) { DesktopNavigationContent(state, null) }
+        return // Protected heads, including default-false read-only, never bind a legacy cloud writer.
     }
     val cloudController = requireNotNull(legacyCloudController)
-    var selected by remember { mutableStateOf(DesktopSection.SHEET) }
 
     LaunchedEffect(cloudController) {
         cloudController.updateEnabledPackIds(state.enabledContentPackIds())
@@ -176,6 +190,12 @@ private fun DesktopApp() {
         cloudController.updateEnabledPackIds((cloudController.enabledPackIds - availableIds) + activeIds)
     }
 
+    DesktopNavigationContent(state, cloudController)
+}
+
+@Composable
+private fun DesktopNavigationContent(state: DesktopAppState, cloudController: DesktopCloudController?) {
+    var selected by remember(state) { mutableStateOf(if (state.unfundedPlaceholder) DesktopSection.CHARACTERS else DesktopSection.SHEET) }
     Column(Modifier.fillMaxSize()) {
         state.storageError?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(12.dp)) }
         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
@@ -198,6 +218,7 @@ private fun DesktopApp() {
 /** T12 storage-only opt-in. Legacy editors/cloud controls stay unavailable until canonical UI lands. */
 @Composable
 private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
+    val scope = rememberCoroutineScope()
     var packs by remember { mutableStateOf("dubl-3.69") }
     var xp by remember { mutableStateOf("") }
     var ap by remember { mutableStateOf("") }
@@ -211,7 +232,7 @@ private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
             is LoadResult.Loaded -> {
                 val amount = balance(loaded.state.ledger)
                 Text("Сохранено на устройстве: ${amount.xp} XP / ${amount.ap} ОСп")
-                Text("История и очередь сохранены. Канонический интерфейс покупок ещё не включён.")
+                Text("История и очередь сохранены. Загрузка канонического просмотра.")
             }
             is LoadResult.MigrationRequired -> {
                 Text("Укажите известный состав исходного листа. Старые покупки не переоцениваются новым каталогом.")
@@ -229,7 +250,7 @@ private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
                     val opening = balance(prepared.ledger)
                     Text("Остаток по сохранённым старым правилам: ${opening.xp} XP / ${opening.ap} ОСп")
                     Button(enabled = state.localAcquisitionEnabled, onClick = {
-                        localError = runCatching { state.commitPreparedLocalMigration() }.exceptionOrNull()?.message
+                        scope.launch { localError = runCatching { state.commitPreparedLocalMigrationAsync() }.fold({ result -> if (result == CommitResult.Committed) null else "Перенос не подтверждён: $result" }, { it.message }) }
                     }) { Text("Подтверждаю исходные пакеты и перенос") }
                 }
                 if (state.pendingLegacyMigration != null) {
@@ -238,8 +259,7 @@ private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
                     OutlinedTextField(ap, { ap = it }, label = { Text("Известный остаток ОСп") })
                     OutlinedTextField(reason, { reason = it }, label = { Text("Основание подтверждения") })
                     Button(enabled = state.localAcquisitionEnabled && xp.toLongOrNull() != null && ap.toLongOrNull() != null && reason.isNotBlank(), onClick = {
-                        localError = runCatching { state.confirmLocalOpeningBalance(xp.toLong(), ap.toLong(), reason) }
-                            .exceptionOrNull()?.message
+                        scope.launch { localError = runCatching { state.confirmLocalOpeningBalanceAsync(xp.toLong(), ap.toLong(), reason) }.fold({ result -> if (result == CommitResult.Committed) null else "Перенос не подтверждён: $result" }, { it.message }) }
                     }) { Text("Подтверждаю остаток и исходные пакеты") }
                 }
             }
@@ -278,20 +298,21 @@ private fun DesktopRail(
             modifier = Modifier.padding(horizontal = 8.dp),
         )
         Surface(
-            modifier = Modifier.fillMaxWidth().clickable { switcherOpen = true },
+            modifier = Modifier.fillMaxWidth().testTag("character.selector").clickable { switcherOpen = true },
             color = DesktopSurfaceRaised,
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.52f)),
         ) {
             Column(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
                 Text(state.activeCharacter.name, fontWeight = FontWeight.SemiBold, maxLines = 2)
-                Text("${state.activeCharacter.experience} XP · сменить ▼", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
+                Text(if (state.canonicalMode) "Канонический лист · сменить ▼" else "${state.activeCharacter.experience} XP · сменить ▼", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
             }
         }
         DropdownMenu(expanded = switcherOpen, onDismissRequest = { switcherOpen = false }) {
             state.snapshot.characters.forEach { character ->
                 DropdownMenuItem(
                     text = { Text(if (character.id == state.snapshot.activeCharacterId) "✓ ${character.name}" else character.name) },
+                    modifier = Modifier.testTag("character.${character.id}"),
                     onClick = {
                         state.selectCharacter(character.id)
                         switcherOpen = false
@@ -348,7 +369,7 @@ private fun NavigationItem(section: DesktopSection, active: Boolean, onClick: ()
         label = "navigation-text",
     )
     Surface(
-        modifier = modifier.clickable(onClick = onClick),
+        modifier = modifier.testTag("navigation.${section.name}").clickable(onClick = onClick),
         shape = RoundedCornerShape(10.dp),
         color = background,
         border = if (active) BorderStroke(1.dp, DesktopAccent.copy(alpha = 0.32f)) else null,
@@ -386,7 +407,7 @@ private val DesktopSection.iconKind: DesktopIconKind
 @Composable
 private fun DesktopContent(
     state: DesktopAppState,
-    cloudController: DesktopCloudController,
+    cloudController: DesktopCloudController?,
     section: DesktopSection,
     layout: DublLayoutClass,
     onNavigate: (DesktopSection) -> Unit,
@@ -417,7 +438,9 @@ private fun DesktopContent(
                 alpha = pageProgress
                 translationY = (1f - pageProgress) * 6f
             }
-            when (section) {
+            if (state.canonicalMode && section != DesktopSection.CHARACTERS && state.localStoredCharacter() !is LoadResult.Loaded) {
+                LocalAcquisitionStoragePanel(state)
+            } else when (section) {
                 DesktopSection.SHEET -> CharacterSheetScreen(
                     state = state,
                     modifier = animatedPageModifier,
@@ -430,9 +453,47 @@ private fun DesktopContent(
                 DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
                 DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
                 DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
-                DesktopSection.CAMPAIGN -> CampaignScreen(state, cloudController, animatedPageModifier)
-                DesktopSection.CHARACTERS -> CharactersScreen(state, cloudController, animatedPageModifier)
+                DesktopSection.CAMPAIGN -> if (cloudController != null) CampaignScreen(state, cloudController, animatedPageModifier) else Text("Облачная кампания недоступна для канонического локального журнала.")
+                DesktopSection.CHARACTERS -> if (cloudController != null) CharactersScreen(state, cloudController, animatedPageModifier) else CanonicalRoster(state, animatedPageModifier)
             }
+        }
+    }
+}
+
+@Composable
+private fun CanonicalRoster(state: DesktopAppState, modifier: Modifier = Modifier) {
+    val actions=LocalDesktopAcquisition.current ?: return
+    var exportStatus by remember { mutableStateOf<String?>(null) }
+    val scope=rememberCoroutineScope()
+    Column(modifier, verticalArrangement=Arrangement.spacedBy(12.dp)) {
+        Text("Персонажи", style=MaterialTheme.typography.headlineSmall)
+        Text("Каноническое локальное хранилище. Облачная запись выключена.")
+        if(state.readOnlyCanonicalMode) Text("Только чтение: просмотр и существующий экспорт доступны, новые операции выключены.")
+        state.snapshot.characters.filterNot { state.unfundedPlaceholder }.forEach { character ->
+            Button(onClick={actions.hideForSelection();state.selectCharacter(character.id)},modifier=Modifier.testTag("character.${character.id}")) { Text(character.name) }
+        }
+        Button(onClick=actions::newCharacter,modifier=Modifier.testTag("acquisition.funding.open")) { Text("Создать с явным начальным балансом") }
+        if(state.localStoredCharacter() !is LoadResult.Loaded && !state.unfundedPlaceholder) LocalAcquisitionStoragePanel(state)
+        if(state.localStoredCharacter() is LoadResult.Loaded) {
+            Button(onClick={
+                val captured=state.exportActiveCharacter()
+                val dialog=java.awt.FileDialog(null as java.awt.Frame?,"Экспорт персонажа DUBL",java.awt.FileDialog.SAVE)
+                dialog.file="character.dubl";dialog.isVisible=true
+                val name=dialog.file
+                val directory=dialog.directory
+                dialog.dispose()
+                if(name!=null && directory!=null) scope.launch {
+                    exportStatus=try {
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            val target=java.nio.file.Path.of(directory,if(name.endsWith(".dubl",true)) name else "$name.dubl")
+                            java.nio.file.Files.writeString(target,captured,java.nio.charset.StandardCharsets.UTF_8)
+                        }
+                        "Канонический персонаж экспортирован."
+                    } catch(_:Exception) { "Не удалось экспортировать персонажа." }
+                }
+            },modifier=Modifier.testTag("acquisition.export")) { Text("Экспорт") }
+            exportStatus?.let { Text(it) }
+            AcquisitionBalanceCard()
         }
     }
 }
