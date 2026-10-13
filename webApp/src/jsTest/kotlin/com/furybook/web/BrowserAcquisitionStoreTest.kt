@@ -439,6 +439,59 @@ class BrowserAcquisitionStoreTest {
         println("ACTUAL_MAIN_ORIGINAL_EXTRAS|unknown-field-enum-malformed-refused-export-exact|all10-known-fields-backup|changed-preparation-CAS-abort|native-cancellation|PASS")
     }
 
+    @Test fun actual_pull_main_ingress_preserves_supported_own_extras_key()=test {
+        val id="own-extras-key-owner";val characterId="__proto__"
+        val character=DublCharacter(characterId,experience=100)
+        val known=CharacterSheetExtras(activeConditions=setOf(CharacterConditionId.TIRED),notes="valuable original")
+        val rows=listOf(js("({notes:'valuable original',futureNote:'unsupported original',conditions:['UNKNOWN_CONDITION']})"),
+            js("JSON.parse")(com.furybook.core.cloud.CloudExtrasProjection.encode(known)))
+        for(index in rows.indices) {
+            clearBrowserSessionData()
+            val name="furybook-own-extras-key-"+webUuid();val writer=BrowserAcquisitionStore(owner(id),name,localWritesEnabled=true)
+            assertTrue(writer.initialize());var ingress:BrowserAcquisitionSession?=null
+            try {
+                val row=rows[index]
+                val expectedExtras="{\"version\":1,\"characters\":{\"__proto__\":"+(js("JSON.stringify")(row) as String)+"}}"
+                if(index==0) {
+                    // The genuine original key is supported; strict refusal is about its unknown content.
+                    bindBrowserSessionOwner(id)
+                    BrowserCharacterStore().replaceRaw(SnapshotCodec.encode(AppSnapshot(listOf(character),characterId)))
+                    BrowserCharacterExtrasStore().replaceRaw(expectedExtras)
+                    assertIs<MigrationResult.Corrupt>(writer.prepareMigration(characterId,listOf("dubl-3.69"),null))
+                    clearBrowserSessionData()
+                }
+                val reply=bootstrapReply(listOf(character),row);reply.state.activeCharacterId=characterId
+                syntheticPull(writer,id,reply) { cloud,session ->
+                    ingress=BrowserAcquisitionSession.open(session,{id},name,verifyOwner=cloud::verifyOwner)
+                    val received=cloud.pull();ingress!!.ingestBootstrap(received)
+                    val original=assertNotNull(received.originalLegacySource)
+                    assertEquals(expectedExtras,original.extrasRaw)
+                    val originalMap=js("JSON.parse")(original.extrasRaw).characters
+                    val displayMap=js("JSON.parse")(received.extras).characters
+                    assertTrue(js("Object.prototype.hasOwnProperty.call")(originalMap,characterId) as Boolean)
+                    assertTrue(js("Object.prototype.hasOwnProperty.call")(displayMap,characterId) as Boolean)
+                    assertEquals(original,writer.originalLegacySourceForExport())
+                    if(index==0) {
+                        assertIs<MigrationResult.Corrupt>(writer.prepareMigration(characterId,listOf("dubl-3.69"),null))
+                        assertIs<CommitResult.StorageFailure>(writer.compareAndSet(characterId,-1,state(characterId)))
+                        assertNull(writer.rawForExport(characterId));assertEquals(original,writer.originalLegacySourceForExport())
+                    } else {
+                        assertEquals(known,BrowserCharacterExtrasStore().load(characterId))
+                        val pending=assertIs<MigrationResult.NeedsBalanceConfirmation>(writer.prepareMigration(characterId,listOf("dubl-3.69"),null))
+                        assertEquals(known,pending.pending.extras)
+                        val migrated=confirmLegacyBalance(pending.pending,Amount(100,0),"Synthetic known100")
+                        assertEquals(CommitResult.Committed,writer.compareAndSet(characterId,-1,migrated))
+                        val saved=(writer.load(characterId) as LoadResult.Loaded).state
+                        assertEquals(known,saved.extras)
+                        assertEquals(expectedExtras,saved.ledger.opening.legacyMigration!!.origin.extrasSource!!.raw)
+                        assertEquals(original.snapshotRaw,saved.ledger.opening.legacyMigration!!.origin.raw)
+                    }
+                }
+            } finally { ingress?.store?.close();writer.close();clearBrowserSessionData() }
+        }
+        println("ACTUAL_MAIN_OWN_EXTRAS_KEY|__proto__|unknown-field-enum-refused|known-extras-backup-exact|PASS")
+    }
+
     private fun authReply(id:String?="a",failure:Boolean=false):dynamic {
         val reply=js("({})");reply.error=if(failure) js("({message:'Synthetic Auth failure'})") else null
         reply.data=js("({})")

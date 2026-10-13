@@ -206,7 +206,7 @@ class WebCloudSync private constructor(private val acquisitionStore: Acquisition
         val characterArray = js("[]")
         val extrasRoot = js("({})")
         extrasRoot.version = 1
-        val extrasCharacters = js("({})")
+        val extrasCharacters = js("Object.create(null)")
         extrasRoot.characters = extrasCharacters
 
         val localSnapshot=lastScheduled?.snapshot?.let { js("JSON.parse")(it) }
@@ -218,7 +218,7 @@ class WebCloudSync private constructor(private val acquisitionStore: Acquisition
         val originalLegacySource=if(count==0) null else {
             val sourceSnapshot=js("({})");sourceSnapshot.schema=SnapshotCodec.SCHEMA
             sourceSnapshot.characters=js("[]")
-            val sourceExtras=js("({version:1,characters:{}})")
+            val sourceExtras=js("({version:1,characters:Object.create(null)})")
             for(index in 0 until count) {
                 val item=characters[index]
                 if(item.data?.formatVersion!=null) error("Новый формат требует receipt-aware чтения Fury Cloud")
