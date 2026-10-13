@@ -202,6 +202,7 @@ jobs:
             tools/tests/test_fury_branding.py \
             tools/tests/test_build_version_matrix.py \
             tools/tests/test_compose_release_ready.py \
+            tools/tests/test_desktop_skills_browser.py \
             tools/tests/test_rulebook_release_gate.py
 
       - name: Compile and test shared desktop runtime

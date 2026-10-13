@@ -48,7 +48,7 @@ def test_promoted_regular_development_keeps_rulebook_mechanics_and_explicit_unre
     by_name = {entry["name"]: entry for entry in regular["entries"]}
 
     blocking = by_name["Блокирование"]
-    assert blocking["requirements"] == "Ловкость 3, Скорость 3, Холодное оружие 3 или Рукопашный бой 3"
+    assert blocking["requirements"] == "Ловкость 3 или Скорость 3; Холодное оружие 3 или Рукопашный бой 3"
 
     last_stand = by_name["Сражаться до последнего"]
     assert last_stand["ranks"] == 1

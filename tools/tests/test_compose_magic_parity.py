@@ -27,7 +27,10 @@ def test_desktop_magic_exposes_android_mana_mutations_and_creation_lock():
     assert 'changeMana(1)' in MAGIC
     assert 'enabled = character.manaCurrent > 0' in MAGIC
     assert 'enabled = character.manaCurrent < character.effectiveManaMaximum' in MAGIC
-    assert 'enabled = !character.creationComplete' in MAGIC
+    assert 'enabled = state.canonicalMode || !character.creationComplete' in MAGIC
+    assert 'actions?.openTarget(AcquisitionKind.MANA,"mana:rank",next)' in MAGIC
+    assert 'actions?.lowerHolding(AcquisitionKind.MANA,"mana:rank",next)' in MAGIC
+    assert 'else state.setMagicManaRank(next)' in MAGIC
 
 
 def test_desktop_magic_keeps_incomplete_catalog_spells_addable_for_local_fix():

@@ -1,3 +1,4 @@
+from tools.tests.kotlin_harness_support import assert_application_route
 from pathlib import Path
 import shutil
 import subprocess
@@ -27,29 +28,14 @@ def test_android_and_desktop_magic_route_through_shared_application_capability()
     }
     for method, call in mapping.items():
         assert f'fun {method}' in android, method
-        assert call in android, method
+        assert_application_route(android, method, call)
         assert f'fun {method}' in desktop, method
-        assert call in desktop, method
+        assert_application_route(desktop, method, call)
     assert 'CharacterSession' not in android + desktop
     assert 'fun mutate(' not in desktop
 
 
 def test_shared_magic_behavior_harness():
-    kotlinc = shutil.which('kotlinc')
-    assert kotlinc is not None
-    sources = sorted((SHARED / 'com/furybook/dubl/model').glob('*.kt'))
-    sources += [
-        SHARED / 'com/furybook/dubl/data/CharacterStore.kt',
-        SHARED / 'com/furybook/dubl/state/CharacterSession.kt',
-        HARNESS,
-    ]
-    with tempfile.TemporaryDirectory() as td:
-        jar = Path(td) / 'magic-parity.jar'
-        compiled = subprocess.run(
-            [kotlinc, *map(str, sources), '-include-runtime', '-d', str(jar)],
-            cwd=ROOT, capture_output=True, text=True,
-        )
-        assert compiled.returncode == 0, compiled.stderr
-        result = subprocess.run(['java', '-jar', str(jar)], cwd=ROOT, capture_output=True, text=True)
-        assert result.returncode == 0, result.stderr + result.stdout
-        assert 'MAGIC_PARITY_OK' in result.stdout
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(HARNESS)
+    assert 'MAGIC_PARITY_OK' in result.stdout

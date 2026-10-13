@@ -9,7 +9,7 @@ DEV_FILES = [
     ROOT / "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_special_catalog.json",
     ROOT / "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_ability_roots_catalog.json",
     ROOT / "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_martial_catalog.json",
-    ROOT / "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_chi_catalog.json",
+    ROOT / "shared/src/commonMain/resources/fcp/dubl-chi-3.69/content/development_chi_catalog.json",
     ROOT / "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_magic_catalog.json",
     ROOT / "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_catalog.json",
 ]
@@ -34,7 +34,7 @@ class Android06ContentTest(unittest.TestCase):
 
     def test_blocking_uses_rulebook_requirement(self):
         self.assertEqual(
-            "Ловкость 3, Скорость 3, Холодное оружие 3 или Рукопашный бой 3",
+            "Ловкость 3 или Скорость 3; Холодное оружие 3 или Рукопашный бой 3",
             self.by_name["Блокирование"]["requirements"],
         )
 

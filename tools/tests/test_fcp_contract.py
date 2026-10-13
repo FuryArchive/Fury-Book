@@ -84,8 +84,8 @@ def test_fury_book_mounts_chi_from_real_pack_activation_and_ui_contributions():
 
     assert "AndroidContentPackState.isChiEnabled" in android_app
     assert "AndroidContentPackState.setPackEnabled" in android_app
-    assert "resourceMeterModels" in android_overview
-    assert "resourceToggleModels" in android_overview
+    assert "DublUiRenderModels.resourceMeters(content.composition, character)" in android_overview
+    assert "DublUiRenderModels.resourceToggles(content.composition, character)" in android_overview
     assert "FcpUiSurface.DEVELOPMENT_TABS" in android_dev
     assert "FcpUiComponent.DEVELOPMENT_BROWSER" in android_dev
     assert "Preferences.userRoot().node" in desktop_state
@@ -203,7 +203,10 @@ def test_chi_ui_mounts_use_generic_fcp_surface_contract():
         assert "DublChiUi" not in text
         assert "DublUiBinding" not in text
         assert "DublUiFeature.CHI" in text
-        assert "uiMounts(" in text
+        if "app/src/main" in path.as_posix():
+            assert "DublUiRegistry.mounts(content.composition," in text
+        else:
+            assert "uiMounts(" in text
         assert ".forFeature(" in text
 
 
@@ -325,8 +328,8 @@ def test_resource_surfaces_render_from_typed_dubl_models_without_chi_special_cas
     assert "DublUiRenderModels.resourceMeters" in desktop_state
     assert "DublUiRenderModels.resourceToggles" in desktop_state
 
-    assert "resourceMeterModels" in android
-    assert "resourceToggleModels" in android
+    assert "DublUiRenderModels.resourceMeters(content.composition, character)" in android
+    assert "DublUiRenderModels.resourceToggles(content.composition, character)" in android
     assert "CharacterSheetResourceId.CHI" not in android
     assert "chiResourcePresentation" not in android
     assert "chiResourceSettingsPresentation" not in android

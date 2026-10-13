@@ -1,3 +1,4 @@
+from tools.tests.kotlin_harness_support import assert_application_route
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -42,4 +43,4 @@ def test_android_controller_delegates_override_mutations_to_shared_application()
             "setSkillAutoOverrides": "application.skills.setAutoOverrides",
             "resetSkillDefinitionOverrides": "application.skills.resetDefinitionOverrides",
         }
-        assert mapping[method] in text
+        assert_application_route(text, method, mapping[method])

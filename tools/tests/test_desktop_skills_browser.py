@@ -55,7 +55,9 @@ def test_clicking_skill_opens_non_modal_right_side_inspector():
 
 
 def test_skills_browser_contract_is_wired_into_desktop_ci():
-    project_files = read(ROOT / 'PROJECT_FILES.txt')
+    import subprocess
+    # The old export-only PROJECT_FILES.txt is not a repository source contract.
+    project_files = subprocess.check_output(['git', 'ls-files', '--', 'tools/tests/test_desktop_skills_browser.py'], cwd=ROOT, text=True)
     linux_ci = read(ROOT / '.github/workflows/linux-appimage.yml')
     release_ci = read(ROOT / '.github/workflows/release.yml')
     token = 'tools/tests/test_desktop_skills_browser.py'

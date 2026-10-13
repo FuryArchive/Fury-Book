@@ -13,7 +13,7 @@ def entries_by_id():
 def test_blocking_uses_rulebook_requirement_as_canonical_mechanics():
     entry = entries_by_id()["feat_fcdd74622d21435d"]
 
-    assert entry["requirements"] == "Ловкость 3, Скорость 3, Холодное оружие 3 или Рукопашный бой 3"
+    assert entry["requirements"] == "Ловкость 3 или Скорость 3; Холодное оружие 3 или Рукопашный бой 3"
     assert not entry.get("incomplete", False)
     assert not entry.get("mechanicsConflict", "")
     assert not entry.get("conflictNote", "")

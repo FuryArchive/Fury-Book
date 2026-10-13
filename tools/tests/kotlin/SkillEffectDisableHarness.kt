@@ -58,7 +58,7 @@ fun main() {
         development = mapOf("feat_auto" to OwnedDevelopment(rank = 2)),
     )
     val store = InMemoryCharacterStore(AppSnapshot(listOf(character), character.id))
-    val session = CharacterSession(store) { "id" }
+    val session = CharacterSession(store, idFactory = { "id" })
     val athletics = session.active.resolveSkill("athletics") ?: error("athletics missing")
 
     check(SkillEffectRules(session.active, developmentCatalog, effectCatalog).forSkill(athletics).automaticBonus == 2)

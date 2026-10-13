@@ -12,7 +12,7 @@ private class MemoryExtrasStore : CharacterExtrasStore {
 }
 
 fun main() {
-    val session = CharacterExtrasSession(MemoryExtrasStore()) { "custom-1" }
+    val session = CharacterExtrasSession(MemoryExtrasStore(), customConditionIdFactory = { "custom-1" })
     val characterId = "hero"
 
     session.setConditionOverride(characterId, CharacterConditionId.TIRED, "Утомлён", "Домашнее описание")

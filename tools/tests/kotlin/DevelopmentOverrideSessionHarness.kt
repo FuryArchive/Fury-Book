@@ -33,7 +33,7 @@ fun main() {
     val character = DublCharacter(id = "hero")
     val store = MemoryStore(AppSnapshot(listOf(character), character.id))
     val ids = ArrayDeque(listOf("custom-uid"))
-    val session = CharacterSession(store) { ids.removeFirst() }
+    val session = CharacterSession(store, idFactory = { ids.removeFirst() })
 
     val override = entry("feat-test", "Локальная версия", 30)
     session.setDevelopmentOverride(override)

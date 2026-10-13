@@ -158,7 +158,7 @@ def test_smoothness_groups_animate_and_hot_derivations_are_remembered():
         assert 'shrinkVertically(' in block
     assert 'remember(character.skills, character.hiddenSkillIds)' in skills
     assert 'SkillEffectRules(' in skills
-    assert 'remember(character.development, character.developmentOverrides, character.customDevelopmentEntries)' in development
+    assert 'remember(character.development, character.magic, character.developmentOverrides, character.customDevelopmentEntries)' in development
 
 
 def test_smoothness_top_level_navigation_enters_without_double_composing_heavy_screens():

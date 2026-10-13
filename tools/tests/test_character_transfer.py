@@ -36,25 +36,9 @@ def test_shared_transfer_is_a_typed_application_capability():
 
 
 def test_shared_transfer_behavior_with_local_kotlin_harness():
-    kotlinc = shutil.which("kotlinc")
-    assert kotlinc is not None
-    sources = []
-    for folder in ("model", "data", "state", "application"):
-        sources.extend(sorted((SHARED / folder).glob("*.kt")))
-    sources.append(ROOT / "shared/src/commonMain/kotlin/com/furybook/core/json/MiniJson.kt")
-    with tempfile.TemporaryDirectory() as temp:
-        jar = Path(temp) / "character-transfer.jar"
-        compile_result = subprocess.run(
-            [kotlinc, *map(str, sources), str(HARNESS), "-include-runtime", "-d", str(jar)],
-            cwd=ROOT, capture_output=True, text=True,
-        )
-        assert compile_result.returncode == 0, compile_result.stderr
-        result = subprocess.run(
-            ["java", "-jar", str(jar)],
-            cwd=ROOT, capture_output=True, text=True,
-        )
-        assert result.returncode == 0, result.stderr
-        assert "CHARACTER_TRANSFER_OK" in result.stdout
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(HARNESS)
+    assert 'CHARACTER_TRANSFER_OK' in result.stdout
 
 
 def test_android_characters_screen_uses_system_document_transfer():

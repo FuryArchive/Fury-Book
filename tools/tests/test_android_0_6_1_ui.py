@@ -53,14 +53,15 @@ def test_keyboard_focus_is_cleared_from_app_and_sheets():
 
 def test_martial_art_availability_is_prepared_off_main_behind_loading_gate():
     source = read("app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt")
-    assert "DevelopmentLoadingScreen(stage = loadingStage)" in source
+    assert "DevelopmentLoadingScreen(stage = if (acquisition?.readUnavailable == true)" in source
     assert "withContext(Dispatchers.Default)" in source
     assert "availabilityById" in source
-    assert "associate { entry -> entry.id to preparationRules.availability(entry) }" in source
+    assert "prepareDevelopmentRows(entries, { it.id }, ::calculateAvailability)" in source
     row = source.split("private fun DevelopmentRow(", 1)[1].split("@Composable\nprivate fun DevelopmentStatusPill", 1)[0]
     assert "availability: DevelopmentAvailability" in row
     assert "rules.availability(entry)" not in row
-    assert "!availableOnly || availabilityById[entry.id]?.canIncrease == true" in source
+    assert "!availableOnly || calculateAvailability(entry).canIncrease" in source
+    assert "checkNotNull(publishedRows).third.getValue(entry.id)" in source
 
 
 def test_character_sheet_skill_tap_always_starts_with_stock_attribute_chooser():

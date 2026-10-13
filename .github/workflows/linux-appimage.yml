@@ -43,6 +43,7 @@ jobs:
         run: |
           pytest -q \
             tools/tests/test_desktop_02_parity.py \
+            tools/tests/test_desktop_skills_browser.py \
             tools/tests/test_desktop_02_catalogs.py \
             tools/tests/test_desktop_02_persistence.py \
             tools/tests/test_desktop_02_workflows.py \

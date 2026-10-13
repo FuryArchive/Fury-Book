@@ -19,44 +19,6 @@ def test_platform_adapters_expose_the_same_shared_acquisition_operation():
 
 
 def test_legacy_planner_requires_canonical_context_and_cannot_write_or_create_undo():
-    kotlinc = shutil.which("kotlinc")
-    assert kotlinc is not None
-    coroutines = Path(kotlinc).resolve().parents[1] / "lib/kotlinx-coroutines-core-jvm.jar"
-    assert coroutines.is_file(), "Kotlin distribution must include its coroutine runtime"
-    shared = ROOT / "shared/src/commonMain/kotlin"
-    sources = sorted((shared / "com/furybook/dubl/model").glob("*.kt"))
-    sources += sorted((shared / "com/furybook/dubl/acquisition").glob("*.kt"))
-    sources += sorted((shared / "com/furybook/content").glob("*.kt"))
-    sources += sorted((shared / "com/furybook/core/json").glob("*.kt"))
-    sources += sorted((shared / "com/furybook/dubl/application").glob("*.kt"))
-    sources += [
-        # The shared receipt transport uses the real native cloud DTO/transport definition.
-        shared / "com/furybook/core/cloud/NativeCloudSync.kt",
-        shared / "com/furybook/dubl/data/SnapshotCodec.kt",
-        shared / "com/furybook/dubl/data/LegacySnapshotValidation.kt",
-        shared / "com/furybook/dubl/data/CharacterTransferCodec.kt",
-        shared / "com/furybook/dubl/data/CharacterStore.kt",
-        shared / "com/furybook/dubl/state/CharacterSession.kt",
-        shared / "com/furybook/dubl/data/CharacterExtrasStore.kt",
-        shared / "com/furybook/dubl/state/CharacterExtrasSession.kt",
-        HARNESS,
-    ]
-    with tempfile.TemporaryDirectory() as td:
-        jar = Path(td) / "development-acquisition.jar"
-        compiled = subprocess.run(
-            [kotlinc, "-language-version", "2.0", "-cp", str(coroutines), *map(str, sources), "-include-runtime", "-d", str(jar)],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            timeout=90,
-        )
-        assert compiled.returncode == 0, compiled.stderr
-        result = subprocess.run(
-            ["java", "-cp", os.pathsep.join((str(jar), str(coroutines))), "DevelopmentAcquisitionHarnessKt"],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
-        assert result.returncode == 0, result.stderr + result.stdout
-        assert "DEVELOPMENT_ACQUISITION_OK" in result.stdout
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(HARNESS)
+    assert 'DEVELOPMENT_ACQUISITION_OK' in result.stdout

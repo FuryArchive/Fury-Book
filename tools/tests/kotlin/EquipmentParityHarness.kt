@@ -8,7 +8,7 @@ fun main() {
         id = "gear",
         attributes = AttributeId.entries.associateWith { AttributeValue(base = 2) },
     ).normalized()
-    val session = CharacterSession(InMemoryCharacterStore(AppSnapshot(listOf(initial), initial.id))) { "gear-${++nextId}" }
+    val session = CharacterSession(InMemoryCharacterStore(AppSnapshot(listOf(initial), initial.id)), idFactory = { "gear-${++nextId}" })
 
     val catalog = GearCatalogEntry(
         id = "sword",

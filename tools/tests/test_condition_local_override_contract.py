@@ -9,18 +9,6 @@ HARNESS = ROOT / "tools/tests/kotlin/ConditionLocalOverrideHarness.kt"
 
 
 def test_conditions_support_local_override_custom_add_reset_and_delete():
-    kotlinc = shutil.which("kotlinc")
-    assert kotlinc is not None
-    sources = sorted((SHARED / "com/furybook/dubl/model").glob("*.kt"))
-    sources += [
-        SHARED / "com/furybook/dubl/data/CharacterExtrasStore.kt",
-        SHARED / "com/furybook/dubl/state/CharacterExtrasSession.kt",
-        HARNESS,
-    ]
-    with tempfile.TemporaryDirectory() as td:
-        jar = Path(td) / "condition-local-override.jar"
-        compiled = subprocess.run([kotlinc, *map(str, sources), "-include-runtime", "-d", str(jar)], cwd=ROOT, capture_output=True, text=True)
-        assert compiled.returncode == 0, compiled.stderr
-        result = subprocess.run(["java", "-jar", str(jar)], cwd=ROOT, capture_output=True, text=True)
-        assert result.returncode == 0, result.stderr + result.stdout
-        assert "CONDITION_LOCAL_OVERRIDE_OK" in result.stdout
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(HARNESS)
+    assert 'CONDITION_LOCAL_OVERRIDE_OK' in result.stdout

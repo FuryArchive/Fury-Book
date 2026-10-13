@@ -75,16 +75,6 @@ def test_character_sheet_stat_explanations_use_shared_formula_components():
 
 
 def test_shared_rules_boundary_harness():
-    kotlinc = shutil.which('kotlinc')
-    assert kotlinc is not None
-    sources = sorted((SHARED / 'com/furybook/dubl/model').glob('*.kt'))
-    with tempfile.TemporaryDirectory() as td:
-        jar = Path(td) / 'rules-boundary.jar'
-        compiled = subprocess.run(
-            [kotlinc, *map(str, sources), str(HARNESS), '-include-runtime', '-d', str(jar)],
-            cwd=ROOT, capture_output=True, text=True,
-        )
-        assert compiled.returncode == 0, compiled.stderr
-        result = subprocess.run(['java', '-jar', str(jar)], cwd=ROOT, capture_output=True, text=True)
-        assert result.returncode == 0, result.stderr + result.stdout
-        assert 'RULES_BOUNDARY_OK' in result.stdout
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(HARNESS)
+    assert 'RULES_BOUNDARY_OK' in result.stdout

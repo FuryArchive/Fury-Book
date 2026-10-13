@@ -11,7 +11,7 @@ import com.furybook.dubl.model.skillCalculation
 
 fun main() {
     val initial = DublCharacter(id = "override")
-    val session = CharacterSession(InMemoryCharacterStore(AppSnapshot(listOf(initial), initial.id))) { "id" }
+    val session = CharacterSession(InMemoryCharacterStore(AppSnapshot(listOf(initial), initial.id)), idFactory = { "id" })
 
     val canonical = session.active.resolveSkill("computers") ?: error("computers missing")
     check(canonical.untrained == UntrainedRule.UNSPECIFIED)

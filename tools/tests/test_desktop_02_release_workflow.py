@@ -17,5 +17,5 @@ def test_linux_release_builds_verified_compose_parity_runtime():
 def test_compose_appimage_packager_builds_desktopapp_distributable():
     text = PACKAGER.read_text(encoding='utf-8')
     assert ':desktopApp:createDistributable' in text
-    assert 'desktopApp/build/compose/binaries/main/app/FURY' in text
+    assert 'desktopApp/build/compose/binaries/main/app/FuryBook' in text
     assert 'appimagetool' in text

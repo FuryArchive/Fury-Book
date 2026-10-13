@@ -5,7 +5,7 @@ import com.furybook.dubl.state.CharacterSession
 fun main() {
     val c = DublCharacter(id = "c1", attributes = AttributeId.entries.associateWith { AttributeValue(base = 2) })
     var id = 0
-    val s = CharacterSession(InMemoryCharacterStore(AppSnapshot(listOf(c), c.id))) { "id-${++id}" }
+    val s = CharacterSession(InMemoryCharacterStore(AppSnapshot(listOf(c), c.id)), idFactory = { "id-${++id}" })
     val custom = checkNotNull(s.addCustomSkill("Тест", "", listOf(AttributeId.INTELLIGENCE), UntrainedRule.NO))
     s.changeSkillRank(custom, 4)
     check(s.active.skills.getValue(custom).rank == 4)

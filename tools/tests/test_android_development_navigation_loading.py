@@ -15,4 +15,4 @@ def test_feats_navigation_renders_loading_frame_before_mounting_heavy_screen():
 
     content = APP.split(') { innerPadding ->', 1)[1]
     assert 'if (pendingSection == AppSection.FEATS)' in content
-    assert content.index('DevelopmentNavigationLoadingScreen(') < content.index('AppSection.FEATS -> FeatsScreen(controller)')
+    assert content.index('DevelopmentNavigationLoadingScreen(') < content.index('AppSection.FEATS -> FeatsScreen(controller, chiPackEnabled)')

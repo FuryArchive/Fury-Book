@@ -11,12 +11,12 @@ PLANNER = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/model/Developm
 def test_default_android_development_browser_filters_off_main_thread():
     assert 'produceState<List<DevelopmentEntry>?>' in FEATS
     assert 'withContext(Dispatchers.Default)' in FEATS
-    assert 'val filteredEntries = filteredEntriesAsync.orEmpty()' in FEATS
+    assert 'val filteredEntries = publishedRows?.second.orEmpty()' in FEATS
 
 
 def test_android_development_rows_use_precomputed_requirements_after_loading_gate():
     assert 'availabilityById' in FEATS
-    assert 'associate { entry -> entry.id to preparationRules.availability(entry) }' in FEATS
+    assert 'prepareDevelopmentRows(entries, { it.id }, ::calculateAvailability)' in FEATS
     row = FEATS.split('private fun DevelopmentRow(', 1)[1].split('@Composable\nprivate fun DevelopmentStatusPill', 1)[0]
     assert 'availability: DevelopmentAvailability' in row
     assert 'rules: DevelopmentRules' not in row
@@ -29,7 +29,9 @@ def test_android_reverse_unlock_index_is_deferred_until_detail_selection():
     assert 'val selectedUnlocks by produceState<List<DevelopmentEntry>?>' in FEATS
     selected = FEATS.split('val selectedUnlocks by produceState', 1)[1].split('val filteredChiTechniques', 1)[0]
     assert 'selectedEntryId' in selected
-    assert 'withContext(Dispatchers.Default) { planner.unlocks(id) }' in selected
+    assert 'withContext(Dispatchers.Default)' in selected
+    assert 'hintCache.get(content.acquisition).dependents(reference)' in selected
+    assert 'it.entryId == ref.entryId } == 1' in selected
 
 
 def test_android_app_start_does_not_prewarm_large_development_catalogs():
@@ -39,10 +41,16 @@ def test_android_app_start_does_not_prewarm_large_development_catalogs():
 
 
 def test_android_catalogs_remain_cached_after_first_real_use():
-    assert '@Volatile' in DEV_REPO and 'cached' in DEV_REPO and 'synchronized' in DEV_REPO
+    assert 'val cacheKey = composition.active.joinToString' in DEV_REPO
+    assert 'synchronized(lock)' in DEV_REPO and 'cache[cacheKey]?.let { return it }' in DEV_REPO
+    assert 'cache[cacheKey] = loaded' in DEV_REPO and 'cache.clear()' in DEV_REPO
     assert '@Volatile' in CHI_REPO and 'cached' in CHI_REPO and 'synchronized' in CHI_REPO
 
 
-def test_shared_planner_still_exposes_reverse_unlock_index_once():
-    assert 'fun unlockCounts()' in PLANNER
-    assert 'private val unlocksIndex' in PLANNER
+def test_reverse_hints_use_typed_catalog_index_not_legacy_string_purchasing():
+    hints = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/acquisition/AcquisitionDependencyHints.kt').read_text()
+    assert 'private val reverse: Map<DefinitionRef, List<DefinitionRef>>' in hints
+    assert 'fun dependents(definition: DefinitionRef)' in hints
+    assert 'fun counts(): Map<DefinitionRef, Int>' in hints
+    assert 'hintCache.get(content.acquisition).dependents(reference)' in FEATS
+    assert 'planner.unlocks(' not in FEATS

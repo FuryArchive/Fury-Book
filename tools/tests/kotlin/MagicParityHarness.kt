@@ -13,7 +13,7 @@ fun main() {
         ),
         manaCurrent = 4,
     ).normalized()
-    val session = CharacterSession(InMemoryCharacterStore(AppSnapshot(listOf(initial), initial.id))) { "id-1" }
+    val session = CharacterSession(InMemoryCharacterStore(AppSnapshot(listOf(initial), initial.id)), idFactory = { "id-1" })
 
     check(session.active.effectiveManaMaximum == 4)
     check(session.addMagicSchool("Воплощение", 6, "test"))
