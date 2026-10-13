@@ -79,3 +79,6 @@ def test_current_source_full_denominator_is_not_runtime_acceptance():
     assert report['sourceUniverse']['graphNodes']==1498
     assert report['sourceUniverse']['buyable']==1111
     assert not report['releaseReady']
+    assert report['sourceAudit']['originalGeneralQuestions']==27
+    assert report['gates']['source_universe_integrity']['status']=='PASS'
+    assert report['gates']['runtime_case_acceptance']['status']=='NOT_RUN'

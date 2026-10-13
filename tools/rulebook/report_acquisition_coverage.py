@@ -16,6 +16,7 @@ from tools.rulebook.acquisition_coverage_records import (
     load_effective_expected_prices, authority_revision, resolution_revision,
 )
 from tools.rulebook.validate_acquisition_matrix import validate_matrix
+from tools.rulebook.acquisition_audit_projection import validate_projection
 
 SOURCE_FACETS = ('price', 'admission', 'rankMaximum', 'discount', 'identity', 'option')
 PLATFORMS = ('ANDROID', 'DESKTOP', 'WEB')
@@ -97,6 +98,7 @@ def load_report_inputs(root, evidence_paths=()):
             actualKind=definition['kind'] if definition else None, sourceFacets=facets,
             sourceLinks=case['sourceRef'], sourceOccurrenceIds=case['sourceId'],
             executionRequirement={'expectedOutcome':'UNRESOLVED'})
+    source_audit = validate_projection(root)
     occurrences = source['sourceOccurrences']; graph = source['definitions']
     matched = [r for r in occurrences if r['runtimeId']]
     universe = dict(sourceOccurrences=len(occurrences), matchedOccurrences=len(matched),
@@ -110,7 +112,7 @@ def load_report_inputs(root, evidence_paths=()):
     require([universe[k] for k in ('sourceOccurrences','matchedOccurrences','uniqueMatchedRuntimeIds','graphNodes','buyable','developmentWithChi','developmentWithoutChi')]
             == [536,524,517,1498,1111,796,768], 'source_universe_drift')
     manifest = dict(scope='PRODUCTION', testedCommit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),
-        inputDigests=source_inventory(root), caseRequirements=requirements, sourceRules=rules, sourceUniverse=universe,
+        inputDigests=source_inventory(root), sourceAudit=source_audit, caseRequirements=requirements, sourceRules=rules, sourceUniverse=universe,
         sourcePriceCounts=dict(baseKnown=sum(c['evidenceStatus']=='CONFIRMED' for c in original['cases']),
             baseUnknown=sum(c['evidenceStatus']!='CONFIRMED' for c in original['cases']),
             effectiveKnown=sum(c['evidenceStatus']=='CONFIRMED' for c in cases),
@@ -150,13 +152,16 @@ def report_coverage(manifest, cases, evidence):
             expectedMoney={k:case.get(k) for k in MONEY_FIELDS}, executionRequirement=requirement['executionRequirement'],
             sourceBlockers=source_blockers, missingEvidence=missing, failures=failures, evidenceIds=[]))
     gates = {name: {'status':'NOT_RUN','evidenceIds':[]} for name in REQUIRED_GATES}
+    if manifest.get('scope') == 'PRODUCTION' and manifest.get('sourceAudit') and not integrity:
+        gates['source_universe_integrity'] = {'status':'PASS','evidenceIds':['PINNED_SOURCE_AUDIT_JOIN'],
+            'scope':'SOURCE_IDENTITIES_ONLY_NOT_RUNTIME_ACCEPTANCE'}
     assertions = {rule['id']: {'status':'NOT_RUN','evidenceIds':[]} for rule in manifest['sourceRules']['rules']}
     return dict(schemaVersion=1, integrityOK=not integrity, integrityErrors=integrity, releaseReady=False,
         testedCommit=manifest['testedCommit'], inputDigests=manifest['inputDigests'], requiredCaseCount=len(required),
-        sourceUniverse=manifest['sourceUniverse'], sourcePriceCounts=manifest.get('sourcePriceCounts',{}),
+        sourceUniverse=manifest['sourceUniverse'], sourceAudit=manifest.get('sourceAudit'), sourcePriceCounts=manifest.get('sourcePriceCounts',{}),
         acceptanceCounts=dict(Counter(r['status'] for r in results)), cases=results, gates=gates,
         sourceAssertions=assertions, pendingAuthorDecisions=manifest['sourceRules']['pendingDecisions'],
-        limitations=['WIP: actual evidence validation and source audit projection pending; no release acceptance.'])
+        limitations=['WIP: native execution evidence is not yet joined. Pinned source identities are validated, not runtime behavior; no release acceptance.'])
 
 
 def main(argv=None):
