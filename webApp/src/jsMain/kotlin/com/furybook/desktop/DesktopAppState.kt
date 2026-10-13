@@ -13,6 +13,7 @@ import com.furybook.content.FcpContentPack
 import com.furybook.content.FcpTextSource
 import com.furybook.web.BrowserAcquisitionStore
 import com.furybook.dubl.application.DublApplication
+import com.furybook.dubl.application.CanonicalWritePolicy
 import com.furybook.dubl.application.CharacterTransferImportResult
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.dubl.content.DublFcp
@@ -51,12 +52,13 @@ class DesktopAppState(
         val source=FcpTextSource { resourceTexts[it] }
         return loadAcquisitionCatalog(contentPackComposition.active.map { FcpContentPack.load("fcp/${it.id}",source) },chiPackEnabled).catalog
     }
-    private fun createApplication():DublApplication {
-        if(!canonicalMode) return DublApplication(characterStore,extrasStore,::webUuid,::webUuid)
+    private fun createApplication(forceCanonical:Boolean=false):DublApplication {
+        if(!canonicalMode && !forceCanonical) return DublApplication(characterStore,extrasStore,::webUuid,::webUuid)
         val original=characterStore.load()
-        val characters=original.characters.map { canonicalStates[it.id]?.character ?: it }.toMutableList()
+        val originalCharacters=if(!characterStore.hasStoredState() && canonicalStates.isNotEmpty()) emptyList() else original.characters
+        val characters=originalCharacters.map { canonicalStates[it.id]?.character ?: it }.toMutableList()
         canonicalStates.values.filter { value -> characters.none { it.id==value.character.id } }.forEach { characters += it.character }
-        val view=AppSnapshot(characters,readOnlySelection?.takeIf { id -> characters.any { it.id==id } } ?: original.activeCharacterId)
+        val view=AppSnapshot(characters,readOnlySelection?.takeIf { id -> characters.any { it.id==id } } ?: original.activeCharacterId.takeIf { id -> characters.any { it.id==id } } ?: characters.first().id)
         val readonly=object:CharacterStore {
             override fun load()=view
             override fun save(snapshot:AppSnapshot)=error("Legacy writer cannot change a canonical browser view")
@@ -65,9 +67,42 @@ class DesktopAppState(
             override fun load(characterId:String)=canonicalStates[characterId]?.extras ?: extrasStore.load(characterId)
             override fun save(characterId:String,extras:CharacterSheetExtras)=error("Legacy extras writer cannot change a canonical browser view")
         }
-        return DublApplication(readonly,readonlyExtras,::webUuid,::webUuid)
+        return DublApplication(readonly,readonlyExtras,::webUuid,::webUuid,
+            acquisitionService=acquisitionStore?.let { acquisitionService },
+            mutationCoordinator=acquisitionStore?.let { CharacterMutationCoordinator(it,::acquisitionCatalog,::webUuid) },
+            acquisitionUndo=acquisitionStore?.let(::AcquisitionUndo),
+            characterCreator=acquisitionStore?.let { AcquisitionCharacterCreator(it,::acquisitionCatalog,::localCapabilities) },
+            writePolicy=CanonicalWritePolicy.Protected)
     }
     private var application = createApplication()
+    private val commandApplication by lazy { createApplication(true) }
+    private var selectionGeneration=0L
+    private var controllerGeneration=0L
+    private val accountGeneration=acquisitionStore?.scopeGeneration ?: 0L
+    private var disposed=false
+    var acquisitionUiModel:AcquisitionUiModel? by mutableStateOf(null)
+        private set
+    private fun localCapabilities():AcquisitionCapabilities {
+        val available=acquisitionStore?.capabilities
+        return AcquisitionCapabilities(localAcquisitionEnabled && !disposed && available?.localDurable==true,false,available?.formatWritable==true)
+    }
+    private fun acquisitionScope()=AcquisitionScope(checkNotNull(acquisitionStore).storageIdentity,snapshot.activeCharacterId,controllerGeneration,selectionGeneration,accountGeneration)
+    private fun currentAcquisitionScope(scope:AcquisitionScope):Boolean = !disposed && acquisitionStore?.isCurrentScope()==true &&
+        scope.storageScopeId==acquisitionStore.storageIdentity && scope.accountGeneration==acquisitionStore.scopeGeneration &&
+        scope.controllerGeneration==controllerGeneration && scope.selectionGeneration==selectionGeneration && scope.viewCharacterId==snapshot.activeCharacterId
+    val acquisition:AcquisitionController by lazy {
+        AcquisitionController(ApplicationAcquisitionCommandPort(commandApplication,checkNotNull(acquisitionStore),::acquisitionCatalog,::localCapabilities,::currentAcquisitionScope,
+            { scope,state ->
+                check(currentAcquisitionScope(scope)) { "Captured owner/view changed" }
+                canonicalStates=canonicalStates+(state.character.id to state)
+                if(scope.characterId!=scope.viewCharacterId) readOnlySelection=state.character.id
+                application=createApplication();refresh();acquisition.activateCurrentView()
+            }),::acquisitionScope,::webUuid) { acquisitionUiModel=it }
+    }
+    fun reviewNewCharacterFunding(initialXP:Long)=acquisition.reviewNewCharacterFunding(initialXP)
+    suspend fun confirmNewCharacterFunding(key:AcquisitionQuoteKey)=acquisition.confirm(key)
+    fun dispose() { disposed=true;controllerGeneration++ }
+
     private val catalogLoader = WebCatalogLoader(resourceTexts)
 
     val corePackManifest = catalogLoader.manifest
@@ -177,17 +212,19 @@ class DesktopAppState(
         check(localAcquisitionEnabled && acquisitionStore?.capabilities?.localDurable==true) { "Local durable acquisitions are disabled or unavailable" }
     }
     private suspend fun reloadCanonicalView() {
+        val captured=acquisitionScope()
         val store=requireNotNull(acquisitionStore)
         val loaded=linkedMapOf<String,StoredCharacter>()
         for(id in store.characterIds()) loaded[id]=(store.load(id) as? LoadResult.Loaded)?.state ?: error("Canonical browser head is unavailable")
+        check(currentAcquisitionScope(captured)) { "Captured owner/view changed" }
         canonicalStates=loaded.toMap();application=createApplication();refresh()
     }
     suspend fun previewLocalAcquisition(request:AcquisitionRequest):AcquisitionPlan {
-        requireLocalWrites();return acquisitionService.preview(request)
+        requireLocalWrites();return commandApplication.development.previewAcquisition(request)
     }
     suspend fun applyLocalAcquisition(command:ConfirmAcquisition):ApplyResult {
         requireLocalWrites()
-        val result=acquisitionService.apply(command)
+        val result=commandApplication.development.confirmAcquisition(command)
         storageError=when(result) { is ApplyResult.StorageFailure->result.reason;is ApplyResult.Blocked->result.issues.joinToString { it.reason };is ApplyResult.Stale->"Предпросмотр устарел";is ApplyResult.IdentityConflict->result.reason;else->null }
         if(result is ApplyResult.Applied || result is ApplyResult.AlreadyApplied || result is ApplyResult.AlreadyUndone)
             runCatching { reloadCanonicalView() }.onFailure { storageError="Сохранено, но просмотр не обновился: ${it.message}" }
@@ -195,14 +232,14 @@ class DesktopAppState(
     }
     suspend fun mutateCanonical(command:CanonicalMutation):MutationResult {
         requireLocalWrites()
-        val result=CharacterMutationCoordinator(requireNotNull(acquisitionStore),::acquisitionCatalog,::webUuid).mutate(command)
+        val result=commandApplication.mutateCanonical(command)
         storageError=when(result) { is MutationResult.StorageFailure->result.reason;is MutationResult.Blocked->result.reason;is MutationResult.IdentityConflict->result.reason;is MutationResult.Stale->"Лист изменился";else->null }
         if(result is MutationResult.Applied || result is MutationResult.AlreadyApplied || result is MutationResult.AlreadyUndone) reloadCanonicalView()
         return result
     }
     suspend fun undoCanonical(operationId:String,expectedRevision:Long):ApplyResult {
         requireLocalWrites()
-        val result=AcquisitionUndo(requireNotNull(acquisitionStore)).undo(snapshot.activeCharacterId,operationId,expectedRevision)
+        val result=commandApplication.undoCanonical(snapshot.activeCharacterId,operationId,expectedRevision)
         if(result is ApplyResult.Applied || result is ApplyResult.AlreadyApplied || result is ApplyResult.AlreadyUndone) reloadCanonicalView()
         storageError=(result as? ApplyResult.StorageFailure)?.reason
         return result
@@ -323,7 +360,8 @@ class DesktopAppState(
 
     fun createCharacter() = sync { application.character.createCharacter() }
     fun selectCharacter(id: String) {
-        if(canonicalMode) { require(snapshot.characters.any { it.id==id });readOnlySelection=id;application=createApplication();refresh() }
+        selectionGeneration++
+        if(canonicalMode) { require(snapshot.characters.any { it.id==id });readOnlySelection=id;application=createApplication();refresh();acquisition.activateCurrentView() }
         else sync { application.character.selectCharacter(id) }
     }
     fun deleteActive() = sync { application.character.deleteActive() }

@@ -3,11 +3,20 @@ package com.furybook.dubl.acquisition
 import com.furybook.core.cloud.FuryCloudTransport
 import com.furybook.core.json.*
 import com.furybook.dubl.model.*
-import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.*
 import kotlin.test.*
 
 class AcquisitionRpcContractTest {
-    @Test fun ordinary_push_uses_exact_single_v2_rpc_with_null_resolution() = runBlocking {
+    private fun runTest(block: suspend () -> Unit) {
+        var completed: Result<Unit>? = null
+        block.startCoroutine(object : Continuation<Unit> {
+            override val context = EmptyCoroutineContext
+            override fun resumeWith(result: Result<Unit>) { completed = result }
+        })
+        checkNotNull(completed) { "Test coroutine did not complete" }.getOrThrow()
+    }
+
+    @Test fun ordinary_push_uses_exact_single_v2_rpc_with_null_resolution() = runTest {
         val state=StoredCharacter(DublCharacter("hero"),CharacterSheetExtras(),emptyList(),
             Ledger(Opening("new","funding",Amount(100,0),RequirementNode.CreationPhase.Phase.Creating,OpeningProvenance.NewCharacter),emptyList()),
             emptyList(),emptyList(),SyncMetadata(0),0,0,RequirementNode.CreationPhase.Phase.Creating)
@@ -32,7 +41,7 @@ class AcquisitionRpcContractTest {
         assertEquals(jsonObject("payloadCanonical" to jsonString(payload)),root.values["p_envelope"])
     }
 
-    @Test fun raw_wire_wrapper_preserves_lexemes_unicode_and_lone_surrogates() = runBlocking {
+    @Test fun raw_wire_wrapper_preserves_lexemes_unicode_and_lone_surrogates() = runTest {
         val state=StoredCharacter(DublCharacter("lexical",name="Lone \uD800; pair 😀",
             gear=CharacterGear(loadAutomatic=false,loadManual=-0.0,items=listOf(GearItem("gear",name="tiny",load=1.0E-10)))),
             CharacterSheetExtras(),emptyList(),Ledger(Opening("new","funding",Amount(100,0),RequirementNode.CreationPhase.Phase.Creating,OpeningProvenance.NewCharacter),emptyList()),

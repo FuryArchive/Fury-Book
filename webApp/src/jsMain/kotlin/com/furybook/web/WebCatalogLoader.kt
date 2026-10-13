@@ -43,6 +43,7 @@ class WebCatalogLoader(resourceTexts: Map<String, String>) {
 
 private val bundledPaths = listOf(
     "fcp/dubl-3.69/manifest.json",
+    "fcp/dubl-3.69/content/acquisition_catalog.json",
     "fcp/dubl-3.69/content/conditions_catalog.json",
     "fcp/dubl-3.69/content/development_ability_roots_catalog.json",
     "fcp/dubl-3.69/content/development_catalog.json",
@@ -54,6 +55,7 @@ private val bundledPaths = listOf(
     "fcp/dubl-3.69/content/skill_effects_catalog.json",
     "fcp/dubl-3.69/content/skills_catalog.json",
     "fcp/dubl-chi-3.69/manifest.json",
+    "fcp/dubl-chi-3.69/content/acquisition_catalog.json",
     "fcp/dubl-chi-3.69/content/chi_catalog.json",
     "fcp/dubl-chi-3.69/content/development_chi_catalog.json",
 )

@@ -24,6 +24,7 @@ import com.furybook.dubl.model.developmentRank
 internal class CharacterSession(
     private val store: CharacterStore,
     private val idFactory: () -> String,
+    private val beforeWrite: () -> Unit = {},
 ) {
     var snapshot: AppSnapshot = store.load()
         private set
@@ -31,6 +32,7 @@ internal class CharacterSession(
     val active: DublCharacter get() = snapshot.activeCharacter
 
     internal fun updateActive(transform: (DublCharacter) -> DublCharacter) {
+        beforeWrite()
         val activeId = snapshot.activeCharacterId
         val updated = snapshot.characters.map { character ->
             if (character.id == activeId) transform(character).let { if (store is DetachedCharacterStore) stagedResources(character, it) else it.normalized() } else character
@@ -139,7 +141,7 @@ internal class CharacterSession(
     fun addCustomResource(name: String, maximum: Int, current: Int = maximum): String? {
         val cleanName = name.trim().replace(Regex("\\s+"), " ")
         if (cleanName.isBlank()) return null
-        val uid = idFactory()
+        val uid = newId()
         val max = maximum.coerceAtLeast(0)
         updateActive { character ->
             character.copy(
@@ -296,7 +298,7 @@ internal class CharacterSession(
     fun addCustomDevelopment(entry: DevelopmentEntry): String? {
         val cleanName = entry.name.trim().takeIf(String::isNotBlank) ?: return null
         val existing = active.customDevelopmentEntries.mapTo(linkedSetOf()) { it.id }
-        var id = "custom-development-${idFactory().trim()}"
+        var id = "custom-development-${newId().trim()}"
         if (id == "custom-development-" || id in existing) {
             id = generateSequence(1) { it + 1 }
                 .map { "custom-development-$it" }
@@ -423,7 +425,7 @@ internal class CharacterSession(
 
     private fun uniqueSpellUid(): String {
         val existing = active.magic.spells.mapTo(linkedSetOf()) { it.uid }
-        val base = idFactory().trim().ifBlank { "spell" }
+        val base = newId().trim().ifBlank { "spell" }
         if (base !in existing) return base
         return generateSequence(2) { it + 1 }
             .map { "$base-$it" }
@@ -518,7 +520,7 @@ internal class CharacterSession(
             return existing.uid
         }
 
-        val uid = idFactory()
+        val uid = newId()
         val load = MagicEquipmentRules.catalogGearLoad(entry)
         val item = GearItem(
             uid = uid,
@@ -537,7 +539,7 @@ internal class CharacterSession(
     }
 
     fun addCustomGear(item: GearItem): String {
-        val uid = item.uid.ifBlank { idFactory() }
+        val uid = item.uid.ifBlank { newId() }
         updateActive { character ->
             character.copy(
                 gear = character.gear.copy(items = character.gear.items + item.copy(uid = uid, catalogId = null, custom = true)),
@@ -576,7 +578,7 @@ internal class CharacterSession(
         if (active.resolvedSkills(includeHidden = true).any { it.name.equals(displayName, ignoreCase = true) }) {
             return null
         }
-        val id = idFactory()
+        val id = newId()
         updateActive { character ->
             character.copy(
                 skills = character.skills + (
@@ -604,7 +606,7 @@ internal class CharacterSession(
         if (active.resolvedSkills(includeHidden = true).any { it.name.equals(cleanName, ignoreCase = true) }) {
             return null
         }
-        val id = idFactory()
+        val id = newId()
         updateActive { character ->
             character.copy(
                 skills = character.skills + (
@@ -632,7 +634,7 @@ internal class CharacterSession(
     }
 
     fun createCharacter() {
-        val created = DublCharacter(id = idFactory(), name = "Новый персонаж")
+        val created = DublCharacter(id = newId(), name = "Новый персонаж")
         persist(
             AppSnapshot(
                 characters = snapshot.characters + created,
@@ -641,10 +643,10 @@ internal class CharacterSession(
         )
     }
 
-    internal fun newIdForTransfer(): String = idFactory()
+    internal fun newIdForTransfer(): String = newId()
 
     internal fun importTransferredCharacter(character: DublCharacter): String {
-        val imported = character.copy(id = idFactory())
+        val imported = character.copy(id = newId())
         persist(
             AppSnapshot(
                 characters = snapshot.characters + imported,
@@ -678,7 +680,10 @@ internal class CharacterSession(
         }
     }
 
+    private fun newId(): String { beforeWrite(); return idFactory() }
+
     private fun persist(newSnapshot: AppSnapshot) {
+        beforeWrite()
         snapshot = newSnapshot
         store.save(newSnapshot)
     }

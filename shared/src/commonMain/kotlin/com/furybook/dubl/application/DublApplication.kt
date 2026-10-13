@@ -1,6 +1,6 @@
 package com.furybook.dubl.application
 
-import com.furybook.dubl.acquisition.AcquisitionService
+import com.furybook.dubl.acquisition.*
 import com.furybook.dubl.data.CharacterExtrasStore
 import com.furybook.dubl.data.CharacterStore
 import com.furybook.dubl.model.AppSnapshot
@@ -18,15 +18,19 @@ import com.furybook.dubl.state.CharacterSession
 class DublApplication(
     characterStore: CharacterStore,
     extrasStore: CharacterExtrasStore,
-    idFactory: () -> String,
+    private val idFactory: () -> String,
     customConditionIdFactory: () -> String = { "" },
     acquisitionService: AcquisitionService? = null,
     private val mutationCoordinator: com.furybook.dubl.acquisition.CharacterMutationCoordinator? = null,
     private val acquisitionUndo: com.furybook.dubl.acquisition.AcquisitionUndo? = null,
+    private val characterCreator: AcquisitionCharacterCreator? = null,
+    writePolicy: CanonicalWritePolicy? = null,
 ) {
-    private val characterSession = CharacterSession(characterStore, idFactory)
-    private val extrasSession = CharacterExtrasSession(extrasStore, customConditionIdFactory)
-    private val undoManager = ApplicationUndoManager()
+    private val policy = if (acquisitionService != null || mutationCoordinator != null || acquisitionUndo != null || characterCreator != null)
+        CanonicalWritePolicy.Protected else writePolicy ?: CanonicalWritePolicy.LegacyIsolated
+    private val characterSession = CharacterSession(characterStore, idFactory, policy::beforeLegacyWrite)
+    private val extrasSession = CharacterExtrasSession(extrasStore, customConditionIdFactory, policy::beforeLegacyWrite)
+    private val undoManager = ApplicationUndoManager(policy::beforeLegacyWrite)
 
     val character = CharacterApplication(characterSession, extrasSession, undoManager)
     val skills = SkillsApplication(characterSession, extrasSession)
@@ -34,7 +38,7 @@ class DublApplication(
     val magic = MagicApplication(characterSession, undoManager)
     val equipment = EquipmentApplication(characterSession)
     val sheet = SheetApplication(extrasSession, { characterSession.active.id }, undoManager)
-    val transfer = CharacterTransferApplication(characterSession, extrasSession)
+    val transfer = CharacterTransferApplication(characterSession, extrasSession, policy::beforeLegacyWrite)
 
     val snapshot: AppSnapshot get() = characterSession.snapshot
     val active: DublCharacter get() = characterSession.active
@@ -54,6 +58,21 @@ class DublApplication(
         checkNotNull(mutationCoordinator) { "Canonical mutation coordinator is not configured" }.prepareNonFinancial(operationId, characterId, expectedRevision, edit)
     suspend fun stageNonFinancial(operationId: String, characterId: String, expectedRevision: Long, edit: DublApplication.() -> Unit) =
         checkNotNull(mutationCoordinator) { "Canonical mutation coordinator is not configured" }.stageNonFinancial(operationId, characterId, expectedRevision, edit)
+
+    fun reviewNewCharacterFunding(initialXP: Long, name: String = "Новый персонаж", concept: String = ""): NewCharacterFundingReview =
+        checkNotNull(characterCreator) { "Canonical creator is not configured" }.review(initialXP, name, concept)
+
+    fun captureCanonicalCharacterCreation(review: NewCharacterFundingReview): CreateAcquisitionCharacter {
+        val fresh = reviewNewCharacterFunding(review.initialXP, review.name, review.concept)
+        require(fresh.executable && fresh.reviewKey == review.reviewKey) { "Funding review changed; review again" }
+        val creationId = idFactory().also { require(it.isNotBlank()) }
+        val characterId = idFactory().also { require(it.isNotBlank() && it !in snapshot.characters.map { character -> character.id }) }
+        return CreateAcquisitionCharacter(creationId, characterId, fresh.initialXP, fresh.name, fresh.concept, fresh.catalogRevision, fresh.resolutionRevision)
+    }
+    suspend fun createCanonicalCharacter(command: CreateAcquisitionCharacter) =
+        checkNotNull(characterCreator) { "Canonical creator is not configured" }.create(command)
+    suspend fun reconcileCanonicalCharacterCreation(command: CreateAcquisitionCharacter) =
+        checkNotNull(characterCreator) { "Canonical creator is not configured" }.reconcile(command)
 
     companion object {
         internal fun detached(character: DublCharacter, extras: CharacterSheetExtras, idFactory: () -> String): DublApplication {

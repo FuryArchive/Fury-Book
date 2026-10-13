@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.furybook.dubl.application.DublApplication
+import com.furybook.dubl.application.CanonicalWritePolicy
 import com.furybook.dubl.data.CharacterStore
 import com.furybook.dubl.data.CharacterExtrasStore
 import com.furybook.dubl.application.CharacterTransferImportResult
@@ -41,15 +42,59 @@ class CharacterController internal constructor(
     private val catalogProvider: () -> AcquisitionCatalog = { AcquisitionCatalog(emptyMap(), "unavailable", "unavailable") },
     private val ownerScope: () -> Pair<String?, Long> = { null to 0L },
     private val capabilities: AcquisitionCapabilities = AndroidAcquisitionRuntimeGate.production,
+    private val mainDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Main.immediate,
 ) {
-    private val application = DublApplication(
+    private fun createApplication(canonical: Boolean) = DublApplication(
         characterStore = repository,
         extrasStore = extrasRepository,
         idFactory = { UUID.randomUUID().toString() },
-        acquisitionService = acquisitionStore?.let { AcquisitionService(it, catalogProvider) { UUID.randomUUID().toString() } },
-        mutationCoordinator = acquisitionStore?.let { CharacterMutationCoordinator(it,catalogProvider) { UUID.randomUUID().toString() } },
-        acquisitionUndo = acquisitionStore?.let(::AcquisitionUndo),
+        acquisitionService = acquisitionStore?.takeIf { canonical }?.let { AcquisitionService(it, catalogProvider) { UUID.randomUUID().toString() } },
+        mutationCoordinator = acquisitionStore?.takeIf { canonical }?.let { CharacterMutationCoordinator(it,catalogProvider) { UUID.randomUUID().toString() } },
+        acquisitionUndo = acquisitionStore?.takeIf { canonical }?.let(::AcquisitionUndo),
+        characterCreator = acquisitionStore?.takeIf { canonical }?.let { AcquisitionCharacterCreator(it, catalogProvider) { capabilities } },
+        writePolicy = if(canonical) CanonicalWritePolicy.Protected else CanonicalWritePolicy.LegacyIsolated,
     )
+
+    private var application = createApplication(initialCanonicalStates.isNotEmpty() || legacyGate?.readOnly == true)
+    private val commandApplication by lazy { createApplication(true) }
+    var acquisitionUiModel: AcquisitionUiModel? by mutableStateOf(null)
+        private set
+    private fun acquisitionScope(): AcquisitionScope {
+        val owner=ownerScope()
+        return AcquisitionScope(checkNotNull(acquisitionStore).storageIdentity+"|"+owner.first.orEmpty(),snapshot.activeCharacterId,controllerGeneration,selectionGeneration,owner.second)
+    }
+    private fun currentAcquisitionScope(scope:AcquisitionScope):Boolean {
+        val current=acquisitionScope()
+        return !disposed && scope.storageScopeId==current.storageScopeId && scope.controllerGeneration==current.controllerGeneration &&
+            scope.selectionGeneration==current.selectionGeneration && scope.accountGeneration==current.accountGeneration && scope.viewCharacterId==snapshot.activeCharacterId
+    }
+    private fun currentAcquisitionOwner(scope:AcquisitionScope):Boolean {
+        val current=acquisitionScope()
+        return !disposed && scope.storageScopeId==current.storageScopeId && scope.controllerGeneration==current.controllerGeneration && scope.accountGeneration==current.accountGeneration
+    }
+    val acquisition: AcquisitionController by lazy {
+        val port=ApplicationAcquisitionCommandPort(commandApplication,checkNotNull(acquisitionStore),catalogProvider,{capabilities},::currentAcquisitionScope,
+            { scope,state ->
+                val emptyOrigin=scope.characterId!=scope.viewCharacterId && acquisitionStore.load(scope.viewCharacterId) is LoadResult.Missing
+                withContext(mainDispatcher) {
+                check(currentAcquisitionScope(scope)) { "Captured view changed" }
+                publish(state,selectNew=scope.characterId!=scope.viewCharacterId,dropPlaceholder=emptyOrigin)
+                acquisition.activateCurrentView()
+            } },object:AcquisitionExecutor {
+                override suspend fun <T> read(block:suspend()->T):T = withContext(Dispatchers.IO) { block() }
+                override suspend fun <T> run(block:suspend()->T):T {
+                    val dispatch=capturedAcquisitionCommand();val captured=dispatch.scope
+                    check(currentAcquisitionOwner(captured)) { "Captured owner changed" }
+                    val owner=ownerScope()
+                    val command=AndroidCommandScope(checkNotNull(acquisitionStore).storageIdentity,captured.characterId,owner.first,captured.controllerGeneration,
+                        captured.selectionGeneration,captured.accountGeneration,dispatch.operationId,canonicalStates[captured.characterId]?.storageRevision ?: -1,captured.viewCharacterId)
+                    return queue.execute(command,block)
+                }
+            })
+        AcquisitionController(port,::acquisitionScope,{UUID.randomUUID().toString()}) { acquisitionUiModel=it }
+    }
+    fun reviewNewCharacterFunding(initialXP:Long)=acquisition.reviewNewCharacterFunding(initialXP)
+    suspend fun confirmNewCharacterFunding(key:AcquisitionQuoteKey)=acquisition.confirm(key)
 
     var snapshot: AppSnapshot by mutableStateOf(application.snapshot)
         private set
@@ -184,7 +229,7 @@ class CharacterController internal constructor(
     fun setCustomConditionActive(id: String, active: Boolean) = sync { application.sheet.setCustomConditionActive(id, active) }
     fun removeCustomCondition(id: String) = sync { application.sheet.removeCustomCondition(id) }
 
-    fun exportActiveCharacter(): String = application.transfer.exportActive()
+    fun exportActiveCharacter(): String = canonicalStates[snapshot.activeCharacterId]?.let(::encodeEnvelope) ?: application.transfer.exportActive()
     fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) }
 
     fun createCharacter() = sync { application.character.createCharacter() }
@@ -195,6 +240,7 @@ class CharacterController internal constructor(
             require(snapshot.characters.any { it.id==id })
             snapshot=snapshot.copy(activeCharacterId=id)
             extras=canonicalStates[id]?.extras ?: extrasRepository.load(id)
+            if(acquisitionStore!=null) acquisition.activateCurrentView()
         } else sync { application.character.selectCharacter(id) }
     }
     fun deleteActive() = sync { application.character.deleteActive() }
@@ -210,11 +256,15 @@ class CharacterController internal constructor(
     private var preparedLegacyMigration:StoredCharacter?=null
     private var preparedLegacyScope:AndroidCommandScope?=null
     private var declaredComposition:List<String> = emptyList()
-    private val queue=AndroidAcquisitionQueue(::currentScope)
+    private val queue=AndroidAcquisitionQueue(::currentScope,main=mainDispatcher,commandCurrent=::currentCommandScope)
     private fun currentScope(scope:AndroidCommandScope):Boolean {
         val owner=ownerScope()
-        return !disposed && scope.storageIdentity==acquisitionStore?.storageIdentity && scope.characterId==snapshot.activeCharacterId &&
+        return !disposed && scope.storageIdentity==acquisitionStore?.storageIdentity && scope.viewCharacterId==snapshot.activeCharacterId &&
             scope.controllerGeneration==controllerGeneration && scope.selectionGeneration==selectionGeneration && scope.ownerId==owner.first && scope.accountGeneration==owner.second
+    }
+    private fun currentCommandScope(scope:AndroidCommandScope):Boolean {
+        val owner=ownerScope()
+        return !disposed && scope.storageIdentity==acquisitionStore?.storageIdentity && scope.controllerGeneration==controllerGeneration && scope.ownerId==owner.first && scope.accountGeneration==owner.second
     }
     private fun commandScope(id:String,operationId:String):AndroidCommandScope {
         val owner=ownerScope()
@@ -223,10 +273,10 @@ class CharacterController internal constructor(
     fun dispose() { disposed=true;controllerGeneration++;pendingLegacyMigration=null;preparedLegacyMigration=null;preparedLegacyScope=null }
     fun declareLegacyComposition(ids:List<String>) { declaredComposition=ids.toList();selectionGeneration++;pendingLegacyMigration=null;preparedLegacyMigration=null;preparedLegacyScope=null }
     suspend fun prepareLocalMigration(ids:List<String>,oldCatalog:LegacyCatalogSnapshot?):MigrationResult {
-        val scope=withContext(Dispatchers.Main.immediate) { declareLegacyComposition(ids);commandScope(snapshot.activeCharacterId,"migration-prepare") }
+        val scope=withContext(mainDispatcher) { declareLegacyComposition(ids);commandScope(snapshot.activeCharacterId,"migration-prepare") }
         val composition=ids.toList()
         val result=withContext(Dispatchers.IO) { checkNotNull(acquisitionStore).prepareMigration(scope.characterId,composition,oldCatalog) }
-        withContext(Dispatchers.Main.immediate) {
+        withContext(mainDispatcher) {
             if(!currentScope(scope)) throw StaleAndroidCommandScope()
             preparedLegacyScope=scope
             pendingLegacyMigration=(result as? MigrationResult.NeedsBalanceConfirmation)?.pending
@@ -236,7 +286,7 @@ class CharacterController internal constructor(
         return result
     }
     suspend fun confirmLocalOpeningBalance(balance:Amount,reason:String):CommitResult {
-        val state=withContext(Dispatchers.Main.immediate) {
+        val state=withContext(mainDispatcher) {
             if(!currentScope(checkNotNull(preparedLegacyScope))) throw StaleAndroidCommandScope()
             val pending=checkNotNull(pendingLegacyMigration)
             require(pending.origin.characterId==snapshot.activeCharacterId && pending.origin.activePackIds==declaredComposition)
@@ -244,10 +294,10 @@ class CharacterController internal constructor(
         }
         return commitMigration(state)
     }
-    suspend fun commitPreparedLocalMigration():CommitResult=commitMigration(withContext(Dispatchers.Main.immediate) { checkNotNull(preparedLegacyMigration) })
+    suspend fun commitPreparedLocalMigration():CommitResult=commitMigration(withContext(mainDispatcher) { checkNotNull(preparedLegacyMigration) })
     private suspend fun commitMigration(state:StoredCharacter):CommitResult {
         if(!capabilities.localDurable) return CommitResult.StorageFailure("Android device durability/process-death acceptance is not verified; migration writes are disabled")
-        val scope=withContext(Dispatchers.Main.immediate) {
+        val scope=withContext(mainDispatcher) {
             checkNotNull(preparedLegacyScope).copy(operationId=state.ledger.opening.migrationId,expectedStorageRevision=-1).also {
                 if(!currentScope(it)) throw StaleAndroidCommandScope()
                 require(state.ledger.opening.legacyMigration?.origin?.activePackIds==declaredComposition)
@@ -260,16 +310,16 @@ class CharacterController internal constructor(
     }
     suspend fun previewLocalAcquisition(request:AcquisitionRequest):AcquisitionPlan {
         check(capabilities.localDurable) { "Android acquisition durability is not verified; purchase is unavailable" }
-        val scope=withContext(Dispatchers.Main.immediate) { commandScope(request.characterId,"preview") }
-        withContext(Dispatchers.Main.immediate) { if(!currentScope(scope)) throw StaleAndroidCommandScope() }
-        val plan=withContext(Dispatchers.IO) { application.development.previewAcquisition(request) }
-        withContext(Dispatchers.Main.immediate) { if(!currentScope(scope)) throw StaleAndroidCommandScope() }
+        val scope=withContext(mainDispatcher) { commandScope(request.characterId,"preview") }
+        withContext(mainDispatcher) { if(!currentScope(scope)) throw StaleAndroidCommandScope() }
+        val plan=withContext(Dispatchers.IO) { commandApplication.development.previewAcquisition(request) }
+        withContext(mainDispatcher) { if(!currentScope(scope)) throw StaleAndroidCommandScope() }
         return plan
     }
     suspend fun applyLocalAcquisition(command:ConfirmAcquisition):ApplyResult {
         if(!capabilities.localDurable) return ApplyResult.StorageFailure("Android acquisition durability is not verified; purchase is disabled")
-        val scope=withContext(Dispatchers.Main.immediate) { commandScope(command.characterId,command.operationId) }
-        return durableCommand(scope,{ application.development.confirmAcquisition(command) },{
+        val scope=withContext(mainDispatcher) { commandScope(command.characterId,command.operationId) }
+        return durableCommand(scope,{ commandApplication.development.confirmAcquisition(command) },{
             it is ApplyResult.Applied || it is ApplyResult.AlreadyApplied || it is ApplyResult.AlreadyUndone
         },{ reload(scope.characterId) }) { result,loaded ->
             storageError=when(result) { is ApplyResult.StorageFailure -> result.reason;is ApplyResult.IdentityConflict -> result.reason;is ApplyResult.Stale -> "Preview is stale; review again";is ApplyResult.Blocked -> result.issues.joinToString { it.reason };else -> null }
@@ -282,14 +332,14 @@ class CharacterController internal constructor(
         catch(stale:StaleAndroidCommandScope) { throw stale }
         catch(cancelled:kotlinx.coroutines.CancellationException) { throw cancelled }
         catch(failure:Exception) {
-            withContext(Dispatchers.Main.immediate) { if(currentScope(scope)) storageError=failure.message ?: "Durable recovery failed; no display state was published" }
+            withContext(mainDispatcher) { if(currentScope(scope)) storageError=failure.message ?: "Durable recovery failed; no display state was published" }
             throw failure
         }
     }
     suspend fun mutateLocalCanonical(command:CanonicalMutation):MutationResult {
         if(!capabilities.localDurable) return MutationResult.StorageFailure("Android durable mutation is not verified; writes are disabled")
-        val scope=withContext(Dispatchers.Main.immediate) { commandScope(command.characterId,command.operationId) }
-        return durableCommand(scope,{ application.mutateCanonical(command) },{
+        val scope=withContext(mainDispatcher) { commandScope(command.characterId,command.operationId) }
+        return durableCommand(scope,{ commandApplication.mutateCanonical(command) },{
             it is MutationResult.Applied || it is MutationResult.AlreadyApplied || it is MutationResult.AlreadyUndone
         },{ reload(scope.characterId) }) { result,loaded ->
             storageError=when(result) { is MutationResult.StorageFailure -> result.reason;is MutationResult.Blocked -> result.reason;is MutationResult.IdentityConflict -> result.reason;is MutationResult.Stale -> "Character changed; review again";else -> null }
@@ -298,15 +348,15 @@ class CharacterController internal constructor(
     }
     suspend fun eligibleLocalUndo():UndoEligibility {
         if(!capabilities.localDurable) return UndoEligibility.Unavailable("Android durable Undo is not verified")
-        val scope=withContext(Dispatchers.Main.immediate) { commandScope(snapshot.activeCharacterId,"undo-preview") }
-        val result=withContext(Dispatchers.IO) { application.eligibleCanonicalUndo(scope.characterId) }
-        withContext(Dispatchers.Main.immediate) { if(!currentScope(scope)) throw StaleAndroidCommandScope() }
+        val scope=withContext(mainDispatcher) { commandScope(snapshot.activeCharacterId,"undo-preview") }
+        val result=withContext(Dispatchers.IO) { commandApplication.eligibleCanonicalUndo(scope.characterId) }
+        withContext(mainDispatcher) { if(!currentScope(scope)) throw StaleAndroidCommandScope() }
         return result
     }
     suspend fun undoLocalCanonical(characterId:String,operationId:String,expectedRevision:Long):ApplyResult {
         if(!capabilities.localDurable) return ApplyResult.StorageFailure("Android durable Undo is not verified; writes are disabled")
-        val scope=withContext(Dispatchers.Main.immediate) { commandScope(characterId,operationId) }
-        return durableCommand(scope,{ application.undoCanonical(characterId,operationId,expectedRevision) },{
+        val scope=withContext(mainDispatcher) { commandScope(characterId,operationId) }
+        return durableCommand(scope,{ commandApplication.undoCanonical(characterId,operationId,expectedRevision) },{
             it is ApplyResult.Applied || it is ApplyResult.AlreadyApplied || it is ApplyResult.AlreadyUndone
         },{ reload(scope.characterId) }) { result,loaded ->
             storageError=when(result) { is ApplyResult.StorageFailure -> result.reason;is ApplyResult.Blocked -> result.issues.joinToString { it.reason };is ApplyResult.IdentityConflict -> result.reason;else -> null }
@@ -317,10 +367,12 @@ class CharacterController internal constructor(
         val loaded=checkNotNull(acquisitionStore).load(id)
         return (loaded as? LoadResult.Loaded)?.state ?: throw AcquisitionPreviewUnavailable(loaded)
     }
-    private fun publish(state:StoredCharacter) {
+    private fun publish(state:StoredCharacter,selectNew:Boolean=false,dropPlaceholder:Boolean=false) {
         canonicalStates=canonicalStates+(state.character.id to state)
-        val characters=snapshot.characters.map { if(it.id==state.character.id)state.character else it }
-        snapshot=snapshot.copy(characters=characters)
+        val characters=snapshot.characters.filterNot { dropPlaceholder && it.id==snapshot.activeCharacterId }.map { if(it.id==state.character.id)state.character else it }.toMutableList()
+        if(characters.none { it.id==state.character.id }) characters+=state.character
+        snapshot=snapshot.copy(characters=characters,activeCharacterId=if(selectNew)state.character.id else snapshot.activeCharacterId)
+        application=createApplication(true)
         if(snapshot.activeCharacterId==state.character.id) extras=state.extras
     }
     suspend fun recoveryExport():Map<String,ByteArray> = checkNotNull(acquisitionStore).recoveryExportAll()

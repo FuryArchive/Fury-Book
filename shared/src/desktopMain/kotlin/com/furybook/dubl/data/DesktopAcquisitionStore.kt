@@ -37,6 +37,35 @@ class DesktopAcquisitionStore(
     private val legacyExtras = dataDirectory.resolve("sheet-extras.json")
 
     fun envelopePath(characterId: String): Path = container.resolve("${key(characterId)}.json")
+    val storageIdentity: String get() = container.toString()
+
+    /** Presence/uncertainty is protection, never write capability or an inferred migration. */
+    fun hasProtectedHeads(): Boolean = try {
+        if (Files.notExists(container)) false
+        else if (!Files.isDirectory(container, java.nio.file.LinkOption.NOFOLLOW_LINKS)) true
+        else Files.list(container).use { paths -> paths.anyMatch { it.fileName.toString().endsWith(".json") } }
+    } catch (_: Exception) { true }
+
+    /** Heads are the roster authority. Never silently skip future/corrupt/misbound data. */
+    suspend fun characterIds(): List<String> {
+        if (!Files.exists(container)) return emptyList()
+        val ids = linkedSetOf<String>()
+        Files.list(container).use { paths ->
+            paths.filter { it.fileName.toString().endsWith(".json") }.sorted().forEach { path ->
+                require(Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)) { "Invalid canonical head; preserve for recovery" }
+                val raw = readIfExists(path) ?: error("Canonical head disappeared; reload")
+                val loaded = decodeEnvelope(raw)
+                val state = (loaded as? LoadResult.Loaded)?.state ?: throw AcquisitionPreviewUnavailable(loaded)
+                require(path == envelopePath(state.character.id) && ids.add(state.character.id)) { "Canonical head identity differs from its filename" }
+            }
+        }
+        for (id in ids) when (val loaded = load(id)) {
+            is LoadResult.Loaded -> require(loaded.state.character.id == id)
+            else -> throw AcquisitionPreviewUnavailable(loaded)
+        }
+        return ids.sorted()
+    }
+
 
     override suspend fun load(characterId: String): LoadResult = locked(characterId) { loadLocked(characterId) }
 

@@ -108,7 +108,7 @@ fun main() {
     }
     // Untyped application callers cannot write a guessed canonical purchase or create an Undo record.
     val store = InMemoryCharacterStore(AppSnapshot(listOf(character), character.id))
-    val session = CharacterSession(store) { "unused" }
+    val session = CharacterSession(store, idFactory = { "unused" })
     val before = session.active
     val undo = ApplicationUndoManager()
     val application = DevelopmentApplication(session, undo)

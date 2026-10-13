@@ -9,7 +9,10 @@ import com.furybook.dubl.data.CharacterTransferCodec
 import com.furybook.dubl.data.CharacterTransferRejectReason
 import com.furybook.content.FcpContentPack
 import com.furybook.content.FcpTextSource
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import com.furybook.dubl.application.CanonicalWritePolicy
 import com.furybook.content.DesktopFcpInstaller
 import com.furybook.content.FcpComposition
 import com.furybook.content.FcpManifest
@@ -40,8 +43,10 @@ class DesktopAppState(
     private val characterStore: CharacterStore = DesktopCharacterStore(),
     private val extrasStore: CharacterExtrasStore = DesktopCharacterExtrasStore(),
     val localAcquisitionEnabled: Boolean = false,
-    private val acquisitionStore: DesktopAcquisitionStore? = if (localAcquisitionEnabled) DesktopAcquisitionStore() else null,
+    private val acquisitionStore: DesktopAcquisitionStore? = DesktopAcquisitionStore(),
 ) {
+    val canonicalMode: Boolean = localAcquisitionEnabled || acquisitionStore?.hasProtectedHeads() != false
+    val readOnlyCanonicalMode: Boolean get() = canonicalMode && !localAcquisitionEnabled
     // No live backend guard evidence exists. The local format must never enter legacy cloud writers.
     val cloudLedgerV2: Boolean = false
     var storageError: String? by mutableStateOf(null)
@@ -53,6 +58,15 @@ class DesktopAppState(
     var declaredLegacyComposition: List<String> by mutableStateOf(emptyList())
         private set
     private val acquisitionService by lazy { AcquisitionService(requireNotNull(acquisitionStore), ::acquisitionCatalog) { UUID.randomUUID().toString() } }
+    private var canonicalView: AppSnapshot? = null
+    private var canonicalLoads: Map<String, LoadResult> = emptyMap()
+    private var selectionGeneration = 0L
+    private var controllerGeneration = 0L
+    private var disposed = false
+    var unfundedPlaceholder: Boolean by mutableStateOf(false)
+        private set
+    var canonicalViewReady: Boolean by mutableStateOf(!canonicalMode)
+        private set
     private var application = createApplication()
     private var legacyStorageBlocked = false
 
@@ -67,17 +81,11 @@ class DesktopAppState(
     }
 
     private fun createApplication(): DublApplication {
-        if (!localAcquisitionEnabled) return DublApplication(characterStore, extrasStore, { UUID.randomUUID().toString() })
-        val store = requireNotNull(acquisitionStore) { "Local acquisition store is not configured" }
+        if (!canonicalMode) return DublApplication(characterStore, extrasStore, { UUID.randomUUID().toString() })
+        val store = acquisitionStore
         val original = characterStore.load()
-        val loaded = runBlocking { original.characters.associate { it.id to store.load(it.id) } }
-        val view = original.copy(characters = original.characters.map { character ->
-            when (val value = loaded.getValue(character.id)) {
-                is LoadResult.Loaded -> value.state.character
-                is LoadResult.MigrationRequired -> character
-                else -> throw AcquisitionPreviewUnavailable(value)
-            }
-        })
+        val loaded = canonicalLoads
+        val view = canonicalView ?: original
         val readOnlyCharacters = object : CharacterStore {
             override fun load() = view
             override fun save(snapshot: AppSnapshot) = error("Legacy character writer is blocked in local acquisition mode")
@@ -88,9 +96,75 @@ class DesktopAppState(
             override fun delete(characterId: String) = error("Legacy extras delete is blocked in local acquisition mode")
         }
         return DublApplication(readOnlyCharacters, readOnlyExtras, { UUID.randomUUID().toString() },
-            acquisitionService = acquisitionService,
-            mutationCoordinator = CharacterMutationCoordinator(store, ::acquisitionCatalog) { UUID.randomUUID().toString() },
-            acquisitionUndo = AcquisitionUndo(store))
+            acquisitionService = store?.let { acquisitionService },
+            mutationCoordinator = store?.let { CharacterMutationCoordinator(it, ::acquisitionCatalog) { UUID.randomUUID().toString() } },
+            acquisitionUndo = store?.let(::AcquisitionUndo),
+            characterCreator = store?.let { AcquisitionCharacterCreator(it, ::acquisitionCatalog, ::localCapabilities) },
+            writePolicy = CanonicalWritePolicy.Protected)
+    }
+    private fun localCapabilities() = AcquisitionCapabilities(localAcquisitionEnabled && canonicalViewReady && !disposed, false, true)
+    private fun acquisitionScope() = AcquisitionScope(checkNotNull(acquisitionStore).storageIdentity,snapshot.activeCharacterId,controllerGeneration,selectionGeneration,0)
+    private fun currentAcquisitionScope(scope:AcquisitionScope):Boolean = !disposed && scope.storageScopeId==acquisitionStore?.storageIdentity &&
+        scope.controllerGeneration==controllerGeneration && scope.selectionGeneration==selectionGeneration && scope.viewCharacterId==snapshot.activeCharacterId
+    private fun currentAcquisitionOwner(scope:AcquisitionScope):Boolean = !disposed && scope.storageScopeId==acquisitionStore?.storageIdentity &&
+        scope.controllerGeneration==controllerGeneration && scope.accountGeneration==0L
+    private val canonicalQueue=Mutex()
+    var acquisitionUiModel:AcquisitionUiModel? by mutableStateOf(null)
+        private set
+    val acquisition:AcquisitionController by lazy {
+        val port=ApplicationAcquisitionCommandPort(application,checkNotNull(acquisitionStore),::acquisitionCatalog,::localCapabilities,::currentAcquisitionScope,
+            { scope,state -> withContext(Dispatchers.Main) {
+                check(currentAcquisitionScope(scope)) { "Captured view changed" }
+                val current=checkNotNull(canonicalView)
+                val characters=current.characters.filterNot { unfundedPlaceholder }.map { if(it.id==state.character.id)state.character else it }.toMutableList()
+                if(characters.none { it.id==state.character.id }) characters+=state.character
+                canonicalLoads=canonicalLoads+(state.character.id to LoadResult.Loaded(state))
+                canonicalView=AppSnapshot(characters,if(scope.characterId!=scope.viewCharacterId)state.character.id else current.activeCharacterId)
+                unfundedPlaceholder=false;application=createApplication();refresh();acquisition.activateCurrentView()
+            } },object:AcquisitionExecutor {
+                override suspend fun <T> read(block:suspend()->T):T = withContext(Dispatchers.IO) { block() }
+                override suspend fun <T> run(block:suspend()->T):T {
+                    val captured=capturedAcquisitionCommand().scope
+                    return canonicalQueue.withLock {
+                        check(currentAcquisitionOwner(captured)) { "Captured owner changed" }
+                        withContext(Dispatchers.IO) { block() }
+                    }
+                }
+            })
+        AcquisitionController(port,::acquisitionScope,{UUID.randomUUID().toString()}) { acquisitionUiModel=it }
+    }
+    fun reviewNewCharacterFunding(initialXP:Long)=acquisition.reviewNewCharacterFunding(initialXP)
+    suspend fun confirmNewCharacterFunding(key:AcquisitionQuoteKey)=acquisition.confirm(key)
+    fun dispose() { disposed=true;controllerGeneration++ }
+
+    /** Explicit async bootstrap; Missing is an unfunded view, never an inferred migration/opening. */
+    suspend fun initializeCanonicalView() {
+        check(canonicalMode)
+        try {
+        val generation=selectionGeneration
+        val loaded=withContext(Dispatchers.IO) {
+            val store=checkNotNull(acquisitionStore);val original=characterStore.load()
+            val ids=(original.characters.map { it.id }+store.characterIds()).distinct()
+            Triple(original,ids.associateWith { store.load(it) },ids)
+        }
+        withContext(Dispatchers.Main) {
+            check(!disposed && generation==selectionGeneration) { "View changed during loading" }
+            val (original,heads,ids)=loaded
+            val characters=ids.mapNotNull { id -> when(val value=heads.getValue(id)) {
+                is LoadResult.Loaded -> value.state.character
+                is LoadResult.MigrationRequired -> original.characters.singleOrNull { it.id==id } ?: throw AcquisitionPreviewUnavailable(value)
+                is LoadResult.Missing -> null
+                else -> throw AcquisitionPreviewUnavailable(value)
+            } }
+            unfundedPlaceholder=characters.isEmpty()
+            val visible=characters.ifEmpty { listOf(original.activeCharacter) }
+            canonicalView=AppSnapshot(visible,snapshot.activeCharacterId.takeIf { id -> visible.any { it.id==id } } ?: visible.first().id)
+            canonicalLoads=heads;canonicalViewReady=true;application=createApplication();refresh()
+        }
+        } catch (failure: Exception) {
+            storageError="Каноническое хранилище недоступно. Сохраните исходные файлы для восстановления."
+            throw failure
+        }
     }
     private val catalogLoader = DesktopCatalogLoader()
     private val contentPackPreferences = Preferences.userRoot().node("com/furybook/content-packs")
@@ -136,7 +210,7 @@ class DesktopAppState(
         }
 
     init {
-        if (!localAcquisitionEnabled) application.equipment.syncCatalogLoads(magicEquipmentCatalog.gear)
+        if (!canonicalMode) application.equipment.syncCatalogLoads(magicEquipmentCatalog.gear)
         refresh()
     }
 
@@ -262,7 +336,7 @@ class DesktopAppState(
     }
 
     private inline fun <T> sync(action: () -> T): T? {
-        if (localAcquisitionEnabled) {
+        if (canonicalMode) {
             storageError = "Старое редактирование заблокировано для локального журнала. Используйте каноническую операцию."
             return null
         }
@@ -280,10 +354,11 @@ class DesktopAppState(
         }
     }
 
-    fun localStoredCharacter(): LoadResult = runBlocking { requireNotNull(acquisitionStore).load(snapshot.activeCharacterId) }
+    fun localStoredCharacter(): LoadResult = canonicalLoads[snapshot.activeCharacterId] ?: LoadResult.Missing(snapshot.activeCharacterId)
     /** Declaration edits invalidate both confirmation paths, including unsupported compositions. */
     fun declareLegacyComposition(activePackIds: List<String>) {
         check(localAcquisitionEnabled)
+        selectionGeneration++
         pendingLegacyMigration = null
         preparedLegacyMigration = null
         storageError = "Состав исходного листа изменён. Подготовьте миграцию заново."
@@ -333,7 +408,7 @@ class DesktopAppState(
         require(origin.activePackIds == declaredLegacyComposition && origin.characterId == snapshot.activeCharacterId) {
             "Source composition or character changed; prepare again"
         }
-        val result = runBlocking { requireNotNull(acquisitionStore).compareAndSet(state.character.id, -1, state) }
+        val result: CommitResult = CommitResult.StorageFailure("Используйте асинхронное подтверждение миграции")
         storageError = when (result) {
             CommitResult.Committed -> null
             CommitResult.Conflict -> "Исходный лист изменился. Подготовьте миграцию заново."
@@ -342,10 +417,21 @@ class DesktopAppState(
         if (result == CommitResult.Committed) { pendingLegacyMigration = null; preparedLegacyMigration = null; reloadCanonicalView() }
         return result
     }
-    private fun reloadCanonicalView() {
-        runCatching { application = createApplication(); refresh() }.onFailure {
-            storageError = "Сохранено на устройстве, но просмотр не обновился: ${it.message}. Проверьте конфликт перед новой операцией."
-        }
+    private fun reloadCanonicalView() { application=createApplication();refresh() }
+    suspend fun commitPreparedLocalMigrationAsync():CommitResult = commitMigrationAsync(checkNotNull(preparedLegacyMigration))
+    suspend fun confirmLocalOpeningBalanceAsync(xp:Long,ap:Long,reason:String):CommitResult {
+        val pending=checkNotNull(pendingLegacyMigration)
+        require(pending.origin.activePackIds==declaredLegacyComposition)
+        return commitMigrationAsync(confirmLegacyBalance(pending,Amount(xp,ap),reason))
+    }
+    private suspend fun commitMigrationAsync(state:StoredCharacter):CommitResult {
+        val scope=acquisitionScope()
+        val origin=checkNotNull(state.ledger.opening.legacyMigration?.origin)
+        require(origin.characterId==scope.characterId && origin.activePackIds==declaredLegacyComposition)
+        check(currentAcquisitionScope(scope) && localCapabilities().localDurable)
+        val result=withContext(Dispatchers.IO) { checkNotNull(acquisitionStore).compareAndSet(scope.characterId,-1,state) }
+        if(result==CommitResult.Committed && currentAcquisitionScope(scope)) { pendingLegacyMigration=null;preparedLegacyMigration=null;initializeCanonicalView() }
+        return result
     }
     suspend fun previewLocalAcquisition(request: AcquisitionRequest): AcquisitionPlan {
         check(localAcquisitionEnabled)
@@ -361,7 +447,7 @@ class DesktopAppState(
             is ApplyResult.IdentityConflict -> result.reason
             else -> null
         }
-        if (result is ApplyResult.Applied || result is ApplyResult.AlreadyApplied || result is ApplyResult.AlreadyUndone) reloadCanonicalView()
+        if (result is ApplyResult.Applied || result is ApplyResult.AlreadyApplied || result is ApplyResult.AlreadyUndone) initializeCanonicalView()
         return result
     }
 
@@ -475,7 +561,7 @@ class DesktopAppState(
     fun setCustomConditionActive(id: String, active: Boolean) = sync { application.sheet.setCustomConditionActive(id, active) }
     fun removeCustomCondition(id: String) = sync { application.sheet.removeCustomCondition(id) }
 
-    fun exportActiveCharacter(): String = if (localAcquisitionEnabled) {
+    fun exportActiveCharacter(): String = if (canonicalMode) {
         val loaded = localStoredCharacter()
         when (loaded) {
             is LoadResult.Loaded -> CharacterTransferCodec.encodeEnvelope(loaded.state)
@@ -485,7 +571,13 @@ class DesktopAppState(
     fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) } ?: CharacterTransferImportResult.Rejected(CharacterTransferRejectReason.INVALID_FILE)
 
     fun createCharacter() = sync { application.character.createCharacter() }
-    fun selectCharacter(id: String) = sync { application.character.selectCharacter(id) }
+    fun selectCharacter(id: String) {
+        selectionGeneration++;pendingLegacyMigration=null;preparedLegacyMigration=null
+        if(canonicalMode) {
+            val view=canonicalView ?: snapshot
+            require(view.characters.any { it.id==id });canonicalView=view.copy(activeCharacterId=id);application=createApplication();refresh();acquisition.activateCurrentView()
+        } else sync { application.character.selectCharacter(id) }
+    }
     fun deleteActive() = sync { application.character.deleteActive() }
     fun undoLast(): Boolean = sync { application.undoLast() } ?: false
 

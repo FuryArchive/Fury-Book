@@ -14,7 +14,9 @@ class Desktop02ParityTest(unittest.TestCase):
 
     def test_android_controller_is_backed_by_shared_application_not_raw_session(self):
         controller = CONTROLLER.read_text(encoding='utf-8')
-        self.assertIn('private val application = DublApplication', controller)
+        self.assertIn('private fun createApplication(canonical: Boolean) = DublApplication(', controller)
+        self.assertIn('private var application = createApplication(initialCanonicalStates.isNotEmpty() || legacyGate?.readOnly == true)', controller)
+        self.assertIn('writePolicy = if(canonical) CanonicalWritePolicy.Protected else CanonicalWritePolicy.LegacyIsolated', controller)
         self.assertNotIn('CharacterSession', controller)
         self.assertNotIn('session.', controller)
         self.assertNotIn('fun updateActive(', controller)

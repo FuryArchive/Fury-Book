@@ -137,13 +137,13 @@ private fun DesktopApp() {
     val baseExtras = remember { DesktopCharacterExtrasStore() }
     val observedCharacters = remember(baseCharacters) { ObservingCharacterStore(baseCharacters) }
     val observedExtras = remember(baseExtras) { ObservingCharacterExtrasStore(baseExtras) }
-    val legacyCloudController = remember(baseCharacters, baseExtras, localAcquisitionEnabled) {
-        if (localAcquisitionEnabled) null else DesktopCloudController(baseCharacters, baseExtras).also {
-            it.bind(observedCharacters, observedExtras)
+    val acquisitionStore = remember { DesktopAcquisitionStore() }
+    val legacyCloudController = remember(baseCharacters, baseExtras, localAcquisitionEnabled, acquisitionStore) {
+        legacyCloudForStorage(acquisitionStore, localAcquisitionEnabled) {
+            DesktopCloudController(baseCharacters, baseExtras).also { it.bind(observedCharacters, observedExtras) }
         }
     }
     val reloadToken = legacyCloudController?.reloadToken ?: 0
-    val acquisitionStore = remember(localAcquisitionEnabled) { if (localAcquisitionEnabled) DesktopAcquisitionStore() else null }
     val startup = remember(reloadToken, localAcquisitionEnabled) {
         runCatching { DesktopAppState(observedCharacters, observedExtras,
             localAcquisitionEnabled = localAcquisitionEnabled, acquisitionStore = acquisitionStore) }
@@ -157,7 +157,8 @@ private fun DesktopApp() {
         }
         return
     }
-    if (localAcquisitionEnabled) {
+    if (state.canonicalMode) {
+        LaunchedEffect(state) { runCatching { state.initializeCanonicalView() } }
         LocalAcquisitionStoragePanel(state)
         return // Never bind canonical envelopes to legacy cloud save/link/import/delete writers.
     }
@@ -218,8 +219,8 @@ private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
                     packs = it
                     state.declareLegacyComposition(it.split(',').map(String::trim).filter(String::isNotBlank))
                     localError = null
-                }, label = { Text("Пакеты исходного листа, через запятую") })
-                Button(onClick = {
+                }, enabled = state.localAcquisitionEnabled, label = { Text("Пакеты исходного листа, через запятую") })
+                Button(enabled = state.localAcquisitionEnabled, onClick = {
                     localError = runCatching { state.prepareLocalMigration(packs.split(',').map(String::trim).filter(String::isNotBlank)) }
                         .exceptionOrNull()?.message
                 }) { Text("Подготовить миграцию") }
@@ -227,7 +228,7 @@ private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
                     Text("Подготовленный состав: ${prepared.ledger.opening.legacyMigration?.origin?.activePackIds?.joinToString()}")
                     val opening = balance(prepared.ledger)
                     Text("Остаток по сохранённым старым правилам: ${opening.xp} XP / ${opening.ap} ОСп")
-                    Button(onClick = {
+                    Button(enabled = state.localAcquisitionEnabled, onClick = {
                         localError = runCatching { state.commitPreparedLocalMigration() }.exceptionOrNull()?.message
                     }) { Text("Подтверждаю исходные пакеты и перенос") }
                 }
@@ -236,7 +237,7 @@ private fun LocalAcquisitionStoragePanel(state: DesktopAppState) {
                     OutlinedTextField(xp, { xp = it }, label = { Text("Известный остаток XP") })
                     OutlinedTextField(ap, { ap = it }, label = { Text("Известный остаток ОСп") })
                     OutlinedTextField(reason, { reason = it }, label = { Text("Основание подтверждения") })
-                    Button(enabled = xp.toLongOrNull() != null && ap.toLongOrNull() != null && reason.isNotBlank(), onClick = {
+                    Button(enabled = state.localAcquisitionEnabled && xp.toLongOrNull() != null && ap.toLongOrNull() != null && reason.isNotBlank(), onClick = {
                         localError = runCatching { state.confirmLocalOpeningBalance(xp.toLong(), ap.toLong(), reason) }
                             .exceptionOrNull()?.message
                     }) { Text("Подтверждаю остаток и исходные пакеты") }

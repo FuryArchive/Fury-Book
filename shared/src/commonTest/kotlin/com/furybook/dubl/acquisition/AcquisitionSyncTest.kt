@@ -1,11 +1,18 @@
 package com.furybook.dubl.acquisition
 
 import com.furybook.core.cloud.FuryCloudTransport
-import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.*
 import kotlin.test.*
 
 class AcquisitionSyncTest {
-    private fun runTest(block: suspend () -> Unit) = runBlocking { block() }
+    private fun runTest(block: suspend () -> Unit) {
+        var completed: Result<Unit>? = null
+        block.startCoroutine(object : Continuation<Unit> {
+            override val context = EmptyCoroutineContext
+            override fun resumeWith(result: Result<Unit>) { completed = result }
+        })
+        checkNotNull(completed) { "Test coroutine did not complete" }.getOrThrow()
+    }
     private val capabilities = AcquisitionCapabilities(true, true, true)
     private val source = RuleSourceRef("sync-fixture", "1", "Explicit test price")
     private fun catalog() = AcquisitionCatalog(listOf("twenty" to 20L, "eighty" to 80L, "seventy" to 70L, "ten" to 10L).associate { (id, price) ->

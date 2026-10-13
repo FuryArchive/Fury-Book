@@ -3,12 +3,19 @@ package com.furybook.dubl.acquisition
 import com.furybook.dubl.model.*
 import com.furybook.dubl.data.SnapshotCodec
 import com.furybook.core.json.*
-import kotlinx.coroutines.runBlocking
+import kotlin.coroutines.*
 import kotlin.test.*
 
 /** Real strict codecs/CAS, with only the remote envelope receipt store represented by a fixture. */
 class AcquisitionSyncRecoveryTest {
-    private fun runTest(block:suspend ()->Unit)=runBlocking { block() }
+    private fun runTest(block: suspend () -> Unit) {
+        var completed: Result<Unit>? = null
+        block.startCoroutine(object : Continuation<Unit> {
+            override val context = EmptyCoroutineContext
+            override fun resumeWith(result: Result<Unit>) { completed = result }
+        })
+        checkNotNull(completed) { "Test coroutine did not complete" }.getOrThrow()
+    }
     private val caps=AcquisitionCapabilities(true,true,true)
     private val catalog=AcquisitionCatalog(emptyMap(),"fixture","fixture")
     private fun initial()=StoredCharacter(DublCharacter("hero"),CharacterSheetExtras(),emptyList(),

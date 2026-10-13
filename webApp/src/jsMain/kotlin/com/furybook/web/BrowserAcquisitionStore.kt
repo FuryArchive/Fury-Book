@@ -30,6 +30,9 @@ class BrowserAcquisitionStore(
     private val fault:(BrowserAcquisitionWriteStage)->Unit={},
     private val indexedDb:()->dynamic={window.asDynamic().indexedDB},
 ) : AcquisitionStore {
+    val storageIdentity: String get() = databaseName + "/" + owner.id
+    var scopeGeneration: Long = 0; private set
+    fun isCurrentScope(): Boolean = ready && runCatching { owner.requireCurrent() }.isSuccess
     private var database:dynamic=null
     private var ready=false
     private var ids:Set<String> = emptySet()
@@ -48,7 +51,7 @@ class BrowserAcquisitionStore(
     } catch(cancelled:CancellationException) { throw cancelled }
       catch(failure:Throwable) { ready=false;storageError=failure.message ?: "Browser durable storage unavailable";false }
 
-    fun close() { database?.close();database=null;ready=false;ids=emptySet() }
+    fun close() { scopeGeneration++;database?.close();database=null;ready=false;ids=emptySet() }
 
     private suspend fun openDatabase():dynamic = suspendCancellableCoroutine { continuation ->
         owner.requireCurrent()

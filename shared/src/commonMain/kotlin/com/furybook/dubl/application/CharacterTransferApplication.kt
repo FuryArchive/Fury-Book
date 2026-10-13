@@ -20,13 +20,18 @@ sealed interface CharacterTransferImportResult {
 class CharacterTransferApplication internal constructor(
     private val characters: CharacterSession,
     private val extras: CharacterExtrasSession,
+    private val beforeLegacyTransfer: () -> Unit = {},
 ) {
-    fun exportActive(): String = CharacterTransferCodec.encode(
+    fun exportActive(): String {
+        beforeLegacyTransfer()
+        return CharacterTransferCodec.encode(
         character = characters.active,
         extras = extras.load(characters.active.id),
     )
+    }
 
     fun importCharacter(raw: String): CharacterTransferImportResult {
+        beforeLegacyTransfer()
         val decoded = CharacterTransferCodec.decode(raw, characters::newIdForTransfer)
         if (decoded is CharacterTransferDecodeResult.Failure) {
             return CharacterTransferImportResult.Rejected(decoded.reason)
