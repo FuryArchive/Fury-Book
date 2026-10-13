@@ -15,6 +15,9 @@ private object BrowserSessionMemory {
     var ownerId: String? = null
     var snapshotRaw: String? = null
     var legacySourceEligible: Boolean = true
+    var originalSource: BrowserLegacySourceState = BrowserLegacySourceState.NotLoaded
+    var originalSnapshotReceived:Boolean = false
+    var originalExtrasReceived:Boolean = false
     var extrasRaw: String = "{\"version\":1,\"characters\":{}}"
     var chiEnabled: Boolean = false
 
@@ -22,9 +25,27 @@ private object BrowserSessionMemory {
         ownerId = null
         snapshotRaw = null
         legacySourceEligible = true
+        originalSource = BrowserLegacySourceState.NotLoaded
+        originalSnapshotReceived=false;originalExtrasReceived=false
         extrasRaw = "{\"version\":1,\"characters\":{}}"
         chiEnabled = false
     }
+}
+
+internal sealed interface BrowserLegacySourceState {
+    data object NotLoaded:BrowserLegacySourceState
+    data object Absent:BrowserLegacySourceState
+    data class Present(val source:BrowserLegacySource):BrowserLegacySourceState
+    data class Changed(val previous:BrowserLegacySourceState):BrowserLegacySourceState
+}
+internal fun BrowserLegacySourceState.originalSourceForExport():BrowserLegacySource? = when(this) {
+    is BrowserLegacySourceState.Present -> source
+    is BrowserLegacySourceState.Changed -> previous.originalSourceForExport()
+    else -> null
+}
+private fun invalidateReceivedLegacySource() {
+    if(BrowserSessionMemory.originalSource !is BrowserLegacySourceState.Changed)
+        BrowserSessionMemory.originalSource=BrowserLegacySourceState.Changed(BrowserSessionMemory.originalSource)
 }
 
 fun clearBrowserSessionData() = BrowserSessionMemory.clear()
@@ -36,8 +57,22 @@ internal fun bindBrowserSessionOwner(ownerId:String) {
     BrowserSessionMemory.ownerId=ownerId
 }
 internal fun captureBrowserLegacySource(ownerId:String):BrowserLegacySource? {
-    if(BrowserSessionMemory.ownerId!=ownerId || !BrowserSessionMemory.legacySourceEligible) return null
-    return BrowserSessionMemory.snapshotRaw?.let { BrowserLegacySource(it,BrowserSessionMemory.extrasRaw) }
+    return browserLegacySourceState(ownerId).originalSourceForExport()
+}
+internal fun browserLegacySourceState(ownerId:String):BrowserLegacySourceState =
+    if(BrowserSessionMemory.ownerId==ownerId) BrowserSessionMemory.originalSource else BrowserLegacySourceState.NotLoaded
+internal fun receiveBrowserLegacySource(ownerId:String,source:BrowserLegacySource?) {
+    bindBrowserSessionOwner(ownerId)
+    BrowserSessionMemory.originalSource=source?.let(BrowserLegacySourceState::Present) ?: BrowserLegacySourceState.Absent
+    BrowserSessionMemory.originalSnapshotReceived=true;BrowserSessionMemory.originalExtrasReceived=true
+}
+private fun captureGenuineLegacySnapshot(raw:String) {
+    val previous=BrowserSessionMemory.originalSource.originalSourceForExport()
+    BrowserSessionMemory.originalSource=BrowserLegacySourceState.Present(BrowserLegacySource(raw,previous?.extrasRaw ?: BrowserSessionMemory.extrasRaw))
+}
+private fun captureGenuineLegacyExtras(raw:String) {
+    val previous=BrowserSessionMemory.originalSource.originalSourceForExport() ?: return
+    BrowserSessionMemory.originalSource=BrowserLegacySourceState.Present(previous.copy(extrasRaw=raw))
 }
 
 fun webUuid(): String = js("crypto.randomUUID()") as String
@@ -49,6 +84,8 @@ class BrowserCharacterStore : CharacterStore {
 
     override fun save(snapshot: com.furybook.dubl.model.AppSnapshot) {
         BrowserSessionMemory.snapshotRaw = SnapshotCodec.encode(snapshot)
+        if(BrowserSessionMemory.originalSnapshotReceived) invalidateReceivedLegacySource()
+        else if(BrowserSessionMemory.legacySourceEligible) captureGenuineLegacySnapshot(BrowserSessionMemory.snapshotRaw!!)
     }
 
     fun hasStoredState(): Boolean = BrowserSessionMemory.snapshotRaw != null
@@ -57,6 +94,9 @@ class BrowserCharacterStore : CharacterStore {
         ?: SnapshotCodec.encode(SnapshotCodec.fresh(::webUuid)).also { BrowserSessionMemory.snapshotRaw = it }
 
     fun replaceRaw(raw: String, migrationSource: Boolean = true) {
+        if(migrationSource) {
+            captureGenuineLegacySnapshot(raw);BrowserSessionMemory.originalSnapshotReceived=true
+        }
         SnapshotCodec.decode(raw, ::webUuid)
         BrowserSessionMemory.snapshotRaw = raw
         BrowserSessionMemory.legacySourceEligible = migrationSource
@@ -80,12 +120,18 @@ class BrowserCharacterExtrasStore : CharacterExtrasStore {
     fun raw(): String = encode(state)
 
     fun replaceRaw(raw: String) {
+        if(BrowserSessionMemory.legacySourceEligible) {
+            captureGenuineLegacyExtras(raw);BrowserSessionMemory.originalExtrasReceived=true
+        }
         state = decode(raw).toMutableMap()
         BrowserSessionMemory.extrasRaw = encode(state)
     }
 
     private fun persist() {
         BrowserSessionMemory.extrasRaw = encode(state)
+        // A typed first input may be captured; reconstruction must never replace received originals.
+        if(BrowserSessionMemory.originalExtrasReceived) invalidateReceivedLegacySource()
+        else if(BrowserSessionMemory.legacySourceEligible) captureGenuineLegacyExtras(BrowserSessionMemory.extrasRaw)
     }
 
     private fun encode(state: Map<String, CharacterSheetExtras>): String = buildString {

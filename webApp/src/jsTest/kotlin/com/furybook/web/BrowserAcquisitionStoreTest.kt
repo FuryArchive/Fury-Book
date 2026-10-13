@@ -265,6 +265,180 @@ class BrowserAcquisitionStoreTest {
         startup.store.close();seed.close()
     }
 
+
+    private fun bootstrapReply(characters:List<DublCharacter>,extras:dynamic=js("({})")):dynamic {
+        val snapshot=js("JSON.parse")(SnapshotCodec.encode(AppSnapshot(characters,characters.firstOrNull()?.id.orEmpty())))
+        val reply=js("({profile:{nickname:'Synthetic'},state:{activeCharacterId:'hero',revision:1,packState:{}},history:[],characters:[]})")
+        for(c in snapshot.characters as Array<dynamic>) {
+            val row=js("({revision:2})");row.id=c.id;row.data=c;row.extras=extras
+            reply.characters.push(row)
+        }
+        return reply
+    }
+    private suspend fun <T> syntheticPull(store:BrowserAcquisitionStore,id:String,reply:dynamic,
+        action:suspend (WebCloudSync,WebAuthSession)->T):T {
+        val client=js("({auth:{}})");val sdkSession=js("({error:null,data:{session:{user:{}}}})")
+        sdkSession.data.session.access_token="synthetic-test-token-never-sent"
+        sdkSession.data.session.user.id=id;sdkSession.data.session.user.email="synthetic@example.test"
+        val getSession:()->Promise<dynamic> = {Promise.resolve(sdkSession)}
+        val getUser:()->Promise<dynamic> = {Promise.resolve(authReply(id))}
+        client.auth.getSession=getSession;client.auth.getUser=getUser
+        val originalFetch=window.asDynamic().fetch
+        val fetch:(dynamic,dynamic)->Promise<dynamic> = {url:dynamic,_:dynamic ->
+            check((url as String).endsWith("/rest/v1/rpc/get_web_bootstrap")) { "Unexpected synthetic request" }
+            val response=js("({ok:true})")
+            response.text={Promise.resolve(js("JSON.stringify")(reply) as String)};Promise.resolve(response)
+        }
+        window.asDynamic().fetch=fetch
+        try {
+            val cloud=WebCloudSync(store,{store.knownCharacterIds},client)
+            return action(cloud,assertNotNull(cloud.restoreSession()))
+        } finally { window.asDynamic().fetch=originalFetch }
+    }
+    @Test fun actual_pull_and_main_ingress_refuse_hidden_changed_source_and_stale_other_migration()=test {
+        clearBrowserSessionData()
+        val id="ingress-owner";var current:String?=id;val name="furybook-ingress-"+webUuid()
+        val writer=BrowserAcquisitionStore(BrowserOwnerScope.fromVerifiedSession(WebAuthSession(id,"synthetic@example.test")) {current},name,localWritesEnabled=true)
+        assertTrue(writer.initialize())
+        val old=listOf(DublCharacter("hero",name="old hero",experience=100),DublCharacter("other",name="old other",experience=100))
+        try {
+            var ingress:BrowserAcquisitionSession?=null
+            syntheticPull(writer,id,bootstrapReply(old)) { cloud,session ->
+                ingress=BrowserAcquisitionSession.open(session,{current},name,verifyOwner=cloud::verifyOwner)
+                val original=cloud.pull();ingress!!.ingestBootstrap(original)
+                assertEquals(original.originalLegacySource,writer.originalLegacySourceForExport())
+            }
+            val staleOther=confirmLegacyBalance(assertIs<MigrationResult.NeedsBalanceConfirmation>(writer.prepareMigration("other",listOf("dubl-3.69"),null)).pending,Amount(100,0),"Synthetic known100")
+            val receivedBeforeEdit=assertNotNull(writer.originalLegacySourceForExport())
+            val legacyWriter=BrowserCharacterStore();val legacySnapshot=legacyWriter.load()
+            legacyWriter.save(legacySnapshot.copy(characters=legacySnapshot.characters.map { if(it.id=="other") it.copy(experience=250) else it }))
+            assertIs<LoadResult.LegacyImportConflict>(writer.load("other"))
+            assertIs<MigrationResult.Corrupt>(writer.prepareMigration("other",listOf("dubl-3.69"),null))
+            assertIs<CommitResult.StorageFailure>(writer.compareAndSet("other",-1,staleOther))
+            assertEquals(receivedBeforeEdit,writer.originalLegacySourceForExport());assertNull(writer.rawForExport("other"))
+            legacyWriter.save(legacySnapshot)
+            assertIs<LoadResult.LegacyImportConflict>(writer.load("other"))
+            assertFails { syntheticPull(writer,id,bootstrapReply(old)) { cloud,_ -> cloud.pull() } }
+            // Existing fresh-tab/sign-in lifecycle clears volatile display before a fresh received bootstrap.
+            clearBrowserSessionData()
+            syntheticPull(writer,id,bootstrapReply(old)) { cloud,_ -> ingress!!.ingestBootstrap(cloud.pull()) }
+            val hero=confirmLegacyBalance(assertIs<MigrationResult.NeedsBalanceConfirmation>(writer.prepareMigration("hero",listOf("dubl-3.69"),null)).pending,Amount(100,0),"Synthetic known100")
+            assertEquals(CommitResult.Committed,writer.compareAndSet("hero",-1,hero))
+            val retained=writer.rawForExport("hero")
+            clearBrowserSessionData()
+            assertIs<BrowserLegacySourceState.NotLoaded>(browserLegacySourceState(id))
+            assertIs<LoadResult.Loaded>(writer.load("hero"))
+            assertTrue(assertIs<MigrationResult.Corrupt>(writer.prepareMigration("other",listOf("dubl-3.69"),null)).reason.contains("not loaded"))
+            assertIs<CommitResult.StorageFailure>(writer.compareAndSet("other",-1,staleOther))
+            val changed=listOf(old[0].copy(name="remote hero",experience=170),old[1].copy(name="remote other",experience=250))
+            syntheticPull(writer,id,bootstrapReply(changed)) { cloud,_ ->
+                val received=cloud.pull()
+                assertEquals(250,SnapshotCodec.decode(received.snapshot,{error("No generated identity")}).characters.single {it.id=="other"}.experience)
+                assertFails { ingress!!.ingestBootstrap(received) }
+                assertEquals(received.originalLegacySource,writer.originalLegacySourceForExport())
+                assertIs<LoadResult.LegacyImportConflict>(writer.load("hero"))
+                assertIs<MigrationResult.Corrupt>(writer.prepareMigration("other",listOf("dubl-3.69"),null))
+                assertIs<CommitResult.StorageFailure>(writer.compareAndSet("other",-1,staleOther))
+                assertNull(writer.rawForExport("other"));assertEquals(retained,writer.rawForExport("hero"))
+                current="another-owner"
+                assertFails { ingress!!.ingestBootstrap(received) }
+                assertNull(captureBrowserLegacySource("another-owner"));current=id
+            }
+            clearBrowserSessionData()
+            syntheticPull(writer,id,bootstrapReply(emptyList())) { cloud,_ ->
+                val absent=cloud.pull();assertNull(absent.originalLegacySource)
+                assertFails { ingress!!.ingestBootstrap(absent) }
+                assertIs<BrowserLegacySourceState.Absent>(browserLegacySourceState(id))
+                assertIs<LoadResult.LegacyImportConflict>(writer.load("hero"))
+                assertIs<MigrationResult.Corrupt>(writer.prepareMigration("other",listOf("dubl-3.69"),null))
+                assertIs<CommitResult.StorageFailure>(writer.compareAndSet("other",-1,staleOther))
+                assertEquals(retained,writer.rawForExport("hero"))
+            }
+            ingress!!.store.close()
+            val otherOwner=BrowserAcquisitionStore(owner("another-owner"),name)
+            assertTrue(otherOwner.initialize());assertIs<LoadResult.Missing>(otherOwner.load("hero"));otherOwner.close()
+            println("ACTUAL_MAIN_ORIGINAL_INGRESS|pull-original-before-overlay|changed-source-conflict|other250-not-backup100|NotLoaded-Absent-refuse-migration|owners-head-retained|PASS")
+        } finally { writer.close();clearBrowserSessionData() }
+    }
+    @Test fun actual_pull_main_ingress_preserves_original_extras_strict_refusal_and_exact_backup()=test {
+        val id="extras-ingress-owner"
+        val character=DublCharacter("hero",experience=100,creationComplete=false,gear=CharacterGear(loadManual=-0.5),
+            magic=CharacterMagic(schools=listOf(MagicSchool("Unknown school",1))))
+        val known=CharacterSheetExtras("synthetic://portrait",setOf(CharacterConditionId.TIRED),setOf(CharacterSheetResourceId.MANA),
+            mapOf("skill" to AttributeId.WILL),listOf(SheetGroup("s","Skills",listOf("skill"),true)),listOf(SheetGroup("d","Developments",listOf("dev"))),
+            mapOf(CharacterConditionId.TIRED to ConditionLocalOverride("Title","Details")),listOf(CustomCondition("c","Custom","Details",true)),
+            "Notes 😀",listOf(CharacterNote("n","Title","Body")))
+        val knownRow=js("JSON.parse")(com.furybook.core.cloud.CloudExtrasProjection.encode(known))
+        val invalidRows=listOf(js("({notes:'keep',futureNote:'valuable original',conditions:['TIRED','UNKNOWN_CONDITION']})"),
+            js("({notes:'keep',conditions:'malformed-array'})"),"{malformed original extras")
+        var validCandidate:StoredCharacter?=null
+        for(index in 0..invalidRows.size) {
+            clearBrowserSessionData()
+            val name="furybook-original-extras-"+webUuid();val writer=BrowserAcquisitionStore(owner(id),name,localWritesEnabled=true)
+            assertTrue(writer.initialize())
+            var ingress:BrowserAcquisitionSession?=null
+            try {
+                val row=if(index==0) knownRow else invalidRows[index-1]
+                syntheticPull(writer,id,bootstrapReply(listOf(character),row)) { cloud,session ->
+                    ingress=BrowserAcquisitionSession.open(session,{id},name,verifyOwner=cloud::verifyOwner)
+                    val received=cloud.pull();val original=assertNotNull(received.originalLegacySource)
+                    ingress!!.ingestBootstrap(received)
+                    assertEquals(original,captureBrowserLegacySource(id));assertEquals(original,writer.originalLegacySourceForExport())
+                    if(index>0) {
+                        assertIs<MigrationResult.Corrupt>(writer.prepareMigration("hero",listOf("dubl-3.69"),null))
+                        assertIs<CommitResult.StorageFailure>(writer.compareAndSet("hero",-1,assertNotNull(validCandidate)))
+                        assertNull(writer.rawForExport("hero"));assertEquals(original,writer.originalLegacySourceForExport())
+                    } else {
+                        val pending=assertIs<MigrationResult.NeedsBalanceConfirmation>(writer.prepareMigration("hero",listOf("dubl-3.69"),null))
+                        assertEquals(known,pending.pending.extras);assertFalse(pending.pending.character.creationComplete)
+                        assertEquals(0.0,pending.pending.character.gear.loadManual);assertTrue(pending.pending.unresolvedOwnershipKeys.isNotEmpty())
+                        val migrated=confirmLegacyBalance(pending.pending,Amount(-10,0),"Synthetic original balance")
+                        validCandidate=migrated
+                        val extrasWriter=BrowserCharacterExtrasStore()
+                        extrasWriter.save("hero",known.copy(notes="Reachable local edit"))
+                        assertIs<LoadResult.LegacyImportConflict>(writer.load("hero"))
+                        assertIs<MigrationResult.Corrupt>(writer.prepareMigration("hero",listOf("dubl-3.69"),null))
+                        assertIs<CommitResult.StorageFailure>(writer.compareAndSet("hero",-1,migrated))
+                        assertEquals(original,writer.originalLegacySourceForExport());assertNull(writer.rawForExport("hero"))
+                        extrasWriter.save("hero",known)
+                        assertIs<LoadResult.LegacyImportConflict>(writer.load("hero"))
+                        clearBrowserSessionData()
+                        syntheticPull(writer,id,bootstrapReply(listOf(character),knownRow)) { fresh,_ -> ingress!!.ingestBootstrap(fresh.pull()) }
+                        val changed=known.copy(notes="Changed after preparation")
+                        syntheticPull(writer,id,bootstrapReply(listOf(character),js("JSON.parse")(com.furybook.core.cloud.CloudExtrasProjection.encode(changed)))) { next,_ ->
+                            ingress!!.ingestBootstrap(next.pull())
+                        }
+                        assertEquals(CommitResult.Conflict,writer.compareAndSet("hero",-1,migrated));assertNull(writer.rawForExport("hero"))
+                        ingress!!.ingestBootstrap(received)
+                        assertEquals(CommitResult.Committed,writer.compareAndSet("hero",-1,migrated))
+                        val saved=(writer.load("hero") as LoadResult.Loaded).state
+                        assertEquals(known,saved.extras);assertEquals(-10L,balance(saved.ledger).xp)
+                        assertEquals(original.snapshotRaw,saved.ledger.opening.legacyMigration!!.origin.raw)
+                        assertEquals(original.extrasRaw,saved.ledger.opening.legacyMigration!!.origin.extrasSource!!.raw)
+                        val retained=writer.rawForExport("hero")
+                        val changedSource=original.copy(extrasRaw=original.extrasRaw!!.replace("Notes","Concurrent source"))
+                        val changeDuringCas=BrowserAcquisitionStore(owner(id),name,localWritesEnabled=true,fault={stage ->
+                            if(stage==BrowserAcquisitionWriteStage.AfterPutSucceeded) receiveBrowserLegacySource(id,changedSource)
+                        })
+                        assertTrue(changeDuringCas.initialize())
+                        assertIs<CommitResult.StorageFailure>(changeDuringCas.compareAndSet("hero",0,saved.copy(storageRevision=1)))
+                        assertEquals(retained,writer.rawForExport("hero"));changeDuringCas.close()
+                        receiveBrowserLegacySource(id,original)
+                        var job:Job?=null;var putSucceeded=false;var acknowledged=false
+                        val cancel=BrowserAcquisitionStore(owner(id),name,localWritesEnabled=true,fault={stage ->
+                            if(stage==BrowserAcquisitionWriteStage.AfterPutSucceeded) {putSucceeded=true;job!!.cancel()}
+                        })
+                        assertTrue(cancel.initialize())
+                        job=launch(start=CoroutineStart.LAZY) {cancel.compareAndSet("hero",0,saved.copy(storageRevision=1));acknowledged=true}
+                        job!!.start();job!!.join();assertTrue(putSucceeded && job!!.isCancelled && !acknowledged)
+                        assertEquals(retained,writer.rawForExport("hero"));cancel.close()
+                    }
+                }
+            } finally { ingress?.store?.close();writer.close();clearBrowserSessionData() }
+        }
+        println("ACTUAL_MAIN_ORIGINAL_EXTRAS|unknown-field-enum-malformed-refused-export-exact|all10-known-fields-backup|changed-preparation-CAS-abort|native-cancellation|PASS")
+    }
+
     private fun authReply(id:String?="a",failure:Boolean=false):dynamic {
         val reply=js("({})");reply.error=if(failure) js("({message:'Synthetic Auth failure'})") else null
         reply.data=js("({})")

@@ -26,7 +26,7 @@ class BrowserAcquisitionStore(
     private val owner:BrowserOwnerScope,
     private val databaseName:String="furybook-acquisitions-v1",
     private val localWritesEnabled:Boolean=false,
-    private val legacySource:()->BrowserLegacySource?={captureBrowserLegacySource(owner.id)},
+    private val legacySource:(()->BrowserLegacySource?)?=null,
     private val fault:(BrowserAcquisitionWriteStage)->Unit={},
     private val indexedDb:()->dynamic={window.asDynamic().indexedDB},
 ) : AcquisitionStore {
@@ -106,6 +106,13 @@ class BrowserAcquisitionStore(
         try { owner.requireCurrent();action() } catch(error:Throwable) { tx.__furybookFailure(error) }
     }
     private fun absent(value:dynamic):Boolean=value==null || js("typeof value === 'undefined'") as Boolean
+    private fun currentSource():BrowserLegacySourceState = legacySource?.let { provider ->
+        provider()?.let(BrowserLegacySourceState::Present) ?: BrowserLegacySourceState.NotLoaded
+    } ?: browserLegacySourceState(owner.id)
+    /** Recovery/export consumes captured original text, never a reconstructed display. */
+    fun originalLegacySourceForExport():BrowserLegacySource? {
+        owner.requireCurrent();return currentSource().originalSourceForExport()
+    }
     private fun source(raw:dynamic):BrowserLegacySource? {
         if(absent(raw)) return null
         val text=raw as? String ?: error("Corrupt legacy source backup")
@@ -122,25 +129,37 @@ class BrowserAcquisitionStore(
         return canonicalJson(js("JSON.stringify")(root) as String)
     }
     private fun classify(characterId:String,head:dynamic,backup:BrowserLegacySource?):LoadResult {
-        val present=legacySource()
+        val sourceState=currentSource()
+        val present=(sourceState as? BrowserLegacySourceState.Present)?.source
+        fun changedConflict(raw:String):LoadResult.LegacyImportConflict {
+            val original=sourceState.originalSourceForExport()
+            return LoadResult.LegacyImportConflict(raw,original?.snapshotRaw.orEmpty(),original?.extrasRaw,
+                "Legacy display changed since original ingress; receive a fresh same-owner source before migration")
+        }
         if(!absent(head)) {
             val raw=head as? String ?: return LoadResult.Corrupt("","Envelope is not text; original IDB value retained")
             val loaded=decodeEnvelope(raw)
             if(loaded is LoadResult.MigrationRequired) return LoadResult.Corrupt(raw,"Legacy snapshot found in acquisition container")
             if(loaded is LoadResult.Loaded) {
                 if(loaded.state.character.id!=characterId) return LoadResult.Corrupt(raw,"Character scope differs")
+                if(sourceState is BrowserLegacySourceState.Changed) return changedConflict(raw)
                 loaded.state.ledger.opening.legacyMigration?.origin?.let { origin ->
                     if(origin.extrasSource==null || backup==null) return LoadResult.Unsupported(raw,"Exact legacy source backup unavailable")
                     if(origin.raw!=backup.snapshotRaw || origin.extrasSource?.raw!=backup.extrasRaw)
                         return LoadResult.Corrupt(raw,"Legacy backup differs from migration origin")
                     if(present!=null && present!=backup) return LoadResult.LegacyImportConflict(raw,present.snapshotRaw,present.extrasRaw,"Legacy source changed after migration")
+                    if(sourceState==BrowserLegacySourceState.Absent) return LoadResult.LegacyImportConflict(raw,"",null,"Received legacy source is absent after migration")
                 }
             }
             return loaded
         }
+        if(sourceState is BrowserLegacySourceState.Changed) return changedConflict("")
         if(present!=null && backup!=null && present!=backup)
             return LoadResult.LegacyImportConflict("",present.snapshotRaw,present.extrasRaw,"Legacy source changed after another migration")
-        val input=backup ?: present ?: return LoadResult.Missing(characterId)
+        if(sourceState==BrowserLegacySourceState.Absent && backup!=null)
+            return LoadResult.LegacyImportConflict("","",null,"Received legacy source is absent; archived source cannot authorize migration")
+        // A retained backup is evidence for existing heads, never a substitute for current ingress.
+        val input=present ?: return LoadResult.Missing(characterId)
         val legacy=decodeEnvelope(input.snapshotRaw)
         if(legacy !is LoadResult.MigrationRequired) return when(legacy) {
             is LoadResult.Loaded -> LoadResult.Corrupt(input.snapshotRaw,"Acquisition envelope is not a legacy snapshot")
@@ -194,9 +213,10 @@ class BrowserAcquisitionStore(
             is LoadResult.Unsupported -> MigrationResult.Unsupported(loaded.raw,loaded.reason)
             is LoadResult.Corrupt -> MigrationResult.Corrupt(loaded.raw,loaded.reason)
             is LoadResult.LegacyImportConflict -> MigrationResult.Corrupt(loaded.canonicalRaw,loaded.reason)
-            is LoadResult.Missing -> MigrationResult.Corrupt("","Legacy character is missing")
+            is LoadResult.Missing -> MigrationResult.Corrupt("",if(currentSource()==BrowserLegacySourceState.NotLoaded)
+                "Current legacy source has not loaded" else "Legacy character is absent from the received source")
             is LoadResult.MigrationRequired -> try {
-                val captured=read<BrowserLegacySource?>(characterId) { _,_,backup,set -> set(backup ?: legacySource()) } ?: error("Actual legacy source absent")
+                val captured=(currentSource() as? BrowserLegacySourceState.Present)?.source ?: error("Actual legacy source is absent or not yet loaded")
                 require(captured.snapshotRaw==loaded.raw) { "Legacy source changed during preparation" }
                 val schema=(js("JSON.parse")(canonicalJson(loaded.raw)).schema as Number).toInt()
                 val extras=decodeBrowserLegacyExtras(captured.extrasRaw)[characterId] ?: com.furybook.dubl.model.CharacterSheetExtras()
@@ -210,13 +230,19 @@ class BrowserAcquisitionStore(
         val captured=(decodeEnvelope(encoded) as LoadResult.Loaded).state
         require(captured.character.id==characterId) { "Character scope differs" }
         val result=read<CommitResult>(characterId,"readwrite") { tx,head,backup,set ->
+            val sourceAtRead=currentSource()
             val current=classify(characterId,head,backup)
             var migrationSource:BrowserLegacySource?=null
             val accepted=when(current) {
                 is LoadResult.Loaded -> current.state.storageRevision==expectedStorageRevision && expectedStorageRevision<Long.MAX_VALUE && captured.storageRevision==expectedStorageRevision+1
-                is LoadResult.Missing -> expectedStorageRevision == -1L && captured.storageRevision==0L && captured.ledger.opening.legacyMigration==null
+                is LoadResult.Missing -> {
+                    if(backup!=null && currentSource()==BrowserLegacySourceState.NotLoaded) {
+                        set(CommitResult.StorageFailure("Current legacy source has not loaded; archived source cannot authorize initialization"));return@read
+                    }
+                    expectedStorageRevision == -1L && captured.storageRevision==0L && captured.ledger.opening.legacyMigration==null
+                }
                 is LoadResult.MigrationRequired -> {
-                    val actual=backup ?: legacySource()
+                    val actual=(currentSource() as? BrowserLegacySourceState.Present)?.source
                     val origin=captured.ledger.opening.legacyMigration?.origin
                     if(origin==null || origin.extrasSource==null || actual==null) { set(CommitResult.StorageFailure("Legacy source requires explicit migration"));return@read }
                     migrationSource=actual
@@ -229,9 +255,13 @@ class BrowserAcquisitionStore(
             }
             if(!accepted) { set(CommitResult.Conflict);return@read }
             fault(BrowserAcquisitionWriteStage.BeforePut)
+            require(currentSource()==sourceAtRead) { "Legacy source changed during commit" }
             migrationSource?.let { tx.objectStore(SOURCES).put(encodeSource(it),owner.id) }
             val request=tx.objectStore(ENVELOPES).put(encoded,arrayOf(owner.id,characterId))
-            request.onsuccess={ _:dynamic -> callback(tx) { fault(BrowserAcquisitionWriteStage.AfterPutSucceeded) } }
+            request.onsuccess={ _:dynamic -> callback(tx) {
+                fault(BrowserAcquisitionWriteStage.AfterPutSucceeded)
+                require(currentSource()==sourceAtRead) { "Legacy source changed during commit" }
+            } }
             set(CommitResult.Committed)
         }
         if(result==CommitResult.Committed) ids=ids+characterId

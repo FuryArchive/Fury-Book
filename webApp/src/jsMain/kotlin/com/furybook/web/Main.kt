@@ -78,10 +78,7 @@ private fun WebRoot() {
             durableSession=initialized
             val remote=cloud.pull()
             check(session?.userId==authenticated.userId) { "Verified browser account changed" }
-            // A derived legacy display of canonical heads is never a migration source.
-            BrowserCharacterStore().replaceRaw(remote.snapshot,migrationSource=initialized.states.isEmpty())
-            BrowserCharacterExtrasStore().replaceRaw(remote.extras)
-            BrowserPackState.chiEnabled=remote.chiEnabled
+            initialized.ingestBootstrap(remote)
             return remote
         } catch(failure:Throwable) { initialized.store.close();durableSession=null;throw failure }
     }

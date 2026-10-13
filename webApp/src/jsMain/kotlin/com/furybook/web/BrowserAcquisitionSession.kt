@@ -5,8 +5,24 @@ import kotlinx.browser.window
 
 /** Verified-owner startup precedes all durable enumeration and legacy hydration. No rollout opt-in. */
 internal class BrowserAcquisitionSession private constructor(
-    val store:BrowserAcquisitionStore,val states:Map<String,StoredCharacter>,
+    val store:BrowserAcquisitionStore,initialStates:Map<String,StoredCharacter>,private val owner:BrowserOwnerScope,
 ) {
+    var states:Map<String,StoredCharacter> = initialStates;private set
+    /** Main and regression tests share this exact received-source-before-display boundary. */
+    suspend fun ingestBootstrap(remote:CloudBootstrap) {
+        owner.requireCurrent();require(remote.originalSourceReceived) { "Original legacy source has not been received" }
+        receiveBrowserLegacySource(owner.id,remote.originalLegacySource)
+        val loaded=linkedMapOf<String,StoredCharacter>()
+        for(id in store.characterIds()) when(val head=store.load(id)) {
+            is LoadResult.Loaded -> loaded[id]=head.state
+            else -> throw AcquisitionPreviewUnavailable(head)
+        }
+        owner.requireCurrent()
+        BrowserCharacterStore().replaceRaw(remote.snapshot,migrationSource=false)
+        BrowserCharacterExtrasStore().replaceRaw(remote.extras)
+        BrowserPackState.chiEnabled=remote.chiEnabled
+        states=loaded.toMap()
+    }
     companion object {
         suspend fun open(session:WebAuthSession,currentOwner:()->String?,databaseName:String="furybook-acquisitions-v1",
             indexedDb:()->dynamic={window.asDynamic().indexedDB},verifyOwner:suspend (WebAuthSession)->WebAuthSession?):BrowserAcquisitionSession {
@@ -28,7 +44,7 @@ internal class BrowserAcquisitionSession private constructor(
                     }
                 }
                 owner.requireCurrent()
-                return BrowserAcquisitionSession(store,loaded.toMap())
+                return BrowserAcquisitionSession(store,loaded.toMap(),owner)
             } catch(failure:Throwable) { store.close();throw failure }
         }
     }

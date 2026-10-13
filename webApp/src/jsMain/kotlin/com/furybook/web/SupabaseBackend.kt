@@ -80,13 +80,19 @@ data class CloudBootstrap(
     val chiEnabled: Boolean,
     val nickname: String,
     val hasCharacters: Boolean,
+    val originalLegacySource:BrowserLegacySource? = null,
+    internal val originalSourceReceived:Boolean = false,
 )
 
 private data class ScheduledState(val snapshot: String, val extras: String, val chiEnabled: Boolean)
 
-class WebCloudSync(private val acquisitionStore: AcquisitionStore? = null,
-    private val acquisitionCharacterIds: () -> Set<String> = { emptySet() }) : FuryCloudTransport {
-    private val client: dynamic = SupabaseModule.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+class WebCloudSync private constructor(private val acquisitionStore: AcquisitionStore?,
+    private val acquisitionCharacterIds: () -> Set<String>,private val client:dynamic,@Suppress("UNUSED_PARAMETER") construction:Unit) : FuryCloudTransport {
+    constructor(acquisitionStore:AcquisitionStore?=null,acquisitionCharacterIds:()->Set<String> = {emptySet()}):
+        this(acquisitionStore,acquisitionCharacterIds,SupabaseModule.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY),Unit)
+    /** Bounded synthetic SDK seam; normal production construction/auth settings are unchanged. */
+    internal constructor(acquisitionStore:AcquisitionStore?,acquisitionCharacterIds:()->Set<String>,syntheticClient:dynamic):
+        this(acquisitionStore,acquisitionCharacterIds,syntheticClient,Unit)
     private val scope = MainScope()
     private val deviceLabel = detectDeviceLabel()
     private var userId: String? = null
@@ -208,6 +214,21 @@ class WebCloudSync(private val acquisitionStore: AcquisitionStore? = null,
         val localCount=(localSnapshot?.characters?.length as? Int) ?: 0
         for(index in 0 until localCount) candidates += localSnapshot.characters[index].id as String
         val count = (characters?.length as? Int) ?: 0
+        // Capture all genuinely received rows before filtering/projection/fresh generation.
+        val originalLegacySource=if(count==0) null else {
+            val sourceSnapshot=js("({})");sourceSnapshot.schema=SnapshotCodec.SCHEMA
+            sourceSnapshot.characters=js("[]")
+            val sourceExtras=js("({version:1,characters:{}})")
+            for(index in 0 until count) {
+                val item=characters[index]
+                if(item.data?.formatVersion!=null) error("Новый формат требует receipt-aware чтения Fury Cloud")
+                sourceSnapshot.characters.push(item.data)
+                sourceExtras.characters[item.id as String]=item.extras
+            }
+            val requested=state?.activeCharacterId as? String
+            sourceSnapshot.activeCharacterId=requested?.takeIf { id -> (0 until count).any { characters[it].id==id } } ?: characters[0].id
+            BrowserLegacySource(js("JSON.stringify")(sourceSnapshot) as String,js("JSON.stringify")(sourceExtras) as String)
+        }
         for(index in 0 until count) candidates += characters[index].id as String
         val protected=linkedMapOf<String,StoredCharacter>()
         acquisitionStore?.let { store -> candidates.forEach { id -> when(val loaded=store.load(id)) {
@@ -286,6 +307,8 @@ class WebCloudSync(private val acquisitionStore: AcquisitionStore? = null,
             chiEnabled = chiEnabled,
             nickname = profileNickname,
             hasCharacters = actualCount > 0,
+            originalLegacySource=originalLegacySource,
+            originalSourceReceived=true,
         )
     }
 
