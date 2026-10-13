@@ -37,9 +37,11 @@ class AcquisitionPriceOracleTest {
         assertEquals(10L, quote(fixtures.load("skill_rank1_after_creation_no_discount")).xp)
     }
 
-    @Test fun unconfirmed_second_rank_is_unknown() {
+    @Test fun explicitly_author_resolved_second_rank_has_same_unit_price() {
         val f = fixtures.load("resistance_first")
-        assertIs<PriceResult.Unknown>(quote(f.change.copy(fromRank=1, toRank=2), f.context))
+        val quoted = assertIs<PriceResult.Known>(quote(f.change.copy(fromRank=1, toRank=2), f.context))
+        assertEquals(Amount(20, 0), quoted.cost)
+        assertEquals("UR_FIXED_DEVELOPMENT_PRICE_PER_RANK", f.context.catalog.definitions.getValue(f.change.definition).priceRule.sourceRef.resolutionId)
     }
 
     @Test fun numerical_anchors_have_canonical_legal_predecessors() {
@@ -111,8 +113,9 @@ class AcquisitionPriceOracleTest {
                 } else unverified++
             }
         }
-        assertTrue(confirmed >= 10349)
-        assertTrue(unverified > 0, "Source release gate must remain open")
+        // Frozen source-only baseline; new author confirmations have a separate exact overlay.
+        assertEquals(42151, confirmed)
+        assertEquals(41667, unverified)
         println("Independent price oracle: $confirmed confirmed, $unverified source-unverified")
     }
 }

@@ -14,6 +14,13 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
+try:
+    from .acquisition_coverage_records import (load_source_rules, validate_source_rules, authority_revision,
+        resolution_revision, FIXED, CARRY, INITIAL)
+except ImportError:  # Direct CLI invocation.
+    from acquisition_coverage_records import (load_source_rules, validate_source_rules, authority_revision,
+        resolution_revision, FIXED, CARRY, INITIAL)
+
 CORE = 'dubl-3.69'
 CHI = 'dubl-chi-3.69'
 KINDS = {'development': 'DEVELOPMENT', 'attribute': 'ATTRIBUTE', 'skill': 'SKILL',
@@ -129,7 +136,7 @@ def parse_requirement(text, node_id, source, definitions):
         return node('BranchAccess', node_id, local, packId=CORE, branchId=BRANCH_BINDINGS[raw], operator='EQ', operand=True)
     if '(' in raw or ')' in raw:
         return node('Unresolved', node_id, local, reason='unresolved-qualified-or-compound-requirement')
-    if raw == 'Только при создании персонажа':
+    if raw in ('Только при создании персонажа', 'только при создании'):
         return node('CreationPhase', node_id, local, operand='Creating', operator='EQ')
     explicit_spell = raw.lower().startswith('заклинание ')
     if explicit_spell:
@@ -306,6 +313,14 @@ def build_acquisition_catalogs(repo_root):
     for p in evidence['sourceEvidence'].values():
         if 'sha256' in p and hashlib.sha256(p['text'].encode()).hexdigest() != p['sha256']:
             raise ValueError('Source excerpt checksum mismatch')
+    rule_path = repo_root/'rulesets/dubl-3.69/acquisition/source_rules.json'
+    source_rules = load_source_rules(repo_root) if rule_path.exists() else None
+    if source_rules:
+        evidence = validate_source_rules(source_rules, evidence, read(rule_path.with_name('source_review_excerpts.json')))
+    diagnostic_sha = hashlib.sha256((repo_root/'rulesets/dubl-3.69/resolutions.json').read_bytes()).hexdigest()
+    resolution = resolution_revision(source_rules, diagnostic_sha)
+    def interpreted(source, ruling):
+        return dict(source, resolutionId=ruling, resolutionRevision=resolution)
     runtime = {}; occurrence = defaultdict(list)
     for o in evidence['sourceOccurrences']:
         if o.get('runtimeId'): occurrence[o['runtimeId']].append(o)
@@ -474,7 +489,34 @@ def build_acquisition_catalogs(repo_root):
                 'condition': node('CreationPhase', d['id']+'/price/creation', permission, operator='EQ', operand='Creating'),
                 'whenTrue': {'type': 'ByOption', 'options': options, 'sourceRef': source_ref(evidence, 12102)},
                 'whenFalse': {'type': 'Unknown', 'reason': 'Unconfirmed post-creation access purchase policy', 'sourceRef': permission}}
+        if source_rules and d['id'] == 'access_17f99cc35c559d82':
+            later = copy.deepcopy(item['priceRule']['whenTrue'])
+            later['sourceRef'] = interpreted(later['sourceRef'], CARRY)
+            for price in later['options'].values():
+                price['sourceRef'] = interpreted(price['sourceRef'], CARRY)
+            item['priceRule']['whenFalse'] = later
         definitions.append(item)
+    if source_rules:
+        fixed_rule = next(r for r in source_rules['rules'] if r['id'] == FIXED)
+        fixed_prices = {r['definitionRef']['entryId']: r for r in fixed_rule['fact']['prices']}
+        for item in definitions:
+            literal = fixed_prices.get(item['ref']['entryId'])
+            if literal is not None:
+                rule = item['priceRule']
+                first = rule if rule['type'] == 'Fixed' else rule['transitions'][0]
+                if (item['kind'] != 'DEVELOPMENT' or item['ref'] != literal['definitionRef'] or
+                    item['maxRank'] != literal['maxRank'] or
+                    (first['xp'], first['ap']) != (literal['unitXP'], literal['unitAP'])):
+                    raise ValueError('Author per-rank binding differs from exact source literal')
+                item['priceRule'] = {'type': 'PerRank', 'xp': literal['unitXP'], 'ap': literal['unitAP'],
+                                     'sourceRef': interpreted(first['sourceRef'], FIXED)}
+            for rule in source_rules['rules']:
+                if rule['authority'] != 'SOURCE_DERIVED' or rule['runtimeBinding'] != 'BOUND':
+                    continue
+                refs = rule['scope'].get('definitionRefs', []) + ([rule['scope']['owner']] if 'owner' in rule['scope'] else [])
+                if item['ref'] in refs:
+                    citation = rule['sources'][0]
+                    item['classificationSources']['source-rule:'+rule['id']] = source_ref(evidence, citation['paragraph'])
     for item in definitions:
         id = item['ref']['entryId']; src = item.pop('requirementSource', item['sourceRef'])
         if item.pop('duplicateSourceContext', False):
@@ -512,12 +554,19 @@ def build_acquisition_catalogs(repo_root):
         item['requirements'] = tree
     diagnostics = diagnose_catalog(definitions)
     definitions = apply_requirement_diagnostics(definitions, diagnostics)
-    resolution = hashlib.sha256((repo_root/'rulesets/dubl-3.69/resolutions.json').read_bytes()).hexdigest()
     result = {}
     for pack in (CORE, CHI):
         payload = {'schemaVersion': 1, 'resolutionRevision': resolution,
                    'definitions': [d for d in definitions if d['ref']['packId'] == pack],
                    'diagnostics': [d for d in diagnostics if d['packId'] == pack]}
+        if source_rules:
+            payload['sourceRuleRevision'] = authority_revision(source_rules, 'SOURCE_DERIVED')
+            if pack == CORE:
+                payload['creationFundingPolicy'] = {
+                    'ruleId': INITIAL, 'xpPerAP': '1000', 'rounding': 'FLOOR',
+                    'trigger': 'GENUINELY_NEW_CHARACTER_INITIALIZATION', 'repeat': 'NEVER',
+                    'appliesToExistingOrMigrated': False, 'ongoingXPGrantAP': False,
+                    'sourceRef': interpreted(source_ref(evidence, 11903), INITIAL)}
         payload['catalogRevision'] = hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
         result[pack] = payload
     return result

@@ -31,7 +31,8 @@ def test_actual_source_corrections_and_parent_question():
     sprint = list(nodes(es['feat_bc96393fb969a8e3']['requirements']))
     assert {(n['attributeId'], n['operand']) for n in sprint if n['type'] == 'Attribute'} == {('DEX', 3), ('STR', 3)}
     eagle = es['feat_9012c539238a1e6f']
-    assert eagle['priceRule']['type'] == 'Fixed'
+    assert eagle['priceRule']['type'] == 'PerRank'
+    assert eagle['priceRule']['sourceRef']['resolutionId'] == 'UR_FIXED_DEVELOPMENT_PRICE_PER_RANK'
     assert eagle['priceRule']['xp'] == '45'
     assert eagle['priceRule']['sourceRef']['paragraph'] == 13387
     assert any(n.get('reason') == 'Q_EAGLE_PARENT_ACCESS' for n in nodes(eagle['requirements']))
@@ -290,6 +291,12 @@ def test_undefined_discount_rounding_only_omits_affected_transition(monkeypatch)
             value['sourceEvidence']['core:P360']['sha256'] = hashlib.sha256(b'11').hexdigest()
         return value
     monkeypatch.setattr(importer, 'read', altered)
+    import pytest
+    with pytest.raises(ValueError, match='Exact source citation mismatch'):
+        entries()
+    # Hypothetical odd source without current approved sidecars still has no rounding fallback.
+    # This is deliberately not a source-confirmed current catalog.
+    monkeypatch.setattr(importer, 'load_source_rules', lambda _: None)
     rule = entries()['athletics']['priceRule']
     assert rule['whenTrue']['transitions'][0]['xp'] == '11'
     discounted = rule['whenFalse']['whenTrue']['transitions']
@@ -297,7 +304,7 @@ def test_undefined_discount_rounding_only_omits_affected_transition(monkeypatch)
     assert next(t for t in discounted if t['toRank'] == 2)['xp'] == '10'
 
 
-def test_combat_cry_access_uses_explicit_source_and_creation_only_options():
+def test_combat_cry_access_preserves_source_creation_and_author_postcreation_options():
     entry = entries()['access_17f99cc35c559d82']
     assert entry['maxRank'] == 1
     assert entry['repeatPolicy'] == {'type': 'Single'}
@@ -309,6 +316,8 @@ def test_combat_cry_access_uses_explicit_source_and_creation_only_options():
     rule = entry['priceRule']
     assert rule['condition']['type'] == 'CreationPhase' and rule['condition']['operand'] == 'Creating'
     assert rule['sourceRef']['paragraph'] == 11906
-    assert rule['whenFalse']['type'] == 'Unknown'
+    assert rule['whenFalse']['type'] == 'ByOption'
+    assert [(key, rule['whenFalse']['options'][key]['xp'], rule['whenFalse']['options'][key]['ap']) for key in ['morale', 'chi']] == [('morale', '0', '1'), ('chi', '0', '2')]
+    assert rule['whenFalse']['sourceRef']['resolutionId'] == 'UR_CREATION_BALANCE_CARRYOVER_SAME_PRICE_CURRENCY'
     options = rule['whenTrue']['options']
     assert [(key, options[key]['ap'], options[key]['sourceRef']['paragraph']) for key in ['morale', 'chi']] == [('morale','1',12104),('chi','2',12106)]

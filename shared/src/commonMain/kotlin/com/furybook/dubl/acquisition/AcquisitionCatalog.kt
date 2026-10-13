@@ -15,7 +15,7 @@ sealed interface PriceRule {
     val sourceRef: RuleSourceRef
     /** Applies to the single 0 -> 1 purchase. Other transitions need explicit evidence. */
     data class Fixed(val xp: Long, val ap: Long, override val sourceRef: RuleSourceRef) : PriceRule
-    /** Explicit source-confirmed per-step price; never inferred from a multi-rank literal. */
+    /** Explicit source-confirmed or approved-ruling per-step price; never inferred from a multi-rank literal alone. */
     data class PerRank(val xp: Long, val ap: Long, override val sourceRef: RuleSourceRef) : PriceRule
     data class Transition(val fromRank: Int, val toRank: Int, val xp: Long, val ap: Long, val sourceRef: RuleSourceRef)
     data class TransitionTable(val transitions: List<Transition>, override val sourceRef: RuleSourceRef) : PriceRule
@@ -47,6 +47,8 @@ data class AcquisitionCatalog(
     val definitions: Map<DefinitionRef, AcquisitionDefinition>,
     val catalogRevision: String,
     val resolutionRevision: String,
+    val creationFundingPolicy: CreationFundingPolicy? = null,
+    val sourceRuleRevision: String = "",
 )
 
 data class CatalogDiagnostic(
@@ -65,6 +67,9 @@ fun loadAcquisitionCatalog(packs: List<FcpContentPack>, includeChi: Boolean): Ca
     val definitions = linkedMapOf<DefinitionRef, AcquisitionDefinition>()
     val catalogRevisions = mutableListOf<String>()
     val resolutionRevisions = mutableListOf<String>()
+    val sourceRuleRevisions = mutableListOf<String>()
+    val fundingPolicies = mutableListOf<CreationFundingPolicy>()
+    var invalidFundingPayload = false
     val composition = try {
         FcpComposition.resolve(packs.map { it.manifest }, setOf("dubl-3.69"),
             packs.map { it.manifest.id }.filter { it != "dubl-chi-3.69" || includeChi }.toSet())
@@ -89,6 +94,17 @@ fun loadAcquisitionCatalog(packs: List<FcpContentPack>, includeChi: Boolean): Ca
                 require(root.requiredInt("schemaVersion") == 1) { "Unsupported acquisition schema" }
                 catalogRevisions += manifest.id + ":" + entry.path + ":" + root.requiredString("catalogRevision")
                 resolutionRevisions += manifest.id + ":" + root.requiredString("resolutionRevision")
+                root.optionalString("sourceRuleRevision")?.let { sourceRuleRevisions += manifest.id + ":" + it }
+                val funding = root.objectValue("creationFundingPolicy")?.let { value ->
+                    require(manifest.id == "dubl-3.69") { "Initial funding must be declared only by the core pack" }
+                    require(value.requiredString("rounding") == "FLOOR" &&
+                        value.requiredString("trigger") == "GENUINELY_NEW_CHARACTER_INITIALIZATION" &&
+                        value.requiredString("repeat") == "NEVER" &&
+                        !value.requiredBool("appliesToExistingOrMigrated") && !value.requiredBool("ongoingXPGrantAP")) { "Unsupported funding policy" }
+                    CreationFundingPolicy(value.requiredString("ruleId"), value.money("xpPerAP"), parseSource(value.requiredObject("sourceRef"))).also {
+                        require(it.supported && it.sourceRef.resolutionRevision == root.requiredString("resolutionRevision")) { "Unconfirmed funding authority" }
+                    }
+                }
                 val parsed = root.requiredArray("definitions").map { parseDefinition(it.requiredObject()) }
                 require(parsed.all { it.ref.packId == manifest.id }) { "Definition declares another pack owner" }
                 for (raw in parsed) {
@@ -103,6 +119,7 @@ fun loadAcquisitionCatalog(packs: List<FcpContentPack>, includeChi: Boolean): Ca
                         definitions[raw.ref] = block(previous, "duplicate-definition")
                     } else definitions[raw.ref] = raw
                 }
+                funding?.let { fundingPolicies += it }
                 root.requiredArray("diagnostics").forEach { value ->
                     val d = value.requiredObject()
                     val ref = DefinitionRef(d.requiredString("packId"), d.requiredString("definitionId"))
@@ -110,14 +127,19 @@ fun loadAcquisitionCatalog(packs: List<FcpContentPack>, includeChi: Boolean): Ca
                         d.optionalString("nodeId"), d.objectValue("sourceRef")?.let(::parseSource))
                 }
             } catch (e: IllegalArgumentException) {
+                invalidFundingPayload = true
                 diagnostics += CatalogDiagnostic("invalid-acquisition-payload", "${manifest.id}/${entry.path}: ${e.message}")
             } catch (e: IllegalStateException) {
+                invalidFundingPayload = true
                 diagnostics += CatalogDiagnostic("invalid-acquisition-payload", "${manifest.id}/${entry.path}: ${e.message}")
             }
         }
     }
     validateReferences(definitions, diagnostics)
-    return CatalogLoadResult(AcquisitionCatalog(definitions.toMap(), catalogRevisions.joinToString("|"), resolutionRevisions.joinToString("|")), diagnostics.toList())
+    if (fundingPolicies.size > 1) diagnostics += CatalogDiagnostic("conflicting-funding-policy", "Multiple initial funding declarations")
+    val funding = if (invalidFundingPayload) null else fundingPolicies.singleOrNull()
+    return CatalogLoadResult(AcquisitionCatalog(definitions.toMap(), catalogRevisions.joinToString("|"), resolutionRevisions.joinToString("|"),
+        funding, sourceRuleRevisions.joinToString("|")), diagnostics.toList())
 }
 
 private fun block(d: AcquisitionDefinition, reason: String): AcquisitionDefinition = d.copy(

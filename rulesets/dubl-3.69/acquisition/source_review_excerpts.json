@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "devOnly": true,
+  "sourceProvenance": {
+    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+    "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA"
+  },
+  "archiveLibraryVersion": 1,
+  "archiveSha256": "be8e3f90db91b27f282b4ce3eb78c0b27818b4cc2ff60becccc6b52ce27f54f3",
+  "member": "source/furybook_current_corebook.json",
+  "memberSha256": "238a93086f22b04b1f8b26a018a0c8c5b70815c67d8976c468dabbb7a4e14fa9",
+  "derivation": "Only the six approved source-rule paragraphs absent from the immutable source evidence; exact original text and tab offsets. General-question additions belong to the separate coverage projection.",
+  "sourceEvidence": {
+    "core:P11903": {
+      "text": "При создании персонажа рекомендуется выдавать не более 1 очка особых навыков за каждые полные 1000 опыта. ",
+      "startIndex": 334,
+      "endIndex": 440,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 11903,
+      "sha256": "f3b4ccae764f982dd7db5eb152f1736a48f43ccdc671a75c0a3c59858e59ccbc"
+    },
+    "core:P14075": {
+      "text": "Недостатки могут быть приобретены как при создании персонажа, так и во время игры. При создании персонажа вы получаете дополнительный опыт, указанный в строке «Стоимость», за каждый ранг. Приобретая недостатки во время игры (например, как следствие критических попаданий и травм) — ничего, кроме негативных эффектов, вы не получаете. Требования, указанные в недостатках, нужны только при создании персонажа.",
+      "startIndex": 12,
+      "endIndex": 419,
+      "tabId": "t.jaljeq1rpes0",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14075,
+      "sha256": "a1ae742fa651a99978706e56fcb3f6ac374c61396833a827722f2c34910c5dab"
+    },
+    "core:P14077": {
+      "text": "Болезненность",
+      "startIndex": 443,
+      "endIndex": 456,
+      "tabId": "t.jaljeq1rpes0",
+      "namedStyleType": "HEADING_3",
+      "isListItem": false,
+      "paragraph": 14077,
+      "sha256": "c1c7b61e1809bac10255c82e9b3abf98e6bff21b98b666bec33458f96229105f"
+    },
+    "core:P14078": {
+      "text": "Стоимость: -20\u000bРанги: 1\u000bТребование: Телосложение 3 и меньше\u000bОписание: Вы часто болеете. Ваш организм ослаблен и с трудом сопротивляется инфекциям.\u000bНедостаток: Вы получаете -2 на все проверки сопротивления болезням и на проверки лечения болезней. Штрафы за болезнь выше на 1.",
+      "startIndex": 457,
+      "endIndex": 731,
+      "tabId": "t.jaljeq1rpes0",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14078,
+      "sha256": "961094bfe7f18af62fe262f97d06d28bb544eb841bbad9340125a54a3a5f756c"
+    },
+    "core:P14181": {
+      "text": "ОСОБЫЕ НЕДОСТАТКИ (ПРИОБРЕТАЕМЫЕ В ИГРЕ)",
+      "startIndex": 16211,
+      "endIndex": 16251,
+      "tabId": "t.jaljeq1rpes0",
+      "namedStyleType": "HEADING_2",
+      "isListItem": false,
+      "paragraph": 14181,
+      "sha256": "825e90b08d847ac0e6df3a2f3c833c488fe0019bc1a7246d377f3b918acbd02b"
+    },
+    "core:P14182": {
+      "text": "Эти недостатки нельзя взять при создании персонажа. Они являются следствием травм, критических попаданий и сюжетных событий. За них не даётся опыт.",
+      "startIndex": 16252,
+      "endIndex": 16399,
+      "tabId": "t.jaljeq1rpes0",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14182,
+      "sha256": "36f5d4605567d6c3553b6bbcb3c7efbbc0092847adf533d9053908715142b38a"
+    }
+  },
+  "projectionSha256": "22a99afa27e9c0cdde38c648b89fd460d25ff383e1b497d7bd4987b2594c2f73"
+}

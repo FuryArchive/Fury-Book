@@ -16,7 +16,7 @@ class DesktopAcquisitionCatalogTest {
         assertEquals(listOf(2, 2), all.children.map { assertIs<RequirementNode.AnyOf>(it).children.size })
         assertEquals(11012, all.sourceRef.paragraph)
         val eagle = result.catalog.definitions.getValue(DefinitionRef("dubl-3.69", "feat_9012c539238a1e6f"))
-        assertEquals(45L, assertIs<PriceRule.Fixed>(eagle.priceRule).xp)
+        assertEquals(45L, assertIs<PriceRule.PerRank>(eagle.priceRule).xp)
         assertTrue(result.catalog.catalogRevision.isNotBlank())
         assertTrue(result.diagnostics.any { it.kind == "rank-out-of-range" && it.definition?.entryId == "feat_1beadb2cd06442f9" })
     }

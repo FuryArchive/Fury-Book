@@ -61,8 +61,10 @@ class DesktopAcquisitionServiceTest {
             assertEquals(option,saved.instances.single { it.definition.entryId=="access_17f99cc35c559d82" }.abilityOptionId)
             assertFalse(saved.character.development.containsKey("access_17f99cc35c559d82"),"No invented numeric option")
             val finalized=state(initial.instances,creating=false)
-            val (blocked,unchanged)=execute(finalized,"access_17f99cc35c559d82",option)
-            assertIs<ApplyResult.Blocked>(blocked); assertEquals(finalized,unchanged)
+            val (later,laterSaved)=execute(finalized,"access_17f99cc35c559d82",option)
+            assertEquals(Amount(0,ap),assertIs<ApplyResult.Applied>(later).receipt.result.cost)
+            assertEquals(Amount(100,10-ap),balance(laterSaved.ledger))
+            assertEquals(RequirementNode.CreationPhase.Phase.Finalized,laterSaved.ledger.entries.single().creationPhase)
         }
     }
 }

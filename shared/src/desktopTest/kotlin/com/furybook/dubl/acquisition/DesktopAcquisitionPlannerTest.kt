@@ -73,8 +73,10 @@ class DesktopAcquisitionPlannerTest {
             assertTrue(p.executable,p.issues.toString())
             assertEquals(Amount(0,ap),p.cost); assertEquals(Amount(100,10-ap),p.remaining)
             val after = plan(request("access_17f99cc35c559d82",option),state(original.instances,creating=false),c)
-            assertFalse(after.executable); assertNull(after.cost)
-            assertTrue(after.issues.any { it.reason.contains("post-creation") })
+            assertTrue(after.executable, after.issues.toString())
+            assertEquals(Amount(0,ap), after.cost); assertEquals(Amount(100,10-ap), after.remaining)
+            assertEquals("UR_CREATION_BALANCE_CARRYOVER_SAME_PRICE_CURRENCY",
+                assertIs<PriceRule.Conditional>(c.definitions.getValue(ref("access_17f99cc35c559d82")).priceRule).whenFalse.sourceRef.resolutionId)
         }
     }
 
