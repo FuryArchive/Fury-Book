@@ -114,3 +114,84 @@ for name,wire in [('bad-duplicate-key',fixtures['op2'][2][:-1]+',"revision":"2"}
                 (name,json.dumps(dto,ensure_ascii=True,separators=(',',':')),wire))
 (root/'supabase/tests/acquisition_v2_invalid_fixtures.sql').write_text('-- Independent test-only mutations of genuine T15 producer fixtures.\n'+'\n'.join(rows)+'\n')
 print('Negative fixtures:',len(rows),'; all genuine positive wires byte-checked before mutations')
+
+# Contract-directed admission regressions. Original positive/negative bytes remain unchanged.
+extra=(root/'supabase/tests/acquisition_v2_fix1_fixtures.sql')
+if extra.exists():
+    for name,dto,wire in re.findall(r"VALUES \('([^']+)', \$dto\$(.*?)\$dto\$::jsonb, \$wire\$(.*?)\$wire\$\);",extra.read_text()):
+        value=json.loads(wire,parse_int=Number,parse_float=Number)
+        assert render(value)==wire, 'Extra public producer renderer differs: '+name
+        fixtures[name]=(json.loads(dto),value,wire)
+    rows=[]
+    for field in ['skills','development','developmentOverrides','customDevelopmentEntries','hiddenSkillIds','disabledSkillEffectIds']:
+        case('bad-fix1-duplicate-'+field,'fix1-manual',lambda v,f=field:consistent_projection_edit(v,lambda c:c[f].append(copy.deepcopy(c[f][0]))))
+    for field,key in [('skills','id'),('development','id'),('developmentOverrides','id'),('customDevelopmentEntries','id'),('customResources','uid')]:
+        case('bad-fix1-filtered-'+field,'fix1-manual',lambda v,f=field,k=key:consistent_projection_edit(v,lambda c:c[f][0].__setitem__(k,'\u2003')))
+    for field in ['development','developmentOverrides','customDevelopmentEntries']:
+        case('bad-fix1-trimmed-'+field,'fix1-manual',lambda v,f=field:consistent_projection_edit(v,lambda c:c[f][0].__setitem__('id',' padded ')))
+    for field in ['hiddenSkillIds','disabledSkillEffectIds']:
+        case('bad-fix1-blank-'+field,'fix1-manual',lambda v,f=field:consistent_projection_edit(v,lambda c:c.__setitem__(f,['\u00a0'])))
+    case('bad-fix1-trimmed-disabled','fix1-manual',lambda v:consistent_projection_edit(v,lambda c:c.__setitem__('disabledSkillEffectIds',[' padded '])))
+    for field in ['experience','hpCurrent','abilityPointsOverride']:
+        case('bad-fix1-int-zero-'+field,'fix1-manual',lambda v,f=field:consistent_projection_edit(v,lambda c:c.__setitem__(f,Number('-0'))))
+    case('bad-fix1-int-overflow','fix1-manual',lambda v:consistent_projection_edit(v,lambda c:c.__setitem__('size',Number('2147483648'))))
+    case('bad-fix1-filtered-skill-option','fix1-manual',lambda v:consistent_projection_edit(v,lambda c:c['skills'][0].__setitem__('definitionId','')))
+    case('bad-fix1-trimmed-access','fix1-manual',lambda v:consistent_projection_edit(v,lambda c:c['developmentOverrides'][0].__setitem__('accessId',' padded ')))
+    for field,value in [('reason',{}),('reason',Number('1')),('migrationId',None),('sourceFingerprint',False),('legacyStage',Number('1'))]:
+        case('bad-fix1-opening-'+field+'-'+type(value).__name__,'purchase',lambda v,f=field,x=value:v['ledger']['opening'].__setitem__(f,x))
+    foreign={'type':'Legacy','characterId':'foreign','schema':'11','sourceRevision':'1','sourceFingerprint':'source','ownershipKey':'development:purchase'}
+    case('bad-fix1-foreign-origin','purchase',lambda v:v['instances'][0].__setitem__('origin',foreign))
+    for field,value in [('schema',Number('11')),('sourceRevision',None),('sourceFingerprint',''),('ownershipKey','\u2003')]:
+        case('bad-fix1-origin-'+field,'legacy-confirm',lambda v,f=field,x=value:v['instances'][0]['origin'].__setitem__(f,x))
+    for field,value in [('rank',Number('2')),('candidateEntryId','foreign'),('custom',True)]:
+        case('bad-fix1-ownership-'+field,'legacy-confirm',lambda v,f=field,x=value:v['ledger']['opening']['legacyMigration']['ownershipRecords'][0].__setitem__(f,x))
+    case('bad-fix1-ownership-removed','legacy-confirm',lambda v:v['ledger']['opening']['legacyMigration'].__setitem__('ownershipRecords',[]))
+    case('bad-fix1-ownership-duplicate','legacy-confirm',lambda v:v['ledger']['opening']['legacyMigration']['ownershipRecords'].append(copy.deepcopy(v['ledger']['opening']['legacyMigration']['ownershipRecords'][0])))
+    case('bad-fix1-stage','legacy-confirm',lambda v:v['ledger']['opening'].__setitem__('legacyStage','Finalized'))
+    case('bad-fix1-mapping','legacy-confirm',lambda v:v['ledger']['opening']['legacyMigration']['origin'].__setitem__('ownershipMappings',{'foreign':{'packId':'dubl-3.69','entryId':'magic-school:боевая магия'}}))
+    for field,value in [('characterId','foreign'),('sourceFingerprint','forged'),('ownershipKey','development:foreign')]:
+        case('bad-fix1-provenance-'+field,'legacy-confirm',lambda v,f=field,x=value:v['instances'][0]['origin'].__setitem__(f,x))
+    case('bad-fix1-instance-identity','legacy-confirm',lambda v:v['instances'][0].__setitem__('instanceId','legacy:forged'))
+    case('bad-fix1-instance-candidate','legacy-confirm',lambda v:v['instances'][0]['definition'].__setitem__('entryId','foreign'))
+    case('bad-fix1-copied-removed','fix1-legacy-copy',lambda v:v.__setitem__('instances',[]))
+    case('bad-fix1-recopied-removed','fix1-legacy-copy2',lambda v:v.__setitem__('instances',[]))
+    case('bad-fix1-copied-rank','fix1-legacy-copy',lambda v:v['instances'][0].__setitem__('rank',Number('2')))
+    case('bad-fix1-copied-parameters','fix1-legacy-copy',lambda v:v['instances'][0].__setitem__('parameters',{'forged':'value'}))
+    case('bad-fix1-restored-removed','fix1-legacy-restore',lambda v:v.__setitem__('instances',[]))
+    case('bad-fix1-copied-confirm-removed','fix1-copied-confirm',lambda v:v.__setitem__('instances',[]))
+    case('bad-fix1-copied-confirm-rank','fix1-copied-confirm',lambda v:v['instances'][0].__setitem__('rank',Number('2')))
+    case('bad-fix1-correction-flag','fix1-legacy-remove',lambda v:forged_payload(v,'patch',dict(json.loads(v['receipts'][-1]['requestCanonical'],parse_int=Number,parse_float=Number)['payload']['patch'],replacesInstances=False)))
+    def forged_correction_before(v):
+        proof=json.loads(v['ledger']['entries'][-1]['evidenceCanonical'],parse_int=Number,parse_float=Number)
+        proof['before']['instances'][0]['rank']=Number('2');v['ledger']['entries'][-1]['evidenceCanonical']=render(proof)
+    case('bad-fix1-correction-before','fix1-legacy-remove',forged_correction_before)
+    def forged_paid_from(v):
+        v['ledger']['entries'][-1]['changes'][0]['fromRank']=Number('2')
+        v['receipts'][-1]['result']['changes'][0]['fromRank']=Number('2')
+    case('bad-fix1-paid-from','fix1-legacy-paid',forged_paid_from)
+    case('bad-fix1-paid-undo-removed','fix1-legacy-paid-undo',lambda v:v.__setitem__('instances',[]))
+    case('bad-fix1-ownership-order','fix1-old',lambda v:v['ledger']['opening']['legacyMigration']['ownershipRecords'].reverse())
+    def captured_raw_edit(v, edit):
+        import hashlib
+        origin=v['ledger']['opening']['legacyMigration']['origin']
+        raw=json.loads(origin['raw'],parse_int=Number,parse_float=Number);edit(raw);origin['raw']=render(raw)
+        fingerprint='sha256-utf16be:'+hashlib.sha256(origin['raw'].encode('utf-16-be','surrogatepass')).hexdigest()
+        v['ledger']['opening']['sourceFingerprint']=fingerprint
+        fields=[origin['characterId'],str(origin['schema']),origin['sourceRevision'],fingerprint]
+        framed=''.join(str(len(x.encode('utf-16-be','surrogatepass'))//2)+':'+x for x in fields)
+        v['ledger']['opening']['migrationId']='legacy-v11:sha256-utf16be:'+hashlib.sha256(framed.encode('utf-16-be','surrogatepass')).hexdigest()
+    for name,edit in [
+        ('schema-missing',lambda r:r.pop('schema')),
+        ('schema-wrong',lambda r:r.__setitem__('schema',Number('1'))),
+        ('characters-duplicate',lambda r:r['characters'].append(copy.deepcopy(r['characters'][0]))),
+        ('characters-object',lambda r:r.__setitem__('characters',{})),
+        ('selection-null',lambda r:r.__setitem__('activeCharacterId',None)),
+        ('wrong-ruleset',lambda r:r['characters'][0]['ruleset'].__setitem__('id','foreign')),
+        ('fractional-experience',lambda r:r['characters'][0].__setitem__('experience',Number('1.5'))),
+        ('invalid-bool',lambda r:r['characters'][0].__setitem__('creationComplete','invalid')),
+        ('duplicate-skills',lambda r:r['characters'][0].__setitem__('skills',[{'id':'x','rank':Number('1')},{'id':'x','rank':Number('1')}])),
+        ('unrecorded-ownership',lambda r:r['characters'][0].__setitem__('development',[{'id':'x','rank':Number('1')}])),
+    ]:
+        case('bad-fix1-backup-'+name,'legacy-migrated',lambda v,e=edit:captured_raw_edit(v,e))
+    (root/'supabase/tests/acquisition_v2_fix1_invalid_fixtures.sql').write_text('-- Lossless representation/provenance regressions from public producer fixtures.\n'+'\n'.join(rows)+'\n')
+    print('Admission negative fixtures:',len(rows))

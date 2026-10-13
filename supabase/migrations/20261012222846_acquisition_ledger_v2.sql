@@ -172,9 +172,25 @@ END $$;
 CREATE FUNCTION acquisition_private.text(p json) RETURNS text LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ BEGIN
  PERFORM acquisition_private.require(json_typeof(p)='string','Expected string'); RETURN p#>>'{}';
 END $$;
+CREATE FUNCTION acquisition_private.trim_string(p json) RETURNS json LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$
+DECLARE units bytea; first_unit integer:=0; last_unit integer; i integer; u integer; result text:='"';
+ whitespace integer[]:=ARRAY[9,10,11,12,13,28,29,30,31,32,160,5760,8192,8193,8194,8195,8196,8197,8198,8199,8200,8201,8202,8232,8233,8239,8287,12288];
+BEGIN
+ PERFORM acquisition_private.require(json_typeof(p)='string','Expected string');
+ units:=(acquisition_private.parse(p::text)).sort_key; last_unit:=octet_length(units)/2-1;
+ WHILE first_unit<=last_unit LOOP
+  u:=get_byte(units,first_unit*2)*256+get_byte(units,first_unit*2+1); EXIT WHEN NOT u=ANY(whitespace); first_unit:=first_unit+1;
+ END LOOP;
+ WHILE last_unit>=first_unit LOOP
+  u:=get_byte(units,last_unit*2)*256+get_byte(units,last_unit*2+1); EXIT WHEN NOT u=ANY(whitespace); last_unit:=last_unit-1;
+ END LOOP;
+ IF first_unit<=last_unit THEN FOR i IN first_unit..last_unit LOOP
+  result:=result||acquisition_private.unit_quote(get_byte(units,i*2)*256+get_byte(units,i*2+1));
+ END LOOP; END IF;
+ RETURN (result||'"')::json;
+END $$;
 CREATE FUNCTION acquisition_private.nonblank(p json) RETURNS void LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ BEGIN
- PERFORM acquisition_private.require(json_typeof(p)='string' AND (p::text)<>'""','Expected nonblank identity');
- PERFORM acquisition_private.require(btrim(acquisition_private.text(p))<>'','Expected nonblank identity');
+ PERFORM acquisition_private.require(acquisition_private.trim_string(p)::text<>'""','Expected nonblank identity');
 END $$;
 CREATE FUNCTION acquisition_private.decimal(p json,p_signed boolean DEFAULT false) RETURNS bigint
 LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ DECLARE t text:=acquisition_private.text(p); BEGIN
@@ -305,7 +321,7 @@ CREATE FUNCTION acquisition_private.types(p json,p_strings text[] DEFAULT ARRAY[
 LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ DECLARE k text; BEGIN
  FOREACH k IN ARRAY p_strings LOOP PERFORM acquisition_private.require(json_typeof(p OPERATOR(acquisition_private.->) k)='string','Expected string field: '||k); END LOOP;
  FOREACH k IN ARRAY p_numbers LOOP
-  PERFORM acquisition_private.require(json_typeof(p OPERATOR(acquisition_private.->) k)='number' AND (p OPERATOR(acquisition_private.->>) k)~'^-?(0|[1-9][0-9]*)$' AND (p OPERATOR(acquisition_private.->>) k)::bigint BETWEEN -2147483648 AND 2147483647,'Expected Int32 field: '||k);
+  PERFORM acquisition_private.require(json_typeof(p OPERATOR(acquisition_private.->) k)='number' AND (p OPERATOR(acquisition_private.->>) k)~'^-?(0|[1-9][0-9]*)$' AND (p OPERATOR(acquisition_private.->>) k)<>'-0' AND (p OPERATOR(acquisition_private.->>) k)::bigint BETWEEN -2147483648 AND 2147483647,'Expected canonical Int32 field: '||k);
  END LOOP;
  FOREACH k IN ARRAY p_booleans LOOP PERFORM acquisition_private.require(json_typeof(p OPERATOR(acquisition_private.->) k)='boolean','Expected Boolean field: '||k); END LOOP;
  FOREACH k IN ARRAY p_arrays LOOP PERFORM acquisition_private.require(json_typeof(p OPERATOR(acquisition_private.->) k)='array','Expected array field: '||k); END LOOP;
@@ -345,12 +361,25 @@ LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ DECLARE x json; prior text; 
  END LOOP;
 END $$;
 CREATE FUNCTION acquisition_private.snapshot_shape(p json) RETURNS void LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$
-DECLARE c json:=p OPERATOR(acquisition_private.->) 'characters' OPERATOR(acquisition_private.->) 0; x json; y json; k text;
+DECLARE c json:=p OPERATOR(acquisition_private.->) 'characters' OPERATOR(acquisition_private.->) 0; x json; y json; k text; id json; seen_ids text[];
 BEGIN
  PERFORM acquisition_private.types(c,ARRAY['id','name','concept'],ARRAY['experience','creationExperience','xpAdjustment','size','legs','hpCurrent','enduranceCurrent','manaCurrent','manaMaximum','chiCurrent','chiBonusRanks'],ARRAY['creationComplete','manaEnabled','chiEnabled'],
   ARRAY['customResources','skills','hiddenSkillIds','disabledSkillEffectIds','development','developmentOverrides','customDevelopmentEntries']);
  FOREACH k IN ARRAY ARRAY['abilityPointsOverride','healthMaximumOverride','enduranceMaximumOverride','manaMaximumOverride'] LOOP
   IF c OPERATOR(acquisition_private.->) k IS NOT NULL THEN PERFORM acquisition_private.types(c,ARRAY[]::text[],ARRAY[k]); END IF;
+ END LOOP;
+ -- These arrays decode through keyed maps, sets or distinct/filter operations. Reject
+ -- loss rather than sorting arrays, clamping manual values or normalizing identities.
+ FOREACH k IN ARRAY ARRAY['skills','development','developmentOverrides','customDevelopmentEntries','hiddenSkillIds','disabledSkillEffectIds'] LOOP
+  seen_ids:=ARRAY[]::text[];
+  FOR x IN SELECT value FROM json_array_elements(c OPERATOR(acquisition_private.->) k) LOOP
+   id:=CASE WHEN k IN ('hiddenSkillIds','disabledSkillEffectIds') THEN x ELSE x OPERATOR(acquisition_private.->) 'id' END;
+   PERFORM acquisition_private.nonblank(id);
+   IF k IN ('development','developmentOverrides','customDevelopmentEntries','disabledSkillEffectIds') THEN
+    PERFORM acquisition_private.require(acquisition_private.trim_string(id)::text=id::text,'Snapshot identity would be trimmed: '||k);
+   END IF;
+   PERFORM acquisition_private.require(NOT id::text=ANY(seen_ids),'Duplicate snapshot identity: '||k); seen_ids:=array_append(seen_ids,id::text);
+  END LOOP;
  END LOOP;
  PERFORM acquisition_private.keys(c OPERATOR(acquisition_private.->) 'attributes',ARRAY['CHARISMA','CONSTITUTION','DEXTERITY','INTELLIGENCE','PERCEPTION','SPEED','STRENGTH','WILL']);
  FOR x IN SELECT value FROM acquisition_private.object_members(c OPERATOR(acquisition_private.->) 'attributes') LOOP
@@ -358,6 +387,7 @@ BEGIN
  END LOOP;
  FOR x IN SELECT value FROM json_array_elements(c OPERATOR(acquisition_private.->) 'customResources') LOOP
   PERFORM acquisition_private.keys(x,ARRAY['uid','name','current','maximum']); PERFORM acquisition_private.types(x,ARRAY['uid','name'],ARRAY['current','maximum']);
+  PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'uid');
  END LOOP;
  FOR x IN SELECT value FROM json_array_elements(c OPERATOR(acquisition_private.->) 'skills') LOOP
   PERFORM acquisition_private.keys(x,ARRAY['id','name','description','rank','attributes','modifier','formulaNote'],ARRAY['definitionId','categoryOverride','untrainedOverride','auto6Override','auto12Override']);
@@ -366,7 +396,7 @@ BEGIN
   IF x OPERATOR(acquisition_private.->) 'categoryOverride' IS NOT NULL THEN PERFORM acquisition_private.require(x OPERATOR(acquisition_private.->>) 'categoryOverride' IN ('COMBAT','PHYSICAL','FIELD','SOCIAL','KNOWLEDGE','TECHNICAL','CUSTOM'),'Unknown skill category'); END IF;
   IF x OPERATOR(acquisition_private.->) 'untrainedOverride' IS NOT NULL THEN PERFORM acquisition_private.require(x OPERATOR(acquisition_private.->>) 'untrainedOverride' IN ('YES','YES_MINUS_2','NO','UNSPECIFIED'),'Unknown untrained rule'); END IF;
   FOREACH k IN ARRAY ARRAY['definitionId','categoryOverride','untrainedOverride','auto6Override','auto12Override'] LOOP
-   IF x OPERATOR(acquisition_private.->) k IS NOT NULL THEN PERFORM acquisition_private.types(x,ARRAY[k]); END IF;
+   IF x OPERATOR(acquisition_private.->) k IS NOT NULL THEN PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) k); END IF;
   END LOOP;
  END LOOP;
  PERFORM acquisition_private.string_list(c OPERATOR(acquisition_private.->) 'hiddenSkillIds'); PERFORM acquisition_private.string_list(c OPERATOR(acquisition_private.->) 'disabledSkillEffectIds');
@@ -377,7 +407,10 @@ BEGIN
   PERFORM acquisition_private.keys(x,ARRAY['id','name','section','category','cost','costType','maxRank','requirements','benefit','notes','tags','abilityOptions','incomplete','repeatable','perfectRoot','mechanicsConflict','conflictNote'],ARRAY['accessId']);
   PERFORM acquisition_private.types(x,ARRAY['id','name','section','category','costType','requirements','benefit','notes','mechanicsConflict','conflictNote'],ARRAY['cost','maxRank'],ARRAY['incomplete','repeatable','perfectRoot'],ARRAY['tags','abilityOptions']);
   PERFORM acquisition_private.require(x OPERATOR(acquisition_private.->>) 'costType' IN ('XP','ABILITY'),'Unknown development cost type');
-  IF x OPERATOR(acquisition_private.->) 'accessId' IS NOT NULL THEN PERFORM acquisition_private.types(x,ARRAY['accessId']); END IF;
+  IF x OPERATOR(acquisition_private.->) 'accessId' IS NOT NULL THEN
+   PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'accessId');
+   PERFORM acquisition_private.require(acquisition_private.trim_string(x OPERATOR(acquisition_private.->) 'accessId')::text=(x OPERATOR(acquisition_private.->) 'accessId')::text,'Snapshot access ID would be trimmed');
+  END IF;
   PERFORM acquisition_private.string_list(x OPERATOR(acquisition_private.->) 'tags');
   FOR y IN SELECT value FROM json_array_elements(x OPERATOR(acquisition_private.->) 'abilityOptions') LOOP
    PERFORM acquisition_private.keys(y,ARRAY['source','value']); PERFORM acquisition_private.types(y,ARRAY['source'],ARRAY['value']);
@@ -391,7 +424,8 @@ BEGIN
  FOR x IN SELECT value FROM json_array_elements(c OPERATOR(acquisition_private.->) 'magic' OPERATOR(acquisition_private.->) 'spells') LOOP
   PERFORM acquisition_private.keys(x,ARRAY['uid','name','school','cost','manaText','time','range','area','action','duration','description','enhancement','learned','incomplete','conflictNote','custom'],ARRAY['catalogId','xpOverride']);
   PERFORM acquisition_private.types(x,ARRAY['uid','name','school','manaText','time','range','area','action','duration','description','enhancement','conflictNote'],ARRAY['cost'],ARRAY['learned','incomplete','custom']);
-  IF x OPERATOR(acquisition_private.->) 'catalogId' IS NOT NULL THEN PERFORM acquisition_private.types(x,ARRAY['catalogId']); END IF;
+  PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'uid');
+  IF x OPERATOR(acquisition_private.->) 'catalogId' IS NOT NULL THEN PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'catalogId'); END IF;
   IF x OPERATOR(acquisition_private.->) 'xpOverride' IS NOT NULL THEN PERFORM acquisition_private.types(x,ARRAY[]::text[],ARRAY['xpOverride']); END IF;
  END LOOP;
  PERFORM acquisition_private.keys(c OPERATOR(acquisition_private.->) 'gear',ARRAY['loadAutomatic','loadManual','items']);
@@ -401,7 +435,8 @@ BEGIN
  FOR x IN SELECT value FROM json_array_elements(c OPERATOR(acquisition_private.->) 'gear' OPERATOR(acquisition_private.->) 'items') LOOP
   PERFORM acquisition_private.keys(x,ARRAY['uid','name','quantity','load','carried','description','category','section','custom','fields'],ARRAY['catalogId']);
   PERFORM acquisition_private.types(x,ARRAY['uid','name','description','category','section'],ARRAY['quantity'],ARRAY['carried','custom']);
-  IF x OPERATOR(acquisition_private.->) 'catalogId' IS NOT NULL THEN PERFORM acquisition_private.types(x,ARRAY['catalogId']); END IF;
+  PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'uid');
+  IF x OPERATOR(acquisition_private.->) 'catalogId' IS NOT NULL THEN PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'catalogId'); END IF;
   PERFORM acquisition_private.require(json_typeof(x OPERATOR(acquisition_private.->) 'load')='number','Expected raw Double gear load'); PERFORM (x OPERATOR(acquisition_private.->>) 'load')::double precision;
   PERFORM acquisition_private.string_map(x OPERATOR(acquisition_private.->) 'fields');
  END LOOP;
@@ -468,6 +503,281 @@ BEGIN
  END LOOP;
 END $$;
 
+-- The captured legacy backup uses the existing compatibility decoder, not the lossless
+-- schema-11 projection decoder. Keep historical numeric strings/aliases/defaults here.
+CREATE FUNCTION acquisition_private.legacy_int(p json,p_default integer DEFAULT 0) RETURNS integer
+LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ DECLARE n numeric; t text; BEGIN
+ IF p IS NULL THEN RETURN p_default; END IF;
+ PERFORM acquisition_private.require(json_typeof(p) IN ('number','string'),'Invalid legacy integer');
+ t:=CASE WHEN json_typeof(p)='string' THEN acquisition_private.text(p) ELSE p::text END;
+ IF json_typeof(p)='string' THEN PERFORM acquisition_private.require(t~'^[+-]?[0-9]+$','Invalid legacy integer string'); END IF;
+ n:=t::numeric; PERFORM acquisition_private.require(n=trunc(n) AND n BETWEEN -2147483648 AND 2147483647,'Invalid legacy integer'); RETURN n::integer;
+END $$;
+CREATE FUNCTION acquisition_private.legacy_bool(p json,p_default boolean DEFAULT false) RETURNS boolean
+LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ BEGIN
+ IF p IS NULL THEN RETURN p_default; END IF;
+ PERFORM acquisition_private.require(json_typeof(p) IN ('boolean','string') AND p#>>'{}' IN ('true','false'),'Invalid legacy Boolean'); RETURN (p#>>'{}')::boolean;
+END $$;
+-- Only the old snapshot schema selector uses the compatibility decoder's Double-to-Int
+-- conversion. Ownership integers above retain validateLegacySnapshot's exact admission.
+CREATE FUNCTION acquisition_private.legacy_schema(p json) RETURNS integer LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ DECLARE n double precision; BEGIN
+ IF json_typeof(p)='number' THEN
+  n:=p::text::double precision;
+  PERFORM acquisition_private.require(n>=1 AND n<12,'Invalid legacy snapshot schema'); RETURN floor(n)::integer;
+ END IF;
+ RETURN acquisition_private.legacy_int(p,0);
+END $$;
+CREATE FUNCTION acquisition_private.legacy_text(p json,p_default text DEFAULT '') RETURNS text
+LANGUAGE sql IMMUTABLE SET search_path='' AS $$ SELECT CASE WHEN json_typeof(p) IN ('string','number','boolean') THEN p#>>'{}' ELSE p_default END $$;
+CREATE FUNCTION acquisition_private.legacy_rows(p json) RETURNS SETOF json LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ DECLARE x json; BEGIN
+ IF p IS NULL THEN RETURN; END IF;
+ PERFORM acquisition_private.require(json_typeof(p)='array','Invalid legacy array');
+ FOR x IN SELECT value FROM json_array_elements(p) LOOP PERFORM acquisition_private.require(json_typeof(x)='object','Invalid legacy row'); RETURN NEXT x; END LOOP;
+END $$;
+CREATE FUNCTION acquisition_private.legacy_fields(p json,p_ints text[] DEFAULT ARRAY[]::text[],p_bools text[] DEFAULT ARRAY[]::text[],p_texts text[] DEFAULT ARRAY[]::text[],p_nullable_ints text[] DEFAULT ARRAY[]::text[],p_nullable_texts text[] DEFAULT ARRAY[]::text[],p_finite text[] DEFAULT ARRAY[]::text[]) RETURNS void
+LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ DECLARE k text; v json; n double precision; BEGIN
+ FOREACH k IN ARRAY p_ints LOOP IF p OPERATOR(acquisition_private.->) k IS NOT NULL THEN PERFORM acquisition_private.legacy_int(p OPERATOR(acquisition_private.->) k); END IF; END LOOP;
+ FOREACH k IN ARRAY p_bools LOOP IF p OPERATOR(acquisition_private.->) k IS NOT NULL THEN PERFORM acquisition_private.legacy_bool(p OPERATOR(acquisition_private.->) k); END IF; END LOOP;
+ FOREACH k IN ARRAY p_texts LOOP IF p OPERATOR(acquisition_private.->) k IS NOT NULL THEN PERFORM acquisition_private.types(p,ARRAY[k]); END IF; END LOOP;
+ FOREACH k IN ARRAY p_nullable_ints LOOP v:=p OPERATOR(acquisition_private.->) k; IF v IS NOT NULL AND v::text<>'null' THEN PERFORM acquisition_private.legacy_int(v); END IF; END LOOP;
+ FOREACH k IN ARRAY p_nullable_texts LOOP v:=p OPERATOR(acquisition_private.->) k; IF v IS NOT NULL AND v::text<>'null' THEN PERFORM acquisition_private.types(p,ARRAY[k]); END IF; END LOOP;
+ FOREACH k IN ARRAY p_finite LOOP
+  v:=p OPERATOR(acquisition_private.->) k; IF v IS NOT NULL THEN
+   PERFORM acquisition_private.require(json_typeof(v) IN ('number','string'),'Invalid legacy number'); n:=(v#>>'{}')::double precision;
+   PERFORM acquisition_private.require(n NOT IN ('NaN'::double precision,'Infinity'::double precision,'-Infinity'::double precision),'Invalid legacy number');
+  END IF;
+ END LOOP;
+END $$;
+CREATE FUNCTION acquisition_private.legacy_unique(p json,p_key text,p_required boolean,p_trim boolean DEFAULT false) RETURNS void
+LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ DECLARE x json; v json; seen text[]:=ARRAY[]::text[]; BEGIN
+ FOR x IN SELECT * FROM acquisition_private.legacy_rows(p) LOOP
+  v:=x OPERATOR(acquisition_private.->) p_key;
+  IF p_required THEN PERFORM acquisition_private.nonblank(v);
+  ELSIF v IS NULL OR v::text='null' THEN CONTINUE;
+  ELSE PERFORM acquisition_private.types(x,ARRAY[p_key]); END IF;
+  IF p_trim THEN v:=acquisition_private.trim_string(v); END IF;
+  IF acquisition_private.trim_string(v)::text='""' THEN CONTINUE; END IF;
+  PERFORM acquisition_private.require(NOT v::text=ANY(seen),'Duplicate legacy identity'); seen:=array_append(seen,v::text);
+ END LOOP;
+END $$;
+CREATE FUNCTION acquisition_private.legacy_backup(p_origin json) RETURNS json
+LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$
+DECLARE root json:=acquisition_private.canonical(acquisition_private.text(p_origin OPERATOR(acquisition_private.->) 'raw'))::json;
+ c json; x json; y json; z json; selected json; k text; n integer:=0; schema integer:=acquisition_private.legacy_schema(root OPERATOR(acquisition_private.->) 'schema');
+BEGIN
+ PERFORM acquisition_private.require(json_typeof(root)='object' AND root OPERATOR(acquisition_private.->) 'formatVersion' IS NULL AND root OPERATOR(acquisition_private.->) 'format' IS NULL AND schema=acquisition_private.legacy_int(p_origin OPERATOR(acquisition_private.->) 'schema'),'Invalid legacy snapshot routing/schema');
+ PERFORM acquisition_private.require(root OPERATOR(acquisition_private.->) 'characters' IS NOT NULL AND json_array_length(root OPERATOR(acquisition_private.->) 'characters')>0,'Empty legacy snapshot');
+ PERFORM acquisition_private.legacy_unique(root OPERATOR(acquisition_private.->) 'characters','id',true);
+ IF root OPERATOR(acquisition_private.->) 'activeCharacterId' IS NOT NULL THEN PERFORM acquisition_private.types(root,ARRAY['activeCharacterId']); END IF;
+ FOR c IN SELECT * FROM acquisition_private.legacy_rows(root OPERATOR(acquisition_private.->) 'characters') LOOP
+  PERFORM acquisition_private.legacy_fields(c,ARRAY['experience','creationExperience','xpAdjustment','chiBonusRanks'],ARRAY['creationComplete','manaEnabled','chiEnabled'],ARRAY[]::text[],ARRAY['abilityPointsOverride']);
+  x:=c OPERATOR(acquisition_private.->) 'attributes';
+  IF x IS NOT NULL THEN
+   PERFORM acquisition_private.require(json_typeof(x)='object','Invalid legacy attributes');
+   FOR y IN SELECT value FROM acquisition_private.object_members(x) LOOP PERFORM acquisition_private.require(json_typeof(y)='object','Invalid legacy attribute'); PERFORM acquisition_private.legacy_fields(y,ARRAY['base','bonus']); END LOOP;
+  END IF;
+  PERFORM acquisition_private.legacy_unique(c OPERATOR(acquisition_private.->) 'skills','id',true);
+  FOR x IN SELECT * FROM acquisition_private.legacy_rows(c OPERATOR(acquisition_private.->) 'skills') LOOP PERFORM acquisition_private.legacy_fields(x,ARRAY['rank','modifier'],ARRAY[]::text[],ARRAY[]::text[],ARRAY[]::text[],ARRAY['definitionId']); END LOOP;
+  PERFORM acquisition_private.legacy_unique(c OPERATOR(acquisition_private.->) 'development','id',true,true);
+  FOR x IN SELECT * FROM acquisition_private.legacy_rows(c OPERATOR(acquisition_private.->) 'development') LOOP PERFORM acquisition_private.legacy_fields(x,ARRAY['rank','option']); END LOOP;
+  FOREACH k IN ARRAY ARRAY['developmentOverrides','customDevelopmentEntries'] LOOP
+   PERFORM acquisition_private.legacy_unique(c OPERATOR(acquisition_private.->) k,'id',true,true);
+   FOR x IN SELECT * FROM acquisition_private.legacy_rows(c OPERATOR(acquisition_private.->) k) LOOP
+    PERFORM acquisition_private.legacy_fields(x,ARRAY['cost','maxRank'],ARRAY['incomplete','repeatable','perfectRoot'],ARRAY['costType']);
+    IF x OPERATOR(acquisition_private.->) 'costType' IS NOT NULL THEN PERFORM acquisition_private.require(x OPERATOR(acquisition_private.->>) 'costType' IN ('XP','ABILITY'),'Invalid legacy cost type'); END IF;
+    FOR y IN SELECT * FROM acquisition_private.legacy_rows(x OPERATOR(acquisition_private.->) 'abilityOptions') LOOP PERFORM acquisition_private.legacy_fields(y,ARRAY['value']); END LOOP;
+   END LOOP;
+  END LOOP;
+  x:=c OPERATOR(acquisition_private.->) 'magic';
+  IF x IS NOT NULL THEN
+   PERFORM acquisition_private.require(json_typeof(x)='object','Invalid legacy magic'); PERFORM acquisition_private.legacy_fields(x,ARRAY['manaRank','power']);
+   FOR y IN SELECT * FROM acquisition_private.legacy_rows(x OPERATOR(acquisition_private.->) 'schools') LOOP PERFORM acquisition_private.legacy_fields(y,ARRAY['rank','level'],ARRAY[]::text[],ARRAY['name']); END LOOP;
+   PERFORM acquisition_private.legacy_unique(x OPERATOR(acquisition_private.->) 'spells','uid',false);
+   FOR y IN SELECT * FROM acquisition_private.legacy_rows(x OPERATOR(acquisition_private.->) 'spells') LOOP PERFORM acquisition_private.legacy_fields(y,ARRAY['cost'],ARRAY['learned','custom','incomplete'],ARRAY[]::text[],ARRAY['xpOverride'],ARRAY['catalogId']); END LOOP;
+  END IF;
+  x:=c OPERATOR(acquisition_private.->) 'gear';
+  IF x IS NOT NULL THEN
+   PERFORM acquisition_private.require(json_typeof(x)='object','Invalid legacy gear'); PERFORM acquisition_private.legacy_fields(x,ARRAY[]::text[],ARRAY['loadAutomatic'],ARRAY[]::text[],ARRAY[]::text[],ARRAY[]::text[],ARRAY['loadManual']);
+   PERFORM acquisition_private.legacy_unique(x OPERATOR(acquisition_private.->) 'items','uid',false);
+   FOR y IN SELECT * FROM acquisition_private.legacy_rows(x OPERATOR(acquisition_private.->) 'items') LOOP PERFORM acquisition_private.legacy_fields(y,ARRAY['quantity','qty'],ARRAY['carried','custom'],ARRAY[]::text[],ARRAY[]::text[],ARRAY['catalogId'],ARRAY['load']); END LOOP;
+  END IF;
+  PERFORM acquisition_private.legacy_unique(c OPERATOR(acquisition_private.->) 'customResources','uid',false);
+  FOR y IN SELECT * FROM acquisition_private.legacy_rows(c OPERATOR(acquisition_private.->) 'customResources') LOOP PERFORM acquisition_private.legacy_fields(y,ARRAY['current','maximum']); END LOOP;
+  IF (c OPERATOR(acquisition_private.->) 'id')::text=(p_origin OPERATOR(acquisition_private.->) 'characterId')::text THEN selected:=c; n:=n+1; END IF;
+ END LOOP;
+ PERFORM acquisition_private.require(n=1,'Legacy backup character scope mismatch');
+ x:=selected OPERATOR(acquisition_private.->) 'ruleset';
+ IF json_typeof(x)='object' THEN
+  PERFORM acquisition_private.require((acquisition_private.trim_string(to_json(acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'id')))::text='""' OR acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'id')='dubl') AND (acquisition_private.trim_string(to_json(acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'version')))::text='""' OR acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'version')='3.69'),'Wrong legacy ruleset');
+ END IF;
+ RETURN root;
+END $$;
+CREATE FUNCTION acquisition_private.legacy_school(p text) RETURNS text LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$
+DECLARE clean text:=replace(lower(acquisition_private.text(acquisition_private.trim_string(to_json(p)))),'ё','е'); name text;
+ names text[]:=ARRAY['Боевая магия','Воплощение','Друид','Магия крови','Молитва','Некромантия','Ограждение','Призыв','Природа','Прорицание','Разрушение','Разум','Трансмутация'];
+BEGIN
+ clean:=CASE clean WHEN 'ограждения' THEN 'ограждение' WHEN 'молитвы' THEN 'молитва' WHEN 'некромант' THEN 'некромантия' WHEN 'друидичество' THEN 'друид' WHEN 'друидическая магия' THEN 'друид' WHEN 'боевая' THEN 'боевая магия' ELSE clean END;
+ FOREACH name IN ARRAY names LOOP IF replace(lower(name),'ё','е')=clean THEN RETURN name; END IF; END LOOP;
+ RETURN NULL;
+END $$;
+CREATE FUNCTION acquisition_private.ownership_record(p_key text,p_kind text,p_rank integer,p_candidate text,p_custom boolean DEFAULT false) RETURNS json
+LANGUAGE sql IMMUTABLE SET search_path='' AS $$ SELECT acquisition_private.canonical(json_build_object('ownershipKey',p_key,'kind',p_kind,'rank',p_rank,'candidateEntryId',p_candidate,'custom',p_custom)::text)::json $$;
+CREATE FUNCTION acquisition_private.legacy_records(p_origin json,p_migration_id text,p_backup json) RETURNS json
+LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$
+DECLARE c json; x json; y json; selected json; result text:='['; rank integer; key text; candidate text; custom boolean; uid text; sequence integer:=0; schools json:='[]'; rows json; mana integer; old_mana integer:=0; spell_uids text[]:=ARRAY[]::text[]; school_names text[]:=ARRAY['Боевая магия','Воплощение','Друид','Магия крови','Молитва','Некромантия','Ограждение','Призыв','Природа','Прорицание','Разрушение','Разум','Трансмутация'];
+BEGIN
+ -- Stable generated nested IDs consume the decoder's sequence for every character, in
+ -- custom-resource, spell, gear order. Only the selected character contributes ownership.
+ FOR c IN SELECT * FROM acquisition_private.legacy_rows(p_backup OPERATOR(acquisition_private.->) 'characters') LOOP
+  FOR x IN SELECT * FROM acquisition_private.legacy_rows(c OPERATOR(acquisition_private.->) 'customResources') LOOP
+   IF acquisition_private.trim_string(to_json(acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'uid')))::text='""' THEN sequence:=sequence+1; END IF;
+  END LOOP;
+  FOR x IN SELECT * FROM acquisition_private.legacy_rows(c OPERATOR(acquisition_private.->) 'magic' OPERATOR(acquisition_private.->) 'spells') LOOP
+   uid:=acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'uid');
+   IF acquisition_private.trim_string(to_json(uid))::text='""' THEN uid:='legacy-generated:'||p_migration_id||':'||sequence; sequence:=sequence+1; END IF;
+   IF (c OPERATOR(acquisition_private.->) 'id')::text=(p_origin OPERATOR(acquisition_private.->) 'characterId')::text THEN
+    IF uid=ANY(spell_uids) THEN CONTINUE; END IF; spell_uids:=array_append(spell_uids,uid);
+    IF NOT acquisition_private.legacy_bool(x OPERATOR(acquisition_private.->) 'learned',true) THEN CONTINUE; END IF;
+    candidate:=acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'catalogId'); IF acquisition_private.trim_string(to_json(candidate))::text='""' THEN candidate:=NULL; END IF;
+    rows:=coalesce(rows,'[]'::json); rows:=(substr(rows::text,1,length(rows::text)-1)||CASE WHEN rows::text='[]' THEN '' ELSE ',' END||acquisition_private.ownership_record('spell:'||uid,'SPELL',1,candidate,acquisition_private.legacy_bool(x OPERATOR(acquisition_private.->) 'custom'))::text||']')::json;
+   END IF;
+  END LOOP;
+  FOR x IN SELECT * FROM acquisition_private.legacy_rows(c OPERATOR(acquisition_private.->) 'gear' OPERATOR(acquisition_private.->) 'items') LOOP
+   IF acquisition_private.trim_string(to_json(acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'uid')))::text='""' THEN sequence:=sequence+1; END IF;
+  END LOOP;
+  IF (c OPERATOR(acquisition_private.->) 'id')::text=(p_origin OPERATOR(acquisition_private.->) 'characterId')::text THEN selected:=c; END IF;
+ END LOOP;
+ FOR x IN SELECT value FROM acquisition_private.legacy_rows(selected OPERATOR(acquisition_private.->) 'development') value ORDER BY (acquisition_private.parse(acquisition_private.trim_string(value OPERATOR(acquisition_private.->) 'id')::text)).sort_key LOOP
+  key:=acquisition_private.text(acquisition_private.trim_string(x OPERATOR(acquisition_private.->) 'id')); rank:=greatest(acquisition_private.legacy_int(x OPERATOR(acquisition_private.->) 'rank'),0);
+  IF key='feat_bf7b04eb68961725' THEN old_mana:=least(rank,5); CONTINUE; END IF;
+  IF rank=0 THEN CONTINUE; END IF;
+  custom:=EXISTS(SELECT 1 FROM acquisition_private.legacy_rows(selected OPERATOR(acquisition_private.->) 'customDevelopmentEntries') t WHERE acquisition_private.text(acquisition_private.trim_string(t OPERATOR(acquisition_private.->) 'id'))=key);
+  result:=result||CASE WHEN result='[' THEN '' ELSE ',' END||acquisition_private.ownership_record('development:'||key,'DEVELOPMENT',rank,key,custom)::text;
+ END LOOP;
+ FOR x IN SELECT value FROM acquisition_private.legacy_rows(selected OPERATOR(acquisition_private.->) 'skills') value ORDER BY (acquisition_private.parse((value OPERATOR(acquisition_private.->) 'id')::text)).sort_key LOOP
+  rank:=greatest(0,least(acquisition_private.legacy_int(x OPERATOR(acquisition_private.->) 'rank'),10)); IF rank=0 THEN CONTINUE; END IF;
+  candidate:=acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'definitionId'); IF acquisition_private.trim_string(to_json(candidate))::text='""' THEN candidate:=NULL; END IF;
+  result:=result||CASE WHEN result='[' THEN '' ELSE ',' END||acquisition_private.ownership_record('skill:'||acquisition_private.text(x OPERATOR(acquisition_private.->) 'id'),'SKILL',rank,candidate)::text;
+ END LOOP;
+ mana:=greatest(old_mana,greatest(0,least(acquisition_private.legacy_int(selected OPERATOR(acquisition_private.->) 'magic' OPERATOR(acquisition_private.->) 'manaRank'),5)));
+ IF mana>0 THEN result:=result||CASE WHEN result='[' THEN '' ELSE ',' END||acquisition_private.ownership_record('mana','MANA',mana,'mana:rank')::text; END IF;
+ rank:=greatest(0,least(acquisition_private.legacy_int(selected OPERATOR(acquisition_private.->) 'chiBonusRanks'),10));
+ IF rank>0 THEN result:=result||CASE WHEN result='[' THEN '' ELSE ',' END||acquisition_private.ownership_record('chi-bonus','CHI_BONUS',rank,'chi:bonus-ranks')::text; END IF;
+ -- School normalization merges aliases by greatest rank, retaining first ties and the
+ -- established catalog ordering. This is original ownership extraction, never repricing.
+ FOR x IN SELECT * FROM acquisition_private.legacy_rows(selected OPERATOR(acquisition_private.->) 'magic' OPERATOR(acquisition_private.->) 'schools') LOOP
+  key:=coalesce(acquisition_private.legacy_school(acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'name','Школа')),acquisition_private.text(acquisition_private.trim_string(to_json(acquisition_private.legacy_text(x OPERATOR(acquisition_private.->) 'name','Школа')))));
+  IF key='' THEN CONTINUE; END IF;
+  rank:=greatest(acquisition_private.legacy_int(x OPERATOR(acquisition_private.->) 'rank',acquisition_private.legacy_int(x OPERATOR(acquisition_private.->) 'level')),0);
+  y:=acquisition_private.canonical(json_build_object('name',key,'rank',rank)::text)::json;
+  IF NOT EXISTS(SELECT 1 FROM json_array_elements(schools) s WHERE lower(s.value OPERATOR(acquisition_private.->>) 'name')=lower(key)) THEN schools:=(substr(schools::text,1,length(schools::text)-1)||CASE WHEN schools::text='[]' THEN '' ELSE ',' END||y::text||']')::json;
+  ELSE SELECT json_agg(CASE WHEN lower(s.value OPERATOR(acquisition_private.->>) 'name')=lower(key) AND (s.value OPERATOR(acquisition_private.->>) 'rank')::integer<rank THEN y ELSE s.value END ORDER BY ord) INTO schools FROM json_array_elements(schools) WITH ORDINALITY s(value,ord); END IF;
+ END LOOP;
+ FOR x IN SELECT value FROM json_array_elements(schools) ORDER BY coalesce(array_position(school_names,value OPERATOR(acquisition_private.->>) 'name'),14),(acquisition_private.parse(to_json(lower(value OPERATOR(acquisition_private.->>) 'name'))::text)).sort_key LOOP
+  rank:=(x OPERATOR(acquisition_private.->>) 'rank')::integer; IF rank=0 THEN CONTINUE; END IF; key:=x OPERATOR(acquisition_private.->>) 'name';
+  result:=result||CASE WHEN result='[' THEN '' ELSE ',' END||acquisition_private.ownership_record('school:'||(octet_length(acquisition_private.utf16(key))/2)::text||':'||key,'SCHOOL',rank,NULL)::text;
+ END LOOP;
+ FOR x IN SELECT value FROM json_array_elements(coalesce(rows,'[]'::json)) LOOP result:=result||CASE WHEN result='[' THEN '' ELSE ',' END||x::text; END LOOP;
+ RETURN (result||']')::json;
+END $$;
+
+CREATE FUNCTION acquisition_private.legacy_school_ref(p json) RETURNS void LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ BEGIN
+ PERFORM acquisition_private.keys(p,ARRAY['packId','entryId']);
+ PERFORM acquisition_private.require((p OPERATOR(acquisition_private.->) 'packId')::text='"dubl-3.69"' AND p OPERATOR(acquisition_private.->>) 'entryId' IN ('magic-school:боевая магия','magic-school:воплощение','magic-school:друид','magic-school:магия крови','magic-school:молитва','magic-school:некромантия','magic-school:ограждение','magic-school:призыв','magic-school:природа','magic-school:прорицание','magic-school:разрушение','magic-school:разум','magic-school:трансмутация'),'Invalid resolved school identity');
+END $$;
+CREATE FUNCTION acquisition_private.holding(p_instances json,p_id text) RETURNS json LANGUAGE sql IMMUTABLE SET search_path='' AS $$
+ SELECT value FROM json_array_elements(p_instances) WHERE value OPERATOR(acquisition_private.->>) 'instanceId'=p_id $$;
+CREATE FUNCTION acquisition_private.without_holding(p_instances json,p_id text) RETURNS text LANGUAGE sql IMMUTABLE SET search_path='' AS $$
+ SELECT acquisition_private.canonical(coalesce(json_agg(value ORDER BY ord),'[]'::json)::text) FROM json_array_elements(p_instances) WITH ORDINALITY x(value,ord) WHERE value OPERATOR(acquisition_private.->>) 'instanceId'<>p_id $$;
+CREATE FUNCTION acquisition_private.instance_shapes(p_instances json) RETURNS void LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$
+DECLARE x json; o json; k text; seen text[]:=ARRAY[]::text[]; BEGIN
+ PERFORM acquisition_private.require(json_typeof(p_instances)='array','Expected recorded instances');
+ FOR x IN SELECT value FROM json_array_elements(p_instances) LOOP
+  PERFORM acquisition_private.keys(x,ARRAY['instanceId','definition','rank','parameters','abilityOptionId','origin']); PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'instanceId');
+  PERFORM acquisition_private.require(NOT (x OPERATOR(acquisition_private.->) 'instanceId')::text=ANY(seen),'Duplicate recorded instance'); seen:=array_append(seen,(x OPERATOR(acquisition_private.->) 'instanceId')::text);
+  PERFORM acquisition_private.keys(x OPERATOR(acquisition_private.->) 'definition',ARRAY['packId','entryId']); PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'definition' OPERATOR(acquisition_private.->) 'packId'); PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'definition' OPERATOR(acquisition_private.->) 'entryId');
+  PERFORM acquisition_private.types(x,ARRAY[]::text[],ARRAY['rank']); PERFORM acquisition_private.require((x OPERATOR(acquisition_private.->>) 'rank')::integer>0,'Invalid recorded rank'); PERFORM acquisition_private.parameter_map(x OPERATOR(acquisition_private.->) 'parameters');
+  PERFORM acquisition_private.require(json_typeof(x OPERATOR(acquisition_private.->) 'abilityOptionId') IN ('string','null'),'Invalid recorded option'); IF (x OPERATOR(acquisition_private.->) 'abilityOptionId')::text<>'null' THEN PERFORM acquisition_private.nonblank(x OPERATOR(acquisition_private.->) 'abilityOptionId'); END IF;
+  o:=x OPERATOR(acquisition_private.->) 'origin';
+  IF o OPERATOR(acquisition_private.->>) 'type'='New' THEN PERFORM acquisition_private.keys(o,ARRAY['type']);
+  ELSIF o OPERATOR(acquisition_private.->>) 'type'='Legacy' THEN
+   PERFORM acquisition_private.keys(o,ARRAY['type','characterId','schema','sourceRevision','sourceFingerprint','ownershipKey']); FOREACH k IN ARRAY ARRAY['type','characterId','schema','sourceRevision','sourceFingerprint','ownershipKey'] LOOP PERFORM acquisition_private.nonblank(o OPERATOR(acquisition_private.->) k); END LOOP;
+  ELSE RAISE EXCEPTION 'Invalid recorded origin'; END IF;
+ END LOOP;
+END $$;
+CREATE FUNCTION acquisition_private.recorded_holding_mutation(p_root json,p_entry json,p_current json,p_identity json,p_reverse boolean DEFAULT false) RETURNS json
+LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$
+DECLARE receipt json; request json; payload json; proof json; before_projection json; after_projection json; patch json; patch_projection json; before_holding json; after_holding json; record json; resolution json; item record; id text:=p_identity OPERATOR(acquisition_private.->>) 'instanceId'; kind text:=p_entry OPERATOR(acquisition_private.->>) 'type'; BEGIN
+ SELECT value INTO receipt FROM json_array_elements(p_root OPERATOR(acquisition_private.->) 'receipts') WHERE value OPERATOR(acquisition_private.->>) 'operationId'=p_entry OPERATOR(acquisition_private.->>) 'operationId';
+ request:=acquisition_private.wire_json(receipt OPERATOR(acquisition_private.->>) 'requestCanonical'); PERFORM acquisition_private.keys(request,ARRAY['type','characterId','expectedRevision','reason','payload']);
+ PERFORM acquisition_private.require(request OPERATOR(acquisition_private.->>) 'type'='CanonicalMutation' AND (request OPERATOR(acquisition_private.->) 'characterId')::text=(p_root OPERATOR(acquisition_private.->) 'characterId')::text AND (request OPERATOR(acquisition_private.->) 'expectedRevision')::text=(receipt OPERATOR(acquisition_private.->) 'beforeRevision')::text,'Copied mutation command scope differs'); PERFORM acquisition_private.nonblank(request OPERATOR(acquisition_private.->) 'reason');
+ payload:=request OPERATOR(acquisition_private.->) 'payload'; PERFORM acquisition_private.require(payload OPERATOR(acquisition_private.->>) 'kind'=kind,'Copied mutation payload differs');
+ proof:=acquisition_private.wire_json(p_entry OPERATOR(acquisition_private.->>) 'evidenceCanonical'); PERFORM acquisition_private.keys(proof,ARRAY['schema','command','before','after']); PERFORM acquisition_private.require(proof OPERATOR(acquisition_private.->>) 'schema'='mutation-evidence-v1' AND (proof OPERATOR(acquisition_private.->) 'command')::text=request::text,'Copied mutation proof differs');
+ before_projection:=proof OPERATOR(acquisition_private.->) 'before'; after_projection:=proof OPERATOR(acquisition_private.->) 'after';
+ PERFORM acquisition_private.keys(before_projection,ARRAY['characterSnapshot','instances','extras','creationPhase']); PERFORM acquisition_private.keys(after_projection,ARRAY['characterSnapshot','instances','extras','creationPhase']);
+ PERFORM acquisition_private.instance_shapes(before_projection OPERATOR(acquisition_private.->) 'instances'); PERFORM acquisition_private.instance_shapes(after_projection OPERATOR(acquisition_private.->) 'instances');
+ before_holding:=acquisition_private.holding(before_projection OPERATOR(acquisition_private.->) 'instances',id); after_holding:=acquisition_private.holding(after_projection OPERATOR(acquisition_private.->) 'instances',id);
+ IF kind='ManualCorrection' THEN
+  PERFORM acquisition_private.keys(payload,ARRAY['kind','patch','delta']); PERFORM acquisition_private.require(acquisition_private.amount(payload OPERATOR(acquisition_private.->) 'delta')=acquisition_private.amount(p_entry OPERATOR(acquisition_private.->) 'amountDelta'),'Copied correction amount differs');
+  patch:=payload OPERATOR(acquisition_private.->) 'patch'; PERFORM acquisition_private.keys(patch,ARRAY['projection','replacesInstances','replacesExtras']); PERFORM acquisition_private.types(patch,ARRAY[]::text[],ARRAY[]::text[],ARRAY['replacesInstances','replacesExtras']);
+  patch_projection:=patch OPERATOR(acquisition_private.->) 'projection'; PERFORM acquisition_private.keys(patch_projection,ARRAY['characterSnapshot','instances','extras','creationPhase']);
+  PERFORM acquisition_private.require((after_projection OPERATOR(acquisition_private.->) 'characterSnapshot')::text=(patch_projection OPERATOR(acquisition_private.->) 'characterSnapshot')::text AND (after_projection OPERATOR(acquisition_private.->) 'creationPhase')::text=(patch_projection OPERATOR(acquisition_private.->) 'creationPhase')::text AND (before_projection OPERATOR(acquisition_private.->) 'creationPhase')::text=(after_projection OPERATOR(acquisition_private.->) 'creationPhase')::text,'Copied correction projection differs');
+  PERFORM acquisition_private.require((after_projection OPERATOR(acquisition_private.->) 'instances')::text=(CASE WHEN patch OPERATOR(acquisition_private.->>) 'replacesInstances'='true' THEN patch_projection ELSE before_projection END OPERATOR(acquisition_private.->) 'instances')::text AND (after_projection OPERATOR(acquisition_private.->) 'extras')::text=(CASE WHEN patch OPERATOR(acquisition_private.->>) 'replacesExtras'='true' THEN patch_projection ELSE before_projection END OPERATOR(acquisition_private.->) 'extras')::text,'Copied correction differs from captured patch');
+ ELSIF kind='ConfirmLegacyParameter' THEN
+  PERFORM acquisition_private.keys(payload,ARRAY['kind','instanceId','parameters','resolution']); PERFORM acquisition_private.require(acquisition_private.amount(p_entry OPERATOR(acquisition_private.->) 'amountDelta')=ARRAY[0::bigint,0::bigint],'Copied confirmation amount differs');
+  IF payload OPERATOR(acquisition_private.->>) 'instanceId'=id THEN
+   PERFORM acquisition_private.require(acquisition_private.remove_field(before_projection,'instances')::text=acquisition_private.remove_field(after_projection,'instances')::text AND acquisition_private.without_holding(before_projection OPERATOR(acquisition_private.->) 'instances',id)=acquisition_private.without_holding(after_projection OPERATOR(acquisition_private.->) 'instances',id) AND after_holding IS NOT NULL AND (after_holding OPERATOR(acquisition_private.->) 'parameters')::text=(payload OPERATOR(acquisition_private.->) 'parameters')::text,'Copied confirmation projection differs');
+   IF before_holding IS NOT NULL THEN
+    PERFORM acquisition_private.require((payload OPERATOR(acquisition_private.->) 'resolution')::text='null' AND acquisition_private.remove_field(before_holding,'parameters')::text=acquisition_private.remove_field(after_holding,'parameters')::text,'Copied confirmation changed identity/rank/option');
+    FOR item IN SELECT * FROM acquisition_private.object_members(before_holding OPERATOR(acquisition_private.->) 'parameters') LOOP PERFORM acquisition_private.require((after_holding OPERATOR(acquisition_private.->) 'parameters' OPERATOR(acquisition_private.->) item.key)::text=item.value::text,'Copied confirmation replaced a known parameter'); END LOOP;
+   ELSE
+    SELECT value INTO record FROM json_array_elements(p_root OPERATOR(acquisition_private.->) 'ledger' OPERATOR(acquisition_private.->) 'opening' OPERATOR(acquisition_private.->) 'legacyMigration' OPERATOR(acquisition_private.->) 'ownershipRecords') WHERE (value OPERATOR(acquisition_private.->) 'ownershipKey')::text=(p_identity OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->) 'ownershipKey')::text;
+    resolution:=payload OPERATOR(acquisition_private.->) 'resolution'; PERFORM acquisition_private.keys(resolution,ARRAY['ownershipKey','packId','entryId','rank']);
+    PERFORM acquisition_private.require((resolution OPERATOR(acquisition_private.->) 'ownershipKey')::text=(record OPERATOR(acquisition_private.->) 'ownershipKey')::text AND (resolution OPERATOR(acquisition_private.->) 'packId')::text=(p_identity OPERATOR(acquisition_private.->) 'definition' OPERATOR(acquisition_private.->) 'packId')::text AND (resolution OPERATOR(acquisition_private.->) 'entryId')::text=(p_identity OPERATOR(acquisition_private.->) 'definition' OPERATOR(acquisition_private.->) 'entryId')::text AND (resolution OPERATOR(acquisition_private.->) 'rank')::text=(record OPERATOR(acquisition_private.->) 'rank')::text AND (after_holding OPERATOR(acquisition_private.->) 'rank')::text=(record OPERATOR(acquisition_private.->) 'rank')::text,'Copied confirmation differs from original ownership');
+   END IF;
+  ELSE PERFORM acquisition_private.require(before_holding::text IS NOT DISTINCT FROM after_holding::text,'Unrelated confirmation changed copied holding'); END IF;
+ ELSE RAISE EXCEPTION 'Invalid copied holding mutation'; END IF;
+ IF p_reverse THEN proof:=before_holding; before_holding:=after_holding; after_holding:=proof; END IF;
+ PERFORM acquisition_private.require(before_holding::text IS NOT DISTINCT FROM p_current::text,'Copied mutation before holding differs');
+ PERFORM acquisition_private.require(after_holding IS NULL OR ((after_holding OPERATOR(acquisition_private.->) 'instanceId')::text=(p_identity OPERATOR(acquisition_private.->) 'instanceId')::text AND (after_holding OPERATOR(acquisition_private.->) 'definition')::text=(p_identity OPERATOR(acquisition_private.->) 'definition')::text AND (after_holding OPERATOR(acquisition_private.->) 'origin')::text=(p_identity OPERATOR(acquisition_private.->) 'origin')::text),'Copied mutation changed holding identity');
+ PERFORM acquisition_private.require(p_reverse OR kind<>'ManualCorrection' OR p_current IS NOT NULL OR after_holding IS NULL,'Correction cannot recreate a removed holding');
+ RETURN after_holding;
+END $$;
+CREATE FUNCTION acquisition_private.copied_holding_chain(p_root json,p_initial json,p_kind text,p_start integer) RETURNS void
+LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$ DECLARE expected json:=p_initial; e json; change json; original json; id text:=p_initial OPERATOR(acquisition_private.->>) 'instanceId'; BEGIN
+ FOR e IN SELECT value FROM json_array_elements(p_root OPERATOR(acquisition_private.->) 'ledger' OPERATOR(acquisition_private.->) 'entries') WITH ORDINALITY x(value,ord) WHERE ord>p_start ORDER BY ord LOOP
+  IF EXISTS(SELECT 1 FROM json_array_elements(e OPERATOR(acquisition_private.->) 'changes') c WHERE c.value OPERATOR(acquisition_private.->>) 'instanceId'=id) THEN
+   PERFORM acquisition_private.require(e OPERATOR(acquisition_private.->>) 'type' IN ('Purchase','Undo'),'Unrecorded copied holding change');
+   FOR change IN SELECT value FROM json_array_elements(e OPERATOR(acquisition_private.->) 'changes') WHERE value OPERATOR(acquisition_private.->>) 'instanceId'=id LOOP
+    PERFORM acquisition_private.require(expected IS NOT NULL AND change OPERATOR(acquisition_private.->>) 'kind'=p_kind AND (change OPERATOR(acquisition_private.->) 'definition')::text=(expected OPERATOR(acquisition_private.->) 'definition')::text AND (change OPERATOR(acquisition_private.->) 'parameters')::text=(expected OPERATOR(acquisition_private.->) 'parameters')::text AND (change OPERATOR(acquisition_private.->) 'optionId')::text=(expected OPERATOR(acquisition_private.->) 'abilityOptionId')::text AND (change OPERATOR(acquisition_private.->) 'fromRank')::text=(expected OPERATOR(acquisition_private.->) 'rank')::text AND (change OPERATOR(acquisition_private.->>) 'toRank')::integer>0,'Paid copied change lacks exact preceding holding');
+    expected:=acquisition_private.set_field(expected,'rank',change OPERATOR(acquisition_private.->) 'toRank');
+   END LOOP;
+  ELSIF e OPERATOR(acquisition_private.->>) 'type' IN ('ManualCorrection','ConfirmLegacyParameter') THEN expected:=acquisition_private.recorded_holding_mutation(p_root,e,expected,p_initial);
+  ELSIF e OPERATOR(acquisition_private.->>) 'type'='Undo' THEN
+   SELECT value INTO original FROM json_array_elements(p_root OPERATOR(acquisition_private.->) 'ledger' OPERATOR(acquisition_private.->) 'entries') WHERE value OPERATOR(acquisition_private.->>) 'operationId'=e OPERATOR(acquisition_private.->>) 'reversesId';
+   IF original OPERATOR(acquisition_private.->>) 'type' IN ('ManualCorrection','ConfirmLegacyParameter') THEN expected:=acquisition_private.recorded_holding_mutation(p_root,original,expected,p_initial,true); END IF;
+  END IF;
+ END LOOP;
+ PERFORM acquisition_private.require(acquisition_private.holding(p_root OPERATOR(acquisition_private.->) 'instances',id)::text IS NOT DISTINCT FROM expected::text,'Copied holding removed or changed without exact recorded proof');
+END $$;
+
+CREATE FUNCTION acquisition_private.legacy_instance(p_holding json,p_opening json) RETURNS void LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$
+DECLARE holding json:=p_holding; opening json:=p_opening; origin json:=p_opening OPERATOR(acquisition_private.->) 'legacyMigration' OPERATOR(acquisition_private.->) 'origin'; ownership json:=p_opening OPERATOR(acquisition_private.->) 'legacyMigration' OPERATOR(acquisition_private.->) 'ownershipRecords'; captured json; rec json; identity text;
+BEGIN
+ PERFORM acquisition_private.instance_shapes(('['||p_holding::text||']')::json);
+   captured:=holding OPERATOR(acquisition_private.->) 'origin';
+   PERFORM acquisition_private.require((captured OPERATOR(acquisition_private.->) 'characterId')::text=(origin OPERATOR(acquisition_private.->) 'characterId')::text AND captured OPERATOR(acquisition_private.->>) 'schema'=origin OPERATOR(acquisition_private.->>) 'schema' AND (captured OPERATOR(acquisition_private.->) 'sourceRevision')::text=(origin OPERATOR(acquisition_private.->) 'sourceRevision')::text AND (captured OPERATOR(acquisition_private.->) 'sourceFingerprint')::text=(opening OPERATOR(acquisition_private.->) 'sourceFingerprint')::text,'Legacy instance provenance mismatch');
+   SELECT value INTO rec FROM json_array_elements(ownership) o WHERE (o.value OPERATOR(acquisition_private.->) 'ownershipKey')::text=(captured OPERATOR(acquisition_private.->) 'ownershipKey')::text;
+   PERFORM acquisition_private.require(rec IS NOT NULL,'Legacy instance lacks original ownership evidence');
+   PERFORM acquisition_private.require((rec OPERATOR(acquisition_private.->) 'candidateEntryId')::text='null' OR (rec OPERATOR(acquisition_private.->) 'candidateEntryId')::text=(holding OPERATOR(acquisition_private.->) 'definition' OPERATOR(acquisition_private.->) 'entryId')::text,'Legacy instance differs from original candidate ID');
+   IF rec OPERATOR(acquisition_private.->>) 'kind'='SCHOOL' THEN PERFORM acquisition_private.legacy_school_ref(holding OPERATOR(acquisition_private.->) 'definition'); END IF;
+   IF origin OPERATOR(acquisition_private.->) 'ownershipMappings' OPERATOR(acquisition_private.->) (captured OPERATOR(acquisition_private.->>) 'ownershipKey') IS NOT NULL THEN
+    PERFORM acquisition_private.require((origin OPERATOR(acquisition_private.->) 'ownershipMappings' OPERATOR(acquisition_private.->) (captured OPERATOR(acquisition_private.->>) 'ownershipKey'))::text=(holding OPERATOR(acquisition_private.->) 'definition')::text,'Legacy mapping differs from instance');
+   END IF;
+   identity:='legacy:'||acquisition_private.frame(captured OPERATOR(acquisition_private.->>) 'characterId')||acquisition_private.frame(captured OPERATOR(acquisition_private.->>) 'schema')||acquisition_private.frame(captured OPERATOR(acquisition_private.->>) 'sourceRevision')||acquisition_private.frame(captured OPERATOR(acquisition_private.->>) 'sourceFingerprint')||acquisition_private.frame(captured OPERATOR(acquisition_private.->>) 'ownershipKey')||acquisition_private.frame(holding OPERATOR(acquisition_private.->) 'definition' OPERATOR(acquisition_private.->>) 'packId')||acquisition_private.frame(holding OPERATOR(acquisition_private.->) 'definition' OPERATOR(acquisition_private.->>) 'entryId');
+   PERFORM acquisition_private.require(holding OPERATOR(acquisition_private.->>) 'instanceId'=identity,'Legacy instance identity mismatch');
+END $$;
+
 CREATE FUNCTION acquisition_private.validate_wire(p_raw text,p_pool json DEFAULT NULL,p_members text[] DEFAULT NULL,p_path text[] DEFAULT ARRAY[]::text[]) RETURNS void
 LANGUAGE plpgsql IMMUTABLE SET search_path='' AS $$
 DECLARE root json:=acquisition_private.wire_json(p_raw); pool json; members text[]; rec json; proof json;
@@ -477,11 +787,15 @@ DECLARE root json:=acquisition_private.wire_json(p_raw); pool json; members text
  seen text[]:=ARRAY[]::text[]; reversed text[]:=ARRAY[]::text[]; op text; kind text; reverse_id text; original json;
  branches text[]; selected json; displaced json; server json; expected bigint; prior_entries json:='[]'; prefix json;
  member_id text; last_member text; projection text; legacy json; origin json; fingerprint text; copy_ancestry json:='[]';
+ backup json; ownership json; mapping record; holding json; captured json; current_holding json; identity text; holding_kind text; admitted_holdings text[]:=ARRAY[]::text[];
 BEGIN
  PERFORM acquisition_private.require(octet_length(p_raw)<=8388608,'Wire payload exceeds bounded server limit');
  PERFORM acquisition_private.keys(root,ARRAY['formatVersion','characterId','characterSnapshot','extras','instances','ledger','receipts','revision','creationPhase'],ARRAY['copySources','syncProofs']);
  PERFORM acquisition_private.require((root OPERATOR(acquisition_private.->) 'formatVersion')::text='1','Unsupported acquisition format');
  PERFORM acquisition_private.nonblank(root OPERATOR(acquisition_private.->) 'characterId');
+ -- This identity must fit the RPC/database text key. Free-text values below retain
+ -- their lexical JSON representation, including supported NUL/surrogate escapes.
+ PERFORM acquisition_private.text(root OPERATOR(acquisition_private.->) 'characterId');
  PERFORM acquisition_private.decimal(root OPERATOR(acquisition_private.->) 'revision');
  PERFORM acquisition_private.require(root OPERATOR(acquisition_private.->>) 'creationPhase' IN ('Creating','Finalized'),'Unsupported creation phase');
  snapshot:=root OPERATOR(acquisition_private.->) 'characterSnapshot'; PERFORM acquisition_private.keys(snapshot,ARRAY['schema','activeCharacterId','characters']);
@@ -521,7 +835,9 @@ BEGIN
   IF (rec OPERATOR(acquisition_private.->) 'abilityOptionId')::text<>'null' THEN PERFORM acquisition_private.nonblank(rec OPERATOR(acquisition_private.->) 'abilityOptionId'); END IF;
   origin:=rec OPERATOR(acquisition_private.->) 'origin';
   IF origin OPERATOR(acquisition_private.->>) 'type'='New' THEN PERFORM acquisition_private.keys(origin,ARRAY['type']);
-  ELSIF origin OPERATOR(acquisition_private.->>) 'type'='Legacy' THEN PERFORM acquisition_private.keys(origin,ARRAY['type','characterId','schema','sourceRevision','sourceFingerprint','ownershipKey']);
+  ELSIF origin OPERATOR(acquisition_private.->>) 'type'='Legacy' THEN
+   PERFORM acquisition_private.keys(origin,ARRAY['type','characterId','schema','sourceRevision','sourceFingerprint','ownershipKey']);
+   FOREACH member_id IN ARRAY ARRAY['type','characterId','schema','sourceRevision','sourceFingerprint','ownershipKey'] LOOP PERFORM acquisition_private.nonblank(origin OPERATOR(acquisition_private.->) member_id); END LOOP;
   ELSE RAISE EXCEPTION USING ERRCODE='22023',MESSAGE='Unsupported instance origin'; END IF;
  END LOOP;
  PERFORM acquisition_private.require((SELECT count(*)=count(DISTINCT (value OPERATOR(acquisition_private.->) 'instanceId')::text) FROM json_array_elements(root OPERATOR(acquisition_private.->) 'instances')),'Duplicate instance ID');
@@ -544,17 +860,20 @@ BEGIN
  opening:=root OPERATOR(acquisition_private.->) 'ledger' OPERATOR(acquisition_private.->) 'opening';
  PERFORM acquisition_private.keys(opening,ARRAY['migrationId','sourceFingerprint','balance','legacyStage','provenance','reason'],ARRAY['legacyMigration']);
  PERFORM acquisition_private.nonblank(opening OPERATOR(acquisition_private.->) 'migrationId'); PERFORM acquisition_private.nonblank(opening OPERATOR(acquisition_private.->) 'sourceFingerprint');
+ PERFORM acquisition_private.require(json_typeof(opening OPERATOR(acquisition_private.->) 'reason') IN ('string','null'),'Expected nullable opening reason');
  PERFORM acquisition_private.require(opening OPERATOR(acquisition_private.->>) 'legacyStage' IN ('Creating','Finalized') AND opening OPERATOR(acquisition_private.->>) 'provenance' IN ('LegacyCalculated','UserConfirmed','NewCharacter'),'Invalid opening provenance');
  IF opening OPERATOR(acquisition_private.->>) 'provenance'='UserConfirmed' THEN PERFORM acquisition_private.nonblank(opening OPERATOR(acquisition_private.->) 'reason'); END IF;
  legacy:=opening OPERATOR(acquisition_private.->) 'legacyMigration';
  IF legacy IS NOT NULL THEN
   PERFORM acquisition_private.keys(legacy,ARRAY['origin','calculatorBaseline','catalogIdentity','historyUnknown','ownershipRecords']);
   origin:=legacy OPERATOR(acquisition_private.->) 'origin'; PERFORM acquisition_private.keys(origin,ARRAY['characterId','schema','sourceRevision','raw','activePackIds','ownershipMappings'],ARRAY['extrasSource']);
+  PERFORM acquisition_private.types(origin,ARRAY['characterId','sourceRevision','raw'],ARRAY['schema'],ARRAY[]::text[],ARRAY['activePackIds']);
   -- Hash the raw JSON string's UTF-16 code units without decoding lone-surrogate content into UTF-8.
   IF origin OPERATOR(acquisition_private.->) 'extrasSource' IS NULL THEN
    fingerprint:='sha256-utf16be:'||encode(sha256((acquisition_private.parse((origin OPERATOR(acquisition_private.->) 'raw')::text)).sort_key),'hex');
   ELSE
    PERFORM acquisition_private.keys(origin OPERATOR(acquisition_private.->) 'extrasSource',ARRAY['raw']);
+   PERFORM acquisition_private.require(json_typeof(origin OPERATOR(acquisition_private.->) 'extrasSource' OPERATOR(acquisition_private.->) 'raw') IN ('string','null'),'Expected nullable legacy extras source');
    fingerprint:='sha256-utf16be:'||encode(sha256(acquisition_private.string_frame('"characters.json"')||acquisition_private.string_frame(origin OPERATOR(acquisition_private.->) 'raw')||
     acquisition_private.string_frame('"sheet-extras.json"')||acquisition_private.string_frame(CASE WHEN (origin OPERATOR(acquisition_private.->) 'extrasSource' OPERATOR(acquisition_private.->) 'raw')::text='null' THEN '"absent"' ELSE '"present"' END::json)||
     acquisition_private.string_frame(CASE WHEN (origin OPERATOR(acquisition_private.->) 'extrasSource' OPERATOR(acquisition_private.->) 'raw')::text='null' THEN '""'::json ELSE origin OPERATOR(acquisition_private.->) 'extrasSource' OPERATOR(acquisition_private.->) 'raw' END)),'hex');
@@ -579,7 +898,19 @@ BEGIN
    PERFORM acquisition_private.nonblank(rec OPERATOR(acquisition_private.->) 'ownershipKey');
    PERFORM acquisition_private.require(rec OPERATOR(acquisition_private.->>) 'kind' IN ('DEVELOPMENT','ATTRIBUTE','SKILL','MANA','SCHOOL','SPELL','CHI_BONUS') AND (rec OPERATOR(acquisition_private.->>) 'rank')::integer>0 AND json_typeof(rec OPERATOR(acquisition_private.->) 'candidateEntryId') IN ('string','null'),'Invalid legacy holding');
   END LOOP;
-
+  backup:=acquisition_private.legacy_backup(origin);
+  ownership:=acquisition_private.legacy_records(origin,opening OPERATOR(acquisition_private.->>) 'migrationId',backup);
+  PERFORM acquisition_private.require(ownership::text=(legacy OPERATOR(acquisition_private.->) 'ownershipRecords')::text,'Legacy ownership evidence differs from original backup');
+  SELECT value INTO captured FROM json_array_elements(backup OPERATOR(acquisition_private.->) 'characters') WHERE (value OPERATOR(acquisition_private.->) 'id')::text=(origin OPERATOR(acquisition_private.->) 'characterId')::text;
+  PERFORM acquisition_private.require(acquisition_private.legacy_bool(captured OPERATOR(acquisition_private.->) 'creationComplete',(origin OPERATOR(acquisition_private.->>) 'schema')::integer<5)=(opening OPERATOR(acquisition_private.->>) 'legacyStage'='Finalized'),'Legacy stage differs from original backup');
+  FOR mapping IN SELECT * FROM acquisition_private.object_members(origin OPERATOR(acquisition_private.->) 'ownershipMappings') LOOP
+   PERFORM acquisition_private.require(EXISTS(SELECT 1 FROM json_array_elements(ownership) o WHERE o.value OPERATOR(acquisition_private.->>) 'ownershipKey'=mapping.key AND o.value OPERATOR(acquisition_private.->>) 'kind'='SCHOOL'),'Invalid explicit legacy school mapping');
+   PERFORM acquisition_private.legacy_school_ref(mapping.value);
+  END LOOP;
+  PERFORM acquisition_private.require((SELECT count(*)=count(DISTINCT value::text) FROM acquisition_private.object_members(origin OPERATOR(acquisition_private.->) 'ownershipMappings')),'Ambiguous duplicate school mapping');
+  FOR holding IN SELECT value FROM json_array_elements(root OPERATOR(acquisition_private.->) 'instances') WHERE value OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->>) 'type'='Legacy' LOOP
+   PERFORM acquisition_private.legacy_instance(holding,opening);
+  END LOOP;
  END IF;
  amounts:=acquisition_private.amount(opening OPERATOR(acquisition_private.->) 'balance');
  entries:=root OPERATOR(acquisition_private.->) 'ledger' OPERATOR(acquisition_private.->) 'entries'; receipts:=root OPERATOR(acquisition_private.->) 'receipts';
@@ -731,6 +1062,34 @@ BEGIN
  FOR r IN SELECT value FROM json_array_elements(receipts) LOOP
   PERFORM acquisition_private.require((r OPERATOR(acquisition_private.->>) 'status'='Undone')=(r OPERATOR(acquisition_private.->>) 'operationId'=ANY(reversed)),'Undone receipt lacks exact reversal');
  END LOOP;
+ -- Original backup scope, inherited holdings and copied confirmations remain independent
+ -- admission conditions after financial/receipt validation, including omissions from root.
+ IF legacy IS NOT NULL THEN
+  PERFORM acquisition_private.require((legacy OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->) 'characterId')::text=(root OPERATOR(acquisition_private.->) 'characterId')::text OR historic IS NOT NULL,'Legacy backup scope mismatch');
+ END IF;
+ IF historic IS NOT NULL THEN
+  FOR captured IN SELECT value FROM json_array_elements(historic OPERATOR(acquisition_private.->) 'instances') WHERE value OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->>) 'type'='Legacy' LOOP
+   SELECT value OPERATOR(acquisition_private.->>) 'kind' INTO holding_kind FROM json_array_elements(historic OPERATOR(acquisition_private.->) 'ledger' OPERATOR(acquisition_private.->) 'opening' OPERATOR(acquisition_private.->) 'legacyMigration' OPERATOR(acquisition_private.->) 'ownershipRecords') WHERE (value OPERATOR(acquisition_private.->) 'ownershipKey')::text=(captured OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->) 'ownershipKey')::text;
+   PERFORM acquisition_private.require(holding_kind IS NOT NULL,'Copied holding lacks original ownership');
+   PERFORM acquisition_private.copied_holding_chain(root,captured,holding_kind,json_array_length(historic OPERATOR(acquisition_private.->) 'ledger' OPERATOR(acquisition_private.->) 'entries')+1);
+   admitted_holdings:=array_append(admitted_holdings,captured OPERATOR(acquisition_private.->>) 'instanceId');
+  END LOOP;
+  FOR e,i IN SELECT value,ord::integer FROM json_array_elements(entries) WITH ORDINALITY x(value,ord) WHERE ord>json_array_length(historic OPERATOR(acquisition_private.->) 'ledger' OPERATOR(acquisition_private.->) 'entries')+1 AND value OPERATOR(acquisition_private.->>) 'type'='ConfirmLegacyParameter' LOOP
+   evidence:=acquisition_private.wire_json(e OPERATOR(acquisition_private.->>) 'evidenceCanonical');
+   FOR captured IN SELECT value FROM json_array_elements(evidence OPERATOR(acquisition_private.->) 'after' OPERATOR(acquisition_private.->) 'instances') WHERE value OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->>) 'type'='Legacy' AND (value OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->) 'characterId')::text<>(root OPERATOR(acquisition_private.->) 'characterId')::text AND acquisition_private.holding(evidence OPERATOR(acquisition_private.->) 'before' OPERATOR(acquisition_private.->) 'instances',value OPERATOR(acquisition_private.->>) 'instanceId') IS NULL LOOP
+    PERFORM acquisition_private.legacy_instance(captured,opening);
+    SELECT value INTO rec FROM json_array_elements(ownership) WHERE (value OPERATOR(acquisition_private.->) 'ownershipKey')::text=(captured OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->) 'ownershipKey')::text;
+    PERFORM acquisition_private.require((rec OPERATOR(acquisition_private.->) 'custom')::text='false' AND (rec OPERATOR(acquisition_private.->) 'rank')::text=(captured OPERATOR(acquisition_private.->) 'rank')::text AND (e OPERATOR(acquisition_private.->) 'changes')::text='[]','Invalid copied confirmation baseline');
+    PERFORM acquisition_private.require(acquisition_private.recorded_holding_mutation(root,e,NULL,captured)::text=captured::text,'Copied confirmation differs from captured holding');
+    PERFORM acquisition_private.copied_holding_chain(root,captured,rec OPERATOR(acquisition_private.->>) 'kind',i);
+    admitted_holdings:=array_append(admitted_holdings,captured OPERATOR(acquisition_private.->>) 'instanceId');
+   END LOOP;
+  END LOOP;
+ END IF;
+ FOR holding IN SELECT value FROM json_array_elements(root OPERATOR(acquisition_private.->) 'instances') WHERE value OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->>) 'type'='Legacy' LOOP
+  PERFORM acquisition_private.require((holding OPERATOR(acquisition_private.->) 'origin' OPERATOR(acquisition_private.->) 'characterId')::text=(root OPERATOR(acquisition_private.->) 'characterId')::text OR holding OPERATOR(acquisition_private.->>) 'instanceId'=ANY(admitted_holdings),'Legacy instance scope mismatch');
+ END LOOP;
+
 END $$;
 CREATE FUNCTION acquisition_private.guard_character_row() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
@@ -1465,9 +1824,9 @@ $$;
 CREATE FUNCTION public.campaign_get_dashboard_v2(p_campaign_id uuid,p_reader_version integer) RETURNS jsonb
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$ DECLARE uid uuid:=auth.uid(); c public.campaigns%rowtype; players jsonb; BEGIN
  IF uid IS NULL THEN RAISE EXCEPTION 'authentication required'; END IF;
- IF p_reader_version IS DISTINCT FROM 2 THEN RETURN jsonb_build_object('status','identityConflict','reason','Exact reader version 2 required'); END IF;
  SELECT * INTO c FROM public.campaigns WHERE id=p_campaign_id AND owner_user_id=uid;
  IF NOT FOUND THEN RAISE EXCEPTION 'gm access required'; END IF;
+ IF p_reader_version IS DISTINCT FROM 2 THEN RETURN jsonb_build_object('status','identityConflict','reason','Exact reader version 2 required'); END IF;
  SELECT coalesce(jsonb_agg(jsonb_build_object('userId',m.user_id,'nickname',p.nickname,'characterId',m.character_id,
   'format',CASE WHEN f.user_id IS NULL THEN 'legacy' ELSE 'acquisition-v2' END,'payloadCanonical',f.envelope_canonical,
   'data',CASE WHEN f.user_id IS NULL THEN wc.data ELSE NULL END,'extras',CASE WHEN f.user_id IS NULL THEN wc.extras ELSE NULL END,
