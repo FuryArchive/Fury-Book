@@ -150,7 +150,7 @@ class AndroidAcquisitionActions(val controller: CharacterController, private val
         val current = controller.acquisition.readCanonicalView()
         if (current.scope != draft.base.scope || current.state.revision != draft.base.state.revision) error("Review changed")
         val review = if (draft.grant) controller.acquisition.prepareGrant(delta, reason)
-        else controller.acquisition.prepareManual(draft.patch, delta, reason)
+        else controller.acquisition.prepareManual(draft.patch, delta, reason, expectedBaseRevision = draft.base.state.revision)
         reviewLabel = review.key to draft.label
         confirmRole = review.key to "acquisition.manual.confirm"
         manual = null; visible = true

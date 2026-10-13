@@ -224,7 +224,7 @@ class DesktopAcquisitionActions(val state: DesktopAppState, private val scope: C
         val current = state.acquisition.readCanonicalView()
         if (current.scope != draft.base.scope || current.state.revision != draft.base.state.revision) error("Review changed")
         val review = if (draft.grant) state.acquisition.prepareGrant(delta, reason)
-        else state.acquisition.prepareManual(draft.patch, delta, reason)
+        else state.acquisition.prepareManual(draft.patch, delta, reason, expectedBaseRevision = draft.base.state.revision)
         reviewLabel = review.key to draft.label
         confirmRole = review.key to "acquisition.manual.confirm"
         manual = null; visible = true

@@ -84,7 +84,7 @@ class AcquisitionController(private val port:AcquisitionCommandPort,private val 
     fun dismiss() { selected(false)?.dismiss() }
     fun reopen()=selected(false)?.reopen()
     suspend fun prepareGrant(delta:Amount,reason:String)=checkNotNull(selected(true)).prepareGrant(scope(),delta,reason)
-    suspend fun prepareManual(patch:CharacterPatch,delta:Amount,reason:String)=checkNotNull(selected(true)).prepareManual(scope(),patch,delta,reason)
+    suspend fun prepareManual(patch:CharacterPatch,delta:Amount,reason:String,expectedBaseRevision:Long?=null)=checkNotNull(selected(true)).prepareManual(scope(),patch,delta,reason,expectedBaseRevision)
     suspend fun prepareCompleteCreation()=checkNotNull(selected(true)).prepareCompleteCreation(scope())
     suspend fun prepareLegacyParameter(payload:MutationPayload.ConfirmLegacyParameter,reason:String)=checkNotNull(selected(true)).prepareLegacyParameter(scope(),payload,reason)
     suspend fun prepareNonFinancial(edit:DublApplication.()->Unit)=checkNotNull(selected(true)).prepareNonFinancial(scope(),edit)

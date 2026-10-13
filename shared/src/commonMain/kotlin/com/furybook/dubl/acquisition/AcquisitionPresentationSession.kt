@@ -186,10 +186,10 @@ class AcquisitionPresentationSession(private val port:AcquisitionCommandPort,pri
     fun dismiss() { visible=false }
     fun reopen():AcquisitionUiModel? { visible=true;return model }
     suspend fun prepareGrant(scope:AcquisitionScope,delta:Amount,reason:String)=prepareMutation(scope,MutationPayload.Grant(delta),reason,"Выдача XP / ОСп")
-    suspend fun prepareManual(scope:AcquisitionScope,patch:CharacterPatch,delta:Amount,reason:String)=prepareMutation(scope,MutationPayload.ManualCorrection(patch,delta),reason,"Ручная коррекция")
+    suspend fun prepareManual(scope:AcquisitionScope,patch:CharacterPatch,delta:Amount,reason:String,expectedBaseRevision:Long?=null)=prepareMutation(scope,MutationPayload.ManualCorrection(patch,delta),reason,"Ручная коррекция",expectedBaseRevision)
     suspend fun prepareCompleteCreation(scope:AcquisitionScope)=prepareMutation(scope,MutationPayload.CompleteCreation,null,"Завершить создание без пересчёта баланса")
     suspend fun prepareLegacyParameter(scope:AcquisitionScope,payload:MutationPayload.ConfirmLegacyParameter,reason:String)=prepareMutation(scope,payload,reason,"Подтверждение старого приобретения")
-    private suspend fun prepareMutation(scope:AcquisitionScope,payload:MutationPayload,reason:String?,summary:String):AcquisitionUiModel {
+    private suspend fun prepareMutation(scope:AcquisitionScope,payload:MutationPayload,reason:String?,summary:String,expectedBaseRevision:Long?=null):AcquisitionUiModel {
         val key=start(scope,summary).key
         if(payload!=MutationPayload.CompleteCreation && reason.isNullOrBlank()) return blocked("Укажите причину операции")
         return try {
@@ -197,6 +197,8 @@ class AcquisitionPresentationSession(private val port:AcquisitionCommandPort,pri
             if(model?.key!=key) return checkNotNull(model)
             val state=(loaded as? LoadResult.Loaded)?.state ?: return blocked("Канонический лист недоступен")
             if(model?.key!=key) return checkNotNull(model)
+            if(expectedBaseRevision!=null && state.revision!=expectedBaseRevision)
+                return blocked("Исходный лист изменился; подготовьте ручную правку заново",AcquisitionUiPhase.Stale)
             reviewCatalog=port.catalog;revision=state.revision;reviewPayload=payload;this.reason=reason
             if(!current()) return blocked("Выбор изменился",AcquisitionUiPhase.Stale)
             if(!canWrite()) return blocked("Надёжное локальное сохранение недоступно")
