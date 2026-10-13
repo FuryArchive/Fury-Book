@@ -1,0 +1,21 @@
+{
+  "format": "furybook-self-contained-checkpoint-v1",
+  "purpose": "Backup archive only; this branch is not the accepted R5 source checkout and is not for deployment.",
+  "checkpoint": "R5",
+  "source_commit": "8758f59b58a99f55332d9d2dacd62026d5e897cb",
+  "source_parent_commit": "384866c1233f9e7cbbea97b8a2497bd922efdef7",
+  "source_tree": "d2a9d79f7e1d19dfa887a5ee55f74411c23714b1",
+  "source_file_count": 642,
+  "archive_path": "checkpoints/8758f59.zip",
+  "archive_bytes": 10220717,
+  "archive_sha256": "a0f4ede25e5f1ea9e3b45aaae2f9dcff484fcaa10215093800e617b208b30f63",
+  "archive_git_blob_sha": "cfa87405f19865f9d4f5f923fc71111b8758bebb",
+  "branch_base_commit": "f47a5256a66ddc5e1b7b5c1e204e57279fc7227f",
+  "contents": [
+    "Complete source snapshot under source/",
+    "Self-contained Git bundle Furybook-8758f59-full.bundle",
+    "Checkpoint results, evidence, source manifest, and SHA256SUMS"
+  ],
+  "scope": "Immutable R5 checkpoint only. Later work is not included.",
+  "created_utc": "2026-10-13"
+}
