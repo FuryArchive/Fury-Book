@@ -22,6 +22,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.furybook.android.data.AndroidAcquisitionStore
+import com.furybook.android.data.AndroidLegacyAcquisitionSource
+import com.furybook.android.data.AndroidLegacyWriteGate
+import com.furybook.dubl.acquisition.*
+import com.furybook.dubl.data.CharacterStore
+import com.furybook.dubl.data.CharacterExtrasStore
+import com.furybook.dubl.model.AppSnapshot
+import com.furybook.dubl.model.CharacterSheetExtras
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,21 +83,102 @@ private enum class AppSection(val label: String) {
     MORE("Ещё"),
 }
 
-@Composable
-fun DublApp() {
-    val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
-    val characterRepository = remember(appContext) { CharacterRepository(appContext) }
-    val extrasRepository = remember(appContext) { CharacterSheetExtrasRepository(appContext) }
-    val observingCharacters = remember(characterRepository) { ObservingCharacterStore(characterRepository) }
-    val observingExtras = remember(extrasRepository) { ObservingCharacterExtrasStore(extrasRepository) }
-    val cloudController = remember(appContext, characterRepository, extrasRepository) {
-        AndroidCloudController(appContext, characterRepository, extrasRepository).also {
-            it.bind(observingCharacters, observingExtras)
+private class AndroidStorageBootstrap private constructor(
+    val context:android.content.Context, val source:AndroidLegacyAcquisitionSource,
+    val store:AndroidAcquisitionStore, val characters:CharacterRepository, val extras:CharacterSheetExtrasRepository,
+    val states:Map<String,StoredCharacter>,
+) {
+    val viewCharacters=object:CharacterStore {
+        override fun load():AppSnapshot {
+            val legacy=characters.load()
+            val all=legacy.characters.filterNot { it.id in states }+states.values.map { it.character }
+            return AppSnapshot(all,legacy.activeCharacterId.takeIf { id -> all.any { it.id==id } } ?: all.first().id)
+        }
+        override fun save(snapshot:AppSnapshot) { characters.save(snapshot) }
+    }
+    val viewExtras=object:CharacterExtrasStore {
+        override fun load(characterId:String):CharacterSheetExtras = states[characterId]?.extras ?: extras.load(characterId)
+        override fun save(characterId:String,extras:CharacterSheetExtras) { this@AndroidStorageBootstrap.extras.save(characterId,extras) }
+        override fun delete(characterId:String) { extras.delete(characterId) }
+    }
+    companion object {
+        fun roots(context:android.content.Context):Pair<AndroidLegacyAcquisitionSource,AndroidAcquisitionStore> {
+            val root=context.applicationContext.dataDir.toPath()
+            val source=AndroidLegacyAcquisitionSource(root.resolve("shared_prefs"),AndroidLegacyWriteGate())
+            return source to AndroidAcquisitionStore(root,source)
+        }
+        suspend fun open(context:android.content.Context,source:AndroidLegacyAcquisitionSource,store:AndroidAcquisitionStore):AndroidStorageBootstrap {
+            // Original XML/.bak capture must precede either framework SharedPreferences instance.
+            val capture=source.capture()
+            store.hasProtectedLocalData()
+            val states=linkedMapOf<String,StoredCharacter>()
+            for(id in store.characterIds()) {
+                val loaded=store.load(id)
+                states[id]=(loaded as? LoadResult.Loaded)?.state ?: throw AcquisitionPreviewUnavailable(loaded)
+            }
+            val characters=CharacterRepository(context,source)
+            val fallback=states.values.takeIf { it.isNotEmpty() }?.map { it.character }?.let { AppSnapshot(it,it.first().id) }
+            val snapshot=characters.initialize(capture,fallback)
+            val extras=CharacterSheetExtrasRepository(context,source)
+            extras.initialize(capture,snapshot.characters.map { it.id })
+            source.memoryReader={ characters.memoryValues() to extras.memoryValues() }
+            source.capture() // Framework loading must not have replaced/defaulted the captured bytes.
+            return AndroidStorageBootstrap(context,source,store,characters,extras,states.toMap())
         }
     }
-    val reloadToken = cloudController.reloadToken
-    val controller = remember(appContext, reloadToken) {
-        CharacterController(observingCharacters, observingExtras)
+}
+
+@Composable
+fun DublApp() {
+    val context=androidx.compose.ui.platform.LocalContext.current.applicationContext
+    val roots=remember(context) { AndroidStorageBootstrap.roots(context) }
+    var bootstrap by remember(context) { mutableStateOf<AndroidStorageBootstrap?>(null) }
+    var recoveryReason by remember(context) { mutableStateOf<String?>(null) }
+    LaunchedEffect(context) {
+        try { bootstrap=withContext(Dispatchers.IO) { AndroidStorageBootstrap.open(context,roots.first,roots.second) } }
+        catch(failure:Exception) { recoveryReason=failure.message ?: "Не удалось прочитать сохранённые данные" }
+    }
+    if(recoveryReason!=null) {
+        Column(Modifier.fillMaxSize().padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            Text("Нужен просмотр исходных данных",style=MaterialTheme.typography.titleLarge)
+            Text(recoveryReason.orEmpty())
+            Text("Исходные файлы сохранены. Редактирование и синхронизация заблокированы.")
+        }
+        return
+    }
+    val ready=bootstrap
+    if(ready==null) { Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center) { CircularProgressIndicator() };return }
+    DublReadyApp(ready)
+}
+
+@Composable
+private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
+    val appContext=bootstrap.context
+    val characterRepository=bootstrap.characters
+    val extrasRepository=bootstrap.extras
+    val observingCharacters=remember(bootstrap) { ObservingCharacterStore(bootstrap.viewCharacters) }
+    val observingExtras=remember(bootstrap) { ObservingCharacterExtrasStore(bootstrap.viewExtras) }
+    val cloudController=remember(bootstrap) {
+        AndroidCloudController(appContext,characterRepository,extrasRepository,bootstrap.store).also { it.bind(observingCharacters,observingExtras) }
+    }
+    val reloadToken=cloudController.reloadToken
+    val controller=remember(bootstrap,reloadToken) {
+        CharacterController(observingCharacters,observingExtras,bootstrap.store,bootstrap.states,bootstrap.source.gate,
+            ownerScope={ cloudController.session?.userId to cloudController.accountGeneration })
+    }
+    DisposableEffect(controller) { onDispose { controller.dispose() } }
+    if(bootstrap.source.gate.readOnly) {
+        Column(Modifier.fillMaxSize().padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+            Text("Локальный журнал: просмотр",style=MaterialTheme.typography.titleLarge)
+            Text("Проверка Android-сохранения на устройствах пока не завершена. Покупки, старое редактирование и облачная запись выключены.")
+            bootstrap.states.values.forEach { state ->
+                Text(state.character.name)
+                Text("Остаток: ${balance(state.ledger).xp} XP / ${balance(state.ledger).ap} ОСп. Записей: ${state.receipts.size}")
+                if(state.extras.notes.isNotEmpty()) Text(state.extras.notes)
+            }
+            controller.storageError?.let { Text(it) }
+        }
+        return
     }
     var selected by rememberSaveable { mutableStateOf(AppSection.OVERVIEW) }
     var pendingSection by remember { mutableStateOf<AppSection?>(null) }

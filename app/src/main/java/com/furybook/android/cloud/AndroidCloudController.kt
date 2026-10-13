@@ -1,5 +1,7 @@
 package com.furybook.android.cloud
 
+import com.furybook.android.data.AndroidAcquisitionStore
+import kotlinx.coroutines.withContext
 import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -43,6 +45,9 @@ class AndroidCloudController(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var coordinator: NativeCloudSyncCoordinator? = null
     private var scheduledJob: Job? = null
+    var accountGeneration:Long = 0
+        private set
+    private var legacyAcquisitionPaused=false
     private var localEnabledPackIds: Set<String> = emptySet()
 
     var session by mutableStateOf(gateway.currentSession())
@@ -118,6 +123,8 @@ class AndroidCloudController(
         status = NativeCloudStatus.CONNECTING
         statusMessage = "Входим в Fury Account…"
         val signedIn = gateway.signIn(email, password).getOrThrow()
+        accountGeneration++
+        scheduledJob?.cancel()
         session = signedIn
         conflicts = emptyList()
         rebuildCoordinator()
@@ -138,6 +145,8 @@ class AndroidCloudController(
             statusMessage = "Аккаунт создан. Подтвердите email из письма, затем войдите."
             false
         } else {
+            accountGeneration++
+            scheduledJob?.cancel()
             session = created
             conflicts = emptyList()
             rebuildCoordinator()
@@ -151,6 +160,7 @@ class AndroidCloudController(
     }
 
     suspend fun signOut() {
+        accountGeneration++
         scheduledJob?.cancel()
         gateway.signOut()
         coordinator?.unlinkPreservingLocal()
@@ -249,32 +259,38 @@ class AndroidCloudController(
     }
 
     fun requestSync() {
-        if (session != null) scheduleSync(delayMs = 0)
+        if (session != null && !legacyAcquisitionPaused) scheduleSync(delayMs = 0)
     }
 
     suspend fun useCloudVersion() {
+        if(pauseLegacyAcquisition()) return
         val active = coordinator ?: return
         status = NativeCloudStatus.SYNCING
         val before = localSignature()
-        runCatching { active.useCloud(localEnabledPackIds) }
+        val generation=accountGeneration;val owner=session?.userId;val packs=localEnabledPackIds.toSet()
+        runCatching { withContext(Dispatchers.IO) { active.useCloud(packs) } }
             .onSuccess { outcome ->
+                if(generation!=accountGeneration || owner!=session?.userId) return@onSuccess
                 conflicts = emptyList()
                 applyOutcome(outcome)
                 if (before != localSignature()) reloadToken += 1
             }
-            .onFailure(::handleSyncFailure)
+            .onFailure { if(generation==accountGeneration && owner==session?.userId) handleSyncFailure(it) }
     }
 
     suspend fun keepLocalVersion(conflict: NativeSyncConflict) {
+        if(pauseLegacyAcquisition()) return
         val active = coordinator ?: return
         status = NativeCloudStatus.SYNCING
         val before = localSignature()
-        runCatching { active.keepLocal(conflict, localEnabledPackIds) }
+        val generation=accountGeneration;val owner=session?.userId;val packs=localEnabledPackIds.toSet()
+        runCatching { withContext(Dispatchers.IO) { active.keepLocal(conflict,packs) } }
             .onSuccess { outcome ->
+                if(generation!=accountGeneration || owner!=session?.userId) return@onSuccess
                 applyOutcome(outcome)
                 if (before != localSignature()) reloadToken += 1
             }
-            .onFailure(::handleSyncFailure)
+            .onFailure { if(generation==accountGeneration && owner==session?.userId) handleSyncFailure(it) }
     }
 
     private fun scheduleSync(delayMs: Long = 900L) {
@@ -287,6 +303,9 @@ class AndroidCloudController(
     }
 
     private suspend fun syncInternal(firstLinkAllowed: Boolean) {
+        if(pauseLegacyAcquisition()) return
+        val generation=accountGeneration
+        val owner=session?.userId
         val active = coordinator ?: return
         status = NativeCloudStatus.SYNCING
         statusMessage = if (firstLinkAllowed) {
@@ -295,12 +314,26 @@ class AndroidCloudController(
             "Синхронизация…"
         }
         val before = localSignature()
+        val packs=localEnabledPackIds.toSet()
         runCatching {
-            if (firstLinkAllowed) active.linkOrResume(localEnabledPackIds) else active.syncNow(localEnabledPackIds)
+            withContext(Dispatchers.IO) { if (firstLinkAllowed) active.linkOrResume(packs) else active.syncNow(packs) }
         }.onSuccess { outcome ->
+            if(generation!=accountGeneration || owner!=session?.userId) return@onSuccess
             applyOutcome(outcome)
             if (before != localSignature()) reloadToken += 1
-        }.onFailure(::handleSyncFailure)
+        }.onFailure { if(generation==accountGeneration && owner==session?.userId) handleSyncFailure(it) }
+    }
+
+    /** Guard precedes coordinator/API/bootstrap writes; passing a store alone is insufficient. */
+    private suspend fun pauseLegacyAcquisition():Boolean {
+        val store=acquisitionStore as? AndroidAcquisitionStore ?: return false
+        val protected=try { store.hasProtectedLocalData() } catch(_:Exception) { true }
+        if(protected) {
+            legacyAcquisitionPaused=true
+            status=NativeCloudStatus.ERROR
+            statusMessage="Локальный журнал сохранён отдельно. Старая облачная запись приостановлена; формат журнала не передаётся другому аккаунту."
+        }
+        return protected
     }
 
     private fun applyOutcome(outcome: NativeSyncOutcome) {

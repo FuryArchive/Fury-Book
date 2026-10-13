@@ -10,55 +10,26 @@ import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.CharacterSheetResourceId
 import com.furybook.dubl.model.SheetGroupingRules
 
-class CharacterSheetExtrasRepository(context: Context) : CharacterExtrasStore {
-    private val prefs = context.applicationContext.getSharedPreferences(
+class CharacterSheetExtrasRepository(
+    context: Context,
+    private val source: AndroidLegacyAcquisitionSource = AndroidLegacyAcquisitionSource(context.applicationContext.dataDir.toPath().resolve("shared_prefs")),
+) : CharacterExtrasStore {
+    private val cache = java.util.concurrent.ConcurrentHashMap<String, CharacterSheetExtras>()
+    private val appContext = context.applicationContext
+    private val prefs by lazy { appContext.getSharedPreferences(
         "dubl_character_sheet_extras",
         Context.MODE_PRIVATE,
-    )
+    ) }
 
-    override fun load(characterId: String): CharacterSheetExtras {
-        val prefix = prefix(characterId)
-        val portraitUri = prefs.getString("${prefix}portrait", null)
-        val conditions = prefs.getStringSet("${prefix}conditions", emptySet()).orEmpty()
-            .mapNotNull { raw -> CharacterConditionId.entries.firstOrNull { it.name == raw } }
-            .toSet()
-        val hiddenResourceIds = prefs.getStringSet("${prefix}hidden_resources", emptySet()).orEmpty()
-            .mapNotNull { raw -> CharacterSheetResourceId.entries.firstOrNull { it.name == raw } }
-            .toSet()
-        val skillGroups = SheetGroupingRules.decode(prefs.getString("${prefix}skill_groups", null))
-        val developmentGroups = SheetGroupingRules.decode(prefs.getString("${prefix}development_groups", null))
-        val conditionOverrides = ConditionLocalDataCodec.decodeOverrides(prefs.getString("${prefix}condition_overrides", null))
-        val customConditions = ConditionLocalDataCodec.decodeCustom(prefs.getString("${prefix}custom_conditions", null))
-        val notes = prefs.getString("${prefix}notes", "").orEmpty()
-        val noteEntries = CharacterNoteDataCodec.decode(prefs.getString("${prefix}note_entries", null))
-        val preferredSkillAttributes = prefs
-            .getStringSet("${prefix}preferred_skill_attributes", emptySet())
-            .orEmpty()
-            .mapNotNull { raw ->
-                val separatorIndex = raw.lastIndexOf(PREFERRED_ATTRIBUTE_SEPARATOR)
-                if (separatorIndex <= 0) return@mapNotNull null
-                val skillId = raw.substring(0, separatorIndex)
-                val attributeName = raw.substring(separatorIndex + PREFERRED_ATTRIBUTE_SEPARATOR.length)
-                val attribute = AttributeId.entries.firstOrNull { it.name == attributeName } ?: return@mapNotNull null
-                skillId to attribute
-            }
-            .toMap()
-
-        return CharacterSheetExtras(
-            portraitUri = portraitUri,
-            activeConditions = conditions,
-            hiddenResourceIds = hiddenResourceIds,
-            preferredSkillAttributes = preferredSkillAttributes,
-            skillGroups = skillGroups,
-            developmentGroups = developmentGroups,
-            conditionOverrides = conditionOverrides,
-            customConditions = customConditions,
-            notes = notes,
-            noteEntries = noteEntries,
-        )
+    internal fun initialize(captured: AndroidLegacyCapture, characterIds: List<String>) {
+        val values=characterIds.associateWith(captured::extras)
+        check(typedPreferences(prefs.all)==captured.extrasEntries) { "Legacy extras memory/disk disagreement" }
+        cache.clear();cache.putAll(values)
     }
+    internal fun memoryValues():Map<String,*> = prefs.all
+    override fun load(characterId:String):CharacterSheetExtras = cache[characterId] ?: CharacterSheetExtras()
 
-    override fun save(characterId: String, extras: CharacterSheetExtras) {
+    override fun save(characterId: String, extras: CharacterSheetExtras) = source.gate.legacyWrite {
         val prefix = prefix(characterId)
         prefs.edit()
             .putString("${prefix}portrait", extras.portraitUri)
@@ -79,9 +50,10 @@ class CharacterSheetExtrasRepository(context: Context) : CharacterExtrasStore {
             .remove("${prefix}favorite_skill_ids") // 0.6: all learned skills are shown; favorites are retired.
             .remove("${prefix}favorites") // v4 pre-skill favorites were stats/attributes and are intentionally discarded.
             .apply()
+        cache[characterId] = extras
     }
 
-    override fun delete(characterId: String) {
+    override fun delete(characterId: String) = source.gate.legacyWrite {
         val prefix = prefix(characterId)
         prefs.edit()
             .remove("${prefix}portrait")
@@ -97,6 +69,8 @@ class CharacterSheetExtrasRepository(context: Context) : CharacterExtrasStore {
             .remove("${prefix}favorite_skill_ids")
             .remove("${prefix}favorites")
             .apply()
+        cache.remove(characterId)
+        Unit
     }
 
     private fun prefix(characterId: String): String = "character.$characterId."
