@@ -1,0 +1,10 @@
+// Dedicated long-native invocation only. Compose 1.12's outer runTest ignores testTimeout.
+// Match the existing 5400-second test/supervisor bound; do not disable timeouts.
+allprojects {
+    tasks.withType(Test).configureEach {
+        if (project.name == 'desktopApp') {
+            systemProperty 'furybook.acquisition.longNative', 'true'
+            systemProperty 'kotlinx.coroutines.test.default_timeout', '5400s'
+        }
+    }
+}

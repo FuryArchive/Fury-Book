@@ -689,7 +689,34 @@ class AcquisitionUiTest {
         }
         assertEquals(states.size,fingerprints.size,"Every new expected state must have a freshly drawn pixel fingerprint")
     }
+    @Test fun renderer_lifecycle_exceeds_outer_default_timeout() {
+        org.junit.Assume.assumeTrue("Long native lifecycle gate: use -I desktopApp/test-support/long-native-timeout.init.gradle", java.lang.Boolean.getBoolean("furybook.acquisition.longNative"))
+        val started=System.nanoTime()
+        println("T18B_LIFECYCLE_PROPERTY ${System.getProperty("kotlinx.coroutines.test.default_timeout") ?: "default"}")
+        runDesktopComposeUiTest(width=1440,height=1000,testTimeout=5400.seconds) {
+            val f=AcquisitionUiFixtures();val before=f.saved();val scope=AcquisitionScope("lifecycle","ui-A",0,0,0)
+            val request=AcquisitionRequest("ui-A",listOf(AcquisitionTarget(DefinitionRef("dubl-3.69",AcquisitionUiFixtures.SYNTHETIC_ID),targetRank=1)))
+            val plan=runBlocking { AcquisitionService(f.store,{f.catalog},{"unused"}).preview(request) }
+            val known=AcquisitionPresentation.present(scope,AcquisitionQuoteKey("lifecycle",0),plan,before,f.catalog,AcquisitionCapabilities(true,false,true))
+            val states=listOf(known,known.copy(phase=AcquisitionUiPhase.Blocked,summary="Цена источника не определена",price=AcquisitionDisplayedPrice.Unknown(),canConfirm=false))
+            var current by mutableStateOf(known)
+            setContent { DublTheme { DesktopVisualTheme { MatrixContent(current) } } }
+            var frames=0;val fingerprints=linkedSetOf<Long>()
+            do {
+                val model=states[frames%states.size];runOnIdle { current=model }
+                fingerprints+=captureMatrixDraw(model).second;frames++
+                // Wall-clock duration is intentional: virtual time cannot reproduce the outer timeout.
+                Thread.sleep(250)
+            } while(System.nanoTime()-started<65_000_000_000L)
+            assertTrue(frames>5);assertEquals(2,fingerprints.size)
+            val(frame,fingerprint)=captureMatrixDraw(current)
+            AcquisitionUiEvidence.screenshot("lifecycle-final",frame)
+            println("T18B_LIFECYCLE_BODY_COMPLETE realMillis=${(System.nanoTime()-started)/1_000_000} frames=$frames fingerprint=$fingerprint")
+        }
+        println("T18B_LIFECYCLE_WRAPPER_RETURN realMillis=${(System.nanoTime()-started)/1_000_000}")
+    }
     @Test fun all_83818_cases_render_actual_card_preview_and_absent_receipt_content() = runDesktopComposeUiTest(width=1440,height=1000,testTimeout=5400.seconds) {
+        org.junit.Assume.assumeTrue("Full native matrix gate: use -I desktopApp/test-support/long-native-timeout.init.gradle", java.lang.Boolean.getBoolean("furybook.acquisition.longNative"))
         var current by mutableStateOf<AcquisitionUiModel?>(null)
         setContent { DublTheme { DesktopVisualTheme { current?.let { model ->
             MatrixContent(model)
