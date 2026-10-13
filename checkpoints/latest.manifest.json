@@ -1,0 +1,23 @@
+{
+  "format": "furybook-self-contained-checkpoint-v1",
+  "purpose": "Backup archive only; this branch is not the Web checkpoint source checkout and is not for deployment.",
+  "checkpoint": "Web source/compile checkpoint",
+  "source_commit": "cfb3dd67efdff3c4810e91abb9a1180435de2cdf",
+  "source_tree": "d6b20930e13cefc9c426800a536895c2ad650f7a",
+  "source_file_count": 650,
+  "archive_path": "checkpoints/latest.zip",
+  "archive_bytes": 10531906,
+  "archive_sha256": "40c9b9506295913e9fb0bbdae086c15378287c8354f15827f1fd8f7eb47c075c",
+  "archive_git_blob_sha": "b03f51f3ac98113033f859f8728bd13c684ca883",
+  "branch_base_commit": "f47a5256a66ddc5e1b7b5c1e204e57279fc7227f",
+  "previous_backup_commit": "5e9186d9af05ba2d7af444f8a0b3cb708d518892",
+  "previous_source_commit": "8758f59b58a99f55332d9d2dacd62026d5e897cb",
+  "acceptance_scope": "Source/compile checkpoint only. Twenty browser test methods were NOT EXECUTED. This is not a browser runtime acceptance result.",
+  "contents": [
+    "Complete source snapshot under source/",
+    "Self-contained Git bundle Furybook-cfb3dd6-full.bundle",
+    "Current and historical checkpoint results, evidence, source manifest, and SHA256SUMS"
+  ],
+  "scope": "Immutable Web checkpoint only. Later in-progress work is not included.",
+  "created_utc": "2026-10-13"
+}
