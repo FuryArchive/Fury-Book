@@ -33,6 +33,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -90,6 +91,12 @@ import com.furybook.dubl.model.developmentNormalize
 import com.furybook.dubl.model.developmentRank
 import com.furybook.dubl.model.withoutChiContent
 import com.furybook.android.state.CharacterController
+import com.furybook.android.ui.acquisition.*
+import com.furybook.dubl.acquisition.AcquisitionKind
+import com.furybook.dubl.acquisition.AcquisitionDependencyHintCache
+import com.furybook.dubl.acquisition.acquisitionContext
+import com.furybook.dubl.content.DublUiRegistry
+import androidx.compose.ui.platform.testTag
 import com.furybook.android.ui.components.containSheetOverscroll
 import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublScreenHeader
@@ -128,10 +135,11 @@ private data class PendingRequirementOverride(
 )
 
 private data class DevelopmentScreenPreparation(
+    val preparedFor: com.furybook.dubl.model.DublCharacter,
     val catalog: DevelopmentCatalog,
     val chiCatalog: ChiCatalog,
     val economy: CharacterEconomyBreakdown,
-    val availabilityById: RetainedPreparationCache<String, DevelopmentAvailability>,
+    val availabilityById: RetainedPreparationCache<Pair<String, Int>, DevelopmentAvailability>,
     val rules: DevelopmentRules,
     val index: DevelopmentScreenIndex,
 )
@@ -140,6 +148,8 @@ private data class DevelopmentPreparationKey(
     val character: DublCharacter,
     val catalogVersion: String,
     val chiCatalogVersion: String,
+    val canonicalRevision: Long?,
+    val authorityRevision: String,
 )
 
 private val developmentPreparationCache =
@@ -148,13 +158,16 @@ private val developmentPreparationCache =
 @Composable
 fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     val character = controller.active
+    val content = LocalAndroidAcquisitionContent.current
+    val acquisition = LocalAndroidAcquisition.current
+    val canonicalView = acquisition?.view
     val context = LocalContext.current
     val chiTabUi = remember(context.applicationContext, chiPackEnabled) {
-        AndroidContentPackState.uiMounts(context, chiPackEnabled, FcpUiSurface.DEVELOPMENT_TABS, FcpUiComponent.DEVELOPMENT_BROWSER).forFeature(DublUiFeature.CHI)
+        DublUiRegistry.mounts(content.composition, FcpUiSurface.DEVELOPMENT_TABS, FcpUiComponent.DEVELOPMENT_BROWSER).forFeature(DublUiFeature.CHI)
     }
     val chiTabPresentation = chiTabUi?.presentation()
     val chiEconomyUi = remember(context.applicationContext, chiPackEnabled) {
-        AndroidContentPackState.uiMounts(context, chiPackEnabled, FcpUiSurface.CHARACTER_ECONOMY, FcpUiComponent.XP_LINE).forFeature(DublUiFeature.CHI)
+        DublUiRegistry.mounts(content.composition, FcpUiSurface.CHARACTER_ECONOMY, FcpUiComponent.XP_LINE).forFeature(DublUiFeature.CHI)
     }
     val developmentTabs = remember(chiTabUi) {
         orderedUiItems(
@@ -190,29 +203,23 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         initialValue = null,
         key1 = context.applicationContext,
         key2 = character,
-        key3 = chiPackEnabled,
+        key3 = Pair(content, canonicalView),
     ) {
         value = null
         loadingStage = "Загружаем каталог развития…"
-        val loadedCatalogs = withContext(Dispatchers.IO) {
-            val development = DevelopmentCatalogRepository(context.applicationContext).load(includeChi = chiTabUi != null)
-            val chi = if (chiTabUi != null) {
-                ChiCatalogRepository(context.applicationContext).load()
-            } else {
-                ChiCatalog("disabled", emptyList(), emptyList())
-            }
-            development to chi
-        }
+        val loadedCatalogs = content.development to content.chi
+
 
         loadingStage = "Готовим быстрый индекс навыков…"
         value = withContext(Dispatchers.Default) {
-            val key = DevelopmentPreparationKey(character, loadedCatalogs.first.version, loadedCatalogs.second.version)
+            val key = DevelopmentPreparationKey(character, loadedCatalogs.first.version, loadedCatalogs.second.version, canonicalView?.state?.revision, content.acquisition.catalogRevision + content.acquisition.resolutionRevision)
             developmentPreparationCache.getOrPut(key) {
                 val effectiveCatalog = character.effectiveDevelopmentCatalog(loadedCatalogs.first)
                     .let { catalog -> if (chiTabUi != null) catalog else catalog.withoutChiContent() }
                 val preparationProgress = DevelopmentProgress(character.development)
-                val preparationRules = DevelopmentRules(character, effectiveCatalog, preparationProgress)
+                val preparationRules = DevelopmentRules(character, effectiveCatalog, preparationProgress, canonicalView?.let { acquisitionContext(it.state, it.catalog) })
                 DevelopmentScreenPreparation(
+                    preparedFor = character,
                     catalog = effectiveCatalog,
                     chiCatalog = loadedCatalogs.second,
                     economy = CharacterEconomy.breakdown(character, effectiveCatalog, includeChi = chiEconomyUi != null),
@@ -224,8 +231,8 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         }
     }
 
-    if (preparation == null) {
-        DevelopmentLoadingScreen(stage = loadingStage)
+    if (preparation == null || preparation?.preparedFor != character || (acquisition?.canonical == true && canonicalView == null)) {
+        DevelopmentLoadingScreen(stage = if (acquisition?.readUnavailable == true) "Сохранённый канонический лист недоступен. Нужен отдельный просмотр восстановления; покупки выключены." else loadingStage)
         return
     }
 
@@ -241,6 +248,7 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     val chiRules = remember(character, catalog) { ChiRules(character, catalog) }
 
     fun increase(entry: DevelopmentEntry, optionIndex: Int) {
+        if (acquisition?.canonical == true) { acquisition.openTarget(AcquisitionKind.DEVELOPMENT, entry.id, progress.rank(entry.id) + 1); return }
         val availability = rules.availability(entry, optionIndex)
         when {
             availability.canIncrease -> {
@@ -263,7 +271,8 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     fun decrease(entry: DevelopmentEntry) {
         val current = progress.rank(entry.id)
         if (current <= 0) return
-        controller.setDevelopmentRank(entry.id, current - 1, progress.optionIndex(entry.id))
+        if (acquisition?.canonical == true) acquisition.lowerHolding(AcquisitionKind.DEVELOPMENT, entry.id, current - 1)
+        else controller.setDevelopmentRank(entry.id, current - 1, progress.optionIndex(entry.id))
     }
 
     fun branchName(entry: DevelopmentEntry): String = when {
@@ -272,10 +281,11 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         else -> entry.category.ifBlank { entry.name }
     }
 
-    fun availabilityFor(entry: DevelopmentEntry): DevelopmentAvailability =
-        availabilityById.getOrPut(entry.id) { rules.availability(entry) }
+    fun calculateAvailability(entry: DevelopmentEntry): DevelopmentAvailability =
+        availabilityById.getOrPut(entry.id to progress.optionIndex(entry.id)) { rules.availability(entry) }
 
-    val filteredEntriesAsync by produceState<List<DevelopmentEntry>?>(
+    val filterKey = listOf(query, tab, availableOnly, browserFilter, plannedDevelopmentIds, character, catalog)
+    val filteredEntriesAsync by produceState<Triple<List<Any?>, List<DevelopmentEntry>, Map<String, DevelopmentAvailability>>?>(
         null,
         query,
         tab,
@@ -289,7 +299,7 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         value = null
         value = withContext(Dispatchers.Default) {
             val needle = developmentNormalize(query)
-            developmentIndex.all
+            val entries = developmentIndex.all
                 .asSequence()
                 .filterNot { it.entry.id == MagicEquipmentRules.BASE_MANA_ENTRY_ID }
                 .filter { indexed ->
@@ -308,14 +318,14 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 .filter { indexed ->
                     val entry = indexed.entry
                     if (tab == DevelopmentTab.OWNED || tab == DevelopmentTab.CHI) {
-                        tab == DevelopmentTab.OWNED || !availableOnly || availabilityFor(entry).canIncrease
+                        tab == DevelopmentTab.OWNED || !availableOnly || calculateAvailability(entry).canIncrease
                     } else {
                         when (browserFilter) {
                             DevelopmentBrowserFilter.ALL -> true
                             DevelopmentBrowserFilter.PLAN -> entry.id in plannedDevelopmentIds
-                            DevelopmentBrowserFilter.AVAILABLE -> availabilityFor(entry).canIncrease
+                            DevelopmentBrowserFilter.AVAILABLE -> calculateAvailability(entry).canIncrease
                             DevelopmentBrowserFilter.ALMOST -> {
-                                val availability = availabilityFor(entry)
+                                val availability = calculateAvailability(entry)
                                 if (availability.canIncrease) false else {
                                     val missing = planner.plan(
                                         DevelopmentAcquisitionRequest.single(entry.id, includeTarget = false, enforceBudget = false),
@@ -335,10 +345,13 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 )
                 .map { it.entry }
                 .toList()
+            Triple(filterKey, entries, prepareDevelopmentRows(entries, { it.id }, ::calculateAvailability))
         }
     }
-    val filteredEntries = filteredEntriesAsync.orEmpty()
-    val filteredEntriesPreparing = filteredEntriesAsync == null
+    val publishedRows = filteredEntriesAsync?.takeIf { it.first == filterKey }
+    val filteredEntries = publishedRows?.second.orEmpty()
+    fun availabilityFor(entry: DevelopmentEntry): DevelopmentAvailability = checkNotNull(publishedRows).third.getValue(entry.id)
+    val filteredEntriesPreparing = publishedRows == null
     val searchActive = query.isNotBlank()
 
     fun groupId(prefix: String, name: String): String = "$prefix:$name"
@@ -346,17 +359,15 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         groupVisibility = groupVisibility.toggle(id)
     }
 
-    val selectedUnlocks by produceState<List<DevelopmentEntry>?>(
-        initialValue = null,
-        key1 = selectedEntryId,
-        key2 = planner,
-    ) {
-        val id = selectedEntryId
-        if (id == null) {
-            value = emptyList()
-        } else {
-            value = null
-            value = withContext(Dispatchers.Default) { planner.unlocks(id) }
+    val hintCache = remember { AndroidDependencyHintCache() }
+    val selectedUnlocks by produceState<List<DevelopmentEntry>?>(null, selectedEntryId, content.acquisition) {
+        value = null
+        value = withContext(Dispatchers.Default) {
+            val reference = content.acquisition.definitions.keys.singleOrNull { it.entryId == selectedEntryId }
+            if (reference == null) emptyList() else hintCache.get(content.acquisition).dependents(reference).mapNotNull { ref ->
+                // Legacy display data has no pack field. Ambiguity cannot alias a different pack.
+                if (content.acquisition.definitions.keys.count { it.entryId == ref.entryId } == 1) catalog.byId(ref.entryId) else null
+            }
         }
     }
 
@@ -390,11 +401,12 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         }
 
         item {
-            DevelopmentBudgetCard(economy, showChi = chiEconomyUi != null)
+            if (acquisition?.canonical == true) AcquisitionBalanceCard()
+            else DevelopmentBudgetCard(economy, showChi = chiEconomyUi != null)
         }
 
         if (plannedDevelopmentIds.isNotEmpty()) {
-            val planSummary = planner.plan(
+            val planSummary = if (acquisition?.canonical == true) null else planner.plan(
                 DevelopmentAcquisitionRequest(
                     targets = plannedDevelopmentIds.sorted().map { DevelopmentAcquisitionTarget(it) },
                     enforceBudget = false,
@@ -410,17 +422,16 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                         Column(Modifier.weight(1f)) {
                             Text("План персонажа · ${plannedDevelopmentIds.size}", fontWeight = FontWeight.Bold)
                             Text(
-                                "Осталось: ${planSummary.xpCost} XP${if (planSummary.abilityCost > 0) " · ${planSummary.abilityCost} ОС" else ""}",
+                                if (acquisition?.canonical == true) "Точная цена в просмотре плана" else "Осталось: ${planSummary!!.xpCost} XP${if (planSummary!!.abilityCost > 0) " · ${planSummary!!.abilityCost} ОС" else ""}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Button(
-                            enabled = planSummary.steps.isNotEmpty(),
+                            enabled = acquisition?.canonical == true || planSummary!!.steps.isNotEmpty(),
                             onClick = {
-                                acquisitionRequest = DevelopmentAcquisitionRequest(
-                                    targets = plannedDevelopmentIds.sorted().map { DevelopmentAcquisitionTarget(it) },
-                                )
+                                if (acquisition?.canonical == true) acquisition.openBulk(plannedDevelopmentIds)
+                                else acquisitionRequest = DevelopmentAcquisitionRequest(targets = plannedDevelopmentIds.sorted().map { DevelopmentAcquisitionTarget(it) })
                             },
                         ) { Text("Взять план") }
                     }
@@ -449,7 +460,7 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         }
 
         item {
-            OutlinedButton(onClick = { creatingCustomDevelopment = true }) {
+            OutlinedButton(onClick = { if (acquisition?.canonical == true) acquisition.showError("Новая каноническая запись требует подтверждённого пакета; ручная правка не создаёт правило") else creatingCustomDevelopment = true }) {
                 Text("Своя запись")
             }
         }
@@ -484,9 +495,14 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                     baseMaximum = character.chiBaseMaximum,
                     bonusRanks = character.chiBonusRanks,
                     progressionBonus = progressionBonus,
-                    onToggle = controller::setChiEnabled,
+                    onToggle = { enabled -> if (acquisition?.canonical == true) acquisition.editManual("Изменение доступа Ци") { base -> base.copy(chiEnabled = enabled) } else controller.setChiEnabled(enabled) },
                     onChangeCurrent = controller::changeChi,
-                    onChangeBonusRanks = { delta -> controller.setChiBonusRanks(character.chiBonusRanks + delta) },
+                    onChangeBonusRanks = { delta ->
+                        if (acquisition?.canonical == true) {
+                            if (delta > 0) acquisition.openTarget(AcquisitionKind.CHI_BONUS, "chi:bonus-ranks", character.chiBonusRanks + delta)
+                            else acquisition.lowerHolding(AcquisitionKind.CHI_BONUS, "chi:bonus-ranks", character.chiBonusRanks + delta)
+                        } else controller.setChiBonusRanks(character.chiBonusRanks + delta)
+                    },
                     onRestore = controller::restoreChi,
                 )
             }
@@ -552,7 +568,7 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 OutlinedTextField(
                     value = query,
                     onValueChange = { query = it },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.testTag("development.search").fillMaxWidth(),
                     label = {
                         Text(
                             when (tab) {
@@ -792,6 +808,7 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 progress = progress,
                 rules = rules,
                 planner = planner,
+                loadAvailability = { selected, option -> availabilityById.getOrPut(selected.id to option) { rules.availability(selected, option) } },
                 unlocks = selectedUnlocks,
                 planned = entry.id in plannedDevelopmentIds,
                 onTogglePlanned = {
@@ -802,10 +819,12 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                     }
                 },
                 onAcquireRequirements = {
-                    acquisitionRequest = DevelopmentAcquisitionRequest.single(entry.id, includeTarget = false)
+                    if (acquisition?.canonical == true) acquisition.openTarget(AcquisitionKind.DEVELOPMENT, entry.id, progress.rank(entry.id) + 1, false)
+                    else acquisitionRequest = DevelopmentAcquisitionRequest.single(entry.id, includeTarget = false)
                 },
                 onAcquireAll = { optionIndex ->
-                    acquisitionRequest = DevelopmentAcquisitionRequest.single(
+                    if (acquisition?.canonical == true) acquisition.openTarget(AcquisitionKind.DEVELOPMENT, entry.id, progress.rank(entry.id) + 1)
+                    else acquisitionRequest = DevelopmentAcquisitionRequest.single(
                         entryId = entry.id,
                         includeTarget = true,
                         optionIndex = optionIndex,
@@ -816,11 +835,11 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 onDecrease = { decrease(entry) },
                 onEditLocal = { editingDevelopment = entry },
                 onResetLocal = {
-                    controller.resetDevelopmentOverride(entry.id)
+                    if (acquisition?.canonical == true) acquisition.editManual("Сброс локальной записи") { base -> base.copy(developmentOverrides = base.developmentOverrides - entry.id) } else controller.resetDevelopmentOverride(entry.id)
                     selectedEntryId = null
                 },
                 onDeleteCustom = {
-                    controller.removeCustomDevelopment(entry.id)
+                    if (acquisition?.canonical == true) acquisition.editManual("Удаление локальной записи") { base -> base.copy(customDevelopmentEntries = base.customDevelopmentEntries.filterNot { it.id == entry.id }) } else controller.removeCustomDevelopment(entry.id)
                     selectedEntryId = null
                 },
                 hasLocalOverride = character.developmentOverrides.containsKey(entry.id),
@@ -849,7 +868,12 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             initial = entry,
             title = if (isCustom) "Редактировать свою запись" else "Локальная правка",
             onSave = { updated ->
-                if (isCustom) controller.updateCustomDevelopment(updated) else controller.setDevelopmentOverride(updated)
+                if (acquisition?.canonical == true) {
+                    acquisition.editManual("Локальная правка: ${updated.name}") { base ->
+                        if (isCustom) base.copy(customDevelopmentEntries = base.customDevelopmentEntries.map { if (it.id == updated.id) updated else it })
+                        else base.copy(developmentOverrides = base.developmentOverrides + (updated.id to updated))
+                    }
+                } else if (isCustom) controller.updateCustomDevelopment(updated) else controller.setDevelopmentOverride(updated)
                 editingDevelopment = null
             },
             onDismiss = { editingDevelopment = null },
@@ -861,7 +885,7 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             initial = emptyCustomDevelopmentEntry(),
             title = "Своя запись",
             onSave = { updated ->
-                controller.addCustomDevelopment(updated)
+                if (acquisition?.canonical == true) acquisition.editManual("Новая локальная запись, не правило каталога") { base -> base.copy(customDevelopmentEntries = base.customDevelopmentEntries + updated) } else controller.addCustomDevelopment(updated)
                 creatingCustomDevelopment = false
             },
             onDismiss = { creatingCustomDevelopment = false },
@@ -1302,6 +1326,7 @@ private fun SpecialBranchHeader(
 ) {
     val accessRank = access?.let { progress.rank(it.id) } ?: 0
     val accessLabel = when {
+        LocalAndroidAcquisition.current?.canonical == true -> if (accessRank > 0) "Доступ открыт" else "Варианты и цена в просмотре покупки"
         access == null -> "XP-ветка"
         accessRank > 0 -> "Доступ открыт"
         access.abilityOptions.isNotEmpty() -> {
@@ -1471,6 +1496,7 @@ private fun DevelopmentRow(
     planned: Boolean = false,
     onClick: () -> Unit,
 ) {
+    val acquisition = LocalAndroidAcquisition.current
     val rank = progress.rank(entry.id)
     val owned = rank > 0
     val failedChecks = availability.checks.filter { it.status == RequirementStatus.FAIL }
@@ -1499,6 +1525,7 @@ private fun DevelopmentRow(
         else -> "Закрыто"
     }
 
+    if (acquisition?.canonical == true) AcquisitionEntrySummary(AcquisitionKind.DEVELOPMENT, entry.id, rank + 1)
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -1539,7 +1566,7 @@ private fun DevelopmentRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    if (entry.isAbility) {
+                    if (acquisition?.canonical == true) "Цена в просмотре" else if (entry.isAbility) {
                         if (entry.abilityOptions.isNotEmpty()) {
                             val values = entry.abilityOptions.map { it.value }.distinct().sorted()
                             values.joinToString("–") + " ОС"
@@ -1790,6 +1817,7 @@ private fun DevelopmentDetailSheet(
     progress: DevelopmentProgress,
     rules: DevelopmentRules,
     planner: DevelopmentAcquisitionPlanner,
+    loadAvailability: (DevelopmentEntry, Int) -> DevelopmentAvailability,
     unlocks: List<DevelopmentEntry>?,
     planned: Boolean,
     onTogglePlanned: () -> Unit,
@@ -1805,16 +1833,23 @@ private fun DevelopmentDetailSheet(
     isCustom: Boolean,
     onDismiss: () -> Unit,
 ) {
+    val acquisition = LocalAndroidAcquisition.current
+    val canonical = acquisition?.canonical == true
     val currentRank = progress.rank(entry.id)
     var optionIndex by remember(entry.id, currentRank) {
         mutableStateOf(if (currentRank > 0) progress.optionIndex(entry.id) else 0)
     }
     var advancedExpanded by remember(entry.id) { mutableStateOf(false) }
-    val availability = rules.availability(entry, optionIndex)
-    val missing = planner.plan(
+    var preparedAvailability by remember(rules, entry, optionIndex) { mutableStateOf<DevelopmentAvailability?>(null) }
+    LaunchedEffect(rules, entry, optionIndex) {
+        preparedAvailability = withContext(Dispatchers.Default) { loadAvailability(entry, optionIndex) }
+    }
+    val availability = preparedAvailability
+    if (availability == null) { DevelopmentLoadingScreen("Проверяем выбранные условия…"); return }
+    val missing = if (canonical) null else planner.plan(
         DevelopmentAcquisitionRequest.single(entry.id, includeTarget = false, enforceBudget = false),
     )
-    val acquirePlan = planner.plan(
+    val acquirePlan = if (canonical) null else planner.plan(
         DevelopmentAcquisitionRequest.single(
             entryId = entry.id,
             includeTarget = true,
@@ -1824,12 +1859,12 @@ private fun DevelopmentDetailSheet(
     )
     val ownedInvalid = currentRank > 0 && availability.checks.any { it.status != RequirementStatus.OK }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val primaryActionLabel = when {
-        entry.isAbility && missing.steps.isEmpty() && missing.unresolvedRequirements.isEmpty() ->
-            "Открыть ветку · ${developmentCostLabel(acquirePlan.xpCost, acquirePlan.abilityCost)}"
-        missing.steps.isEmpty() && missing.unresolvedRequirements.isEmpty() ->
-            "Взять ранг · ${developmentCostLabel(acquirePlan.xpCost, acquirePlan.abilityCost)}"
-        else -> "Добрать и взять · ${developmentCostLabel(acquirePlan.xpCost, acquirePlan.abilityCost)}"
+    val primaryActionLabel = if (canonical) "Просмотреть покупку" else when {
+        entry.isAbility && missing!!.steps.isEmpty() && missing!!.unresolvedRequirements.isEmpty() ->
+            "Открыть ветку · ${developmentCostLabel(acquirePlan!!.xpCost, acquirePlan!!.abilityCost)}"
+        missing!!.steps.isEmpty() && missing!!.unresolvedRequirements.isEmpty() ->
+            "Взять ранг · ${developmentCostLabel(acquirePlan!!.xpCost, acquirePlan!!.abilityCost)}"
+        else -> "Добрать и взять · ${developmentCostLabel(acquirePlan!!.xpCost, acquirePlan!!.abilityCost)}"
     }
 
     ModalBottomSheet(
@@ -1875,7 +1910,7 @@ private fun DevelopmentDetailSheet(
                     border = BorderStroke(1.dp, DublGold.copy(alpha = 0.28f)),
                 ) {
                     Text(
-                        if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP / ранг",
+                        if (canonical) "Цена в подтверждённом просмотре" else if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP / ранг",
                         modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
@@ -1883,13 +1918,13 @@ private fun DevelopmentDetailSheet(
                     )
                 }
                 Text(
-                    "После: ${acquirePlan.xpRemainingAfter} XP · ${acquirePlan.abilityRemainingAfter} ОС",
+                    if (canonical) "Без записи до подтверждения" else "После: ${acquirePlan!!.xpRemainingAfter} XP · ${acquirePlan!!.abilityRemainingAfter} ОС",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            if (entry.isAbility && entry.abilityOptions.isNotEmpty()) {
+            if (!canonical && entry.isAbility && entry.abilityOptions.isNotEmpty()) {
                 Text("Источник способности", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(7.dp)) {
                     items(entry.abilityOptions.indices.toList()) { index ->
@@ -1907,8 +1942,8 @@ private fun DevelopmentDetailSheet(
             Button(
                 onClick = { onAcquireAll(optionIndex) },
                 enabled = currentRank < entry.maxRank,
-                modifier = Modifier.fillMaxWidth(),
-            ) { Text(primaryActionLabel) }
+                modifier = Modifier.fillMaxWidth().testTag("acquisition.open"),
+            ) { Text(if (canonical) "Просмотреть покупку" else primaryActionLabel) }
 
             if (currentRank > 0) {
                 OutlinedButton(onClick = onDecrease, modifier = Modifier.fillMaxWidth()) {
@@ -1932,10 +1967,13 @@ private fun DevelopmentDetailSheet(
                 DetailBlock("Расхождение книги", entry.conflictNote)
             }
 
-            DevelopmentRequirementsCard(
+            if (canonical) {
+                AcquisitionEntrySummary(AcquisitionKind.DEVELOPMENT, entry.id, currentRank + 1)
+                TextButton(onClick = onAcquireRequirements) { Text("Добрать только требования") }
+            } else DevelopmentRequirementsCard(
                 entry = entry,
                 checks = availability.checks,
-                missing = missing,
+                missing = checkNotNull(missing),
                 onOpenEntry = onOpenEntry,
                 onAcquireRequirements = onAcquireRequirements,
             )
@@ -1955,6 +1993,7 @@ private fun DevelopmentDetailSheet(
                 }
             }
 
+            Text("Зависимые записи: подсказки, не разрешение покупки", style = MaterialTheme.typography.labelSmall)
             DevelopmentUnlocksCard(unlocks = unlocks, onOpenEntry = onOpenEntry)
 
             Surface(
@@ -1989,7 +2028,15 @@ private fun DevelopmentDetailSheet(
                 modifier = Modifier.fillMaxWidth(),
             ) { Text(if (advancedExpanded) "Дополнительно ▲" else "Дополнительно ▼") }
 
-            if (advancedExpanded) {
+            if (advancedExpanded && canonical) {
+                Text("Локальная правка требует отдельной ручной коррекции. Она не подтверждает правило источника.")
+                OutlinedButton(onClick = onEditLocal, modifier = Modifier.fillMaxWidth()) { Text("Изменить локальную запись") }
+                when {
+                    isCustom -> TextButton(onClick = onDeleteCustom) { Text("Удалить локальную запись") }
+                    hasLocalOverride -> TextButton(onClick = onResetLocal) { Text("Сбросить локальную правку") }
+                }
+            }
+            if (advancedExpanded && !canonical) {
                 Text(
                     "Ручное управление, локальные правки и принудительное добавление",
                     style = MaterialTheme.typography.labelSmall,

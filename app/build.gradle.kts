@@ -124,7 +124,61 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.4.20")
+    androidTestImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.4.20")
     androidTestImplementation("androidx.test:runner:1.7.0")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+}
+
+// Test-only projections and unchanged independent source expectations. No release/main inputs.
+val androidAcquisitionOracleSources = layout.buildDirectory.dir("generated/acquisitionOracle/kotlin")
+val androidAcquisitionOracleResources = layout.buildDirectory.dir("generated/acquisitionOracle/resources")
+val prepareAndroidAcquisitionOracle by tasks.registering {
+    val sharedFixture = rootProject.file("shared/src/commonTest/kotlin/com/furybook/dubl/acquisition/AcquisitionPriceFixtures.kt")
+    val sharedStream = rootProject.file("shared/src/desktopTest/kotlin/com/furybook/dubl/acquisition/AcquisitionPresentationSourceMatrixTest.kt")
+    val oracle = rootProject.file("rulesets/dubl-3.69/acquisition")
+    inputs.files(sharedFixture, sharedStream, oracle.resolve("expected_prices.json"), oracle.resolve("author_expected_price_updates.json"))
+    outputs.dirs(androidAcquisitionOracleSources, androidAcquisitionOracleResources)
+    doLast {
+        val output = androidAcquisitionOracleSources.get().asFile.resolve("com/furybook/dubl/acquisition")
+        output.mkdirs()
+        output.resolve(sharedFixture.name).writeText(sharedFixture.readText().replace("import com.furybook.core.json.*", "import com.furybook.android.acquisition.oracle.*"))
+        val entry = "@Test fun all_rows_preserve_exact_direct_bulk_intent_and_unverified_source_presentation()"
+        val original = sharedStream.readText()
+        check(original.contains(entry)) { "Accepted oracle stream entry changed; inspect before updating the adapter" }
+        val helper = original.replace("import com.furybook.core.json.*", "import com.furybook.android.acquisition.oracle.*").replace("class AcquisitionPresentationSourceMatrixTest", """class AndroidAcquisitionOracleStream(
+                private val readText: (String) -> String? = { AndroidAcquisitionOracleStream::class.java.classLoader.getResource(it)?.readText() },
+                private val readRows: ((String) -> Unit) -> Unit = { consume ->
+                    checkNotNull(AndroidAcquisitionOracleStream::class.java.classLoader.getResource("acquisition-oracle/expected_prices.json"))
+                        .openStream().bufferedReader().useLines { lines -> lines.forEach(consume) }
+                })""")
+            .replace(entry, "fun forEachPresentation(observe: (String, AcquisitionUiModel) -> Unit)")
+            .replace(Regex("(?m)^    private val (root|folder)=.*\\n"), "")
+            .replace("javaClass.classLoader.getResource(it)?.readText()", "readText(it)")
+            .replace("File(folder,\"author_expected_price_updates.json\").readText()", "checkNotNull(readText(\"acquisition-oracle/author_expected_price_updates.json\"))")
+            .replace("File(folder,\"expected_prices.json\").forEachLine", "readRows")
+            .replace("return@forEachLine", "return@readRows")
+            .replace("assertEquals(AcquisitionUiPhase.Blocked,shown.phase,id);", "observe(id, shown);assertEquals(AcquisitionUiPhase.Blocked,shown.phase,id);")
+            .replace("assertEquals(actual.cost,(current.price", "observe(id, current);assertEquals(actual.cost,(current.price")
+            .replace("assertFalse(shown.canConfirm,id);assertTrue(shown.blocks", "observe(id, shown);assertFalse(shown.canConfirm,id);assertTrue(shown.blocks")
+        output.resolve("AndroidAcquisitionOracleStream.kt").writeText(helper)
+        val resources = androidAcquisitionOracleResources.get().asFile.resolve("acquisition-oracle")
+        resources.mkdirs()
+        listOf("expected_prices.json", "author_expected_price_updates.json").forEach { oracle.resolve(it).copyTo(resources.resolve(it), overwrite = true) }
+    }
+}
+android.sourceSets.getByName("test").kotlin.srcDir(androidAcquisitionOracleSources.get().asFile)
+android.sourceSets.getByName("test").kotlin.srcDir("src/acquisitionTest/kotlin")
+android.sourceSets.getByName("test").resources.srcDir(androidAcquisitionOracleResources.get().asFile)
+android.sourceSets.getByName("test").resources.srcDir(rootProject.file("shared/src/commonMain/resources"))
+android.sourceSets.getByName("androidTest").kotlin.srcDir(androidAcquisitionOracleSources.get().asFile)
+android.sourceSets.getByName("androidTest").kotlin.srcDir("src/acquisitionTest/kotlin")
+android.sourceSets.getByName("androidTest").assets.srcDir(androidAcquisitionOracleResources.get().asFile)
+tasks.matching { it.name in setOf("compileDebugUnitTestKotlin", "processDebugUnitTestJavaRes", "compileDebugAndroidTestKotlin", "mergeDebugAndroidTestAssets") }.configureEach {
+    dependsOn(prepareAndroidAcquisitionOracle)
+}
+tasks.withType<Test>().configureEach {
+    systemProperty("furybook.acquisition.sourceMatrix.progress", layout.buildDirectory.file("reports/acquisition-android-matrix.progress").get().asFile.absolutePath)
+    maxHeapSize = "2g"
 }

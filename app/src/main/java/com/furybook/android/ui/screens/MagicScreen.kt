@@ -52,6 +52,9 @@ import com.furybook.dubl.model.MagicSchoolCatalog
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.SpellCatalogEntry
 import com.furybook.android.state.CharacterController
+import com.furybook.android.ui.acquisition.*
+import com.furybook.dubl.acquisition.AcquisitionKind
+import androidx.compose.ui.platform.testTag
 import com.furybook.android.ui.components.containSheetOverscroll
 import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublScreenHeader
@@ -67,9 +70,10 @@ import java.util.UUID
 @Composable
 fun MagicScreen(controller: CharacterController) {
     val character = controller.active
+    val acquisition = LocalAndroidAcquisition.current
     val context = LocalContext.current.applicationContext
     val largeText = LocalDensity.current.fontScale >= 1.2f
-    val catalog = remember(context) { MagicEquipmentCatalogRepository(context).load() }
+    val catalog = LocalAndroidAcquisitionContent.current.magicEquipment
     var spellQuery by remember(character.id) { mutableStateOf("") }
     var schoolFilter by remember(character.id) { mutableStateOf<String?>(null) }
     var hideUnlearnedSchools by remember(character.id) { mutableStateOf(true) }
@@ -109,6 +113,7 @@ fun MagicScreen(controller: CharacterController) {
             )
         }
 
+        if (acquisition?.canonical == true) item { AcquisitionBalanceCard() }
         item {
             MagicCoreCard(
                 manaRank = character.magic.manaRank,
@@ -119,7 +124,12 @@ fun MagicScreen(controller: CharacterController) {
                 spellXp = MagicEquipmentRules.learnedSpellXp(character),
                 manaXp = MagicEquipmentRules.manaRankXp(character),
                 schoolXp = MagicEquipmentRules.magicSchoolPowerXp(character),
-                onManaRank = controller::setMagicManaRank,
+                onManaRank = { rank ->
+                    if (acquisition?.canonical == true) {
+                        if (rank > character.magic.manaRank) acquisition.openTarget(AcquisitionKind.MANA, "mana:rank", rank)
+                        else acquisition.lowerHolding(AcquisitionKind.MANA, "mana:rank", rank)
+                    } else controller.setMagicManaRank(rank)
+                },
                 onManaDelta = controller::changeMana,
             )
         }
@@ -127,7 +137,7 @@ fun MagicScreen(controller: CharacterController) {
         item {
             DublCard(Modifier.fillMaxWidth()) {
                 Text("Школы магии", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text("Сила каждой школы: 25 XP за уровень", style = MaterialTheme.typography.bodySmall, color = DublMuted)
+                Text(if (acquisition?.canonical == true) "Цена школы определяется подтверждённым источником в просмотре" else "Сила каждой школы: 25 XP за уровень", style = MaterialTheme.typography.bodySmall, color = DublMuted)
                 Spacer(Modifier.height(6.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column(Modifier.weight(1f)) {
@@ -138,7 +148,17 @@ fun MagicScreen(controller: CharacterController) {
                 }
                 Spacer(Modifier.height(6.dp))
                 val visibleSchools = MagicEquipmentRules.visibleMagicSchools(character, hideUnlearnedSchools)
-                if (visibleSchools.isEmpty()) {
+                if (acquisition?.canonical == true) {
+                    val view = acquisition.view
+                    view?.instances?.filter { view.catalog.definitions[it.definition]?.kind == AcquisitionKind.SCHOOL }?.forEach { instance ->
+                        SchoolPowerRow(instance.label, instance.rank,
+                            onMinus = { acquisition.lowerHolding(AcquisitionKind.SCHOOL, instance.instanceId, instance.rank - 1) },
+                            onPlus = { acquisition.openTarget(AcquisitionKind.SCHOOL, instance.instanceId, instance.rank + 1) })
+                        AcquisitionEntrySummary(AcquisitionKind.SCHOOL, instance.instanceId, instance.rank + 1)
+                    }
+                    TextButton(onClick = { acquisition.chooseDefinition(AcquisitionKind.SCHOOL) }) { Text("Выбрать школу каталога") }
+                    if (character.magic.schools.isNotEmpty()) Text("Старые записи по названиям показаны в листе. Они не подменяют точную личность школы.", style = MaterialTheme.typography.bodySmall)
+                } else if (visibleSchools.isEmpty()) {
                     Text(
                         "Изученных школ пока нет. Отключите фильтр, чтобы выбрать школу.",
                         style = MaterialTheme.typography.bodySmall,
@@ -151,8 +171,8 @@ fun MagicScreen(controller: CharacterController) {
                         SchoolPowerRow(
                             name = schoolName,
                             power = power,
-                            onMinus = { controller.setMagicSchoolPower(schoolName, (power - 1).coerceAtLeast(0)) },
-                            onPlus = { controller.setMagicSchoolPower(schoolName, power + 1) },
+                            onMinus = { if (acquisition?.canonical == true) acquisition.showError("Для снижения выберите точный сохранённый экземпляр школы; имя не подтверждает личность") else controller.setMagicSchoolPower(schoolName, (power - 1).coerceAtLeast(0)) },
+                            onPlus = { if (acquisition?.canonical == true) acquisition.chooseDefinition(AcquisitionKind.SCHOOL, power + 1) else controller.setMagicSchoolPower(schoolName, power + 1) },
                         )
                         if (index != visibleSchools.lastIndex) {
                             HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
@@ -247,7 +267,7 @@ fun MagicScreen(controller: CharacterController) {
             character = character,
             entries = catalog.spells,
             ownedIds = character.magic.spells.mapNotNull { it.catalogId }.toSet(),
-            onAdd = { controller.addCatalogSpell(it) },
+            onAdd = { if (acquisition?.canonical == true) { acquisition.openTarget(AcquisitionKind.SPELL, it.id, 1); false } else controller.addCatalogSpell(it) },
             onDismiss = { showCatalog = false },
         )
     }
@@ -259,7 +279,12 @@ fun MagicScreen(controller: CharacterController) {
                 spell = spell,
                 onEdit = { editSpell = spell; selectedSpellUid = null },
                 onRemove = { selectedSpellUid = null; pendingDeleteSpellUid = uid },
-                onToggleLearned = { learned -> controller.setSpellLearned(uid, learned) },
+                onToggleLearned = { learned ->
+                    if (acquisition?.canonical == true) {
+                        if (learned && spell.catalogId != null) acquisition.openTarget(AcquisitionKind.SPELL, checkNotNull(spell.catalogId), 1)
+                        else acquisition.editManual("Изменение изученности заклинания") { base -> base.copy(magic = base.magic.copy(spells = base.magic.spells.map { if (it.uid == uid) it.copy(learned = learned) else it })) }
+                    } else controller.setSpellLearned(uid, learned)
+                },
                 onDismiss = { selectedSpellUid = null },
             )
         } ?: run { selectedSpellUid = null }
@@ -269,7 +294,7 @@ fun MagicScreen(controller: CharacterController) {
         SpellEditDialog(
             initial = KnownSpell(uid = UUID.randomUUID().toString(), custom = true),
             title = "Своё заклинание",
-            onSave = { controller.addCustomSpell(it); createSpell = false },
+            onSave = { if (acquisition?.canonical == true) acquisition.editManual("Своё заклинание, не правило каталога") { base -> base.copy(magic = base.magic.copy(spells = base.magic.spells + it)) } else controller.addCustomSpell(it); createSpell = false },
             onDismiss = { createSpell = false },
         )
     }
@@ -278,7 +303,7 @@ fun MagicScreen(controller: CharacterController) {
         SpellEditDialog(
             initial = spell,
             title = spell.name,
-            onSave = { updated -> controller.updateSpell(updated); editSpell = null },
+            onSave = { updated -> if (acquisition?.canonical == true) acquisition.editManual("Изменение заклинания") { base -> base.copy(magic = base.magic.copy(spells = base.magic.spells.map { if (it.uid == updated.uid) updated else it })) } else controller.updateSpell(updated); editSpell = null },
             onDismiss = { editSpell = null },
         )
     }
@@ -289,7 +314,8 @@ fun MagicScreen(controller: CharacterController) {
             title = "Новая школа",
             errorMessage = schoolError,
             onSave = { school ->
-                if (controller.addMagicSchool(school.name, school.rank, school.note)) {
+                if (acquisition?.canonical == true) { acquisition.chooseDefinition(AcquisitionKind.SCHOOL, school.rank); createSchool = false }
+                else if (controller.addMagicSchool(school.name, school.rank, school.note)) {
                     createSchool = false
                     schoolError = null
                 } else {
@@ -308,7 +334,10 @@ fun MagicScreen(controller: CharacterController) {
                 showDelete = true,
                 errorMessage = schoolError,
                 onSave = { updated ->
-                    if (controller.updateMagicSchool(index, updated.name, updated.rank, updated.note)) {
+                    if (acquisition?.canonical == true) {
+                        acquisition.editManual("Изменение школы") { base -> base.copy(magic = base.magic.copy(schools = base.magic.schools.mapIndexed { i, old -> if (i == index) updated else old })) }
+                        editSchoolIndex = null
+                    } else if (controller.updateMagicSchool(index, updated.name, updated.rank, updated.note)) {
                         editSchoolIndex = null
                         schoolError = null
                     } else {
@@ -330,7 +359,7 @@ fun MagicScreen(controller: CharacterController) {
                 text = { Text("«${spell.name}» будет удалено из книги заклинаний персонажа.") },
                 confirmButton = {
                     Button(onClick = {
-                        controller.removeSpell(uid)
+                        if (acquisition?.canonical == true) acquisition.editManual("Удаление заклинания") { base -> base.copy(magic = base.magic.copy(spells = base.magic.spells.filterNot { it.uid == uid })) } else controller.removeSpell(uid)
                         pendingDeleteSpellUid = null
                     }) { Text("Удалить") }
                 },
@@ -352,7 +381,7 @@ fun MagicScreen(controller: CharacterController) {
                 text = { Text("Школа «${school.name}» будет удалена. Заклинания из книги останутся.") },
                 confirmButton = {
                     Button(onClick = {
-                        controller.removeMagicSchool(index)
+                        if (acquisition?.canonical == true) acquisition.editManual("Удаление школы") { base -> base.copy(magic = base.magic.copy(schools = base.magic.schools.filterIndexed { i, _ -> i != index })) } else controller.removeMagicSchool(index)
                         pendingDeleteSchoolIndex = null
                     }) { Text("Удалить") }
                 },
@@ -379,6 +408,7 @@ private fun MagicCoreCard(
     onManaRank: (Int) -> Unit,
     onManaDelta: (Int) -> Unit,
 ) {
+    val acquisition = LocalAndroidAcquisition.current
     DublCard(Modifier.fillMaxWidth()) {
         Text("Магический потенциал", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(10.dp))
@@ -388,11 +418,13 @@ private fun MagicCoreCard(
             modifier = Modifier.fillMaxWidth(),
             onMinus = { onManaRank((manaRank - 1).coerceAtLeast(0)) },
             onPlus = { onManaRank((manaRank + 1).coerceAtMost(5)) },
-            plusEnabled = !creationComplete && manaRank < 5,
-            minusEnabled = !creationComplete && manaRank > 0,
+            plusEnabled = acquisition?.canonical == true || (!creationComplete && manaRank < 5),
+            minusEnabled = manaRank > 0 && (acquisition?.canonical == true || !creationComplete),
         )
         Spacer(Modifier.height(8.dp))
-        if (creationComplete) {
+        if (acquisition?.canonical == true) {
+            AcquisitionEntrySummary(AcquisitionKind.MANA, "mana:rank", manaRank + 1)
+        } else if (creationComplete) {
             Text(
                 "Базовый запас маны можно повышать только при создании персонажа.",
                 style = MaterialTheme.typography.bodySmall,
@@ -429,7 +461,7 @@ private fun MagicCoreCard(
                     }
                 }
                 Text("Восстановление: +$recovery / раунд", style = MaterialTheme.typography.bodySmall, color = DublMuted)
-                Text("Опыт: запас $manaXp · школы $schoolXp · заклинания $spellXp", style = MaterialTheme.typography.bodySmall, color = DublMuted)
+                Text(if (acquisition?.canonical == true) "Фактическая оплата сохранена в истории операций" else "Опыт: запас $manaXp · школы $schoolXp · заклинания $spellXp", style = MaterialTheme.typography.bodySmall, color = DublMuted)
             }
         }
     }
@@ -472,6 +504,7 @@ private fun SchoolPowerRow(
     onMinus: () -> Unit,
     onPlus: () -> Unit,
 ) {
+    val canonical = LocalAndroidAcquisition.current?.canonical == true
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -480,7 +513,7 @@ private fun SchoolPowerRow(
         Column(Modifier.weight(1f)) {
             Text(name, fontWeight = if (power > 0) FontWeight.SemiBold else FontWeight.Normal)
             Text(
-                if (power > 0) "Сила $power · ${MagicEquipmentRules.magicSchoolRankXp(power)} XP" else "Не изучена",
+                if (canonical) "Сила $power · цена в просмотре" else if (power > 0) "Сила $power · ${MagicEquipmentRules.magicSchoolRankXp(power)} XP" else "Не изучена",
                 style = MaterialTheme.typography.bodySmall,
                 color = DublMuted,
             )
@@ -660,6 +693,7 @@ private fun SpellCatalogSheet(
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                 )
+                                AcquisitionEntrySummary(AcquisitionKind.SPELL, entry.id, 1)
                                 if (!usability.usable) {
                                     Text(
                                         "После изучения пока нельзя использовать · нужна Сила магии ${usability.requiredPower}",
@@ -733,8 +767,13 @@ private fun SpellDetailSheet(
             if (spell.conflictNote.isNotBlank()) {
                 Text(spell.conflictNote, style = MaterialTheme.typography.bodySmall, color = DublMuted)
             }
-            val xp = spell.xpOverride ?: MagicEquipmentRules.learnXpCost(spell.cost)
-            Text("Цена изучения: ${xp?.let { "$it опыта" } ?: "не определена"}", style = MaterialTheme.typography.bodySmall, color = DublMuted)
+            if (LocalAndroidAcquisition.current?.canonical == true) {
+                spell.catalogId?.let { AcquisitionEntrySummary(AcquisitionKind.SPELL, it, 1) }
+                if (spell.catalogId == null) Text("Локальная запись: изученность изменяется только ручной коррекцией")
+            } else {
+                val xp = spell.xpOverride ?: MagicEquipmentRules.learnXpCost(spell.cost)
+                Text("Цена изучения: ${xp?.let { "$it опыта" } ?: "не определена"}", style = MaterialTheme.typography.bodySmall, color = DublMuted)
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Изучено", modifier = Modifier.weight(1f))
                 DublSwitch(checked = spell.learned, onCheckedChange = onToggleLearned)

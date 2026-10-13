@@ -44,7 +44,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.furybook.android.data.MagicEquipmentCatalogRepository
+import com.furybook.android.ui.acquisition.LocalAndroidAcquisitionContent
+import com.furybook.android.ui.acquisition.LocalAndroidAcquisition
 import com.furybook.dubl.model.GearCatalogEntry
 import com.furybook.dubl.model.GearItem
 import com.furybook.dubl.model.MagicEquipmentRules
@@ -64,9 +65,10 @@ import java.util.UUID
 @Composable
 fun EquipmentScreen(controller: CharacterController) {
     val character = controller.active
+    val acquisition = LocalAndroidAcquisition.current
     val context = LocalContext.current.applicationContext
     val largeText = LocalDensity.current.fontScale >= 1.2f
-    val catalog = remember(context) { MagicEquipmentCatalogRepository(context).load() }
+    val catalog = LocalAndroidAcquisitionContent.current.magicEquipment
     var query by remember(character.id) { mutableStateOf("") }
     var selectedUid by remember(character.id) { mutableStateOf<String?>(null) }
     var showCatalog by remember(character.id) { mutableStateOf(false) }
@@ -78,7 +80,7 @@ fun EquipmentScreen(controller: CharacterController) {
     val capacity = MagicEquipmentRules.equipmentCapacity(character)
     val burden = MagicEquipmentRules.burden(character)
     LaunchedEffect(character.id, catalog.version) {
-        controller.syncCatalogGearLoads(catalog.gear)
+        if (!controller.isCanonicalProtected) controller.syncCatalogGearLoads(catalog.gear)
     }
 
     val filtered = remember(character.gear.items, query) {
@@ -199,7 +201,7 @@ fun EquipmentScreen(controller: CharacterController) {
             ownedQuantities = character.gear.items
                 .mapNotNull { item -> item.catalogId?.let { it to item.quantity } }
                 .toMap(),
-            onAdd = { controller.addCatalogGear(it) },
+            onAdd = { entry -> if (acquisition?.canonical == true) acquisition.nonFinancial { equipment.addCatalog(entry) } else { controller.addCatalogGear(entry); Unit } },
             onDismiss = { showCatalog = false },
         )
     }
@@ -221,7 +223,7 @@ fun EquipmentScreen(controller: CharacterController) {
         GearEditDialog(
             initial = GearItem(uid = UUID.randomUUID().toString(), custom = true),
             title = "Свой предмет",
-            onSave = { controller.addCustomGear(it); createItem = false },
+            onSave = { item -> if (acquisition?.canonical == true) acquisition.nonFinancial { equipment.addCustom(item) } else controller.addCustomGear(item); createItem = false },
             onDismiss = { createItem = false },
         )
     }
@@ -366,7 +368,7 @@ private fun GearRow(item: GearItem, onClick: () -> Unit) {
 private fun GearCatalogSheet(
     entries: List<GearCatalogEntry>,
     ownedQuantities: Map<String, Int>,
-    onAdd: (GearCatalogEntry) -> String,
+    onAdd: (GearCatalogEntry) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var query by remember { mutableStateOf("") }

@@ -151,6 +151,9 @@ import com.furybook.dubl.model.skillCalculation
 import com.furybook.dubl.model.skillCalculationForRoll
 import com.furybook.dubl.model.selectedTotals
 import com.furybook.android.state.CharacterController
+import com.furybook.android.ui.acquisition.*
+import com.furybook.dubl.acquisition.AcquisitionKind
+import androidx.compose.ui.platform.testTag
 import com.furybook.android.ui.components.containSheetOverscroll
 import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublSwitch
@@ -208,22 +211,20 @@ private data class StatInfo(
 @Composable
 fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     val character = controller.active
+    val acquisition = LocalAndroidAcquisition.current
+    val content = LocalAndroidAcquisitionContent.current
     val context = LocalContext.current
     val mountedResourceMeters = remember(context.applicationContext, chiPackEnabled, character) {
-        AndroidContentPackState.resourceMeterModels(context, chiPackEnabled, character)
+        com.furybook.dubl.content.DublUiRenderModels.resourceMeters(content.composition, character)
     }
     val mountedResourceToggles = remember(context.applicationContext, chiPackEnabled, character) {
-        AndroidContentPackState.resourceToggleModels(context, chiPackEnabled, character)
+        com.furybook.dubl.content.DublUiRenderModels.resourceToggles(content.composition, character)
     }
     val chiEconomyUi = remember(context.applicationContext, chiPackEnabled) {
-        AndroidContentPackState.uiMounts(context, chiPackEnabled, FcpUiSurface.CHARACTER_ECONOMY, FcpUiComponent.XP_LINE).forFeature(DublUiFeature.CHI)
+        com.furybook.dubl.content.DublUiRegistry.mounts(content.composition, FcpUiSurface.CHARACTER_ECONOMY, FcpUiComponent.XP_LINE).forFeature(DublUiFeature.CHI)
     }
-    val conditionCatalog = remember(context.applicationContext) {
-        ConditionCatalogRepository(context.applicationContext).load()
-    }
-    val developmentCatalog = remember(context.applicationContext, chiPackEnabled) {
-        DevelopmentCatalogRepository(context.applicationContext).load(includeChi = chiPackEnabled)
-    }
+    val conditionCatalog = LocalAndroidAcquisitionContent.current.conditions
+    val developmentCatalog = LocalAndroidAcquisitionContent.current.development
     val economy = remember(character, developmentCatalog, chiEconomyUi) {
         CharacterEconomy.breakdown(character, developmentCatalog, includeChi = chiEconomyUi != null)
     }
@@ -314,7 +315,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         )
     }
     LaunchedEffect(normalizedSkillGroups, sheetExtras.skillGroups) {
-        if (normalizedSkillGroups != sheetExtras.skillGroups) {
+        if (!controller.isCanonicalProtected && normalizedSkillGroups != sheetExtras.skillGroups) {
             controller.setSkillGroups(normalizedSkillGroups)
         }
     }
@@ -335,7 +336,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         )
     }
     LaunchedEffect(normalizedDevelopmentGroups, sheetExtras.developmentGroups) {
-        if (normalizedDevelopmentGroups != sheetExtras.developmentGroups) {
+        if (!controller.isCanonicalProtected && normalizedDevelopmentGroups != sheetExtras.developmentGroups) {
             controller.setDevelopmentGroups(normalizedDevelopmentGroups)
         }
     }
@@ -361,7 +362,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     }
 
     fun undoLast() {
-        if (recentChange?.undo != null) controller.undoLast()
+        if (acquisition?.canonical == true) acquisition.undo() else if (recentChange?.undo != null) controller.undoLast()
         recentChange = null
     }
 
@@ -380,10 +381,11 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                     onAdvancedEdit = { showAdvancedEdit = true },
                     onPortraitClick = { portraitPicker.launch(arrayOf("image/*")) },
                     onNameClick = { showNameEdit = true },
-                    onExperienceClick = { showExperienceEdit = true },
+                    onExperienceClick = { if (acquisition?.canonical == true) acquisition.showHistory() else showExperienceEdit = true },
                 )
             }
 
+            if (acquisition?.canonical == true) item { AcquisitionBalanceCard() }
             item {
                 SectionTitle(
                     title = "Ресурсы",
@@ -482,7 +484,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             character = character,
             onDismiss = { showAdvancedEdit = false },
             onConfirm = { name, concept, experience, size, legs, manaEnabled ->
-                controller.setProfile(name, concept, experience, size, legs, manaEnabled)
+                if (acquisition?.canonical == true) acquisition.editManual("Правка профиля (баланс задаётся отдельно)") { base -> base.copy(name = name, concept = concept, size = size, legs = legs, manaEnabled = manaEnabled) } else controller.setProfile(name, concept, experience, size, legs, manaEnabled)
                 showAdvancedEdit = false
             },
         )
@@ -606,7 +608,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             onSave = { title, description, active ->
                 val clean = title.trim()
                 if (clean.isNotBlank()) {
-                    controller.addCustomCondition(clean, description.trim(), active)
+                    if (acquisition?.canonical == true) acquisition.nonFinancial { sheet.addCustomCondition(clean, description.trim(), active) } else controller.addCustomCondition(clean, description.trim(), active)
                 }
                 createCustomCondition = false
             },
@@ -869,7 +871,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         CustomResourceEditDialog(
             initial = null,
             onSave = { name, current, maximum ->
-                controller.addCustomResource(name, maximum, current)
+                if (acquisition?.canonical == true) acquisition.nonFinancial { this.character.addCustomResource(name, maximum, current) } else controller.addCustomResource(name, maximum, current)
                 createCustomResource = false
             },
             onDismiss = { createCustomResource = false },
@@ -930,6 +932,11 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             id = id,
             character = character,
             onChange = { delta ->
+                if (acquisition?.canonical == true) {
+                    val rank = (character.attributes[id]?.base ?: 0) + delta
+                    if (delta > 0) acquisition.openTarget(AcquisitionKind.ATTRIBUTE, "attribute:${id.name}", rank)
+                    else acquisition.lowerAttribute(id, rank)
+                } else {
                 controller.changeAttribute(id, delta)
                 recordRecent(
                     RecentChange(
@@ -938,6 +945,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                         undo = UndoAction.Attribute(id, delta),
                     ),
                 )
+                }
             },
             onDismiss = { selectedAttribute = null },
         )
@@ -954,7 +962,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             onSetSize = { size ->
                 val previous = character.size
                 val next = size.coerceIn(1, 10)
-                controller.setSize(next)
+                if (acquisition?.canonical == true) acquisition.editManual("Изменение размера") { base -> base.copy(size = next) } else controller.setSize(next)
                 if (next != previous) {
                     recordRecent(
                         RecentChange(
@@ -968,7 +976,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             onSetLegs = { legs ->
                 val previous = character.legs
                 val next = legs.coerceAtLeast(2)
-                controller.setLegs(next)
+                if (acquisition?.canonical == true) acquisition.editManual("Изменение числа ног") { base -> base.copy(legs = next) } else controller.setLegs(next)
                 if (next != previous) {
                     recordRecent(
                         RecentChange(
@@ -994,6 +1002,7 @@ private fun CharacterHero(
     onNameClick: () -> Unit,
     onExperienceClick: () -> Unit,
 ) {
+    val acquisition = LocalAndroidAcquisition.current
     DublCard(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(16.dp),
@@ -1038,14 +1047,14 @@ private fun CharacterHero(
                     horizontalArrangement = Arrangement.spacedBy(7.dp),
                 ) {
                     MetaPill(
-                        label = "XP потрачено",
-                        value = "${economy.spentXp} / ${economy.totalExperience}",
+                        label = if (acquisition?.canonical == true) "XP осталось" else "XP потрачено",
+                        value = if (acquisition?.canonical == true) acquisition.view?.balance?.xp?.toString() ?: "?" else "${economy.spentXp} / ${economy.totalExperience}",
                         modifier = Modifier.weight(1f),
                         onClick = onExperienceClick,
                     )
                     MetaPill(
                         label = "ОС осталось",
-                        value = "${economy.abilityPointsRemaining} / ${economy.abilityPointsBudget}",
+                        value = if (acquisition?.canonical == true) acquisition.view?.balance?.ap?.toString() ?: "?" else "${economy.abilityPointsRemaining} / ${economy.abilityPointsBudget}",
                         modifier = Modifier.weight(1f),
                         onClick = onExperienceClick,
                     )
@@ -1686,9 +1695,7 @@ private fun ContextRollSheet(
     onDismiss: () -> Unit,
 ) {
     val androidContext = LocalContext.current
-    val effectCatalog = remember(androidContext.applicationContext) {
-        SkillEffectCatalogRepository(androidContext.applicationContext).load()
-    }
+    val effectCatalog = LocalAndroidAcquisitionContent.current.skillEffects
     val allowedSkillIds = remember(context) { context.allowedSkillIds() }
     val skillOptions = allowedSkillIds.mapNotNull(character::resolveSkill)
     var selectedSkillId by remember(context, character.id) {
@@ -3354,12 +3361,8 @@ internal fun DublSkillRollSheet(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    val developmentCatalog = remember(context.applicationContext) {
-        DevelopmentCatalogRepository(context.applicationContext).load()
-    }
-    val effectCatalog = remember(context.applicationContext) {
-        SkillEffectCatalogRepository(context.applicationContext).load()
-    }
+    val developmentCatalog = LocalAndroidAcquisitionContent.current.development
+    val effectCatalog = LocalAndroidAcquisitionContent.current.skillEffects
     val calculation = character.skillCalculationForRoll(skill, initialAttribute)
     val effects = remember(character, skill.id, developmentCatalog, effectCatalog) {
         SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(skill)
@@ -3390,12 +3393,8 @@ internal fun DublSkillRollSheet(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
-    val developmentCatalog = remember(context.applicationContext) {
-        DevelopmentCatalogRepository(context.applicationContext).load()
-    }
-    val effectCatalog = remember(context.applicationContext) {
-        SkillEffectCatalogRepository(context.applicationContext).load()
-    }
+    val developmentCatalog = LocalAndroidAcquisitionContent.current.development
+    val effectCatalog = LocalAndroidAcquisitionContent.current.skillEffects
     var selectedAttribute by remember(skill.id, skill.attributes, preferredAttribute) {
         mutableStateOf(preferredAttribute?.takeIf { it in skill.attributes } ?: skill.attributes.first())
     }
@@ -4375,6 +4374,7 @@ private fun AttributeAdjustSheet(
     onChange: (Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val acquisition = LocalAndroidAcquisition.current
     val base = character.attributes[id]?.base ?: character.attributeRaw(id)
     val total = character.attribute(id)
     val modifier = total - base
@@ -4414,7 +4414,8 @@ private fun AttributeAdjustSheet(
             Spacer(Modifier.height(10.dp))
             val nextCost = CharacterEconomy.nextAttributeCost(base)
             val refund = CharacterEconomy.previousAttributeRefund(base)
-            Text(
+            if (acquisition?.canonical == true) AcquisitionEntrySummary(AcquisitionKind.ATTRIBUTE, "attribute:${id.name}", base + 1)
+            else Text(
                 buildString {
                     if (nextCost != null) append("Следующий ранг: $nextCost XP") else append("Максимум по таблице")
                     if (refund != null) append(" · снижение: возврат $refund XP")

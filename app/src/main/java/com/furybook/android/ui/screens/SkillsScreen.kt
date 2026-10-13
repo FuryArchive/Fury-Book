@@ -60,6 +60,9 @@ import com.furybook.dubl.model.resolvedSkills
 import com.furybook.dubl.model.skillCalculationOptions
 import com.furybook.dubl.model.skillXpSpent
 import com.furybook.android.state.CharacterController
+import com.furybook.android.ui.acquisition.*
+import com.furybook.dubl.acquisition.AcquisitionKind
+import androidx.compose.ui.platform.testTag
 import com.furybook.android.ui.components.containSheetOverscroll
 import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublScreenHeader
@@ -69,6 +72,7 @@ import com.furybook.ui.theme.DublGold
 @Composable
 fun SkillsScreen(controller: CharacterController) {
     val character = controller.active
+    val acquisition = LocalAndroidAcquisition.current
     val context = LocalContext.current
     val sheetExtras = controller.extras
 
@@ -109,7 +113,7 @@ fun SkillsScreen(controller: CharacterController) {
                 subtitle = character.name,
                 action = {
                     Button(
-                        onClick = { showAdd = true },
+                        onClick = { if (acquisition?.canonical == true) acquisition.chooseDefinition(AcquisitionKind.SKILL) else showAdd = true },
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                     ) {
                         Text("+ Добавить")
@@ -137,7 +141,7 @@ fun SkillsScreen(controller: CharacterController) {
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        "${character.skillXpSpent()} XP вложено",
+                        if (acquisition?.canonical == true) acquisition.view?.balance?.let(::acquisitionAmount) ?: "Баланс недоступен" else "${character.skillXpSpent()} XP вложено",
                         style = MaterialTheme.typography.labelLarge,
                         color = DublGold,
                     )
@@ -361,7 +365,8 @@ private fun SkillRow(
     val border = if (trained) DublGold.copy(alpha = 0.34f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.48f)
     val container = if (trained) DublGold.copy(alpha = 0.035f) else MaterialTheme.colorScheme.surface
     val primaryText = if (trained) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
-    val nextCost = SkillCatalog.nextRankCost(skill.rank)
+    val acquisition = LocalAndroidAcquisition.current
+    val nextCost = if (acquisition?.canonical == true) null else SkillCatalog.nextRankCost(skill.rank)
 
     Surface(
         modifier = Modifier
@@ -441,8 +446,9 @@ private fun SkillRow(
                     onClick = onBreakdown,
                 )
             }
+            AcquisitionEntrySummary(AcquisitionKind.SKILL, skill.id, skill.rank + 1)
             Text(
-                text = nextCost?.let { "Следующий ранг ${skill.rank + 1} · $it XP" } ?: "Максимальный ранг",
+                text = if (acquisition?.canonical == true) "Точная цена в просмотре покупки" else nextCost?.let { "Следующий ранг ${skill.rank + 1} · $it XP" } ?: "Максимальный ранг",
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 5.dp),
@@ -637,7 +643,8 @@ private fun SkillRankSheet(
     controller: CharacterController,
     onDismiss: () -> Unit,
 ) {
-    val nextCost = SkillCatalog.nextRankCost(skill.rank)
+    val acquisition = LocalAndroidAcquisition.current
+    val nextCost = if (acquisition?.canonical == true) null else SkillCatalog.nextRankCost(skill.rank)
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.surface,
@@ -650,15 +657,16 @@ private fun SkillRankSheet(
         ) {
             Text(skill.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(4.dp))
+            AcquisitionEntrySummary(AcquisitionKind.SKILL, skill.id, skill.rank + 1)
             Text("Ранг", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(skill.rank.toString(), fontSize = 42.sp, lineHeight = 46.sp, fontWeight = FontWeight.Bold, color = DublGold)
             Spacer(Modifier.height(10.dp))
             Text(
-                "Потрачено XP: ${SkillCatalog.costForRank(skill.rank)}",
+                if (acquisition?.canonical == true) "Фактические расходы в истории операций" else "Потрачено XP: ${SkillCatalog.costForRank(skill.rank)}",
                 style = MaterialTheme.typography.bodyLarge,
             )
             Text(
-                nextCost?.let { "Следующий ранг ${skill.rank + 1}: +$it XP" } ?: "Достигнут максимальный ранг",
+                if (acquisition?.canonical == true) "Просмотр покупки не меняет лист" else nextCost?.let { "Следующий ранг ${skill.rank + 1}: +$it XP" } ?: "Достигнут максимальный ранг",
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (nextCost != null) DublGold else MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -668,12 +676,12 @@ private fun SkillRankSheet(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 OutlinedButton(
-                    onClick = { controller.changeSkillRank(skill.id, -1) },
+                    onClick = { if (acquisition?.canonical == true) acquisition.lowerHolding(AcquisitionKind.SKILL, skill.id, skill.rank - 1) else controller.changeSkillRank(skill.id, -1) },
                     enabled = skill.rank > 0,
                     modifier = Modifier.weight(1f),
                 ) { Text("− 1 ранг") }
                 Button(
-                    onClick = { controller.changeSkillRank(skill.id, 1) },
+                    onClick = { if (acquisition?.canonical == true) acquisition.openTarget(AcquisitionKind.SKILL, skill.id, skill.rank + 1) else controller.changeSkillRank(skill.id, 1) },
                     enabled = skill.rank < 10,
                     modifier = Modifier.weight(1f),
                 ) { Text("+ 1 ранг") }
@@ -699,14 +707,11 @@ private fun SkillDetailSheet(
     var localAuto6 by remember(skill.id, skill.auto6) { mutableStateOf(skill.auto6) }
     var localAuto12 by remember(skill.id, skill.auto12) { mutableStateOf(skill.auto12) }
     val calculations = character.skillCalculationOptions(skill)
-    val nextCost = SkillCatalog.nextRankCost(skill.rank)
+    val acquisition = LocalAndroidAcquisition.current
+    val nextCost = if (acquisition?.canonical == true) null else SkillCatalog.nextRankCost(skill.rank)
     val context = LocalContext.current
-    val developmentCatalog = remember(context.applicationContext) {
-        DevelopmentCatalogRepository(context.applicationContext).load()
-    }
-    val effectCatalog = remember(context.applicationContext) {
-        SkillEffectCatalogRepository(context.applicationContext).load()
-    }
+    val developmentCatalog = LocalAndroidAcquisitionContent.current.development
+    val effectCatalog = LocalAndroidAcquisitionContent.current.skillEffects
     val configurableEffects = remember(character, skill.id, developmentCatalog, effectCatalog) {
         SkillEffectRules(character, developmentCatalog, effectCatalog).configuredForSkill(skill)
     }
@@ -757,22 +762,23 @@ private fun SkillDetailSheet(
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(
-                            onClick = { controller.changeSkillRank(skill.id, -1) },
+                            onClick = { if (acquisition?.canonical == true) acquisition.lowerHolding(AcquisitionKind.SKILL, skill.id, skill.rank - 1) else controller.changeSkillRank(skill.id, -1) },
                             enabled = skill.rank > 0,
                         ) { Text("−") }
                         Button(
-                            onClick = { controller.changeSkillRank(skill.id, 1) },
+                            onClick = { if (acquisition?.canonical == true) acquisition.openTarget(AcquisitionKind.SKILL, skill.id, skill.rank + 1) else controller.changeSkillRank(skill.id, 1) },
                             enabled = skill.rank < 10,
                         ) { Text("+") }
                     }
                 }
                 Spacer(Modifier.height(7.dp))
+                AcquisitionEntrySummary(AcquisitionKind.SKILL, skill.id, skill.rank + 1)
                 Text(
-                    "Потрачено XP: ${SkillCatalog.costForRank(skill.rank)}",
+                    if (acquisition?.canonical == true) "Фактические расходы в истории операций" else "Потрачено XP: ${SkillCatalog.costForRank(skill.rank)}",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    nextCost?.let { "Следующий ранг ${skill.rank + 1}: +$it XP" } ?: "Максимальный ранг",
+                    if (acquisition?.canonical == true) "Просмотр покупки не меняет лист" else nextCost?.let { "Следующий ранг ${skill.rank + 1}: +$it XP" } ?: "Максимальный ранг",
                     color = if (nextCost != null) DublGold else MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -801,7 +807,7 @@ private fun SkillDetailSheet(
                             } else {
                                 skill.attributes + attribute
                             }
-                            controller.setSkillAttributes(skill.id, updated)
+                            if (acquisition?.canonical == true) acquisition.manualSkill(skill.id, "Изменение допустимых характеристик") { it.copy(attributes = updated) } else controller.setSkillAttributes(skill.id, updated)
                         },
                         label = { Text(attribute.shortTitle) },
                     )
@@ -952,17 +958,22 @@ private fun SkillDetailSheet(
             ) {
                 Button(
                     onClick = {
+                        if (acquisition?.canonical == true) acquisition.manualSkill(skill.id, "Локальная правка умения") {
+                            it.copy(name = localName, description = localDescription, categoryOverride = localCategory,
+                                untrainedOverride = localUntrained, auto6Override = localAuto6, auto12Override = localAuto12)
+                        } else {
                         controller.setSkillNameOverride(skill.id, localName)
                         controller.setSkillDescriptionOverride(skill.id, localDescription)
                         controller.setSkillCategoryOverride(skill.id, localCategory)
                         controller.setSkillUntrainedOverride(skill.id, localUntrained)
                         controller.setSkillAutoOverrides(skill.id, localAuto6, localAuto12)
+                        }
                     },
                     modifier = Modifier.weight(1f),
                 ) { Text("Сохранить локально") }
                 OutlinedButton(
                     onClick = {
-                        controller.resetSkillDefinitionOverrides(skill.id)
+                        if (acquisition?.canonical == true) acquisition.manualSkill(skill.id, "Сброс локальных правил") { it.copy(name = "", description = "", categoryOverride = null, untrainedOverride = null, auto6Override = null, auto12Override = null) } else controller.resetSkillDefinitionOverrides(skill.id)
                         onDismiss()
                     },
                     modifier = Modifier.weight(1f),
@@ -996,7 +1007,7 @@ private fun SkillDetailSheet(
                 if (skill.isDynamic) {
                     TextButton(
                         onClick = {
-                            controller.deleteDynamicSkill(skill.id)
+                            if (acquisition?.canonical == true) acquisition.lowerHolding(AcquisitionKind.SKILL, skill.id, 0) else controller.deleteDynamicSkill(skill.id)
                             onDismiss()
                         },
                         modifier = Modifier.weight(1f),

@@ -43,6 +43,8 @@ import com.furybook.dubl.content.DublChiFcp
 import com.furybook.dubl.application.CharacterTransferImportResult
 import com.furybook.dubl.data.CharacterTransferRejectReason
 import com.furybook.android.state.CharacterController
+import com.furybook.android.ui.acquisition.*
+import androidx.compose.ui.platform.testTag
 import com.furybook.core.cloud.NativeCloudStatus
 import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublScreenHeader
@@ -54,15 +56,15 @@ private const val TRANSFER_EXTENSION = ".dubl"
 @Composable
 fun CharactersScreen(
     controller: CharacterController,
-    cloudController: AndroidCloudController,
+    cloudController: AndroidCloudController?,
     contentPackComposition: FcpComposition,
     onContentPackActiveChange: (String, Boolean) -> Unit,
+    onContentInstalled: () -> Unit = {},
     onOpenCampaign: () -> Unit,
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
     var transferStatus by remember { mutableStateOf<String?>(null) }
     var contentPackStatus by remember { mutableStateOf<String?>(null) }
-    var installedPackRevision by remember { mutableIntStateOf(0) }
     var cloudRegistering by remember { mutableStateOf(false) }
     var cloudNickname by remember { mutableStateOf("") }
     var cloudEmail by remember { mutableStateOf("") }
@@ -72,11 +74,8 @@ fun CharactersScreen(
     val cloudScope = rememberCoroutineScope()
     val snapshot = controller.snapshot
     val context = LocalContext.current
-    installedPackRevision
-    val displayedComposition = AndroidContentPackState.composition(
-        context,
-        contentPackComposition.isActive(DublChiFcp.PACK_ID),
-    )
+    val displayedComposition = contentPackComposition
+    val acquisition = LocalAndroidAcquisition.current
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json"),
@@ -92,13 +91,13 @@ fun CharactersScreen(
     val fcpImportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             contentPackStatus = runCatching {
-                val result = AndroidFcpInstaller.install(
-                    context = context,
-                    uri = uri,
-                    reservedPackIds = AndroidContentPackState.bundledPackIds(),
-                )
-                AndroidContentPackState.setPackEnabled(context, result.manifest.id, false)
-                installedPackRevision += 1
+                val result = importAndRefreshContent(onContentInstalled) {
+                    AndroidFcpInstaller.install(
+                        context = context,
+                        uri = uri,
+                        reservedPackIds = AndroidContentPackState.bundledPackIds(),
+                    ).also { AndroidContentPackState.setPackEnabled(context, it.manifest.id, false) }
+                }
                 "Установлен FCP: ${result.manifest.name} v${result.manifest.version}."
             }.getOrElse { error ->
                 "Ошибка импорта FCP: ${error.message ?: "неизвестная ошибка"}"
@@ -128,7 +127,7 @@ fun CharactersScreen(
             title = "Персонажи",
             subtitle = "Выбор активного листа",
             action = {
-                Button(onClick = controller::createCharacter) { Text("+ Создать") }
+                Button(onClick = { acquisition?.newCharacter() }, modifier = Modifier.testTag("acquisition.funding.open")) { Text("+ Создать") }
             },
         )
 
@@ -138,6 +137,7 @@ fun CharactersScreen(
         ) {
             OutlinedButton(
                 onClick = { importLauncher.launch(arrayOf("*/*")) },
+                enabled = !controller.isCanonicalProtected,
                 modifier = Modifier.weight(1f),
             ) { Text("Импорт") }
             OutlinedButton(
@@ -155,6 +155,7 @@ fun CharactersScreen(
             )
         }
 
+        if (cloudController != null) {
         DublCard(Modifier.fillMaxWidth()) {
             Text("Кампании", style = MaterialTheme.typography.titleMedium)
             Text(
@@ -387,6 +388,8 @@ fun CharactersScreen(
             }
         }
 
+        }
+
         snapshot.characters.forEach { character ->
             val active = character.id == snapshot.activeCharacterId
             DublCard(Modifier.fillMaxWidth()) {
@@ -405,7 +408,7 @@ fun CharactersScreen(
                 if (active) {
                     Text("Активный", color = MaterialTheme.colorScheme.primary)
                 } else {
-                    OutlinedButton(onClick = { controller.selectCharacter(character.id) }) {
+                    OutlinedButton(onClick = { controller.selectCharacter(character.id) }, modifier = Modifier.testTag("character.select")) {
                         Text("Открыть")
                     }
                 }
@@ -413,13 +416,13 @@ fun CharactersScreen(
         }
 
         if (snapshot.characters.size > 1) {
-            OutlinedButton(onClick = { confirmDelete = true }) {
+            OutlinedButton(onClick = { confirmDelete = true }, enabled = !controller.isCanonicalProtected) {
                 Text("Удалить активного персонажа")
             }
         }
     }
 
-    cloudController.conflicts.firstOrNull()?.let { conflict ->
+    if (cloudController != null) cloudController.conflicts.firstOrNull()?.let { conflict ->
         AlertDialog(
             onDismissRequest = {},
             title = { Text("Персонаж изменён на другом устройстве") },

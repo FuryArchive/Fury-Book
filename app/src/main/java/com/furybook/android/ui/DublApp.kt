@@ -57,6 +57,11 @@ import com.furybook.android.data.CharacterRepository
 import com.furybook.android.data.AndroidFcpInstaller
 import com.furybook.android.data.CharacterSheetExtrasRepository
 import com.furybook.android.state.CharacterController
+import com.furybook.android.ui.acquisition.*
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.platform.testTag
 import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.android.ui.components.dismissKeyboardOnPointerDown
@@ -161,32 +166,37 @@ private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
     val cloudController=remember(bootstrap) {
         AndroidCloudController(appContext,characterRepository,extrasRepository,bootstrap.store).also { it.bind(observingCharacters,observingExtras) }
     }
-    val reloadToken=cloudController.reloadToken
-    val controller=remember(bootstrap,reloadToken) {
-        CharacterController(observingCharacters,observingExtras,bootstrap.store,bootstrap.states,bootstrap.source.gate,
-            ownerScope={ cloudController.session?.userId to cloudController.accountGeneration })
+    var chiPackEnabled by rememberSaveable { mutableStateOf(AndroidContentPackState.isChiEnabled(appContext)) }
+    var contentRevision by remember { mutableStateOf(0) }
+    var contentFailure by remember { mutableStateOf(false) }
+    val content by produceState<AndroidAcquisitionContent?>(null, chiPackEnabled, contentRevision) {
+        value = null; contentFailure = false
+        try { value = withContext(Dispatchers.IO) { AndroidAcquisitionContent.load(appContext, chiPackEnabled) } }
+        catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+        catch (_: Exception) { contentFailure = true }
     }
-    DisposableEffect(controller) { onDispose { controller.dispose() } }
-    DisposableEffect(cloudController) { onDispose { cloudController.dispose() } }
-    if(bootstrap.source.gate.readOnly) {
-        Column(Modifier.fillMaxSize().padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
-            Text("Локальный журнал: просмотр",style=MaterialTheme.typography.titleLarge)
-            Text("Проверка Android-сохранения на устройствах пока не завершена. Покупки, старое редактирование и облачная запись выключены.")
-            bootstrap.states.values.forEach { state ->
-                Text(state.character.name)
-                Text("Остаток: ${balance(state.ledger).xp} XP / ${balance(state.ledger).ap} ОСп. Записей: ${state.receipts.size}")
-                if(state.extras.notes.isNotEmpty()) Text(state.extras.notes)
-            }
-            controller.storageError?.let { Text(it) }
+    if (contentFailure) {
+        Column(Modifier.fillMaxSize().padding(24.dp)) {
+            Text("Каталог не удалось прочитать", style = MaterialTheme.typography.titleLarge)
+            Text("Сохранённые данные не изменены. Покупки недоступны до восстановления каталога.")
         }
         return
     }
-    var selected by rememberSaveable { mutableStateOf(AppSection.OVERVIEW) }
-    var pendingSection by remember { mutableStateOf<AppSection?>(null) }
-    var chiPackEnabled by rememberSaveable { mutableStateOf(AndroidContentPackState.isChiEnabled(appContext)) }
-    val chiDevelopmentIds = remember(appContext) { AndroidContentPackState.chiDevelopmentIds(appContext) }
+    val loaded = content
+    if (loaded == null) { DevelopmentNavigationLoadingScreen(); return }
+    val currentContent by rememberUpdatedState(loaded)
+    val reloadToken = cloudController.reloadToken
+    val controller = remember(bootstrap, reloadToken) {
+        CharacterController(observingCharacters, observingExtras, bootstrap.store, bootstrap.states, bootstrap.source.gate,
+            catalogProvider = { currentContent.acquisition },
+            ownerScope = { cloudController.session?.userId to cloudController.accountGeneration })
+    }
+    DisposableEffect(controller) { onDispose { controller.dispose() } }
+    DisposableEffect(cloudController) { onDispose { cloudController.dispose() } }
+    val chiDevelopmentIds = remember(loaded) { loaded.development.entries.filter { it.isChiDevelopment }.mapTo(linkedSetOf()) { it.id } }
 
     LaunchedEffect(cloudController) {
+        if (controller.isCanonicalProtected) return@LaunchedEffect
         cloudController.updateEnabledPackIds(
             AndroidContentPackState.composition(appContext, chiPackEnabled).active.mapTo(linkedSetOf()) { it.id },
         )
@@ -200,6 +210,7 @@ private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
     }
 
     LaunchedEffect(chiPackEnabled) {
+        if (controller.isCanonicalProtected) return@LaunchedEffect
         val installedIds = AndroidFcpInstaller.listInstalled(appContext).mapTo(linkedSetOf()) { it.id }
         val optionalAvailable = installedIds + DublChiFcp.PACK_ID
         val availableActive = AndroidContentPackState.composition(appContext, chiPackEnabled).active
@@ -214,6 +225,27 @@ private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
         )
     }
 
+    DublAppContent(controller, loaded, if (controller.isCanonicalProtected) null else cloudController,
+        onContentInstalled = { contentRevision++ }) { packId, enabled ->
+        AndroidContentPackState.setPackEnabled(appContext, packId, enabled)
+        if (packId == DublChiFcp.PACK_ID) chiPackEnabled = enabled
+        contentRevision++
+        val nextIds = cloudController.enabledPackIds.toMutableSet().apply { if (enabled) add(packId) else remove(packId) }
+        cloudController.updateEnabledPackIds(nextIds)
+        cloudController.requestSync()
+    }
+}
+
+/** Same production navigator/screens; debug fixtures supply only explicit isolated dependencies. */
+@Composable
+internal fun DublAppContent(controller: CharacterController, content: AndroidAcquisitionContent,
+    cloudController: AndroidCloudController? = null, onContentInstalled: () -> Unit = {},
+    onContentPackActiveChange: (String, Boolean) -> Unit = { _, _ -> }) {
+    var selected by rememberSaveable { mutableStateOf(AppSection.OVERVIEW) }
+    var pendingSection by remember { mutableStateOf<AppSection?>(null) }
+    val chiPackEnabled = content.composition.isActive(DublChiFcp.PACK_ID)
+    CompositionLocalProvider(LocalAndroidAcquisitionContent provides content) {
+    AndroidAcquisitionRoot(controller) {
     LaunchedEffect(pendingSection) {
         if (pendingSection == AppSection.FEATS) {
             // Commit at least one lightweight frame before mounting the heavy development screen.
@@ -255,7 +287,7 @@ private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
                     AppSection.FEATS -> FeatsScreen(controller, chiPackEnabled)
                     AppSection.MAGIC -> MagicScreen(controller)
                     AppSection.INVENTORY -> EquipmentScreen(controller)
-                    AppSection.CAMPAIGN -> CampaignScreen(
+                    AppSection.CAMPAIGN -> if (cloudController != null) CampaignScreen(
                         controller = controller,
                         cloudController = cloudController,
                         onBack = { selected = AppSection.MORE },
@@ -263,16 +295,9 @@ private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
                     AppSection.MORE -> CharactersScreen(
                         controller = controller,
                         cloudController = cloudController,
-                        contentPackComposition = AndroidContentPackState.composition(appContext, chiPackEnabled),
-                        onContentPackActiveChange = { packId, enabled ->
-                            AndroidContentPackState.setPackEnabled(appContext, packId, enabled)
-                            if (packId == DublChiFcp.PACK_ID) chiPackEnabled = enabled
-                            val nextIds = cloudController.enabledPackIds.toMutableSet().apply {
-                                if (enabled) add(packId) else remove(packId)
-                            }
-                            cloudController.updateEnabledPackIds(nextIds)
-                            cloudController.requestSync()
-                        },
+                        contentPackComposition = content.composition,
+                        onContentPackActiveChange = onContentPackActiveChange,
+                        onContentInstalled = onContentInstalled,
                         onOpenCampaign = { selected = AppSection.CAMPAIGN },
                     )
                 }
@@ -280,6 +305,8 @@ private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
         }
     }
 }
+    }
+    }
 
 @Composable
 private fun DevelopmentNavigationLoadingScreen() {
@@ -354,6 +381,7 @@ private fun DublBottomBar(
                         modifier = Modifier
                             .weight(1f)
                             .height(64.dp)
+                            .testTag("navigation." + when(section) { AppSection.MORE -> "characters"; else -> section.name.lowercase() })
                             .clickable { onSelected(section) },
                         shape = RoundedCornerShape(13.dp),
                         color = if (active) DublAccentSoft.copy(alpha = 0.92f) else DublSurfaceInset,
