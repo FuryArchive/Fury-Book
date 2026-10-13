@@ -9,8 +9,18 @@
   "archiveSha256": "be8e3f90db91b27f282b4ce3eb78c0b27818b4cc2ff60becccc6b52ce27f54f3",
   "member": "source/furybook_current_corebook.json",
   "memberSha256": "238a93086f22b04b1f8b26a018a0c8c5b70815c67d8976c468dabbb7a4e14fa9",
-  "derivation": "Only the six approved source-rule paragraphs absent from the immutable source evidence; exact original text and tab offsets. General-question additions belong to the separate coverage projection.",
+  "derivation": "Six original approved source-rule paragraphs preserved byte-for-byte as records, plus 70 exact original-audit question paragraphs absent from immutable sourceEvidence. No source interpretation or runtime PASS evidence.",
   "sourceEvidence": {
+    "core:P114": {
+      "text": "Затрачивая 1 ОД для передвижения Вы проходите ½ базового бега метров (4 метра). Это действие называется короткий рывок.",
+      "startIndex": 1839,
+      "endIndex": 1958,
+      "tabId": "t.52u6j59gclhl",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 114,
+      "sha256": "674e3aaf74be699c124301aaf8ee39170b5935893c49cdbc8e65da59cf23f2d4"
+    },
     "core:P11903": {
       "text": "При создании персонажа рекомендуется выдавать не более 1 очка особых навыков за каждые полные 1000 опыта. ",
       "startIndex": 334,
@@ -20,6 +30,46 @@
       "isListItem": false,
       "paragraph": 11903,
       "sha256": "f3b4ccae764f982dd7db5eb152f1736a48f43ccdc671a75c0a3c59858e59ccbc"
+    },
+    "core:P11910": {
+      "text": "Бонусы морали работают только на живых существ. Бонусы морали подавляют штрафы дизморали и наоборот. Независимо от того к чему идёт моральный бонус (атака, защита, урон и т.д.) он будет уменьшать моральные штрафы и уменьшаясь вместе с ними.",
+      "startIndex": 857,
+      "endIndex": 1097,
+      "tabId": "t.z1o9nhkkrzeb",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 11910,
+      "sha256": "309bd5be31a5b915a420217450f86029f2df7ae1d7a365b8bd52b738cb293916"
+    },
+    "core:P121": {
+      "text": "Здоровье. Определяет живучесть персонажа, количество повреждений, которые он способен пережить. Значение здоровья равно Телосложение*Размер + Сила. У различных существ так же имеется расовый базовый запас здоровья.",
+      "startIndex": 2771,
+      "endIndex": 2985,
+      "tabId": "t.52u6j59gclhl",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 121,
+      "sha256": "af9ed7713c83c287f77da92d45ffb6fcba490708333e25bb98339d712ed1635f"
+    },
+    "core:P123": {
+      "text": "Инициатива. Определяет очередность хода в бою. Значение инициативы определяется как Скорость + Восприятие.",
+      "startIndex": 3134,
+      "endIndex": 3240,
+      "tabId": "t.52u6j59gclhl",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 123,
+      "sha256": "96cee1cbece9ce0008fd394c9260c844381fd455a51e822f330858c84fdc317a"
+    },
+    "core:P125": {
+      "text": "Выносливость. Это ресурс, который персонаж тратит для совершения тяжелого действия, то есть, делая над собой некое усилие. Все персонажи имеют 3 пункта выносливости. Трата пунктов выносливости не занимает действий и может использоваться даже не в Ваш ход. Использование выносливости таким образом называется Сверхусилием, а сам процесс расхода выносливости называется Утомлением. Потратив 1 пункт выносливости игрок получает одно их следующих преимуществ: ",
+      "startIndex": 3389,
+      "endIndex": 3845,
+      "tabId": "t.52u6j59gclhl",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 125,
+      "sha256": "88280aed59b2b600ccd9907822b6c8cd7a82420f64445d6f3ce7da7549277e13"
     },
     "core:P14075": {
       "text": "Недостатки могут быть приобретены как при создании персонажа, так и во время игры. При создании персонажа вы получаете дополнительный опыт, указанный в строке «Стоимость», за каждый ранг. Приобретая недостатки во время игры (например, как следствие критических попаданий и травм) — ничего, кроме негативных эффектов, вы не получаете. Требования, указанные в недостатках, нужны только при создании персонажа.",
@@ -51,6 +101,26 @@
       "paragraph": 14078,
       "sha256": "961094bfe7f18af62fe262f97d06d28bb544eb841bbad9340125a54a3a5f756c"
     },
+    "core:P14104": {
+      "text": "Стоимость: -30\u000bРанги: 1\u000bТребование: Телосложение <5\u000bОписание: Ваше тело медленно восстанавливается после ран.\u000bНедостаток: Вы восстанавливаете вдвое меньше здоровья при отдыхе. Кровотечение на вас длится вдвое дольше.\u000bОсобое: Магическое лечение действует на вас нормально.",
+      "startIndex": 4570,
+      "endIndex": 4841,
+      "tabId": "t.jaljeq1rpes0",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14104,
+      "sha256": "5d742ca1b7f785e1d0ea74fd5fe6393f46dffd844c36922a108ddcd47aa854e0"
+    },
+    "core:P14111": {
+      "text": "Стоимость: -30\u000bРанги: 1\u000bТребование: Воля <5\u000bОписание: Вас мучают кошмары. Ночь для вас — время ужаса.\u000bНедостаток: Вы восстанавливаете Выносливость на 1 пункт меньше при отдыхе за сутки. Вы получаете -2 на все проверки в течение первого часа после пробуждения.",
+      "startIndex": 5711,
+      "endIndex": 5970,
+      "tabId": "t.jaljeq1rpes0",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14111,
+      "sha256": "a9b4743b334350cba3f50671e9e5600fbfae358850533ec24c30fcda8de599f0"
+    },
     "core:P14181": {
       "text": "ОСОБЫЕ НЕДОСТАТКИ (ПРИОБРЕТАЕМЫЕ В ИГРЕ)",
       "startIndex": 16211,
@@ -70,7 +140,637 @@
       "isListItem": false,
       "paragraph": 14182,
       "sha256": "36f5d4605567d6c3553b6bbcb3c7efbbc0092847adf533d9053908715142b38a"
+    },
+    "core:P14195": {
+      "text": "Для развития навыков, умений и способностей Вам, во-первых, нужен учитель, а во-вторых нужно время. Чем выше ранг, значение и стоимость тем больше времени нужно для развития.",
+      "startIndex": 71,
+      "endIndex": 245,
+      "tabId": "t.y0ilrqmlvnf",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14195,
+      "sha256": "2ef4f8848d4d8b8be409fff96295ff52e424d4559695786daff0d379c64c40a0"
+    },
+    "core:P14247": {
+      "text": "У всех существ есть одна реакция. Использование реакции позволяет уклоняться от атак, площадных эффектов и выстрелов вне своего хода. Помимо уклонения от атак реакция позволяет атаковать противника не в свой ход, когда последний провоцирует от Вас атаку. Разные навыки позволяют использовать реакцию новыми способами.",
+      "startIndex": 145,
+      "endIndex": 462,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14247,
+      "sha256": "49a6803d9d96d36bce8d695929e78ab1432ec1c76998794bc4e9bf7882d8910b"
+    },
+    "core:P14251": {
+      "text": "Каждый персонаж имеет 3 ОД, количество которых может меняться в зависимости от состояний и эффектов.",
+      "startIndex": 797,
+      "endIndex": 897,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14251,
+      "sha256": "94cd7d70d4cb1108554d68b78b5d1a00349d52c2b47dc140f460e85a710f9cfc"
+    },
+    "core:P14252": {
+      "text": "Последовательность однотипных проверок накладывает аккумулирующий штраф -2 на каждую проверку после первой, например:",
+      "startIndex": 898,
+      "endIndex": 1015,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14252,
+      "sha256": "a8b45c3291224d9a4ea58da0e6c1e825554f1ab7547be7a1d08a57c2a9056eff"
+    },
+    "core:P14253": {
+      "text": "Атаки как ближнего, так и дальнего боя.",
+      "startIndex": 1016,
+      "endIndex": 1055,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14253,
+      "sha256": "57732c7de873b18eba3e49cbddebce3fa6ddf2be409718ab114b8f489101ce72"
+    },
+    "core:P14254": {
+      "text": "Реакция как против площадных эффектов, так и для перекатов и спровоцированных атак. ",
+      "startIndex": 1056,
+      "endIndex": 1140,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14254,
+      "sha256": "225f43ce27ea0e0c08960a71e0aaf6f6eb773712830e6a3e73ab305544f0db9e"
+    },
+    "core:P14255": {
+      "text": "Проверки умений в одном раунде (Например маневры при вождении, верховой езде и т.д.)",
+      "startIndex": 1141,
+      "endIndex": 1225,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14255,
+      "sha256": "e87aecc7bbefd9748bb8c655a2a17171495e1b751db16d82f6798351ff22dd84"
+    },
+    "core:P14256": {
+      "text": " Штраф будет аккумулировать и в последующих раундах, пока Вы не потратите 1 ОД или 1 пункт выносливости чтобы сбросить штраф.",
+      "startIndex": 1226,
+      "endIndex": 1351,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14256,
+      "sha256": "4a4c253db455eb5efb56128a64c035fc793563b3776fccdde2db9611cf68f717"
+    },
+    "core:P14258": {
+      "text": "Когда Вы откладываете ОД, Вы заявляете каким будет это действие: атакующее, защитное или с условием (триггер-действие). Если ситуация, при которой должно было сработать отложенное действие - не происходит, то Вы теряете это действие.",
+      "startIndex": 1373,
+      "endIndex": 1606,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14258,
+      "sha256": "48be60bce282900a9e1eb5a4108e4f761938925af2fdbbde90e66158a7ea1983"
+    },
+    "core:P14265": {
+      "text": "Вы получаете +1 к Защите за каждое отложенное ОД до начала Вашего следующего хода.",
+      "startIndex": 1847,
+      "endIndex": 1929,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14265,
+      "sha256": "e6af4a813f29826f5c6f0a274072fda0bdddd538e0146eb287600d0715a30027"
+    },
+    "core:P14279": {
+      "text": "Для атаки кулаками, ногами, телом и прочими частями тела Вы проводите проверку 2d6 + ловкость / сила + рукопашный бой.",
+      "startIndex": 2823,
+      "endIndex": 2941,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14279,
+      "sha256": "5cf71eab89dd6cf4b0a1bc0b91b8ffeed76ffeb5bbc6078f58b46d8342cf1d03"
+    },
+    "core:P14280": {
+      "text": "Для атаки оружием Вы проводите проверку 2d6 + ловкость / сила + холодное оружие.",
+      "startIndex": 2942,
+      "endIndex": 3022,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14280,
+      "sha256": "d368f32c8ea4667787af281f4df663a6680191fe577dc8bdf2903d5fbd0be229"
+    },
+    "core:P14281": {
+      "text": "Для атаки из луков, рогатки и иного примитивного стрелкового оружия Вы проводите проверку 2d6 + ловкость + стрельба.",
+      "startIndex": 3023,
+      "endIndex": 3139,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14281,
+      "sha256": "41a35bd1425b57a558e2fc88a3c134ff87387a0bb7b09785938add068277a5c7"
+    },
+    "core:P14291": {
+      "text": "Если при броске атаки на 2d6 выпало «6» и «6» с условием что этого достаточно чтобы попасть, то попадание считается критическим, и противник получает критический урон и/или последствие.",
+      "startIndex": 4529,
+      "endIndex": 4714,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14291,
+      "sha256": "b4765f7e0ae321ad9881f75f793151738b2b8e5fe866a2bb02a57a90f787b27c"
+    },
+    "core:P14292": {
+      "text": "Если при выпадении на 2d6 выпало  «6» и «6», но результата недостаточно для попадания, то Вы получаете кость превосходства для этой проверки.",
+      "startIndex": 4715,
+      "endIndex": 4856,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14292,
+      "sha256": "35b8b7f6638ed1be98e6655d549ad95ea5ad3e473e4aee83297c9f3b364c22bd"
+    },
+    "core:P14295": {
+      "text": "При критическом попадании Вы наносите урон как обычно и умножаете только основной урон на 1,5, а дополнительный урон (например подлая атака) не умножается. ",
+      "startIndex": 5064,
+      "endIndex": 5220,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14295,
+      "sha256": "cce0f2d99f507ca7fc25afdd6a16bd9432c399fd402157e80e8e63a8c3a9161b"
+    },
+    "core:P14296": {
+      "text": "Умножается только тот урон что цель фактически получ",
+      "startIndex": 5221,
+      "endIndex": 5273,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14296,
+      "sha256": "8b6b97f0bde2dbeb15b8a1b6ceb746c1a0ff9206cacd8d7481b9a9f8270817d0"
+    },
+    "core:P14308": {
+      "text": "Если Вы не владеете оружием, то получаете штраф -2 на все проверки атаки, в том числе при исполнении боевых маневров. ",
+      "startIndex": 6542,
+      "endIndex": 6660,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14308,
+      "sha256": "dd5632f2b75bd67c1570354af4fb96bf9fa35b9db4db7070d5fd369b733b7dda"
+    },
+    "core:P14457": {
+      "text": "Атакуя противника за 1 ОД или реакцией (спровоцированная атака) Вы можете атаковать оружием в каждой руке или двумя рукопашными атаками. ",
+      "startIndex": 10736,
+      "endIndex": 10873,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14457,
+      "sha256": "1fa29c3e42da6b1e89c461ce019dec2c99daffb8a2518bf329efa9bf76350d34"
+    },
+    "core:P14458": {
+      "text": "На такую проверку Вы получаете штраф -4 (мультидействие (-2), штраф неосновной руки (-2)), но за превышение защиты на 3 попадает вторая атака.",
+      "startIndex": 10874,
+      "endIndex": 11016,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14458,
+      "sha256": "3f4d23cf86bbce87744811d7fc256b9fd7e7822a2c928660882f0d4542fb5bd8"
+    },
+    "core:P14478": {
+      "text": "Вы можете атаковать оружием в каждой руке за 1 ОД как мультидействие. При этом Вы получаете штраф мультидействия -2 к атаке.",
+      "startIndex": 12726,
+      "endIndex": 12850,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14478,
+      "sha256": "3abde15137db19749d879c5913fee727fe6ff268e5b32d6f757d2cf3efa7dc79"
+    },
+    "core:P14495": {
+      "text": "В начале своего хода Вы можете заявить блокирование всех атак и проходите обычную проверку блокирования, уменьшая входящий урон. Каждая атака по Вам после первой накладывает штраф -2 на результат Вашей проверки и Вы не можете использовать парирование как защитное действие или как часть реакции.",
+      "startIndex": 14308,
+      "endIndex": 14603,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14495,
+      "sha256": "87bcb2a4273dfe72d1d0e187cd769ed8987f027952828c295bc39efae035cadc"
+    },
+    "core:P14604": {
+      "text": "Используя метательное оружие и некоторое стрелковое (луки, рогатки, праща) Вы используете силу или ловкость для проверки атаки (см. специальные свойства оружия).",
+      "startIndex": 23038,
+      "endIndex": 23199,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14604,
+      "sha256": "963f5a6dafef8f7624d23a81a36a7e4182b5af6735824a34dcdc3c42a483fc9e"
+    },
+    "core:P14606": {
+      "text": "Если у Вас нет владения стрелковым оружием, Вы получаете штраф -2 на проверки атаки, а перезарядка занимает вдвое больше времени.",
+      "startIndex": 23312,
+      "endIndex": 23441,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14606,
+      "sha256": "57f6ade1ffd5967b5101a5809c0c4df69eb47cd2a54728e44fc6be71ae2fe880"
+    },
+    "core:P14734": {
+      "text": "За 1 ОД или реакцию вы можете переместиться на 2 метра, за 2 ОД на базовое значение бега, а за 3 ОД на полное значение бега.",
+      "startIndex": 29625,
+      "endIndex": 29749,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14734,
+      "sha256": "34fb8f2675b03ccc725771982ab37bcc69cd557ed514e82b87adcee372103fea"
+    },
+    "core:P14740": {
+      "text": "Сложность попадания по движущейся цели увеличивается на 1 за каждые пройденные 5 метров в ходу. Но при этом затрачивая весь ход на бег цель теряет бонус ловкости в защиту. ",
+      "startIndex": 30283,
+      "endIndex": 30455,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14740,
+      "sha256": "e9c702c76a192395566fc5a460b8fd8845cc41148c161fc0a582a6c289d6cdd5"
+    },
+    "core:P14765": {
+      "text": "Существо не может действовать нормально. Изумленное существо не может принимать каких-либо действий, но не получает никаких штрафов к Защите. Изумление обычно заканчивается через 1 раунд. Является психическим эффектом.",
+      "startIndex": 32535,
+      "endIndex": 32753,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14765,
+      "sha256": "37d7cd68bfb3ca528d5af5abedd4146a0005f8de9cc43dfe4ac562baf7bd6a90"
+    },
+    "core:P14783": {
+      "text": "Истощенный персонаж двигается в половину бега, получает штраф -3 к защите, рефлексам, инициативе, а на проверки физических характеристик штраф -2 и две помехи. После 1 дня полноценного отдыха, персонаж становится уставшим. Уставший персонаж становится истощенным, если теряет или тратит 1 выносливости. ",
+      "startIndex": 34083,
+      "endIndex": 34386,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14783,
+      "sha256": "8b1898ebec5544b9799f6ebd64037bafed801ee41cce9d02e6505615d041ea52"
+    },
+    "core:P14799": {
+      "text": "Когда персонаж получает урон во время своего действия или получает урон равный стойкости, он считается ошеломленным. В состоянии ошеломления цель теряет 1 ОД или прерывается текущее действие. Если существо под длительным эффектом ошеломления снова попадает под этот эффект, то оно оглушается на 1 раунд или продлевается длительность действия.",
+      "startIndex": 35376,
+      "endIndex": 35718,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14799,
+      "sha256": "777b18bbd561bbc7ef637e5daa303324023af59cee935934e76806b29a045bc7"
+    },
+    "core:P14801": {
+      "text": "Оглушенные существа роняют все из рук, получают -2 Защита и теряют все ОД. Оглушение обозначается как Оглушение /Х , где Х это длительность в раундах.",
+      "startIndex": 35730,
+      "endIndex": 35880,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14801,
+      "sha256": "ca413ed17e9ad590564f70b056c63f32b3ba519d83b05b820a2e1c7391122bc8"
+    },
+    "core:P14803": {
+      "text": "Отравленные существа получают помеху на проверку всех характерик.",
+      "startIndex": 35892,
+      "endIndex": 35957,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14803,
+      "sha256": "7371e1960adf5eb89bc06c4af6d5d57f63d52602c687683a556b15b592e0fad7"
+    },
+    "core:P14805": {
+      "text": "Воодушевленный персонаж получает +1 моральный бонус на все проверки. Следующий эффект деморализации или схожий нейтрализует воодушевление и не оказывает больше никаких эффектов. Воодушевленное существо не получает никакие моральные штрафы.",
+      "startIndex": 35973,
+      "endIndex": 36212,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14805,
+      "sha256": "89bb58786a63366e0505abbe73bcd468b2353804e326b94593ef3af15c8022a1"
+    },
+    "core:P14807": {
+      "text": "Деморализованный персонаж получает -1 моральный штраф на все проверки. Следующий эффект воодушевления или схожий нейтрализует деморализацию и не оказывает больше никаких эффектов. Деморализованное существо не получает никакие моральные бонусы.",
+      "startIndex": 36228,
+      "endIndex": 36471,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14807,
+      "sha256": "2cc4190e72c1043c4cd69e0efbec65391b1a040e0d4d38e6b0ceb4378888a122"
+    },
+    "core:P14818": {
+      "text": "Нелетальный урон, вызывающий боль и не повреждающий ткани. Нелетальный урон восстанавливается на 1 в час или с помощью обезболивающих.",
+      "startIndex": 37043,
+      "endIndex": 37177,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14818,
+      "sha256": "9bff7c4ce365164fe39cf851c5fda13b122c5bb1576acd292890392829205339"
+    },
+    "core:P14854": {
+      "text": "Ошеломленная или оглушенная цель, получившая урон звуком или взрывом, считается контуженной.",
+      "startIndex": 40388,
+      "endIndex": 40480,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14854,
+      "sha256": "d05b3bce9075fa76d2284116bf9543a6e5b12810aff73292b38cec94a1d676f0"
+    },
+    "core:P14855": {
+      "text": "Существо с эффектом контузии получает –4 к проверкам связанным со слухом и к инициативе.",
+      "startIndex": 40481,
+      "endIndex": 40569,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14855,
+      "sha256": "29ce65f7419791eb61c81fb6427afdf01574a786e8805eeeea5aa757f69f64a2"
+    },
+    "core:P14873": {
+      "text": "Контузия: Цель под эффектом контузии в начале своего хода с 50% шансом не может действовать, только использовать реакцию для защитных маневров. Длительность: 1d3",
+      "startIndex": 42283,
+      "endIndex": 42444,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14873,
+      "sha256": "eb8566d6292e62b330481f5b5c7278d321a44f7d4f7a50066ba73bbe4e8f698e"
+    },
+    "core:P14881": {
+      "text": "Цель под эффектом гниения каждый раунд цель теряет 1 максимального запаса здоровья в течении 3 раундов, а также:",
+      "startIndex": 43066,
+      "endIndex": 43178,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14881,
+      "sha256": "75a380a4434d993ea1c4fe32cd302ed651f91ab464b91ab507c9e88f7d385980"
+    },
+    "core:P14884": {
+      "text": "Исцеляющие эффекты прекращают гниение, но только в том случае если было исцелено больше здоровья, чем длилось гниение.",
+      "startIndex": 43323,
+      "endIndex": 43441,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14884,
+      "sha256": "a5a6582381930acedf08c14f8cd2c8e6da929f6d4ba1a8e18b1582bf15014f34"
+    },
+    "core:P14885": {
+      "text": "Исцеляющие и лечащие эффекты слабее на 50%.",
+      "startIndex": 43442,
+      "endIndex": 43485,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14885,
+      "sha256": "884f09ff013a9098e922ef4d4eab64198a47efd05bdfec03b58eccfcbd9176c0"
+    },
+    "core:P14893": {
+      "text": "Весь основной урон умножается в случае критического попадания и попадания в уязвимые точки. Умножается только тот урон, который Вы фактически нанесли.",
+      "startIndex": 43747,
+      "endIndex": 43897,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14893,
+      "sha256": "04cc2d4f56c994b79701bbba67f3a3133ec259039647d455bdd8785108614956"
+    },
+    "core:P14901": {
+      "text": "Дополнительный урон не умножается в случае критических попаданий и попаданий в уязимые точки.",
+      "startIndex": 44107,
+      "endIndex": 44200,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14901,
+      "sha256": "1564d03992f49a5c074aa21334ce0e289aea2850207e2e1308acace454a3ce21"
+    },
+    "core:P14903": {
+      "text": "Урон, равный или превышающий стойкость цели считается массивным. ",
+      "startIndex": 44217,
+      "endIndex": 44282,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14903,
+      "sha256": "e826645ba50ac6c453c4cd52f23fa3e8a5193e563e1507605d726909c172c0fc"
+    },
+    "core:P14905": {
+      "text": "Получение массивного урона требует проверки стойкости чтобы избежать частично или полностью негативных последствий.",
+      "startIndex": 44391,
+      "endIndex": 44506,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 14905,
+      "sha256": "84d65e359c41fc41e1ba0e4fd415e63e7bf3bf3cc4d007e573fe409d1d9b2aff"
+    },
+    "core:P14912": {
+      "text": "СЛ 20 чтобы избежать последствия.",
+      "startIndex": 44762,
+      "endIndex": 44795,
+      "tabId": "t.sb8vo7vvy7e7",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 14912,
+      "sha256": "f221c746125597a27588a64c9c961ed8e9c642d576081ea6293ffde0f8371837"
+    },
+    "core:P15376": {
+      "text": "Правило: Персонаж может иметь количество имплантов, равное половине значения Телосложения (округленное вниз). Превышение лимита приводит к штрафам (истощение, уязвимость к определенным типам урона).",
+      "startIndex": 153,
+      "endIndex": 351,
+      "tabId": "t.6etnrv4601ml",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 15376,
+      "sha256": "e20064c97815cb58f2ad55272dd2e86d4207bd00a5fd191138ed1ee3d135fa6b"
+    },
+    "core:P15391": {
+      "text": "Каждое существо имеет лимит имплантов равный телосложению или воле. Превышение лимита приводит к сбою в работе всех имплантов.",
+      "startIndex": 1546,
+      "endIndex": 1672,
+      "tabId": "t.6etnrv4601ml",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 15391,
+      "sha256": "f3772601fe00df95c1dea5bf59892771ec640293ce8a14e1beb7f39a87cdcaa4"
+    },
+    "core:P15401": {
+      "text": "Базовый лимит имплантов равен наибольшему из размера, воли или телосложения существа. Чем больше лимит заполняется - тем большее влияние на организм носителя он оказывает.",
+      "startIndex": 728,
+      "endIndex": 899,
+      "tabId": "t.5qz1gk20m91e",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 15401,
+      "sha256": "649270065eb0d1906c3ff323607d7f8909064f872c71d4cadd97450a26e947c0"
+    },
+    "core:P209": {
+      "text": "\tСинергирующие умения - два или более умений которые могут использоваться совместно для прохождения одной и той же проверки. Например - медицина и знание (Анатомия) для лечения сложных переломов.",
+      "startIndex": 24,
+      "endIndex": 219,
+      "tabId": "t.wfj2dohj8fc5",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 209,
+      "sha256": "a7396a1e63951d6467ede4f09cc6cd1e7233016feda1ee048aeb08bfe9c635bc"
+    },
+    "core:P210": {
+      "text": "В ситуациях, когда Вы применяете синергию умений, Вы имеете право использовать наиболее высокоранговое умение, прибавив к нему значение половины меньшего из синергирующих умений.",
+      "startIndex": 220,
+      "endIndex": 398,
+      "tabId": "t.wfj2dohj8fc5",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 210,
+      "sha256": "313be05675ce393f031c8810dbe8c2cf93a2dcde46463e963bdc36074cb55f77"
+    },
+    "core:P219": {
+      "text": "При выпадении двух шестерок Вы получаете кость превосходства. ",
+      "startIndex": 1516,
+      "endIndex": 1578,
+      "tabId": "t.wfj2dohj8fc5",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 219,
+      "sha256": "a802e22b8a5a59abe9b571a5198f8b1043d8de1c78d1808661b30d6cb59a6ac9"
+    },
+    "core:P223": {
+      "text": "Когда у Вас есть много времени, Вы можете использовать данный прием. Он применим к тем проверкам у которых нет критического провала. Вы тратите в 10 раз больше времени и считается что при проверке выпало “6” и “6” на дайсах.",
+      "startIndex": 1845,
+      "endIndex": 2069,
+      "tabId": "t.wfj2dohj8fc5",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 223,
+      "sha256": "4b0f390b4ffcd99e1b6cb18971c4ddd266f60da1f87104e9f0655b4246518e61"
+    },
+    "core:P34": {
+      "text": "Одно Преимущество позволяет игроку бросить одну дополнительную кость d6 к проверке и выбрать 2 наибольших результата. Если Преимуществ больше одного, то и дополнительных кубов будет несколько.\u000b",
+      "startIndex": 4465,
+      "endIndex": 4658,
+      "tabId": "t.0",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 34,
+      "sha256": "95feec5e5c85f761450cbf6df72cd8c5aaa7a20cffa0d75262d39b73a0b28487"
+    },
+    "core:P35": {
+      "text": "Аналогично работает и Помеха, только из трех или более костей d6 игрок выбирает 2 наименьших..",
+      "startIndex": 4659,
+      "endIndex": 4753,
+      "tabId": "t.0",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 35,
+      "sha256": "fec29822887c5d568b2e3338498ba439d72713a3d7e6b12c1ae2e2457068b946"
+    },
+    "core:P37": {
+      "text": "В случае выпадения двух шестерок, проверка считается Критическим Успехом и имеет позитивный эффект. Также игрок получает кость Превосходства, которая позволяет ему бросить дополнительную кость d6 и добавить её значение к своему результату. Если после двух шестерок выпадает третья, то это считается Подтвержденным Критическим Успехом, а результат такой проверки считается невероятным везением.",
+      "startIndex": 5134,
+      "endIndex": 5527,
+      "tabId": "t.0",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 37,
+      "sha256": "0cf3303a3aafd4ab299ff968bb6937022d5e8d02023f14f55d2611f0d23b1569"
+    },
+    "core:P45": {
+      "text": "Некоторые проверки несут в себе риски для жизни, здоровья или негативные последствия в целом. Риск - представляет из себя диапазон от 1 до 4, выйдя за который проверка считается критическим провалом. Так, например, прыжок через горящий обруч имеет сложность 14, с риском 2. Это означает что если результат проверки атлетика+сила будет меньше на 2+ (12 и меньше), то провал считается критическим и Вы не только не перепрыгнули сквозь обруч, но и загорелись. Если же результат проверки входит в диапазон риска (в нашем случае это значение 11), то прыжок сквозь обруч успешен, но Вы загораетесь. Чем менее опасен риск - тем шире диапазон.",
+      "startIndex": 29,
+      "endIndex": 664,
+      "tabId": "t.uwh7w9mcuo4t",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 45,
+      "sha256": "2c3c42eb47b7d973d42b0af6f422ffbc5139f2a2c7259b47bf70c270f487320e"
+    },
+    "core:P8235": {
+      "text": "Ускорение: Вы можете ускорить процесс вдвое, получая помеху и штраф -2 на проверку. Штраф можно брать несколько раз (но не более 3 раз, итого максимальное ускорение — в 4 раза).",
+      "startIndex": 5222,
+      "endIndex": 5399,
+      "tabId": "t.8kwp44o5n6y5",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 8235,
+      "sha256": "e786da3c1efe23c6a4988f70d03b51f2d3518b2843185194d1dd38cdcd6ce844"
+    },
+    "core:P885": {
+      "text": "Восстановление: Персонаж восстанавливается после 1 часа отдыха (Ослабленный) или 1 дня отдыха (Истощённый).",
+      "startIndex": 16105,
+      "endIndex": 16212,
+      "tabId": "t.dtv8o9lc5kua",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 885,
+      "sha256": "93a2dc9f9f524c80fc2f3e994dabf20ab56b9e930c189845e9e5ee71b8f5795a"
+    },
+    "core:P889": {
+      "text": "Бег и защита: Персонаж, который бежит весь раунд, теряет бонус Ловкости к Защите (минимум -4), но получает создает 1 НФ для стрелковых атак за каждые пройденные 10 метров.",
+      "startIndex": 16435,
+      "endIndex": 16606,
+      "tabId": "t.dtv8o9lc5kua",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": true,
+      "paragraph": 889,
+      "sha256": "a4754e630966dba0a39e2c2a647a2bd27b63c837dadb7160c0a3f72f966becc9"
+    },
+    "core:P9873": {
+      "text": "Если вы не владеете оружием: Вы получаете Помеху на каждую атаку. При наличии перезарядки для оружия это время увеличивается в 2 раза, либо вы не можете сделать этого.",
+      "startIndex": 668,
+      "endIndex": 835,
+      "tabId": "t.8ytvz7nqjhpl",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 9873,
+      "sha256": "5650e1803eccc95de4bd495f9ec39fe6b463efb312ed5ac09fff9230594b0682"
+    },
+    "core:P9880": {
+      "text": "2d6 + Ловкость + Рукопашный бой",
+      "startIndex": 1081,
+      "endIndex": 1112,
+      "tabId": "t.8ytvz7nqjhpl",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 9880,
+      "sha256": "aee7784f0d24f9a9fbb3b7165cc9222afc3c029fa78826b3076bdb55cd2ca7e6"
+    },
+    "core:P9883": {
+      "text": "2d6 + Ловкость + Холодное оружие",
+      "startIndex": 1164,
+      "endIndex": 1196,
+      "tabId": "t.8ytvz7nqjhpl",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 9883,
+      "sha256": "aaa1378ad8af8725bda8b2a1bf91a77a99f192af2da00657b487ef6668edf6be"
+    },
+    "core:P9897": {
+      "text": "Особое: Некоторые виды оружия (например, сбалансированное) могут использовать Силу или Ловкость на выбор. Некоторые виды оружия (например, тяжёлое) всегда используют Силу.",
+      "startIndex": 1473,
+      "endIndex": 1644,
+      "tabId": "t.8ytvz7nqjhpl",
+      "namedStyleType": "NORMAL_TEXT",
+      "isListItem": false,
+      "paragraph": 9897,
+      "sha256": "9db57d51b8e128c463c90d5327da319c290b65adb1adf5021f676bb4b72aa7d7"
     }
   },
-  "projectionSha256": "22a99afa27e9c0cdde38c648b89fd460d25ff383e1b497d7bd4987b2594c2f73"
+  "projectionSha256": "da7954c340d5176500351cacd16369d8274f8cd57ee95b7b7d8c6a91dc5a18f7"
 }

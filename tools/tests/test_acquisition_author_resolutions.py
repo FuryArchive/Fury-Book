@@ -53,7 +53,10 @@ def test_exact_immutable_inputs_and_separate_author_records():
     assert set(author) == {FIXED, CARRY, INITIAL}
     assert author[CARRY]['approvalReference']['messageIds'][-1] == 'Sentinel_496e683f65d0819188c901fc23970cf7'
     excerpts = json.loads((DATA/'source_review_excerpts.json').read_text())['sourceEvidence']
-    assert set(excerpts) == {f'core:P{p}' for p in [11903, 14075, 14077, 14078, 14181, 14182]}
+    assert len(excerpts) == 76
+    assert {f'core:P{p}' for p in [11903, 14075, 14077, 14078, 14181, 14182]} <= set(excerpts)
+    from tools.rulebook.acquisition_audit_projection import validate_projection
+    assert validate_projection(ROOT)['additionalExcerpts'] == 70
     assert excerpts['core:P11903']['sha256'] == 'f3b4ccae764f982dd7db5eb152f1736a48f43ccdc671a75c0a3c59858e59ccbc'
 
 
