@@ -149,3 +149,15 @@ Real Desktop tests ran in three separate JVM phases: migrate; reopen, replay, re
 All 89 non-UI shared sources plus real Desktop storage compiled. The 134 action/journal/codec/envelope/service/Undo assertions and 49 existing acquisition JUnit tests passed against this migration model. Python test entry points are registered; direct Kotlin/JVM execution is the evidence in this environment.
 
 No user data was migrated: all migration runs used isolated test directories. Default production format/read/write gates remain disabled. Android/Web migration adapters, UI confirmation, event durations, physical/built-in dice integration and full rollout acceptance are still open. Current format 2 is a pre-release opt-in development format, not an enabled public persistence contract.
+
+### 2026-10-14: Android opt-in gameplay storage adapter
+
+Implemented explicit backed-up format migration, strict format transition refusal in ordinary CAS,
+owner/source fencing, exact original backup export and format-2 roster loading in the Android file adapter.
+The gate remains disabled by default; no production character was migrated.
+
+Verification: compiled the real Android adapter with Kotlin 2.4.20 against Android API classes and
+injected JVM file operations. Seven host JUnit tests passed (four existing storage tests and three
+new gameplay migration/fault/export tests). Separate host JVM start, reopen/Undo and final reopen
+phases passed. This is not Android device/native Os validation, not a Compose or Gradle build,
+and not a new APK. The browser adapter and UI integration remain separate unfinished work.
