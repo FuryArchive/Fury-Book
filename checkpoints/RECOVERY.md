@@ -1,9 +1,7 @@
-# Furybook backups
+# Furybook recoverable checkpoint
 
-Backup branch only. Main is unchanged. No deployment.
+Current source: 6cb1d5f996242459612bcba673d4c86d0d41e363
 
-Clone the full bundle inside latest.zip, then fetch and checkout HEAD from each incremental bundle in current.manifest.json, in the listed order. Keep the base archive and all four bundles. Run git fsck --full.
+Extract checkpoints/latest.zip and clone its repository.bundle. Apply each bundle from current.manifest.json in order using git fetch /absolute/path/to/bundle HEAD then git checkout --detach FETCH_HEAD. Verify SHA-256 before applying each bundle and run git fsck --full. The final tree must equal a22772a06b0abe32d5b2caba743217bc1388718f. Older base manifest describes the immutable base, not the current checkpoint.
 
-Expected source HEAD: 33fce1c341cedffea6f88503397a301eaa309794.
-
-Includes shared action kernel, opt-in journal, durable Desktop action/Undo and backed-up local migration. UI, Android/Web adapters, event durations and full platform acceptance remain open. Production defaults remain disabled.
+Production gates disabled; no user data migrated. Browser runtime blocked by local test-server connection refusal. Android native/device acceptance, full UI integration, durations and full platform builds remain open. Not a new APK or deployment.
