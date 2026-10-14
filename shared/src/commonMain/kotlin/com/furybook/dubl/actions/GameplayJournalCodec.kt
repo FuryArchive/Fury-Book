@@ -7,6 +7,8 @@ internal fun encodeGameplayJournal(value: GameplayJournal, characterId: String):
     value.validate(characterId)
     return jsonObject("revision" to decimal(value.revision), "pending" to encodePending(value.pending),
         "lastCommittedStorageRevision" to (value.lastCommittedStorageRevision?.let(::decimal) ?: JsonValue.Null),
+        "migration" to (value.migration?.let { jsonObject("operationId" to jsonString(it.operationId),
+            "sourceRaw" to jsonString(it.sourceRaw), "sourceStorageRevision" to decimal(it.sourceStorageRevision)) } ?: JsonValue.Null),
         "receipts" to jsonArray(value.receipts.map { r -> jsonObject(
             "request" to encodeRequest(r.request), "beforeRevision" to decimal(r.beforeRevision),
             "afterRevision" to decimal(r.afterRevision), "enduranceBefore" to jsonNumber(r.enduranceBefore),
@@ -17,7 +19,7 @@ internal fun encodeGameplayJournal(value: GameplayJournal, characterId: String):
 }
 
 internal fun decodeGameplayJournal(value: JsonValue, characterId: String): GameplayJournal {
-    val root = value.objectWith("revision", "pending", "receipts", "lastCommittedStorageRevision")
+    val root = value.objectWith("revision", "pending", "receipts", "lastCommittedStorageRevision", "migration")
     val receipts = (root.field("receipts") as? JsonValue.Arr)?.values ?: error("Gameplay receipts must be an array")
     return GameplayJournal(root.long("revision"), decodePending(root.field("pending")), receipts.map { value ->
         val r = value.objectWith("request", "beforeRevision", "afterRevision", "enduranceBefore", "enduranceAfter",
@@ -26,7 +28,11 @@ internal fun decodeGameplayJournal(value: JsonValue, characterId: String): Gamep
             r.int("enduranceBefore"), r.int("enduranceAfter"), decodePending(r.field("pendingBefore")),
             decodePending(r.field("pendingAfter")), r.bool("weakBefore"), r.bool("weakAfter"),
             r.bool("resourceConsequencesKnownBefore"))
-    }, if (root.field("lastCommittedStorageRevision") == JsonValue.Null) null else root.long("lastCommittedStorageRevision"))
+    }, if (root.field("lastCommittedStorageRevision") == JsonValue.Null) null else root.long("lastCommittedStorageRevision"),
+        if (root.field("migration") == JsonValue.Null) null else root.field("migration")
+            .objectWith("operationId", "sourceRaw", "sourceStorageRevision").let {
+                GameplayMigrationProof(it.text("operationId"), it.text("sourceRaw"), it.long("sourceStorageRevision"))
+            })
         .also { it.validate(characterId) }
 }
 

@@ -6,22 +6,33 @@ class GameplayJournal(
     val pending: PendingPhysicalCheck? = null,
     receipts: List<GameplayReceipt> = emptyList(),
     val lastCommittedStorageRevision: Long? = null,
+    val migration: GameplayMigrationProof? = null,
 ) {
     private val saved = receipts.toList()
     val receipts: List<GameplayReceipt> get() = saved.toList()
     fun copy(revision: Long = this.revision, pending: PendingPhysicalCheck? = this.pending,
         receipts: List<GameplayReceipt> = this.receipts,
-        lastCommittedStorageRevision: Long? = this.lastCommittedStorageRevision) =
-        GameplayJournal(revision, pending, receipts, lastCommittedStorageRevision)
+        lastCommittedStorageRevision: Long? = this.lastCommittedStorageRevision,
+        migration: GameplayMigrationProof? = this.migration) =
+        GameplayJournal(revision, pending, receipts, lastCommittedStorageRevision, migration)
     override fun equals(other: Any?): Boolean = other is GameplayJournal &&
         revision == other.revision && pending == other.pending && saved == other.saved &&
-        lastCommittedStorageRevision == other.lastCommittedStorageRevision
-    override fun hashCode(): Int = listOf(revision, pending, saved, lastCommittedStorageRevision).hashCode()
+        lastCommittedStorageRevision == other.lastCommittedStorageRevision && migration == other.migration
+    override fun hashCode(): Int = listOf(revision, pending, saved, lastCommittedStorageRevision, migration).hashCode()
 
     /** Re-execute each typed receipt, never trust a claimed cost or success marker. */
     fun validate(characterId: String) {
         require(revision >= 0 && characterId.isNotBlank())
         require(lastCommittedStorageRevision == null || lastCommittedStorageRevision >= 0)
+        migration?.let { proof ->
+            require(proof.operationId.isNotBlank())
+            val source = (com.furybook.dubl.acquisition.decodeEnvelope(proof.sourceRaw) as?
+                com.furybook.dubl.acquisition.LoadResult.Loaded)?.state ?: error("Invalid migration source")
+            require(source.formatVersion == 1 && source.character.id == characterId && source.storageRevision == proof.sourceStorageRevision)
+            require(source.outbox.isEmpty() && source.syncMetadata == com.furybook.dubl.acquisition.SyncMetadata(0) && source.syncProofs.isEmpty())
+            require(lastCommittedStorageRevision != null && lastCommittedStorageRevision > proof.sourceStorageRevision)
+            require(saved.none { it.request.operationId == proof.operationId }) { "Migration ID reused for gameplay" }
+        }
         require(saved.size.toLong() == revision) { "Gameplay history is truncated" }
         require(saved.map { it.request.operationId }.distinct().size == saved.size) { "Duplicate gameplay ID" }
         var previous: PendingPhysicalCheck? = null

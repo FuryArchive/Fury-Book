@@ -2,6 +2,7 @@ package com.furybook.dubl.data
 
 import com.furybook.core.json.*
 import com.furybook.dubl.acquisition.*
+import com.furybook.dubl.actions.*
 import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.charset.CodingErrorAction
@@ -19,6 +20,7 @@ enum class DesktopAcquisitionWriteStage {
     AfterTempFlush, BeforeReplace, AfterReplace, AfterDirectoryFlush,
     AfterDirectoryCreate, BeforeAncestorDirectoryFlush,
     BeforeRecoveryFileFlush, BeforeRecoveryDirectoryFlush, AfterRecoveryDurability,
+    AfterGameplayBackup, BeforeGameplayHeadReplace,
 }
 
 /**
@@ -42,6 +44,49 @@ class DesktopAcquisitionStore(
 
     fun envelopePath(characterId: String): Path = container.resolve("${key(characterId)}.json")
     val storageIdentity: String get() = container.toString()
+
+    /** Only an explicitly reviewed isolated-local request reaches this path; ordinary CAS cannot upgrade. */
+    suspend fun migrateGameplay(request: GameplayMigrationRequest): GameplayMigrationResult {
+        if (!gameplayFormatEnabled) return GameplayMigrationResult.Blocked("Gameplay migration is not enabled")
+        return try {
+            locked(request.characterId) {
+                require(request.operationId.isNotBlank()) { "Missing migration ID" }
+                val backupDirectory = container.resolve("gameplay-migration-backups")
+                val backup = backupDirectory.resolve("${key(request.characterId + "\u0000" + request.operationId)}.json")
+                val current = loadLocked(request.characterId)
+                val state = (current as? LoadResult.Loaded)?.state
+                    ?: return@locked GameplayMigrationResult.Blocked("Canonical source is unavailable; preserve existing bytes")
+                if (state.formatVersion == 2) {
+                    val proof = state.gameplay?.migration
+                    if (proof?.operationId != request.operationId || proof.sourceStorageRevision != request.expectedStorageRevision ||
+                        canonicalJson(proof.sourceRaw) != request.expectedSourceCanonical)
+                        return@locked GameplayMigrationResult.Blocked("Different or already completed migration")
+                    require(readIfExists(backup) == proof.sourceRaw) { "Migration backup is missing or differs" }
+                    FileChannel.open(backup, WRITE).use { it.force(true) }
+                    forceDirectory(backupDirectory)
+                    return@locked GameplayMigrationResult.AlreadyMigrated(backup.toString())
+                }
+                val sourceRaw = checkNotNull(readIfExists(envelopePath(request.characterId))) { "Missing canonical source" }
+                val next = prepareGameplayMigration(state, sourceRaw, request)
+                createDirectoriesDurably(backupDirectory)
+                val saved = readIfExists(backup)
+                if (saved != null) {
+                    require(saved == sourceRaw) { "Migration ID already has a different backup" }
+                    FileChannel.open(backup, WRITE).use { it.force(true) }
+                    forceDirectory(backupDirectory)
+                } else durableReplace(backup, sourceRaw)
+                require(readIfExists(backup) == sourceRaw) { "Backup verification failed" }
+                fault(DesktopAcquisitionWriteStage.AfterGameplayBackup)
+                fault(DesktopAcquisitionWriteStage.BeforeGameplayHeadReplace)
+                durableReplace(envelopePath(request.characterId), encodeEnvelope(next))
+                GameplayMigrationResult.Migrated(backup.toString())
+            }
+        } catch (failure: IllegalArgumentException) {
+            GameplayMigrationResult.Blocked(failure.message ?: "Invalid migration review")
+        } catch (failure: Exception) {
+            GameplayMigrationResult.StorageFailure(failure.message ?: "Migration outcome uncertain; retain the same operation ID")
+        }
+    }
 
     /** Presence/uncertainty is protection, never write capability or an inferred migration. */
     fun hasProtectedHeads(): Boolean = try {
@@ -194,7 +239,8 @@ class DesktopAcquisitionStore(
             fault(DesktopAcquisitionWriteStage.BeforeReplace)
             Files.move(temp, path, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
             fault(DesktopAcquisitionWriteStage.AfterReplace)
-            forceDirectory(container)
+            // Head files live in container; migration backups have their own directory entry.
+            forceDirectory(path.parent)
             fault(DesktopAcquisitionWriteStage.AfterDirectoryFlush)
         } finally { Files.deleteIfExists(temp) }
     }

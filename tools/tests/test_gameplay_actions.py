@@ -50,3 +50,15 @@ def test_gameplay_undo_preserves_receipts_and_blocks_dependencies():
     from tools.tests.kotlin_harness_support import run_harness
     result = run_harness(Path(__file__).parent / "kotlin/GameplayUndoHarness.kt")
     assert "GameplayUndoHarness: 16 assertions passed" in result.stdout
+
+
+def test_gameplay_migration_backups_and_restarts():
+    from tools.tests.kotlin_harness_support import run_harness
+    root = Path(__file__).resolve().parents[2]
+    sources = [root / "shared/src/desktopMain/kotlin/com/furybook/dubl/data" / name for name in (
+        "DesktopCharacterStore.kt", "DesktopCharacterExtrasStore.kt", "DesktopAcquisitionStore.kt")]
+    with tempfile.TemporaryDirectory(prefix="furybook-gameplay-migration-") as directory:
+        for phase in ("migrate", "reopen", "faults"):
+            result = run_harness(Path(__file__).parent / "kotlin/GameplayMigrationHarness.kt",
+                                 extra_sources=sources, args=(directory, phase))
+            assert f"GAMEPLAY_MIGRATION_PHASE_OK:{phase}" in result.stdout
