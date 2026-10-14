@@ -131,3 +131,11 @@ Executed evidence (not inferred from source):
 - All 88 non-UI shared Kotlin sources plus the three real Desktop storage classes compiled. No Compose/platform UI build, Android/Web runtime test, full monetary matrix or full regression rerun in this block.
 
 Still open: backup-backed user migration, Undo, events/durations, UI physical/built-in dice flow and rollout acceptance. The current implementation does not turn existing characters into format 2 or claim complete automation.
+
+## 2026-10-14: guarded local gameplay Undo
+
+Added typed Undo with inverse receipts, not history deletion. Only the last independent local gameplay operation can be undone, never an Undo itself. A resolved check prevents undoing its start; undoing the result reopens its paid pending check. Replaying an undone operation returns its recorded outcome marked undone and never applies or charges it again. A new result requires a new operation ID.
+
+The journal records the storage revision of its last action commit. Service Undo is blocked if any later saved operation intervened, even if resources happen to match. Exact resource, pending, weakness and consequence-policy checks also guard inversion. This deliberately conservative first policy does not infer independence from matching numeric values.
+
+Executed: 32 action, 14 journal, 29 codec, 16 envelope, 27 service and 16 Undo assertions (134 total); six separate real Desktop JVM phases start/finish/verify/undo/verify-undo/faults passed. This includes persistence of inverse receipts and replay state after restart. Full shared non-UI plus three Desktop storage classes compiled. No UI enablement, existing-character migration or events in this checkpoint. The earlier 49 acquisition tests were not rerun just for this isolated Undo extension.

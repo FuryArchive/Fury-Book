@@ -6,6 +6,7 @@ import com.furybook.core.json.*
 internal fun encodeGameplayJournal(value: GameplayJournal, characterId: String): JsonValue.Obj {
     value.validate(characterId)
     return jsonObject("revision" to decimal(value.revision), "pending" to encodePending(value.pending),
+        "lastCommittedStorageRevision" to (value.lastCommittedStorageRevision?.let(::decimal) ?: JsonValue.Null),
         "receipts" to jsonArray(value.receipts.map { r -> jsonObject(
             "request" to encodeRequest(r.request), "beforeRevision" to decimal(r.beforeRevision),
             "afterRevision" to decimal(r.afterRevision), "enduranceBefore" to jsonNumber(r.enduranceBefore),
@@ -16,7 +17,7 @@ internal fun encodeGameplayJournal(value: GameplayJournal, characterId: String):
 }
 
 internal fun decodeGameplayJournal(value: JsonValue, characterId: String): GameplayJournal {
-    val root = value.objectWith("revision", "pending", "receipts")
+    val root = value.objectWith("revision", "pending", "receipts", "lastCommittedStorageRevision")
     val receipts = (root.field("receipts") as? JsonValue.Arr)?.values ?: error("Gameplay receipts must be an array")
     return GameplayJournal(root.long("revision"), decodePending(root.field("pending")), receipts.map { value ->
         val r = value.objectWith("request", "beforeRevision", "afterRevision", "enduranceBefore", "enduranceAfter",
@@ -25,7 +26,8 @@ internal fun decodeGameplayJournal(value: JsonValue, characterId: String): Gamep
             r.int("enduranceBefore"), r.int("enduranceAfter"), decodePending(r.field("pendingBefore")),
             decodePending(r.field("pendingAfter")), r.bool("weakBefore"), r.bool("weakAfter"),
             r.bool("resourceConsequencesKnownBefore"))
-    }).also { it.validate(characterId) }
+    }, if (root.field("lastCommittedStorageRevision") == JsonValue.Null) null else root.long("lastCommittedStorageRevision"))
+        .also { it.validate(characterId) }
 }
 
 private fun encodeRequest(value: GameplayRequest): JsonValue.Obj {
@@ -35,6 +37,8 @@ private fun encodeRequest(value: GameplayRequest): JsonValue.Obj {
         is StartOverexertion -> jsonObject("type" to jsonString("StartOverexertion"), "attribute" to jsonString(value.attribute.name))
         is ResolvePhysicalCheck -> jsonObject("type" to jsonString("ResolvePhysicalCheck"),
             "startOperationId" to jsonString(value.startOperationId), "success" to jsonBoolean(value.result.success))
+        is UndoGameplay -> jsonObject("type" to jsonString("UndoGameplay"),
+            "targetOperationId" to jsonString(value.targetOperationId))
     }
     return JsonValue.Obj(common + details.values)
 }
@@ -52,6 +56,11 @@ private fun decodeRequest(value: JsonValue): GameplayRequest {
             root.objectWith(*common, "startOperationId", "success")
             ResolvePhysicalCheck(root.text("operationId"), root.text("characterId"), root.long("expectedRevision"),
                 root.text("startOperationId"), PhysicalCheckResult(root.bool("success")))
+        }
+        "UndoGameplay" -> {
+            root.objectWith(*common, "targetOperationId")
+            UndoGameplay(root.text("operationId"), root.text("characterId"), root.long("expectedRevision"),
+                root.text("targetOperationId"))
         }
         else -> error("Unsupported gameplay request type")
     }

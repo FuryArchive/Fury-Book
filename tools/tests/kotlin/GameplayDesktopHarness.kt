@@ -44,6 +44,17 @@ fun main(args: Array<String>) = runBlocking {
             check(service.apply(finish, 1) is GameplayCommitResult.Replayed)
             check(service.apply(start, 0) is GameplayCommitResult.Replayed)
         }
+        "undo" -> {
+            check(service.apply(UndoGameplay("undo-finish", "hero", 2, "finish"), 2) is GameplayCommitResult.Applied)
+        }
+        "verify-undo" -> {
+            val state = (store.load("hero") as LoadResult.Loaded).state
+            check(state.character.enduranceCurrent == 2 && state.gameplay?.pending?.startOperationId == "start")
+            check(state.gameplay?.receipts?.size == 3 && state.gameplay?.lastCommittedStorageRevision == 3L)
+            check((service.apply(finish, 1) as GameplayCommitResult.Replayed).undone)
+            check(service.apply(UndoGameplay("undo-finish", "hero", 2, "finish"), 2) is GameplayCommitResult.Replayed)
+            check(service.apply(UndoGameplay("undo-start", "hero", 3, "start"), 3) is GameplayCommitResult.Blocked)
+        }
         "faults" -> {
             for (stage in listOf(DesktopAcquisitionWriteStage.AfterTempFlush, DesktopAcquisitionWriteStage.AfterReplace)) {
                 val folder = root.resolve(stage.name)

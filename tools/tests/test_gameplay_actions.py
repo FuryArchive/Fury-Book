@@ -31,7 +31,7 @@ def test_gameplay_envelope_is_opt_in_and_preserves_acquisition_history():
 def test_gameplay_service_cas_and_uncertain_result_recovery():
     from tools.tests.kotlin_harness_support import run_harness
     result = run_harness(Path(__file__).parent / "kotlin/GameplayServiceHarness.kt")
-    assert "GameplayServiceHarness: 22 assertions passed; simulated storage only" in result.stdout
+    assert "GameplayServiceHarness: 27 assertions passed; simulated storage only" in result.stdout
 
 
 def test_gameplay_desktop_survives_fresh_process_and_faults():
@@ -40,7 +40,13 @@ def test_gameplay_desktop_survives_fresh_process_and_faults():
     sources = [root / "shared/src/desktopMain/kotlin/com/furybook/dubl/data" / name for name in (
         "DesktopCharacterStore.kt", "DesktopCharacterExtrasStore.kt", "DesktopAcquisitionStore.kt")]
     with tempfile.TemporaryDirectory(prefix="furybook-gameplay-") as directory:
-        for phase in ("start", "finish", "verify", "faults"):
+        for phase in ("start", "finish", "verify", "undo", "verify-undo", "faults"):
             result = run_harness(Path(__file__).parent / "kotlin/GameplayDesktopHarness.kt",
                                  extra_sources=sources, args=(directory, phase))
             assert f"GAMEPLAY_DESKTOP_PHASE_OK:{phase}" in result.stdout
+
+
+def test_gameplay_undo_preserves_receipts_and_blocks_dependencies():
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(Path(__file__).parent / "kotlin/GameplayUndoHarness.kt")
+    assert "GameplayUndoHarness: 16 assertions passed" in result.stdout

@@ -312,6 +312,9 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
     if (state.formatVersion == 1) require(state.gameplay == null) { "Gameplay requires explicit format migration" }
     else {
         checkNotNull(state.gameplay) { "Format 2 requires gameplay history" }.validate(state.character.id)
+        require(state.gameplay.lastCommittedStorageRevision?.let { it <= state.storageRevision } != false) {
+            "Gameplay history claims a future storage commit"
+        }
         require(state.outbox.isEmpty() && state.syncMetadata == SyncMetadata(0) && state.syncProofs.isEmpty()) {
             "Gameplay format has no enabled cloud transport"
         }

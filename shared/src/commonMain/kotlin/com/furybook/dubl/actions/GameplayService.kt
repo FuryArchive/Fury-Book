@@ -12,7 +12,7 @@ data class GameplayCapabilities(val durableAtomic: Boolean = false, val isolated
 
 sealed interface GameplayCommitResult {
     data class Applied(val receipt: GameplayReceipt) : GameplayCommitResult
-    data class Replayed(val receipt: GameplayReceipt) : GameplayCommitResult
+    data class Replayed(val receipt: GameplayReceipt, val undone: Boolean = false) : GameplayCommitResult
     data class Blocked(val reason: String) : GameplayCommitResult
     data class StorageFailure(val reason: String) : GameplayCommitResult
 }
@@ -46,6 +46,8 @@ class GameplayService(
             return GameplayCommitResult.Blocked("Operation ID belongs to acquisition history")
         encodeEnvelope(state)
         val journal = state.gameplay
+        if (request is UndoGameplay && journal.lastCommittedStorageRevision != state.storageRevision)
+            return GameplayCommitResult.Blocked("Another saved operation followed this action; Undo is blocked")
         val conditions = state.character.effectiveRollConditions(state.extras.activeConditions)
         val input = GameplayState(state.character.id, journal.revision, state.character.enduranceCurrent,
             CharacterConditionId.WEAKNESS in conditions,
@@ -54,12 +56,13 @@ class GameplayService(
         val transition = when (request) {
             is StartOverexertion -> GameplayActions.start(input, request)
             is ResolvePhysicalCheck -> GameplayActions.resolve(input, request)
+            is UndoGameplay -> GameplayActions.undo(input, request)
         }
         if (transition is ActionTransition.Blocked) return GameplayCommitResult.Blocked(transition.reason)
-        if (transition is ActionTransition.Replayed) return GameplayCommitResult.Replayed(transition.receipt)
+        if (transition is ActionTransition.Replayed) return GameplayCommitResult.Replayed(transition.receipt, transition.undone)
         transition as ActionTransition.Applied
         val next = state.copy(character = state.character.copy(enduranceCurrent = transition.state.endurance),
-            gameplay = GameplayJournal.from(transition.state), storageRevision = state.storageRevision + 1)
+            gameplay = GameplayJournal.from(transition.state, state.storageRevision + 1), storageRevision = state.storageRevision + 1)
         encodeEnvelope(next)
         if (!capabilities().writable) return GameplayCommitResult.Blocked("Local gameplay permission changed before commit")
         return when (val result = store.compareAndSet(request.characterId, expectedStorageRevision, next)) {
@@ -72,7 +75,8 @@ class GameplayService(
 
     private fun replay(state: StoredCharacter, request: GameplayRequest): GameplayCommitResult? {
         val receipt = state.gameplay?.receipts?.find { it.request.operationId == request.operationId } ?: return null
-        return if (receipt.request == request) GameplayCommitResult.Replayed(receipt)
+        return if (receipt.request == request) GameplayCommitResult.Replayed(receipt,
+            state.gameplay.receipts.any { (it.request as? UndoGameplay)?.targetOperationId == request.operationId })
         else GameplayCommitResult.Blocked("Operation ID reused with different input")
     }
 

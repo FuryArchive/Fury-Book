@@ -47,6 +47,15 @@ fun main() = runBlocking {
     expect(service.apply(ResolvePhysicalCheck("finish", "hero", 1, "start", PhysicalCheckResult(false)), 1) is GameplayCommitResult.Applied)
     val completed = (store.load("hero") as LoadResult.Loaded).state
     expect(completed.character.enduranceCurrent == 2 && completed.gameplay?.pending == null && backing.writes == 2)
+    val undo = UndoGameplay("undo-finish", "hero", 2, "finish")
+    val intervening = Backing(encodeEnvelope(completed.copy(storageRevision = 3,
+        extras = completed.extras.copy(notes = "another saved operation"))))
+    expect(GameplayService(TestGameplayStore(intervening), enabled).apply(undo, 3) is GameplayCommitResult.Blocked && intervening.writes == 0)
+    expect(service.apply(undo, 2) is GameplayCommitResult.Applied)
+    val reopened = (store.load("hero") as LoadResult.Loaded).state
+    expect(reopened.gameplay?.pending?.startOperationId == "start" && reopened.character.enduranceCurrent == 2)
+    expect((service.apply(ResolvePhysicalCheck("finish", "hero", 1, "start", PhysicalCheckResult(false)), 1) as GameplayCommitResult.Replayed).undone)
+    expect(service.apply(undo, 2) is GameplayCommitResult.Replayed && backing.writes == 3)
     for (failure in listOf("before", "after", "throw-after", "conflict")) {
         val fault = Backing(encodeEnvelope(base), failure = failure)
         val outcome = GameplayService(TestGameplayStore(fault), enabled).apply(request, 0)

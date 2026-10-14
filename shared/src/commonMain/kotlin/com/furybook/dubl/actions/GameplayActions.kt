@@ -27,6 +27,13 @@ data class ResolvePhysicalCheck(
     val result: PhysicalCheckResult,
 ) : GameplayRequest
 
+data class UndoGameplay(
+    override val operationId: String,
+    override val characterId: String,
+    override val expectedRevision: Long,
+    val targetOperationId: String,
+) : GameplayRequest
+
 data class PendingPhysicalCheck(
     val startOperationId: String,
     val attribute: PhysicalAttribute,
@@ -92,7 +99,7 @@ data class ActionPreview(
 sealed interface ActionTransition {
     data class Applied(val state: GameplayState, val receipt: GameplayReceipt) : ActionTransition
     /** Exact original outcome. This never rewinds or replaces the caller's current state. */
-    data class Replayed(val receipt: GameplayReceipt) : ActionTransition
+    data class Replayed(val receipt: GameplayReceipt, val undone: Boolean = false) : ActionTransition
     data class Blocked(val reason: String) : ActionTransition
 }
 
@@ -131,6 +138,20 @@ object GameplayActions {
         return applied(state, request, state.endurance, null, state.weak)
     }
 
+    fun undo(state: GameplayState, request: UndoGameplay): ActionTransition {
+        replay(state, request)?.let { return it }
+        identityProblem(state, request)?.let { return ActionTransition.Blocked(it) }
+        val target = state.receipts.lastOrNull()
+            ?: return ActionTransition.Blocked("Нет последнего действия для отмены")
+        if (target.request.operationId != request.targetOperationId || target.request is UndoGameplay)
+            return ActionTransition.Blocked("Можно отменить только последнюю независимую операцию, не саму отмену")
+        if (target.afterRevision != state.revision || target.enduranceAfter != state.endurance ||
+            target.pendingAfter != state.pending || target.weakAfter != state.weak ||
+            target.resourceConsequencesKnownBefore != state.resourceConsequencesKnown)
+            return ActionTransition.Blocked("Состояние изменилось после действия; обратная операция небезопасна")
+        return applied(state, request, target.enduranceBefore, target.pendingBefore, target.weakBefore)
+    }
+
     private fun identityProblem(state: GameplayState, request: GameplayRequest): String? = when {
         request.operationId.isBlank() -> "Не задан идентификатор операции"
         request.characterId != state.characterId -> "Другой персонаж"
@@ -141,7 +162,8 @@ object GameplayActions {
 
     private fun replay(state: GameplayState, request: GameplayRequest): ActionTransition? {
         val previous = state.receipts.find { it.request.operationId == request.operationId } ?: return null
-        return if (previous.request == request) ActionTransition.Replayed(previous)
+        return if (previous.request == request) ActionTransition.Replayed(previous,
+            state.receipts.any { (it.request as? UndoGameplay)?.targetOperationId == request.operationId })
         else ActionTransition.Blocked("Этот идентификатор уже использован для другой операции")
     }
 
