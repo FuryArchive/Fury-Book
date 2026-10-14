@@ -80,3 +80,9 @@ def test_gameplay_roll_projection_reuses_sheet_rules_without_cancelling_factors(
     from tools.tests.kotlin_harness_support import run_harness
     result = run_harness(Path(__file__).parent / "kotlin/GameplayRollProjectionHarness.kt")
     assert "GameplayRollProjectionHarness: 9 assertions passed" in result.stdout
+
+
+def test_gameplay_boundaries_are_explicit_and_do_not_guess_resource_refresh():
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(Path(__file__).parent / "kotlin/GameplayEventsHarness.kt")
+    assert "GameplayEventsHarness: 28 assertions passed; pure lifecycle only" in result.stdout

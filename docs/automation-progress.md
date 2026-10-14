@@ -227,3 +227,20 @@ Actual Kotlin/JVM: 23 controller + 12 migration-controller + 9 roll-projection a
 The Compose panels/host wiring are still not platform-compiled or UI-accepted. Reading official Maven
 module metadata confirmed the current Compose runtime depends on AndroidX artifacts from the blocked
 Google dependency route; no mirror bypass was attempted. This is not a finished APK or deployment.
+
+### 2026-10-14: Current-source action milestone and pure boundary lifecycle
+
+Fresh current-source JVM compilation at 47a4e4a included 92 non-UI shared sources. All 178 focused
+gameplay assertions and 49 existing acquisition JUnit tests passed, plus six separate Desktop
+process/fault phases and three migration/reopen/fault phases. No large price matrix was rerun.
+
+Added a pure explicit-boundary lifecycle engine: distinct turn start/end, other actor turns, round,
+scene and typed-duration rest; operation and boundary IDs are independently deduplicated. Turn ends
+must name the open turn. Counters are checked against event history. Only declared expiry anchors
+remove instances; unresolved effects remain with per-effect diagnostics. No resource fields or
+implicit recovery exist in this layer. Replaying an old event cannot expire a newly created effect.
+
+28 actual Kotlin/JVM lifecycle assertions pass. This lifecycle engine is NOT yet persisted or exposed
+by production screens. Its generic fixture policies do not authorize activating Sprint or other
+incompletely sourced actions. P13541 has a clear end boundary but leaves resistance magnitude unspecified
+in the inspected text; it was not activated or given an invented value.
