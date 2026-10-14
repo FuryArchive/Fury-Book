@@ -87,6 +87,7 @@ import com.furybook.dubl.content.forFeature
 import com.furybook.dubl.content.resourceCurrent
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.conditionDerivedValues
+import com.furybook.dubl.model.conditionRollModifiers
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterEconomy
 import com.furybook.dubl.model.CharacterSheetExtras
@@ -941,7 +942,9 @@ private fun HeroMetricsStrip(
             DesktopIcon(DesktopIconKind.INITIATIVE, tint = DesktopGold, size = 18.dp)
             Text("Показатели", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
-        if (conditionValues.defense == null) Text("Сочетание Истощения и Слабости требует уточнения правила.", color = DesktopMuted)
+        character.conditionRollModifiers(RollContext.RUN, active = activeConditions).unavailableReason?.let {
+            Text(it, color = DesktopMuted)
+        }
         val columns = when {
             embedded -> 2
             compact -> 2

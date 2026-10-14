@@ -1719,7 +1719,7 @@ private fun ContextRollSheet(
     }
     var flurryProfile by remember(context, character.id) { mutableStateOf(FlurryWeaponProfile.LIGHT) }
     var shortFlurry by remember(context, character.id) { mutableStateOf(false) }
-    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions)
+    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions, selectedSkillId)
     val basePreset = character.rollPreset(context, selectedSkillId, selectedAttribute).let { base ->
         base.copy(bonus = conditionModifiers.apply(base.bonus), contributions = base.contributions + conditionModifiers.contributions,
             unavailableReason = conditionModifiers.unavailableReason ?: base.unavailableReason)
@@ -1912,7 +1912,8 @@ private fun statInfo(id: StatId, character: DublCharacter, active: Set<Character
     return base.copy(value = value, formula = base.formula + " + поправки состояний",
         breakdown = base.breakdown.filterNot { it.startsWith("Итог:") } +
             lines + "Итог: $value",
-        note = if (value == "?") "Сочетание Истощения и Слабости требует уточнения; автоматический результат недоступен." else base.note)
+        note = if (value == "?") context?.let { character.conditionRollModifiers(it, active = active).unavailableReason }
+            ?: "Сочетание Истощения и Слабости требует уточнения; автоматический результат недоступен." else base.note)
 }
 
 private fun rawStatInfo(id: StatId, character: DublCharacter): StatInfo = when (id) {

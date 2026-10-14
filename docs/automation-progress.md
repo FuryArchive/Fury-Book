@@ -86,3 +86,9 @@ Added six source-scoped choices using the existing shared roll-option path: Bart
 Current source corrections are retained in both the development and generated effect catalogs: Fast Start refers to sprint, not the older acceleration wording (P11783–11787); Burglar Agility includes the missing combat-hindrance sentence (P10353–10360). That selective hindrance removal and Pack Tactics' distraction penalty remain unimplemented, not silently claimed by the new choices. Previous roll history and authoritative outcomes are not automatically tracked by these selectors.
 
 All nine scoped model tests and all three platform compilers passed in 66 seconds. Three source-generation/import contract tests passed. No storage format, XP, purchase price, or acquisition eligibility changed. Platform interaction remains unverified.
+
+## Entangled, prone and stunned projections
+
+Entangled applies the single -3/one-negative-factor penalty to attacks or Dexterity checks, not twice to Dexterity attacks. Its Run action is unavailable with an explicit explanation (P14774); this does not guess walking distance or sprint costs. Prone applies -2 Defense and -2 only to melee attacks, not shooting, throwing, ordinary skill checks or Parry (P14789). Stunned contributes -2 Defense (P14801); action-point loss, dropped items and duration remain outside this formula-only slice. The notice now explicitly says these conditions are only partially automated.
+
+Twelve affected condition model tests and all three compilers passed in 44 seconds. An initial compile caught an overbroad UI insertion referencing conditions from the attribute-only panel; that insertion was removed before the successful run. No schema/resource/time transition changed. Device/browser interaction remains unverified.

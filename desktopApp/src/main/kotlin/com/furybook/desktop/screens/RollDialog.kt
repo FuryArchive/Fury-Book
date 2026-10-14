@@ -312,7 +312,7 @@ fun ContextRollDialog(
 
     val attrOptions = if (context == RollContext.ATTRIBUTE) AttributeId.entries else character.allowedRollAttributes(context, skill?.id)
     val selectedAttribute = initialAttribute?.takeIf { it in attrOptions } ?: attribute?.takeIf { it in attrOptions } ?: attrOptions.firstOrNull()
-    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions)
+    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions, skill?.id)
     val basePreset = character.rollPreset(context, skill?.id, selectedAttribute).let { base ->
         base.copy(bonus = conditionModifiers.apply(base.bonus), contributions = base.contributions + conditionModifiers.contributions,
             unavailableReason = conditionModifiers.unavailableReason ?: base.unavailableReason)

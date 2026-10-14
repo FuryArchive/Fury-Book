@@ -18,7 +18,7 @@ data class ConditionRollModifiers(
     val numericBonus: Int get() = contributions.sumOf { it.value }
     val notice: String get() = listOfNotNull(unavailableReason,
         if (hindranceSources.isNotEmpty()) hindranceSources.joinToString("; ") else null,
-        if (unimplemented.isNotEmpty()) "Эффекты состояний пока не рассчитаны: ${unimplemented.joinToString { it.title }}" else null)
+        if (unimplemented.isNotEmpty()) "Не все эффекты состояний автоматизированы: ${unimplemented.joinToString { it.title }}" else null)
         .joinToString("\n")
     fun apply(base: Int?): Int? = if (unavailableReason != null) null else base?.plus(numericBonus)
 }
@@ -28,6 +28,7 @@ fun DublCharacter.conditionRollModifiers(
     context: RollContext,
     attribute: AttributeId? = null,
     active: Set<CharacterConditionId> = emptySet(),
+    skillId: String? = null,
 ): ConditionRollModifiers {
     val conditions = effectiveRollConditions(active)
     val effectiveAttribute = attribute ?: when (context) {
@@ -36,6 +37,9 @@ fun DublCharacter.conditionRollModifiers(
         else -> null
     }
     val physical = effectiveAttribute in physicalRollAttributes
+    val attack = context in setOf(RollContext.ATTACK, RollContext.FLURRY, RollContext.BREAK_ITEM)
+    val meleeAttack = attack && resolveSkill(skillId ?: "melee_weapon")?.definition?.id in setOf("unarmed", "melee_weapon")
+    val entangled = CharacterConditionId.ENTANGLED in conditions
     val derivedWeak = context in setOf(RollContext.REFLEXES, RollContext.DODGE, RollContext.INITIATIVE, RollContext.RUN)
     val exhausted = CharacterConditionId.EXHAUSTION in conditions
     val weakPresent = CharacterConditionId.WEAKNESS in conditions
@@ -55,6 +59,14 @@ fun DublCharacter.conditionRollModifiers(
         if (context == RollContext.RUN) contributions += RollContribution("Истощение: половина бега",
             ceil(runFull / 2).toInt() - runFull.toInt())
     }
+    // P14774: the attack and Dexterity clauses describe the same penalty,
+    // not two penalties for a Dexterity-based attack.
+    if (entangled && (attack || effectiveAttribute == AttributeId.DEXTERITY)) {
+        contributions += RollContribution("Опутанный", -3)
+        factors += "Опутанный" to 1
+    }
+    if (CharacterConditionId.PRONE in conditions && meleeAttack)
+        contributions += RollContribution("Сбит с ног: атака ближнего боя", -2)
     if (CharacterConditionId.POISONED in conditions && effectiveAttribute != null)
         factors += "Отравление" to 1
     if (CharacterConditionId.DEAFNESS in conditions && context == RollContext.INITIATIVE)
@@ -64,7 +76,11 @@ fun DublCharacter.conditionRollModifiers(
             RollContext.DODGE, RollContext.INITIATIVE, RollContext.PARRY, RollContext.FEINT,
             RollContext.GRAPPLE, RollContext.DISARM, RollContext.TRIP, RollContext.PUSH, RollContext.KNOCKDOWN)) contributions += RollContribution("Шок", -1)
     return ConditionRollModifiers(contributions, factors.sumOf { it.second },
-        if (exhaustionUnresolved) "Сочетание Истощения со Слабостью требует уточнения правила." else null,
+        when {
+            entangled && context == RollContext.RUN -> "Опутанный персонаж не может бежать (P14774)."
+            exhaustionUnresolved -> "Сочетание Истощения со Слабостью требует уточнения правила."
+            else -> null
+        },
         conditions - setOf(CharacterConditionId.WEAKNESS, CharacterConditionId.SHOCK, CharacterConditionId.DEAFNESS,
             CharacterConditionId.POISONED, CharacterConditionId.EXHAUSTION),
         factors.map { (source, count) -> "$source: $count негативных фактора" })
@@ -77,10 +93,12 @@ fun DublCharacter.conditionDerivedValues(active: Set<CharacterConditionId> = emp
     val exhausted = CharacterConditionId.EXHAUSTION in conditions
     val weak = CharacterConditionId.WEAKNESS in conditions
     return ConditionDerivedValues(
-        if (exhausted && weak) null else defense - if (exhausted) 3 else if (weak) 2 else 0,
+        if (exhausted && weak) null else defense - (if (exhausted) 3 else if (weak) 2 else 0) -
+            (if (CharacterConditionId.PRONE in conditions) 2 else 0) -
+            (if (CharacterConditionId.STUNNED in conditions) 2 else 0),
         conditionRollModifiers(RollContext.REFLEXES, active = active).apply(reflexes),
         conditionRollModifiers(RollContext.INITIATIVE, active = active).apply(initiative),
-        if (exhausted && weak) null else if (exhausted) ceil(runFull / 2)
+        if (conditionRollModifiers(RollContext.RUN, active = active).unavailableReason != null) null else if (exhausted) ceil(runFull / 2)
         else runFull + conditionRollModifiers(RollContext.RUN, active = active).numericBonus,
     )
 }
