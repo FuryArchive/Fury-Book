@@ -1,7 +1,5 @@
-# Furybook recoverable checkpoint
+# Furybook recovery
 
-Current source: 6cb1d5f996242459612bcba673d4c86d0d41e363
+Extract latest.zip and clone its repository.bundle. Apply all increments in current.manifest.json in order: git fetch /absolute/path/to/bundle HEAD; git checkout --detach FETCH_HEAD. Check each SHA-256 before use. Run git fsck --full. Expected source fc9205d47529b247ef962e466aa2842ed027271e, tree a131cf714b2933206691046d87c24e199768f033. The older base manifest describes only the immutable base.
 
-Extract checkpoints/latest.zip and clone its repository.bundle. Apply each bundle from current.manifest.json in order using git fetch /absolute/path/to/bundle HEAD then git checkout --detach FETCH_HEAD. Verify SHA-256 before applying each bundle and run git fsck --full. The final tree must equal a22772a06b0abe32d5b2caba743217bc1388718f. Older base manifest describes the immutable base, not the current checkpoint.
-
-Production gates disabled; no user data migrated. Browser runtime blocked by local test-server connection refusal. Android native/device acceptance, full UI integration, durations and full platform builds remain open. Not a new APK or deployment.
+Production gates disabled. Shared Compose panel and Desktop opt-in host staged but NOT Compose-compiled or UI-tested. Browser runtime pending connection refusal. Android native/device acceptance, Android/Web screen wiring, built-in dice, durations and full builds remain open. No new APK or deployment.

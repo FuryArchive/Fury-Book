@@ -1,8 +1,8 @@
 {
   "format": "furybook-incremental-checkpoint-v1",
-  "source_commit": "6cb1d5f996242459612bcba673d4c86d0d41e363",
-  "source_tree": "a22772a06b0abe32d5b2caba743217bc1388718f",
-  "tracked_files": 696,
+  "source_commit": "fc9205d47529b247ef962e466aa2842ed027271e",
+  "source_tree": "a131cf714b2933206691046d87c24e199768f033",
+  "tracked_files": 699,
   "base_archive": "checkpoints/latest.zip",
   "base_source_commit": "cfb3dd67efdff3c4810e91abb9a1180435de2cdf",
   "increments": [
@@ -27,8 +27,13 @@
       "path": "checkpoints/after-33fce1c-to-6cb1d5f.bundle",
       "sha256": "4a71002023f6f2c060f71fd1eecefcd8cf7f8b22bb6636016f06c0ccf7d9a2ce",
       "bytes": 19135
+    },
+    {
+      "path": "checkpoints/after-6cb1d5f-to-fc9205d.bundle",
+      "sha256": "2533e595e3b327b5b2ec858a94fff1d167273f863de05c0f712c767ea661bed8",
+      "bytes": 11283
     }
   ],
-  "verification": "Restore chain reaches exact target tree; git fsck passes. 134 scoped assertions, 49 existing acquisition JUnit tests, real Desktop action/Undo/restart/fault phases and migration/reopen/original-backup-restore/fault phases. Details in docs/automation-progress.md. Android adapter: seven host JUnit tests and three separate host JVM phases passed. Browser adapter plus isolated probe compiled and linked with actual Kotlin/JS.",
-  "limits": "Production gates disabled; no user data migrated. Browser runtime blocked by local test-server connection refusal. Android native/device acceptance, full UI integration, durations and full platform builds remain open. Not a new APK or deployment."
+  "verification": "Restore chain reaches exact target tree; git fsck passes. 134 scoped assertions, 49 existing acquisition JUnit tests, real Desktop action/Undo/restart/fault phases and migration/reopen/original-backup-restore/fault phases. Details in docs/automation-progress.md. Android adapter: seven host JUnit tests and three separate host JVM phases passed. Browser adapter plus isolated probe compiled and linked with actual Kotlin/JS. Shared confirmation controller: 21 scoped Kotlin/JVM assertions passed. Full restore chain exact tree and fsck verified.",
+  "limits": "Production gates disabled. Shared Compose panel and Desktop opt-in host staged but NOT Compose-compiled or UI-tested. Browser runtime pending connection refusal. Android native/device acceptance, Android/Web screen wiring, built-in dice, durations and full builds remain open. No new APK or deployment."
 }
