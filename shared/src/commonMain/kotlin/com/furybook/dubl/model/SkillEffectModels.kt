@@ -89,6 +89,21 @@ class SkillEffectRules(
         }
         val options = relevant.mapNotNull { effect ->
             val rank = ownedRank(effect)
+            // The user explicitly confirms the failed attempt and source condition;
+            // this computes a fresh attempt, never edits the previous result.
+            val repeat = when (effect.developmentId) {
+                "feat_dfb7c30574749cae" -> SkillRollEffectOption(effect.id,
+                    "Торговая хватка: повтор после провала Бартера (−2)", effect.sourceName,
+                    effect.effectText, numericBonus = -2)
+                "feat_fe40de7bd9514242" -> SkillRollEffectOption(effect.id,
+                    "Проворство взломщика: немедленный повтор после критического провала (1 НФ)",
+                    effect.sourceName, effect.effectText, hindranceDice = 1)
+                "feat_fde4317b9b9ab7cd" -> SkillRollEffectOption(effect.id,
+                    "Архивариус: переброс проваленного Знания с источником знаний (1 ПФ)",
+                    effect.sourceName, effect.effectText, advantageDice = 1)
+                else -> null
+            }
+            if (repeat != null) return@mapNotNull repeat
             when (effect.mode) {
                 SkillEffectMode.TOGGLE_BONUS -> SkillRollEffectOption(
                     id = effect.id,
@@ -150,6 +165,12 @@ class SkillEffectRules(
     fun contextOptions(context: RollContext, attribute: AttributeId? = null): List<SkillRollEffectOption> = effectCatalog.effects.mapNotNull { effect ->
         if (effect.id in character.disabledSkillEffectIds || ownedRank(effect) <= 0) return@mapNotNull null
         val condition = when (effect.developmentId) {
+            "feat_72094d2dcfe2baa4" -> if (context in setOf(RollContext.ATTACK, RollContext.FLURRY))
+                "Скоординированное сражение: атакую вместе с питомцем одну цель" else null
+            "feat_410d23864293c612" -> if (context in setOf(RollContext.ATTACK, RollContext.FLURRY))
+                "Тактика стаи: атакую противника, против которого имею бонус окружения" else null
+            "feat_7321f6d55d019f93" -> if (context == RollContext.RUN)
+                "Быстрый старт: использую спринт" else null
             "feat_c35ba86389f61a11" -> if (attribute == AttributeId.STRENGTH &&
                 context in setOf(RollContext.ATTRIBUTE, RollContext.BREAK_ITEM))
                 "Сильная спина: проверка Силы, толкаю, тяну, поднимаю тяжесть или ломаю объект" else null
@@ -169,8 +190,8 @@ class SkillEffectRules(
             else -> null
         } ?: return@mapNotNull null
         val numeric = when (effect.developmentId) {
-            "feat_e51286dcfb04695d" -> 1
-            "feat_a144256fd7c09aeb" -> ownedRank(effect)
+            "feat_e51286dcfb04695d", "feat_72094d2dcfe2baa4" -> 1
+            "feat_a144256fd7c09aeb", "feat_7321f6d55d019f93" -> ownedRank(effect)
             else -> 0
         }
         SkillRollEffectOption(effect.id,condition,effect.sourceName,effect.effectText,
