@@ -312,6 +312,11 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
     if (state.formatVersion == 1) require(state.gameplay == null) { "Gameplay requires explicit format migration" }
     else {
         checkNotNull(state.gameplay) { "Format 2 requires gameplay history" }.validate(state.character.id)
+        val gameplayOperationIds = state.gameplay.receipts.map { it.request.operationId }.toSet() +
+            state.gameplay.events?.commands.orEmpty().map { it.operationId } + listOfNotNull(state.gameplay.migration?.operationId)
+        require(state.receipts.none { it.operationId in gameplayOperationIds }) { "Acquisition and gameplay operation IDs collide" }
+        require(state.gameplay.revision <= state.storageRevision) { "Action history exceeds storage revision" }
+        require(state.gameplay.events?.commands?.size?.toLong()?.let { it <= state.storageRevision - state.gameplay.revision } != false) { "Combined gameplay history exceeds storage revision" }
         require(state.gameplay.lastCommittedStorageRevision?.let { it <= state.storageRevision } != false) {
             "Gameplay history claims a future storage commit"
         }

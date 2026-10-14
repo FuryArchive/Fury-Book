@@ -244,3 +244,21 @@ implicit recovery exist in this layer. Replaying an old event cannot expire a ne
 by production screens. Its generic fixture policies do not authorize activating Sprint or other
 incompletely sourced actions. P13541 has a clear end boundary but leaves resistance magnitude unspecified
 in the inspected text; it was not activated or given an invented value.
+
+### 2026-10-14: Durable explicit event history
+
+Added optional event history inside the existing gameplay journal, strict typed JSON decoding and
+re-execution validation. The event-only persisted log cannot inject arbitrary effects: source-backed
+activation history is not implemented yet. Whole-envelope CAS saves a boundary without healing,
+refreshing actions/reactions, or changing the pending physical check. Action writes preserve event
+history. Any intervening boundary blocks action Undo; event Undo is not implemented. IDs cannot collide
+with acquisition/action/migration receipts. Combined gameplay counts cannot exceed storage revision.
+
+Fresh Kotlin/JVM compilation and execution: 236 scoped gameplay assertions and 49 existing acquisition
+JUnit tests pass. Three separate Desktop JVM phases prove backed-up migration, turn start, debit,
+reopen/replay, turn end, rest recording and final reopen. Endurance remains spent through rest; pending
+check is retained. An actual older format-2 decoder from the pre-events checkpoint rejects the new
+field and returns the original bytes unchanged. Default format-1 readers remain fenced.
+
+This persists event boundaries, not activated timed modifiers. Event UI, source-specific effect creation,
+physical-meaning rules and final platform acceptance remain unfinished; all production flags stay off.

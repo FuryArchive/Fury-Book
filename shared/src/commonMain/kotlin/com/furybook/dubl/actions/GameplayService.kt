@@ -44,6 +44,8 @@ class GameplayService(
             return GameplayCommitResult.Blocked("Character changed; confirm a fresh preview")
         if (state.receipts.any { it.operationId == request.operationId })
             return GameplayCommitResult.Blocked("Operation ID belongs to acquisition history")
+        if (state.gameplay.events?.commands?.any { it.operationId == request.operationId } == true)
+            return GameplayCommitResult.Blocked("Operation ID belongs to event history")
         if (state.gameplay.migration?.operationId == request.operationId)
             return GameplayCommitResult.Blocked("Operation ID belongs to migration")
         encodeEnvelope(state)
@@ -64,7 +66,7 @@ class GameplayService(
         if (transition is ActionTransition.Replayed) return GameplayCommitResult.Replayed(transition.receipt, transition.undone)
         transition as ActionTransition.Applied
         val next = state.copy(character = state.character.copy(enduranceCurrent = transition.state.endurance),
-            gameplay = GameplayJournal.from(transition.state, state.storageRevision + 1).copy(migration = journal.migration),
+            gameplay = GameplayJournal.from(transition.state, state.storageRevision + 1).copy(migration = journal.migration, events = journal.events),
             storageRevision = state.storageRevision + 1)
         encodeEnvelope(next)
         if (!capabilities().writable) return GameplayCommitResult.Blocked("Local gameplay permission changed before commit")

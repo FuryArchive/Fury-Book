@@ -15,11 +15,15 @@ internal fun encodeGameplayJournal(value: GameplayJournal, characterId: String):
             "enduranceAfter" to jsonNumber(r.enduranceAfter), "pendingBefore" to encodePending(r.pendingBefore),
             "pendingAfter" to encodePending(r.pendingAfter), "weakBefore" to jsonBoolean(r.weakBefore),
             "weakAfter" to jsonBoolean(r.weakAfter),
-            "resourceConsequencesKnownBefore" to jsonBoolean(r.resourceConsequencesKnownBefore)) }))
+            "resourceConsequencesKnownBefore" to jsonBoolean(r.resourceConsequencesKnownBefore)) })).let { root ->
+                value.events?.let { JsonValue.Obj(root.values + ("events" to encodeGameEvents(it))) } ?: root
+            }
 }
 
 internal fun decodeGameplayJournal(value: JsonValue, characterId: String): GameplayJournal {
-    val root = value.objectWith("revision", "pending", "receipts", "lastCommittedStorageRevision", "migration")
+    val fields = arrayOf("revision", "pending", "receipts", "lastCommittedStorageRevision", "migration")
+    val hasEvents = (value as? JsonValue.Obj)?.values?.containsKey("events") == true
+    val root = value.objectWith(*(if (hasEvents) fields + "events" else fields))
     val receipts = (root.field("receipts") as? JsonValue.Arr)?.values ?: error("Gameplay receipts must be an array")
     return GameplayJournal(root.long("revision"), decodePending(root.field("pending")), receipts.map { value ->
         val r = value.objectWith("request", "beforeRevision", "afterRevision", "enduranceBefore", "enduranceAfter",
@@ -32,7 +36,7 @@ internal fun decodeGameplayJournal(value: JsonValue, characterId: String): Gamep
         if (root.field("migration") == JsonValue.Null) null else root.field("migration")
             .objectWith("operationId", "sourceRaw", "sourceStorageRevision").let {
                 GameplayMigrationProof(it.text("operationId"), it.text("sourceRaw"), it.long("sourceStorageRevision"))
-            })
+            }, if (hasEvents) decodeGameEvents(root.field("events"), characterId) else null)
         .also { it.validate(characterId) }
 }
 

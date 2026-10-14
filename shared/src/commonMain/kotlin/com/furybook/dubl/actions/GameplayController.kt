@@ -63,7 +63,8 @@ class GameplayController(private val store: AcquisitionStore, private val scope:
         val captured = scope(); val state = load(captured)
         check(capabilities().writable) { "Локальные сохранённые действия не включены" }
         val id = idFactory(); require(id.isNotBlank())
-        check(state.receipts.none { it.operationId == id } && state.gameplay!!.migration?.operationId != id)
+        check(state.receipts.none { it.operationId == id } && state.gameplay!!.migration?.operationId != id &&
+            state.gameplay.events?.commands?.none { it.operationId == id } != false)
         val request = make(id, state); val input = projection(state)
         val transition = when (request) {
             is StartOverexertion -> GameplayActions.start(input, request)

@@ -86,3 +86,21 @@ def test_gameplay_boundaries_are_explicit_and_do_not_guess_resource_refresh():
     from tools.tests.kotlin_harness_support import run_harness
     result = run_harness(Path(__file__).parent / "kotlin/GameplayEventsHarness.kt")
     assert "GameplayEventsHarness: 28 assertions passed; pure lifecycle only" in result.stdout
+
+
+def test_gameplay_events_share_canonical_cas_and_retain_resources():
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(Path(__file__).parent / "kotlin/GameplayEventServiceHarness.kt")
+    assert "GameplayEventServiceHarness: 30 assertions passed; simulated storage only" in result.stdout
+
+
+def test_gameplay_events_survive_separate_desktop_processes():
+    from tools.tests.kotlin_harness_support import run_harness
+    root = Path(__file__).resolve().parents[2]
+    sources = [root / "shared/src/desktopMain/kotlin/com/furybook/dubl/data" / name for name in (
+        "DesktopCharacterStore.kt", "DesktopCharacterExtrasStore.kt", "DesktopAcquisitionStore.kt")]
+    with tempfile.TemporaryDirectory(prefix="furybook-gameplay-events-") as directory:
+        for phase in ("start", "reopen", "verify"):
+            result = run_harness(Path(__file__).parent / "kotlin/GameplayEventsDesktopHarness.kt",
+                                 extra_sources=sources, args=(directory, phase))
+            assert f"GAMEPLAY_EVENTS_DESKTOP_OK:{phase}" in result.stdout

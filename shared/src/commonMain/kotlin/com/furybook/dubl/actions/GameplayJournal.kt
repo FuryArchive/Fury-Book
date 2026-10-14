@@ -7,18 +7,20 @@ class GameplayJournal(
     receipts: List<GameplayReceipt> = emptyList(),
     val lastCommittedStorageRevision: Long? = null,
     val migration: GameplayMigrationProof? = null,
+    val events: GameplayEventLog? = null,
 ) {
     private val saved = receipts.toList()
     val receipts: List<GameplayReceipt> get() = saved.toList()
     fun copy(revision: Long = this.revision, pending: PendingPhysicalCheck? = this.pending,
         receipts: List<GameplayReceipt> = this.receipts,
         lastCommittedStorageRevision: Long? = this.lastCommittedStorageRevision,
-        migration: GameplayMigrationProof? = this.migration) =
-        GameplayJournal(revision, pending, receipts, lastCommittedStorageRevision, migration)
+        migration: GameplayMigrationProof? = this.migration,
+        events: GameplayEventLog? = this.events) =
+        GameplayJournal(revision, pending, receipts, lastCommittedStorageRevision, migration, events)
     override fun equals(other: Any?): Boolean = other is GameplayJournal &&
         revision == other.revision && pending == other.pending && saved == other.saved &&
-        lastCommittedStorageRevision == other.lastCommittedStorageRevision && migration == other.migration
-    override fun hashCode(): Int = listOf(revision, pending, saved, lastCommittedStorageRevision, migration).hashCode()
+        lastCommittedStorageRevision == other.lastCommittedStorageRevision && migration == other.migration && events == other.events
+    override fun hashCode(): Int = listOf(revision, pending, saved, lastCommittedStorageRevision, migration, events).hashCode()
 
     /** Re-execute each typed receipt, never trust a claimed cost or success marker. */
     fun validate(characterId: String) {
@@ -32,6 +34,11 @@ class GameplayJournal(
             require(source.outbox.isEmpty() && source.syncMetadata == com.furybook.dubl.acquisition.SyncMetadata(0) && source.syncProofs.isEmpty())
             require(lastCommittedStorageRevision != null && lastCommittedStorageRevision > proof.sourceStorageRevision)
             require(saved.none { it.request.operationId == proof.operationId }) { "Migration ID reused for gameplay" }
+        }
+        events?.let { log ->
+            require(log.characterId == characterId)
+            val ids = log.commands.map { it.operationId }.toSet()
+            require(saved.none { it.request.operationId in ids } && migration?.operationId !in ids) { "Event operation ID collision" }
         }
         require(saved.size.toLong() == revision) { "Gameplay history is truncated" }
         require(saved.map { it.request.operationId }.distinct().size == saved.size) { "Duplicate gameplay ID" }
