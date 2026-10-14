@@ -175,6 +175,7 @@ fun SkillsScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
             preferredAttribute = state.extras.preferredSkillAttributes[skill.id],
             developmentCatalog = state.developmentCatalog,
             effectCatalog = state.skillEffectCatalog,
+        activeConditions = state.extras.activeConditions,
             onPreferredAttribute = { attr -> state.setPreferredSkillAttribute(skill.id, attr) },
             onDismiss = { rollSkill = null },
         )

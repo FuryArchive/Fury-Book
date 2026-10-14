@@ -1,5 +1,8 @@
 package com.furybook.desktop.screens
 
+import com.furybook.dubl.model.CharacterConditionId
+import com.furybook.dubl.model.conditionRollModifiers
+import com.furybook.dubl.model.SkillContribution
 import com.furybook.dubl.model.allowedRollAttributes
 
 import androidx.compose.foundation.layout.Arrangement
@@ -115,6 +118,7 @@ fun SkillRollDialog(
     developmentCatalog: DevelopmentCatalog,
     effectCatalog: SkillEffectCatalog,
     onPreferredAttribute: (AttributeId) -> Unit,
+    activeConditions: Set<CharacterConditionId> = emptySet(),
     onDismiss: () -> Unit,
 ) {
     val configuredAttributes = skill.attributes.ifEmpty { listOf(skill.stockAttribute) }
@@ -135,7 +139,11 @@ fun SkillRollDialog(
     val effectiveSkill = alternative?.skill ?: skill
     val effectiveAttribute = alternative?.attribute ?: attribute
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
-    val calculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, effectiveAttribute)
+    val conditionModifiers = character.conditionRollModifiers(RollContext.SKILL, effectiveAttribute, activeConditions)
+    val rawCalculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, effectiveAttribute)
+    val calculation = rawCalculation.copy(total = conditionModifiers.apply(rawCalculation.total),
+        contributions = rawCalculation.contributions + conditionModifiers.contributions.map { SkillContribution(it.label, it.value) },
+        unavailableReason = conditionModifiers.unavailableReason ?: rawCalculation.unavailableReason)
 
     FuryDialog(
         onDismissRequest = onDismiss,
@@ -191,6 +199,7 @@ fun SkillRollDialog(
                     )
                 }
 
+                if (conditionModifiers.notice.isNotBlank()) Text(conditionModifiers.notice, color = DublMuted)
                 if (effects.automaticContributions.isNotEmpty()) {
                     Text("Автоматически: " + effects.automaticContributions.joinToString { "${it.label} ${signed(it.value)}" })
                 }
@@ -206,7 +215,7 @@ fun SkillRollDialog(
                         }
                     }
                 }
-                if ((alternative?.advantageDice ?: 0) > 0 && (mode == RollMode.HINDRANCE || effects.options.selectedTotals(selectedEffects).hindranceDice > 0)) {
+                if ((alternative?.advantageDice ?: 0) > 0 && (mode == RollMode.HINDRANCE || effects.options.selectedTotals(selectedEffects).hindranceDice + conditionModifiers.hindranceDice > 0)) {
                     Text("Уберите помехи или выберите обычную проверку: совместное разрешение ПФ и помех не определено.", color = DublMuted)
                 }
                 effects.reminders.forEach { reminder ->
@@ -249,7 +258,7 @@ fun SkillRollDialog(
                     val autoBonus = effects.automaticBonus
                     val toggledBonus = selectedTotals.numericBonus
                     val selectedAdvantage = selectedTotals.advantageDice + (alternative?.advantageDice ?: 0)
-                    val selectedHindrance = selectedTotals.hindranceDice
+                    val selectedHindrance = selectedTotals.hindranceDice + conditionModifiers.hindranceDice
                     val manual = effectCountText.toIntOrNull()?.coerceIn(1, 9) ?: 1
                     val manualAdvantage = if (mode == RollMode.ADVANTAGE) manual else 0
                     val manualHindrance = if (mode == RollMode.HINDRANCE) manual else 0
@@ -282,6 +291,7 @@ fun ContextRollDialog(
     developmentCatalog: DevelopmentCatalog,
     effectCatalog: SkillEffectCatalog,
     initialAttribute: AttributeId? = null,
+    activeConditions: Set<CharacterConditionId> = emptySet(),
     onDismiss: () -> Unit,
 ) {
     val allowedSkillIds = context.allowedSkillIds()
@@ -302,7 +312,11 @@ fun ContextRollDialog(
 
     val attrOptions = if (context == RollContext.ATTRIBUTE) AttributeId.entries else character.allowedRollAttributes(context, skill?.id)
     val selectedAttribute = initialAttribute?.takeIf { it in attrOptions } ?: attribute?.takeIf { it in attrOptions } ?: attrOptions.firstOrNull()
-    val basePreset = character.rollPreset(context, skill?.id, selectedAttribute)
+    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions)
+    val basePreset = character.rollPreset(context, skill?.id, selectedAttribute).let { base ->
+        base.copy(bonus = conditionModifiers.apply(base.bonus), contributions = base.contributions + conditionModifiers.contributions,
+            unavailableReason = conditionModifiers.unavailableReason ?: base.unavailableReason)
+    }
     val flurryRule = if (context == RollContext.FLURRY) flurryProfile.rule(shortFlurry) else null
     val baseBonus = basePreset.bonus
     val preset = if (flurryRule != null && baseBonus != null) {
@@ -385,6 +399,7 @@ fun ContextRollDialog(
                     OutlinedTextField(situationalText, { situationalText = it.take(4) }, label = { Text("Поправка") }, modifier = Modifier.weight(1f), singleLine = true)
                     OutlinedTextField(targetText, { targetText = it.take(4) }, label = { Text("Цель / СЛ") }, modifier = Modifier.weight(1f), singleLine = true)
                 }
+                if (conditionModifiers.notice.isNotBlank()) Text(conditionModifiers.notice, color = DublMuted)
                 preset.contributions.forEach { contribution -> Text("${contribution.label}: ${signed(contribution.value)}", color = DublMuted) }
                 contextOptions.forEach { option ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -413,7 +428,7 @@ fun ContextRollDialog(
             TextButton(enabled = preset.available, onClick = {
                 val bonus = (preset.bonus ?: return@TextButton) + contextTotals.numericBonus
                 val adv = (advantageText.toIntOrNull()?.coerceIn(0, 9) ?: 0) + contextTotals.advantageDice
-                val hind = (hindranceText.toIntOrNull()?.coerceIn(0, 9) ?: 0) + contextTotals.hindranceDice
+                val hind = (hindranceText.toIntOrNull()?.coerceIn(0, 9) ?: 0) + contextTotals.hindranceDice + conditionModifiers.hindranceDice
                 if (adv > 0 && hind > 0) return@TextButton
                 val mode = when { adv > 0 -> RollMode.ADVANTAGE; hind > 0 -> RollMode.HINDRANCE; else -> RollMode.NORMAL }
                 result = rollCheck(

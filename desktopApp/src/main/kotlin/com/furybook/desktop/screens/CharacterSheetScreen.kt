@@ -86,6 +86,7 @@ import com.furybook.dubl.content.DublUiFeature
 import com.furybook.dubl.content.forFeature
 import com.furybook.dubl.content.resourceCurrent
 import com.furybook.dubl.model.AttributeId
+import com.furybook.dubl.model.conditionDerivedValues
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterEconomy
 import com.furybook.dubl.model.CharacterSheetExtras
@@ -334,6 +335,7 @@ fun CharacterSheetScreen(
         context = request.context,
         developmentCatalog = state.developmentCatalog,
         effectCatalog = state.skillEffectCatalog,
+        activeConditions = state.extras.activeConditions,
         initialAttribute = request.attribute,
         onDismiss = { rollRequest = null },
     ) }
@@ -394,6 +396,7 @@ fun CharacterSheetScreen(
         initialAttribute = request.attribute,
         developmentCatalog = state.developmentCatalog,
         effectCatalog = state.skillEffectCatalog,
+        activeConditions = state.extras.activeConditions,
         onPreferredAttribute = {},
         onDismiss = { sheetRollRequest = null },
     ) }
@@ -542,6 +545,7 @@ private fun CharacterHero(
 
             HeroTelemetry(
                 character = character,
+                activeConditions = effectiveConditions,
                 compact = compact,
                 wide = wide,
                 onAttributeDelta = onAttributeDelta,
@@ -785,6 +789,7 @@ private fun HeroResources(
 @Composable
 private fun HeroTelemetry(
     character: DublCharacter,
+    activeConditions: Set<CharacterConditionId>,
     compact: Boolean,
     wide: Boolean,
     onAttributeDelta: (AttributeId, Int) -> Unit,
@@ -809,6 +814,7 @@ private fun HeroTelemetry(
             DesktopHeroSection(Modifier.weight(.42f)) {
                 HeroMetricsStrip(
                     character = character,
+                    activeConditions = activeConditions,
                     compact = false,
                     wide = false,
                     embedded = true,
@@ -830,6 +836,7 @@ private fun HeroTelemetry(
             DesktopHeroSection(Modifier.fillMaxWidth()) {
                 HeroMetricsStrip(
                     character = character,
+                    activeConditions = activeConditions,
                     compact = compact,
                     wide = wide,
                     onRoll = onRoll,
@@ -906,6 +913,7 @@ private fun attributeIcon(id: AttributeId): DesktopIconKind = when (id) {
 @Composable
 private fun HeroMetricsStrip(
     character: DublCharacter,
+    activeConditions: Set<CharacterConditionId>,
     compact: Boolean,
     wide: Boolean,
     embedded: Boolean = false,
@@ -917,12 +925,13 @@ private fun HeroMetricsStrip(
         val value: String,
         val context: RollContext?,
     )
+    val conditionValues = character.conditionDerivedValues(activeConditions)
     val metrics = listOf(
-        Metric(DesktopIconKind.DEFENSE, "Защита", character.defense.toString(), null),
-        Metric(DesktopIconKind.REFLEXES, "Рефлексы", character.reflexes.toString(), RollContext.REFLEXES),
-        Metric(DesktopIconKind.INITIATIVE, "Инициатива", character.initiative.toString(), RollContext.INITIATIVE),
+        Metric(DesktopIconKind.DEFENSE, "Защита", (conditionValues.defense?.toString() ?: "?"), null),
+        Metric(DesktopIconKind.REFLEXES, "Рефлексы", (conditionValues.reflexes?.toString() ?: "?"), RollContext.REFLEXES),
+        Metric(DesktopIconKind.INITIATIVE, "Инициатива", (conditionValues.initiative?.toString() ?: "?"), RollContext.INITIATIVE),
         Metric(DesktopIconKind.FORTITUDE, "Стойкость", character.fortitude.toString(), RollContext.FORTITUDE),
-        Metric(DesktopIconKind.RUN, "Бег", formatNumber(character.runFull), RollContext.RUN),
+        Metric(DesktopIconKind.RUN, "Бег", (conditionValues.run?.let(::formatNumber) ?: "?"), RollContext.RUN),
         Metric(DesktopIconKind.SIZE, "Размер", character.size.toString(), null),
         Metric(DesktopIconKind.PERCEPTION, "Пассивная внимательность", character.passiveAwareness.toString(), null),
         Metric(DesktopIconKind.DEFENSE, "Бонус природной брони", "+${character.naturalArmorDevelopmentBonus}", null),

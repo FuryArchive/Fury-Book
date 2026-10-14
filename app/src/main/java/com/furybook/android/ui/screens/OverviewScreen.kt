@@ -110,6 +110,8 @@ import com.furybook.dubl.content.DublUiFeature
 import com.furybook.dubl.content.forFeature
 import com.furybook.dubl.content.resourceCurrent
 import com.furybook.dubl.model.AttributeId
+import com.furybook.dubl.model.conditionRollModifiers
+import com.furybook.dubl.model.conditionDerivedValues
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.ConditionLocalOverride
 import com.furybook.dubl.model.CharacterEconomy
@@ -438,6 +440,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 Spacer(Modifier.height(8.dp))
                 KeyStats(
                     character = character,
+                    activeConditions = sheetExtras.activeConditions,
                     onStatClick = { selectedStat = it },
                     onFortitudeRoll = { showFortitudeRoll = true },
                     onReflexesRoll = { selectedRollContext = RollContext.REFLEXES },
@@ -706,6 +709,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         character.resolveSkill(skillId)?.let { skill ->
             DublSkillRollSheet(
                 character = character,
+                activeConditions = sheetExtras.activeConditions,
                 skill = skill,
                 initialAttribute = attribute,
                 onDismiss = { selectedSkillRoll = null },
@@ -727,6 +731,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     if (showFortitudeRoll) {
         ContextRollSheet(
             character = character,
+            activeConditions = sheetExtras.activeConditions,
             context = RollContext.FORTITUDE,
             developmentCatalog = developmentCatalog,
             onDismiss = { showFortitudeRoll = false },
@@ -736,6 +741,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     selectedRollContext?.let { rollContext ->
         ContextRollSheet(
             character = character,
+            activeConditions = sheetExtras.activeConditions,
             context = rollContext,
             developmentCatalog = developmentCatalog,
             onDismiss = { selectedRollContext = null },
@@ -957,7 +963,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
 
     selectedStat?.let { statId ->
         StatInfoSheet(
-            info = statInfo(statId, character),
+            info = statInfo(statId, character, sheetExtras.activeConditions),
             character = character,
             onRollFortitude = {
                 selectedStat = null
@@ -1695,6 +1701,7 @@ private fun QuickChecksSection(onRoll: (RollContext) -> Unit) {
 @Composable
 private fun ContextRollSheet(
     character: DublCharacter,
+    activeConditions: Set<CharacterConditionId> = emptySet(),
     context: RollContext,
     developmentCatalog: DevelopmentCatalog,
     onDismiss: () -> Unit,
@@ -1712,7 +1719,11 @@ private fun ContextRollSheet(
     }
     var flurryProfile by remember(context, character.id) { mutableStateOf(FlurryWeaponProfile.LIGHT) }
     var shortFlurry by remember(context, character.id) { mutableStateOf(false) }
-    val basePreset = character.rollPreset(context, selectedSkillId, selectedAttribute)
+    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions)
+    val basePreset = character.rollPreset(context, selectedSkillId, selectedAttribute).let { base ->
+        base.copy(bonus = conditionModifiers.apply(base.bonus), contributions = base.contributions + conditionModifiers.contributions,
+            unavailableReason = conditionModifiers.unavailableReason ?: base.unavailableReason)
+    }
     val flurryRule = if (context == RollContext.FLURRY) flurryProfile.rule(shortFlurry) else null
     val baseBonus = basePreset.bonus
     val preset = if (flurryRule != null && baseBonus != null) {
@@ -1751,6 +1762,8 @@ private fun ContextRollSheet(
         automaticContributions = preset.contributions,
         effectReminders = reminders,
         effectOptions = contextOptions,
+        fixedHindrance = conditionModifiers.hindranceDice,
+        conditionNotice = conditionModifiers.notice,
         flurryProfile = flurryProfile.takeIf { context == RollContext.FLURRY },
         shortFlurry = shortFlurry,
         onFlurryProfile = { flurryProfile = it },
@@ -1762,6 +1775,7 @@ private fun ContextRollSheet(
 @Composable
 private fun KeyStats(
     character: DublCharacter,
+    activeConditions: Set<CharacterConditionId> = emptySet(),
     onStatClick: (StatId) -> Unit,
     onFortitudeRoll: () -> Unit,
     onReflexesRoll: () -> Unit,
@@ -1774,7 +1788,7 @@ private fun KeyStats(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 rowStats.forEach { stat ->
-                    val info = statInfo(stat, character)
+                    val info = statInfo(stat, character, activeConditions)
                     StatTile(
                         stat = stat,
                         value = info.value,
@@ -1875,7 +1889,24 @@ private fun StatTile(
     }
 }
 
-private fun statInfo(id: StatId, character: DublCharacter): StatInfo = when (id) {
+private fun statInfo(id: StatId, character: DublCharacter, active: Set<CharacterConditionId> = emptySet()): StatInfo {
+    val base = rawStatInfo(id, character)
+    val values = character.conditionDerivedValues(active)
+    val value = when (id) {
+        StatId.DEFENSE -> values.defense?.toString() ?: "?"
+        StatId.REFLEXES -> values.reflexes?.let(::signed) ?: "?"
+        StatId.INITIATIVE -> values.initiative?.let(::signed) ?: "?"
+        StatId.RUN -> values.run?.let { "${formatNumber(it)} м" } ?: "?"
+        else -> return base
+    }
+    if (value == base.value) return base
+    return base.copy(value = value, formula = base.formula + " + поправки состояний",
+        breakdown = base.breakdown.filterNot { it.startsWith("Итог:") } +
+            listOf("Учтены состояния: Слабость, Шок, Глухота в применимых формулах", "Итог: $value"),
+        note = if (value == "?") "Истощение пока требует отдельного расчёта; автоматический результат недоступен." else base.note)
+}
+
+private fun rawStatInfo(id: StatId, character: DublCharacter): StatInfo = when (id) {
     StatId.DEFENSE -> StatInfo(
         id = id,
         value = character.defense.toString(),
@@ -3365,6 +3396,7 @@ private fun SkillAttributeChoiceSheet(
 @Composable
 internal fun DublSkillRollSheet(
     character: DublCharacter,
+    activeConditions: Set<CharacterConditionId> = emptySet(),
     skill: ResolvedSkill,
     initialAttribute: AttributeId,
     onDismiss: () -> Unit,
@@ -3377,17 +3409,20 @@ internal fun DublSkillRollSheet(
     val alternative = alternatives.firstOrNull { it.id == alternativeId }
     val effectiveSkill = alternative?.skill ?: skill
     val calculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, initialAttribute)
+    val conditionModifiers = character.conditionRollModifiers(RollContext.SKILL, alternative?.attribute ?: initialAttribute, activeConditions)
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
     CheckRollSheet(
         title = skill.name,
         bonusTitle = "Бонус умения · ${(alternative?.attribute ?: initialAttribute).shortTitle}",
-        checkBonus = calculation.total?.plus(effects.automaticBonus),
+        checkBonus = conditionModifiers.apply(calculation.total?.plus(effects.automaticBonus)),
         formulaText = calculation.formulaText(effectiveSkill, showConfiguredOptions = false),
         rememberKey = "${skill.id}:${initialAttribute.name}:${alternative?.id}",
         selectedAttribute = initialAttribute,
-        automaticContributions = effects.automaticContributions,
+        automaticContributions = effects.automaticContributions + conditionModifiers.contributions,
         effectOptions = effects.options,
         fixedAdvantage = alternative?.advantageDice ?: 0,
+        fixedHindrance = conditionModifiers.hindranceDice,
+        conditionNotice = conditionModifiers.notice,
         variantOptions = alternatives.map { it.id to it.label },
         selectedVariant = alternative?.id,
         onVariantSelected = { alternativeId = it },
@@ -3402,6 +3437,7 @@ internal fun DublSkillRollSheet(
 @Composable
 internal fun DublSkillRollSheet(
     character: DublCharacter,
+    activeConditions: Set<CharacterConditionId> = emptySet(),
     skill: ResolvedSkill,
     preferredAttribute: AttributeId? = null,
     onPreferredAttribute: ((AttributeId) -> Unit)? = null,
@@ -3418,18 +3454,21 @@ internal fun DublSkillRollSheet(
     val alternative = alternatives.firstOrNull { it.id == alternativeId }
     val effectiveSkill = alternative?.skill ?: skill
     val calculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, selectedAttribute)
+    val conditionModifiers = character.conditionRollModifiers(RollContext.SKILL, alternative?.attribute ?: selectedAttribute, activeConditions)
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
     CheckRollSheet(
         title = skill.name,
         bonusTitle = "Бонус умения",
-        checkBonus = calculation.total?.plus(effects.automaticBonus),
+        checkBonus = conditionModifiers.apply(calculation.total?.plus(effects.automaticBonus)),
         formulaText = calculation.formulaText(effectiveSkill),
         rememberKey = "skills-screen:${skill.id}:${alternative?.id}",
         attributeOptions = if (alternative == null) skill.attributes else emptyList(),
         selectedAttribute = selectedAttribute,
-        automaticContributions = effects.automaticContributions,
+        automaticContributions = effects.automaticContributions + conditionModifiers.contributions,
         effectOptions = effects.options,
         fixedAdvantage = alternative?.advantageDice ?: 0,
+        fixedHindrance = conditionModifiers.hindranceDice,
+        conditionNotice = conditionModifiers.notice,
         variantOptions = alternatives.map { it.id to it.label },
         selectedVariant = alternative?.id,
         onVariantSelected = { alternativeId = it },
@@ -3461,6 +3500,8 @@ private fun CheckRollSheet(
     variantOptions: List<Pair<String, String>> = emptyList(),
     selectedVariant: String? = null,
     fixedAdvantage: Int = 0,
+    fixedHindrance: Int = 0,
+    conditionNotice: String = "",
     onVariantSelected: ((String?) -> Unit)? = null,
     onAttributeSelected: ((AttributeId) -> Unit)? = null,
     flurryProfile: FlurryWeaponProfile? = null,
@@ -3482,7 +3523,7 @@ private fun CheckRollSheet(
     val selectedEffectTotals = effectOptions.selectedTotals(selectedEffectIds)
     val effectiveCheckBonus = checkBonus?.plus(selectedEffectTotals.numericBonus)
     val totalAdvantage = advantageCount + selectedEffectTotals.advantageDice + fixedAdvantage
-    val totalHindrance = hindranceCount + selectedEffectTotals.hindranceDice
+    val totalHindrance = hindranceCount + selectedEffectTotals.hindranceDice + fixedHindrance
     val mode = when {
         totalAdvantage > 0 -> RollMode.ADVANTAGE
         totalHindrance > 0 -> RollMode.HINDRANCE
@@ -3524,6 +3565,7 @@ private fun CheckRollSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (conditionNotice.isNotBlank()) Text(conditionNotice, color = DublAccent)
             if (variantOptions.isNotEmpty()) {
                 Text("Формула для этого броска: выбор подтверждает условие", style = MaterialTheme.typography.labelLarge)
                 FilterChip(selected = selectedVariant == null,

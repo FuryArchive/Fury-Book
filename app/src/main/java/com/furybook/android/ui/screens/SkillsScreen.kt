@@ -303,6 +303,7 @@ fun SkillsScreen(controller: CharacterController) {
         character.resolveSkill(skillId)?.let { skill ->
             DublSkillRollSheet(
                 character = character,
+                activeConditions = sheetExtras.activeConditions,
                 skill = skill,
                 preferredAttribute = sheetExtras.preferredSkillAttributes[skill.id],
                 onPreferredAttribute = { attribute -> rememberSkillAttribute(skill.id, attribute) },
