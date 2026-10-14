@@ -725,13 +725,10 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     }
 
     if (showFortitudeRoll) {
-        val fortitudePreset = character.rollPreset(RollContext.FORTITUDE)
-        CheckRollSheet(
-            title = "Проверка Стойкости",
-            bonusTitle = "Стойкость",
-            checkBonus = fortitudePreset.bonus ?: character.fortitude,
-            formulaText = fortitudePreset.formulaText,
-            rememberKey = "fortitude-${character.id}",
+        ContextRollSheet(
+            character = character,
+            context = RollContext.FORTITUDE,
+            developmentCatalog = developmentCatalog,
             onDismiss = { showFortitudeRoll = false },
         )
     }
@@ -1649,6 +1646,7 @@ private fun RecentChangeBar(
 @Composable
 private fun QuickChecksSection(onRoll: (RollContext) -> Unit) {
     val contexts = listOf(
+        RollContext.ATTRIBUTE,
         RollContext.DODGE,
         RollContext.ATTACK,
         RollContext.FLURRY,
@@ -1668,7 +1666,7 @@ private fun QuickChecksSection(onRoll: (RollContext) -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                Text("Боевые действия", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Проверки и боевые действия", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                 Text(
                     if (expanded) "Без боевого состояния; цель/СЛ вводится вручную." else "${contexts.size} быстрых действий · свернуто",
                     style = MaterialTheme.typography.bodySmall,
@@ -1708,7 +1706,7 @@ private fun ContextRollSheet(
     var selectedSkillId by remember(context, character.id) {
         mutableStateOf(skillOptions.firstOrNull()?.id)
     }
-    fun attributesFor(skillId: String?): List<AttributeId> = character.allowedRollAttributes(context, skillId)
+    fun attributesFor(skillId: String?): List<AttributeId> = if (context == RollContext.ATTRIBUTE) AttributeId.entries else character.allowedRollAttributes(context, skillId)
     var selectedAttribute by remember(context, selectedSkillId, character.id) {
         mutableStateOf(attributesFor(selectedSkillId).firstOrNull())
     }
@@ -1727,7 +1725,7 @@ private fun ContextRollSheet(
     } else {
         basePreset
     }
-    val contextOptions = SkillEffectRules(character, developmentCatalog, effectCatalog).contextOptions(context)
+    val contextOptions = SkillEffectRules(character, developmentCatalog, effectCatalog).contextOptions(context, selectedAttribute)
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
     val reminderContext = if (context == RollContext.FLURRY) RollContext.ATTACK else context
     val reminders = remember(character, reminderContext, developmentCatalog, effectCatalog, alreadyAppliedLabels) {

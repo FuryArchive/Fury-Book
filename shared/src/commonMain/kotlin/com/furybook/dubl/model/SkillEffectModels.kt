@@ -147,9 +147,16 @@ class SkillEffectRules(
 
     /** Zero-cost situational effects. Selection confirms the stated external
      * condition for THIS roll only; it does not invent encounter state. */
-    fun contextOptions(context: RollContext): List<SkillRollEffectOption> = effectCatalog.effects.mapNotNull { effect ->
+    fun contextOptions(context: RollContext, attribute: AttributeId? = null): List<SkillRollEffectOption> = effectCatalog.effects.mapNotNull { effect ->
         if (effect.id in character.disabledSkillEffectIds || ownedRank(effect) <= 0) return@mapNotNull null
         val condition = when (effect.developmentId) {
+            "feat_c35ba86389f61a11" -> if (attribute == AttributeId.STRENGTH &&
+                context in setOf(RollContext.ATTRIBUTE, RollContext.BREAK_ITEM))
+                "Сильная спина: проверка Силы, толкаю, тяну, поднимаю тяжесть или ломаю объект" else null
+            "feat_a144256fd7c09aeb" -> if (context == RollContext.ATTRIBUTE && attribute == AttributeId.STRENGTH)
+                "Тягач: проверка Силы при подъёме тяжести" else null
+            "feat_5a681a34327a203e" -> "Закрытый разум: встречная проверка сопротивления воздействию на разум"
+            "feat_8cd438317819c497" -> "Герой второго шанса: разрешённая повторная проверка (не даёт новой попытки)"
             "feat_255d30b26489a033" -> if (context in setOf(RollContext.ATTACK, RollContext.FLURRY))
                 "Налёт: мультидействие атака + движение не менее 5 м" else null
             "feat_2f6cc2a6bb5fbef5" -> if (context == RollContext.DODGE)
@@ -161,7 +168,11 @@ class SkillEffectRules(
                 "Командный игрок: союзник не далее 3 м" else null
             else -> null
         } ?: return@mapNotNull null
-        val numeric = if (effect.developmentId == "feat_e51286dcfb04695d") 1 else 0
+        val numeric = when (effect.developmentId) {
+            "feat_e51286dcfb04695d" -> 1
+            "feat_a144256fd7c09aeb" -> ownedRank(effect)
+            else -> 0
+        }
         SkillRollEffectOption(effect.id,condition,effect.sourceName,effect.effectText,
             numericBonus=numeric,advantageDice=if(numeric==0) 1 else 0)
     }.distinctBy { it.id }

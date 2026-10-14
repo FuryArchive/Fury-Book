@@ -79,4 +79,32 @@ class SkillRollAlternativesTest {
         val disabled=c.copy(disabledSkillEffectIds=setOf("trail-2","trail-3"))
         assertEquals(base+5,disabled.skillRollAlternatives(disabled.resolveSkill("survival")!!,catalog).first().calculation(disabled).total)
     }
+
+    @Test fun conflict_and_digital_repair_synergy_use_exact_owned_pairs() {
+        val mediator = "feat_a1b2117d80ed94e3"; val service = "feat_b28ef4152e26995a"
+        val catalog = SkillEffectCatalog("test", listOf(mediator, service).mapIndexed { i, id ->
+            SkillEffectDefinition("pair-$i", i, "Source", "Condition", "", "", "", SkillEffectMode.REMINDER,
+                RollContext.SKILL, emptyList(), 0, false, "", id)
+        })
+        val c = character.copy(skills = listOf("barter", "eloquence", "engineering_repair", "computers")
+            .associateWith { CharacterSkill(it, it, rank = if (it == "barter" || it == "engineering_repair") 4 else 7) },
+            development = mapOf(mediator to OwnedDevelopment(1), service to OwnedDevelopment(1)))
+        for ((first, second) in listOf("barter" to "eloquence", "engineering_repair" to "computers")) {
+            val fromFirst = c.skillRollAlternatives(c.resolveSkill(first)!!, catalog).single()
+            val fromSecond = c.skillRollAlternatives(c.resolveSkill(second)!!, catalog).single()
+            assertEquals(fromFirst, fromSecond)
+            assertEquals(first, fromFirst.skill.id)
+            assertEquals(second, fromFirst.synergyPartner!!.id)
+            // max(4, 7) + ceil(4 / 2) = 9; only ephemeral +5 to first skill.
+            assertEquals(c.skillCalculationForRoll(fromFirst.skill, fromFirst.attribute).total!! + 5,
+                fromFirst.calculation(c).total)
+            assertEquals(4, c.resolveSkill(first)!!.rank)
+        }
+        assertTrue(c.skillRollAlternatives(c.resolveSkill("medicine")!!, catalog).isEmpty())
+        assertTrue(c.copy(development = emptyMap()).skillRollAlternatives(c.resolveSkill("barter")!!, catalog).isEmpty())
+        assertTrue(c.copy(disabledSkillEffectIds = setOf("pair-1"))
+            .skillRollAlternatives(c.resolveSkill("computers")!!, catalog).isEmpty())
+        val untrained = c.copy(skills = c.skills - "engineering_repair")
+        assertTrue(untrained.skillRollAlternatives(untrained.resolveSkill("computers")!!, catalog).isEmpty())
+    }
 }

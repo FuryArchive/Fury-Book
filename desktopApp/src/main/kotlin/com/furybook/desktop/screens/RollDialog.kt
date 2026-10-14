@@ -313,7 +313,7 @@ fun ContextRollDialog(
             formulaText = "${basePreset.formulaText} + $label",
         )
     } else basePreset
-    val contextOptions = SkillEffectRules(character, developmentCatalog, effectCatalog).contextOptions(context)
+    val contextOptions = SkillEffectRules(character, developmentCatalog, effectCatalog).contextOptions(context, selectedAttribute)
     val contextTotals = contextOptions.selectedTotals(selectedContextEffects)
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
     val reminders = SkillEffectRules(character, developmentCatalog, effectCatalog).let { rules ->

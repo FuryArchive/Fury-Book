@@ -73,7 +73,7 @@ fun DublCharacter.skillRollAlternatives(
     }
     SkillRollAlternative(effect.id, "${effect.sourceName}: $condition", effect.effectText, replacement, attribute,
         synergyPartner = synergy, synergyContributions = if (synergy != null) synergyBonuses(replacement, synergy, catalog) else emptyList())
-}.plus(skillRollPresets(skill, catalog)).distinctBy { it.id }
+}.plus(skillRollPresets(skill, catalog)).plus(skillSynergyPresets(skill, catalog)).distinctBy { it.id }
 
 /** Bounded, no-resource presets with explicit source conditions. */
 private fun DublCharacter.skillRollPresets(
@@ -121,4 +121,24 @@ private fun DublCharacter.synergyBonuses(first: ResolvedSkill, second: ResolvedS
             else -> 0
         }
         if (value == 0) null else SkillContribution(effect.sourceName, value)
+    }
+
+/** Explicit source-defined pairs, resolved by stable skill identity, never by display name. */
+private fun DublCharacter.skillSynergyPresets(skill: ResolvedSkill, catalog: SkillEffectCatalog): List<SkillRollAlternative> =
+    catalog.effects.mapNotNull { effect ->
+        if (effect.id in disabledSkillEffectIds || developmentRank(effect.developmentId) <= 0) return@mapNotNull null
+        val pair = when (effect.developmentId) {
+            "feat_a1b2117d80ed94e3" -> Triple("barter", "eloquence", "Договариваюсь об условиях выхода из конфликта")
+            "feat_b28ef4152e26995a" -> Triple("engineering_repair", "computers", "Ремонтирую компьютер, гаджет или цифровое устройство")
+            else -> return@mapNotNull null
+        }
+        if (skill.id != pair.first && skill.id != pair.second) return@mapNotNull null
+        val primary = resolveSkill(pair.first) ?: return@mapNotNull null
+        val partner = resolveSkill(pair.second) ?: return@mapNotNull null
+        // A synergy does not grant permission to use a skill forbidden without training.
+        if (skillCalculationForRoll(primary, primary.stockAttribute).total == null ||
+            skillCalculationForRoll(partner, partner.stockAttribute).total == null) return@mapNotNull null
+        SkillRollAlternative(effect.id, "${effect.sourceName}: ${pair.third}; ${primary.name} + ${partner.name}",
+            effect.effectText, primary, primary.stockAttribute, synergyPartner = partner,
+            synergyContributions = synergyBonuses(primary, partner, catalog))
     }

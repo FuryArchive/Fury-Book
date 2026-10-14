@@ -65,4 +65,44 @@ class SkillEffectRulesTest {
         assertEquals(1, option.advantageDice)
         assertEquals(0, option.numericBonus)
     }
+
+    @Test fun strength_conditions_are_attribute_scoped_and_do_not_leak_after_switching() {
+        val strong = "feat_c35ba86389f61a11"; val hauler = "feat_a144256fd7c09aeb"
+        val effects = SkillEffectCatalog("test", listOf(strong, hauler).mapIndexed { i, id ->
+            SkillEffectDefinition("strength-$i", i, "Source", "Condition", "", "", "", SkillEffectMode.REMINDER,
+                RollContext.ATTRIBUTE, emptyList(), 0, false, "", id)
+        })
+        val c = DublCharacter("strength", development = mapOf(strong to OwnedDevelopment(1), hauler to OwnedDevelopment(2)))
+        val rules = SkillEffectRules(c, DevelopmentCatalog("test", emptyList()), effects)
+        val choices = rules.contextOptions(RollContext.ATTRIBUTE, AttributeId.STRENGTH)
+        assertEquals(2, choices.size)
+        assertEquals(SkillRollEffectTotals(2, 1, 0), choices.selectedTotals(choices.map { it.id }.toSet()))
+        assertEquals(SkillRollEffectTotals(), choices.selectedTotals(emptySet()))
+        assertTrue(rules.contextOptions(RollContext.ATTRIBUTE, AttributeId.DEXTERITY).isEmpty())
+        assertTrue(rules.contextOptions(RollContext.ATTRIBUTE).isEmpty())
+        assertTrue(rules.contextOptions(RollContext.ATTACK, AttributeId.STRENGTH).isEmpty())
+        assertTrue(rules.contextOptions(RollContext.BREAK_ITEM, AttributeId.DEXTERITY).isEmpty())
+        assertEquals("strength-0", rules.contextOptions(RollContext.BREAK_ITEM, AttributeId.STRENGTH).single().id)
+        val disabled = SkillEffectRules(c.copy(disabledSkillEffectIds = setOf("strength-0", "strength-1")),
+            DevelopmentCatalog("test", emptyList()), effects)
+        assertTrue(disabled.contextOptions(RollContext.ATTRIBUTE, AttributeId.STRENGTH).isEmpty())
+    }
+
+    @Test fun mental_resistance_and_repeat_are_opt_in_not_automatic_actions() {
+        val ids = listOf("feat_5a681a34327a203e", "feat_8cd438317819c497")
+        val effects = SkillEffectCatalog("test", ids.mapIndexed { i, id ->
+            SkillEffectDefinition("context-$i", i, "Source", "Condition", "", "", "", SkillEffectMode.REMINDER,
+                null, emptyList(), 0, false, "", id)
+        })
+        val c = DublCharacter("context", development = ids.associateWith { OwnedDevelopment(1) })
+        val rules = SkillEffectRules(c, DevelopmentCatalog("test", emptyList()), effects)
+        val options = rules.forSkill(c.resolveSkill("awareness")!!).options
+        assertEquals(2, options.size)
+        assertEquals(SkillRollEffectTotals(), options.selectedTotals(emptySet()))
+        assertEquals(1, options.selectedTotals(setOf("context-1")).advantageDice)
+        assertTrue(options.last().label.contains("не даёт новой попытки"))
+        assertEquals(options, rules.contextOptions(RollContext.FORTITUDE))
+        assertTrue(SkillEffectRules(c.copy(development = emptyMap()), DevelopmentCatalog("test", emptyList()), effects)
+            .contextOptions(RollContext.FORTITUDE).isEmpty())
+    }
 }

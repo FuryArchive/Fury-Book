@@ -42,3 +42,11 @@ The acquisition-wide T19 report now validates and joins the pinned original sour
 - Desktop compilation and Web test-source compilation passed. Web browser execution remains unverified.
 - Full Python tools run: 481 passed, one failed, four skipped. The failure was a stale textual API-boundary assertion after the shared owned-feature attribute API was introduced. Updated that assertion and reran all six tests in its file successfully. The full Python suite was not repeated; the four skips remain open, including missing real rulebook import artifacts.
 - Final scoped Gradle run exited 0 in 1,322 seconds. No production changes were needed for these two test-expectation corrections. This closes this batch's regression, not the remaining automation or release gates.
+
+## Next bounded formula batch
+
+- Mediator and Service Worker expose explicit, mutually exclusive two-skill synergy presets for conflict-exit negotiations and digital-device repair. Stable Barter/Eloquence and Engineering (Repair)/Computers identities are used, not user-editable names. Neither purchased ranks nor resource state changes; forbidden untrained use stays unavailable.
+- Strong Back is selectable only for Strength attribute checks or Strength-based object breaking, with the source condition stated. Hauler adds its owned rank only to explicitly selected Strength lifting checks; its existing carry-weight formula is not duplicated.
+- Closed Mind and Hero of Second Chance are explicit per-roll conditions, not automatic advantage or permission to attempt a roll again. They do not infer mental attacks, previous failure, or resources.
+- Android now exposes the existing generic attribute-check dialog and routes its Fortitude shortcut through the same contextual effect path. All three UIs supply the selected attribute to the shared condition resolver so a Strength bonus cannot leak into Dexterity after changing the selection.
+- Changed-area verification passed: both affected model test classes (11 tests), plus Android, Desktop and Web compilation in 70 seconds. The completed aggregate regression above predates these additions. Actual platform interaction is still unverified.
