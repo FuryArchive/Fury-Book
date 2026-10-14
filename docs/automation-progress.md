@@ -302,3 +302,10 @@ a button silently returning without action. Review and execution use the same fa
 
 Static diff/host-parity inspection only for this UI batch. Full Compose compilation/UI acceptance
 remains blocked by the previously reported dependency route; no new runtime-test claim is made.
+
+### 2026-10-14: Consolidated current-source verification after roll updates
+
+Fresh actual Kotlin/JVM compilation from the current non-UI shared sources, including event controller
+and vision rules: 258 scoped gameplay assertions plus 68 JUnit tests passed (49 existing acquisition,
+19 condition/vision). This is one consolidated milestone check, not a full price matrix or platform UI
+regression. Host UI remains uncompiled; no APK acceptance is implied.
