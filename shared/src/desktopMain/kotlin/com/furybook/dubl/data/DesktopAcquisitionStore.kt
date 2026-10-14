@@ -78,6 +78,7 @@ class DesktopAcquisitionStore(
                 require(readIfExists(backup) == sourceRaw) { "Backup verification failed" }
                 fault(DesktopAcquisitionWriteStage.AfterGameplayBackup)
                 fault(DesktopAcquisitionWriteStage.BeforeGameplayHeadReplace)
+                state.localLegacySourceFence()?.let { require(sourceUnchanged(it)) { "Legacy source changed during gameplay migration" } }
                 durableReplace(envelopePath(request.characterId), encodeEnvelope(next))
                 GameplayMigrationResult.Migrated(backup.toString())
             }

@@ -2,6 +2,7 @@
 package com.furybook.web
 
 import com.furybook.dubl.acquisition.*
+import com.furybook.dubl.actions.*
 import kotlinx.browser.window
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -19,7 +20,7 @@ class BrowserOwnerScope private constructor(internal val id:String,private val c
 }
 
 data class BrowserLegacySource(val snapshotRaw:String,val extrasRaw:String?)
-enum class BrowserAcquisitionWriteStage { BeforePut, AfterPutSucceeded }
+enum class BrowserAcquisitionWriteStage { BeforePut, AfterPutSucceeded, AfterGameplayBackup, BeforeGameplayHeadReplace }
 
 /** Whole exact envelope, one native IDB readwrite transaction, acknowledged only on complete. */
 class BrowserAcquisitionStore(
@@ -29,6 +30,7 @@ class BrowserAcquisitionStore(
     private val legacySource:(()->BrowserLegacySource?)?=null,
     private val fault:(BrowserAcquisitionWriteStage)->Unit={},
     private val indexedDb:()->dynamic={window.asDynamic().indexedDB},
+    private val gameplayFormatEnabled:Boolean=false,
 ) : AcquisitionStore {
     val storageIdentity: String get() = databaseName + "/" + owner.id
     var scopeGeneration: Long = 0; private set
@@ -141,7 +143,7 @@ class BrowserAcquisitionStore(
         }
         if(!absent(head)) {
             val raw=head as? String ?: return LoadResult.Corrupt("","Envelope is not text; original IDB value retained")
-            val loaded=decodeEnvelope(raw)
+            val loaded=decodeEnvelope(raw,allowGameplayFormat=gameplayFormatEnabled)
             if(loaded is LoadResult.MigrationRequired) return LoadResult.Corrupt(raw,"Legacy snapshot found in acquisition container")
             if(loaded is LoadResult.Loaded) {
                 if(loaded.state.character.id!=characterId) return LoadResult.Corrupt(raw,"Character scope differs")
@@ -230,14 +232,19 @@ class BrowserAcquisitionStore(
     override suspend fun compareAndSet(characterId:String,expectedStorageRevision:Long,next:StoredCharacter):CommitResult = try {
         owner.requireCurrent();check(capabilities.localDurable && capabilities.formatWritable) { "Local acquisition writes are disabled or durable storage is unavailable" }
         val encoded=encodeEnvelope(next)
-        val captured=(decodeEnvelope(encoded) as LoadResult.Loaded).state
+        val captured=(decodeEnvelope(encoded,allowGameplayFormat=gameplayFormatEnabled) as LoadResult.Loaded).state
         require(captured.character.id==characterId) { "Character scope differs" }
         val result=read<CommitResult>(characterId,"readwrite") { tx,head,backup,set ->
             val sourceAtRead=currentSource()
             val current=classify(characterId,head,backup)
             var migrationSource:BrowserLegacySource?=null
             val accepted=when(current) {
-                is LoadResult.Loaded -> current.state.storageRevision==expectedStorageRevision && expectedStorageRevision<Long.MAX_VALUE && captured.storageRevision==expectedStorageRevision+1
+                is LoadResult.Loaded -> {
+                    if(current.state.formatVersion!=captured.formatVersion) {
+                        set(CommitResult.StorageFailure("Explicit backed-up canonical format migration is required"));return@read
+                    }
+                    current.state.storageRevision==expectedStorageRevision && expectedStorageRevision<Long.MAX_VALUE && captured.storageRevision==expectedStorageRevision+1
+                }
                 is LoadResult.Missing -> {
                     if(backup!=null && currentSource()==BrowserLegacySourceState.NotLoaded) {
                         set(CommitResult.StorageFailure("Current legacy source has not loaded; archived source cannot authorize initialization"));return@read
@@ -271,6 +278,68 @@ class BrowserAcquisitionStore(
         result
     } catch(cancelled:CancellationException) { throw cancelled }
       catch(failure:Throwable) { storageError=storageError ?: failure.message ?: "Browser storage write failed";CommitResult.StorageFailure(storageError!!) }
+
+    /** Original bytes and new head commit in the same strict native transaction. No Promise gap. */
+    suspend fun migrateGameplay(command:GameplayMigrationRequest):GameplayMigrationResult = try {
+        owner.requireCurrent()
+        if(!gameplayFormatEnabled || !capabilities.localDurable || !capabilities.formatWritable)
+            GameplayMigrationResult.Blocked("Local durable gameplay migration is not enabled")
+        else read<GameplayMigrationResult>(command.characterId,"readwrite") { tx,head,legacyBackup,set ->
+            val sourceAtRead=currentSource()
+            val state=(classify(command.characterId,head,legacyBackup) as? LoadResult.Loaded)?.state
+            if(state==null) { set(GameplayMigrationResult.Blocked("Canonical source is unavailable"));return@read }
+            val backupKey=arrayOf(owner.id,"gameplay",command.characterId,command.operationId)
+            val backupLabel="$databaseName/gameplay-backup/${command.characterId}/${command.operationId}"
+            val original=head as? String ?: error("Canonical source must be text")
+            val proof=state.gameplay?.migration
+            val next=if(state.formatVersion==2) {
+                if(proof?.operationId!=command.operationId || proof.sourceStorageRevision!=command.expectedStorageRevision ||
+                    canonicalJson(proof.sourceRaw)!=command.expectedSourceCanonical) {
+                    set(GameplayMigrationResult.Blocked("Different or already completed migration"));return@read
+                }
+                null
+            } else prepareGameplayMigration(state,original,command)
+            val request=tx.objectStore(SOURCES).get(backupKey)
+            request.onsuccess={ _:dynamic -> callback(tx) {
+                if(next==null) {
+                    require(request.result is String && request.result==proof!!.sourceRaw) { "Migration backup missing or changed" }
+                    set(GameplayMigrationResult.AlreadyMigrated(backupLabel))
+                } else {
+                    val commitHead:()->Unit={
+                        fault(BrowserAcquisitionWriteStage.AfterGameplayBackup)
+                        fault(BrowserAcquisitionWriteStage.BeforeGameplayHeadReplace)
+                        owner.requireCurrent()
+                        check(capabilities.localDurable && capabilities.formatWritable && currentSource()==sourceAtRead) { "Scope/source changed during migration" }
+                        val put=tx.objectStore(ENVELOPES).put(encodeEnvelope(next),arrayOf(owner.id,command.characterId))
+                        put.onsuccess={ _:dynamic -> callback(tx) {
+                            fault(BrowserAcquisitionWriteStage.AfterPutSucceeded)
+                            require(currentSource()==sourceAtRead) { "Source changed during migration" }
+                        } }
+                        set(GameplayMigrationResult.Migrated(backupLabel))
+                    }
+                    if(!absent(request.result)) {
+                        require(request.result is String && request.result==original) { "Migration ID has a different backup" }
+                        commitHead()
+                    } else {
+                        val save=tx.objectStore(SOURCES).add(original,backupKey)
+                        save.onsuccess={ _:dynamic -> callback(tx) { commitHead() } }
+                    }
+                }
+            } }
+        }
+    } catch(cancelled:CancellationException) { throw cancelled }
+      catch(failure:IllegalArgumentException) { GameplayMigrationResult.Blocked(failure.message ?: "Invalid migration review") }
+      catch(failure:Throwable) { GameplayMigrationResult.StorageFailure(failure.message ?: "Migration outcome uncertain; retain the same ID") }
+
+    suspend fun gameplayMigrationBackupForExport(characterId:String,operationId:String):String? {
+        owner.requireCurrent();check(ready) { "Browser durable storage unavailable" }
+        return transaction("readonly") { tx,_,set ->
+            val request=tx.objectStore(SOURCES).get(arrayOf(owner.id,"gameplay",characterId,operationId))
+            request.onsuccess={ _:dynamic -> callback(tx) {
+                set(if(absent(request.result)) null else request.result as? String ?: error("Backup is not text; original retained"))
+            } }
+        }
+    }
 
     companion object {
         private const val ENVELOPES="envelopes"

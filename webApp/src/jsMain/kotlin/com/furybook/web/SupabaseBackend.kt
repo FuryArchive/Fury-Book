@@ -25,8 +25,6 @@ external object SupabaseModule {
     fun createClient(supabaseUrl: String, supabaseKey: String): dynamic
 }
 
-data class WebAuthSession(val userId: String, val email: String)
-
 /** getSession's editable identity is only a candidate; getUser's Auth reply establishes the owner. */
 internal suspend fun verifyBrowserServerOwner(session:WebAuthSession,currentOwner:()->String?,
     getUser:suspend ()->dynamic,currentSdkOwner:suspend ()->String?):WebAuthSession {

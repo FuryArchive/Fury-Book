@@ -161,3 +161,17 @@ injected JVM file operations. Seven host JUnit tests passed (four existing stora
 new gameplay migration/fault/export tests). Separate host JVM start, reopen/Undo and final reopen
 phases passed. This is not Android device/native Os validation, not a Compose or Gradle build,
 and not a new APK. The browser adapter and UI integration remain separate unfinished work.
+
+### 2026-10-14: Browser gameplay adapter (compiled, runtime acceptance pending)
+
+Added opt-in format-2 reads and explicit migration using one strict IndexedDB transaction for both
+original backup and canonical head. Ordinary CAS cannot change formats. Backup keys include owner,
+character and operation ID. Original export and same-ID migration replay verify exact source text.
+The production gate remains off. Also recheck the Desktop legacy source immediately before head replacement.
+
+Actual Kotlin/JS 2.4.20 compiled all 89 non-UI shared sources and the real browser adapter, then linked
+the isolated browser acceptance probe with the actual coroutines and DOM libraries (no mock IndexedDB).
+The probe contains restart/Undo/default-reader/refusal and transaction-abort scenarios, but they have
+NOT executed: the cloud browser returned ERR_CONNECTION_REFUSED for the local HTTP test server.
+Do not count compilation as browser persistence acceptance. Full UI integration, production activation,
+platform builds, Android native file operations and action duration rules remain unfinished.
