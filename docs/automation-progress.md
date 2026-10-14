@@ -291,3 +291,14 @@ are not claimed complete; both conditions retain their partial-automation notice
 
 Actual scoped Kotlin/JVM compilation and 19 JUnit tests passed across vision, existing condition and
 restrained-condition tests. No resource mutation, automatic recovery, production flag or APK change.
+
+### 2026-10-14: Roll review consistency on Desktop/Web
+
+Formula-affecting edits (mode, extra dice, situational bonus and selected effects) now clear the old
+result instead of showing dice calculated from a previous formula. A target-only edit still compares
+the same roll against the new target; it does not invent another roll. Simultaneous advantage/hindrance
+now show an explicit reason and disable the roll button for both skill and context dialogs, rather than
+a button silently returning without action. Review and execution use the same factor totals.
+
+Static diff/host-parity inspection only for this UI batch. Full Compose compilation/UI acceptance
+remains blocked by the previously reported dependency route; no new runtime-test claim is made.

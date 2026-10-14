@@ -102,7 +102,7 @@ fun SkillAttributeChoiceDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = calculation.total != null,
+                enabled = calculation.total != null && !mixedFactors,
                 onClick = { onConfirm(selectedAttribute) },
             ) { Text("Бросить ${calculation.total?.let(::signed) ?: "—"}") }
         },
@@ -148,6 +148,14 @@ fun SkillRollDialog(
         contributions = rawCalculation.contributions + conditionModifiers.contributions.map { SkillContribution(it.label, it.value) },
         unavailableReason = conditionModifiers.unavailableReason ?: rawCalculation.unavailableReason)
 
+    val selectedTotals = effects.options.selectedTotals(selectedEffects)
+    val manualDice = effectCountText.toIntOrNull()?.coerceIn(1, 9) ?: 1
+    val totalAdvantage = selectedTotals.advantageDice + (alternative?.advantageDice ?: 0) +
+        if (mode == RollMode.ADVANTAGE) manualDice else 0
+    val totalHindrance = selectedTotals.hindranceDice + conditionModifiers.hindranceDice +
+        if (mode == RollMode.HINDRANCE) manualDice else 0
+    val mixedFactors = totalAdvantage > 0 && totalHindrance > 0
+
     FuryDialog(
         onDismissRequest = onDismiss,
         title = { Text("Бросок: ${skill.name}") },
@@ -174,12 +182,12 @@ fun SkillRollDialog(
                 FurySegmentedControl(
                     options = RollMode.entries.map { it.title },
                     selectedIndex = RollMode.entries.indexOf(mode),
-                    onSelected = { index -> mode = RollMode.entries[index] },
+                    onSelected = { index -> mode = RollMode.entries[index]; result = null },
                 )
                 if (mode != RollMode.NORMAL) {
                     OutlinedTextField(
                         effectCountText,
-                        { effectCountText = it.filter(Char::isDigit).take(2) },
+                        { effectCountText = it.filter(Char::isDigit).take(2); result = null },
                         label = { Text("Доп. костей") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -188,7 +196,7 @@ fun SkillRollDialog(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
                         situationalText,
-                        { situationalText = it.filter { c -> c.isDigit() || c == '-' }.take(4) },
+                        { situationalText = it.filter { c -> c.isDigit() || c == '-' }.take(4); result = null },
                         label = { Text("Ситуативная поправка") },
                         modifier = Modifier.weight(1f),
                         singleLine = true,
@@ -218,7 +226,7 @@ fun SkillRollDialog(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Checkbox(
                             checked = option.id in selectedEffects,
-                            onCheckedChange = { checked -> selectedEffects = if (checked) selectedEffects + option.id else selectedEffects - option.id },
+                            onCheckedChange = { checked -> selectedEffects = if (checked) selectedEffects + option.id else selectedEffects - option.id; result = null },
                         )
                         Column {
                             Text(option.label)
@@ -226,7 +234,7 @@ fun SkillRollDialog(
                         }
                     }
                 }
-                if ((alternative?.advantageDice ?: 0) > 0 && (mode == RollMode.HINDRANCE || effects.options.selectedTotals(selectedEffects).hindranceDice + conditionModifiers.hindranceDice > 0)) {
+                if (mixedFactors) {
                     Text("Уберите помехи или выберите обычную проверку: совместное разрешение ПФ и помех не определено.", color = DublMuted)
                 }
                 effects.reminders.forEach { reminder ->
@@ -261,20 +269,14 @@ fun SkillRollDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = calculation.total != null,
+                enabled = calculation.total != null && !mixedFactors,
                 onClick = {
                     val base = calculation.total ?: return@TextButton
                     onPreferredAttribute(attribute)
-                    val selectedTotals = effects.options.selectedTotals(selectedEffects)
                     val autoBonus = effects.automaticBonus
                     val toggledBonus = selectedTotals.numericBonus
-                    val selectedAdvantage = selectedTotals.advantageDice + (alternative?.advantageDice ?: 0)
-                    val selectedHindrance = selectedTotals.hindranceDice + conditionModifiers.hindranceDice
-                    val manual = effectCountText.toIntOrNull()?.coerceIn(1, 9) ?: 1
-                    val manualAdvantage = if (mode == RollMode.ADVANTAGE) manual else 0
-                    val manualHindrance = if (mode == RollMode.HINDRANCE) manual else 0
-                    val adv = selectedAdvantage + manualAdvantage
-                    val hind = selectedHindrance + manualHindrance
+                    val adv = totalAdvantage
+                    val hind = totalHindrance
                     val effectiveMode = when {
                         adv > 0 && hind > 0 -> return@TextButton
                         adv > 0 -> RollMode.ADVANTAGE
@@ -342,6 +344,9 @@ fun ContextRollDialog(
     } else basePreset
     val contextOptions = SkillEffectRules(character, developmentCatalog, effectCatalog).contextOptions(context, selectedAttribute)
     val contextTotals = contextOptions.selectedTotals(selectedContextEffects)
+    val totalAdvantage = (advantageText.toIntOrNull()?.coerceIn(0, 9) ?: 0) + contextTotals.advantageDice
+    val totalHindrance = (hindranceText.toIntOrNull()?.coerceIn(0, 9) ?: 0) + contextTotals.hindranceDice + conditionModifiers.hindranceDice
+    val mixedFactors = totalAdvantage > 0 && totalHindrance > 0
     val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
     val reminders = SkillEffectRules(character, developmentCatalog, effectCatalog).let { rules ->
         if (context == RollContext.FLURRY) {
@@ -405,11 +410,11 @@ fun ContextRollDialog(
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(advantageText, { advantageText = it.filter(Char::isDigit).take(1) }, label = { Text("Преим.") }, modifier = Modifier.weight(1f), singleLine = true)
-                    OutlinedTextField(hindranceText, { hindranceText = it.filter(Char::isDigit).take(1) }, label = { Text("Помех.") }, modifier = Modifier.weight(1f), singleLine = true)
+                    OutlinedTextField(advantageText, { advantageText = it.filter(Char::isDigit).take(1); result = null }, label = { Text("Преим.") }, modifier = Modifier.weight(1f), singleLine = true)
+                    OutlinedTextField(hindranceText, { hindranceText = it.filter(Char::isDigit).take(1); result = null }, label = { Text("Помех.") }, modifier = Modifier.weight(1f), singleLine = true)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(situationalText, { situationalText = it.take(4) }, label = { Text("Поправка") }, modifier = Modifier.weight(1f), singleLine = true)
+                    OutlinedTextField(situationalText, { situationalText = it.take(4); result = null }, label = { Text("Поправка") }, modifier = Modifier.weight(1f), singleLine = true)
                     OutlinedTextField(targetText, { targetText = it.take(4) }, label = { Text("Цель / СЛ") }, modifier = Modifier.weight(1f), singleLine = true)
                 }
                 if (visionDeclarationNeeded) {
@@ -421,6 +426,7 @@ fun ContextRollDialog(
                     }
                 }
                 if (conditionModifiers.notice.isNotBlank()) Text(conditionModifiers.notice, color = DublMuted)
+                if (mixedFactors) Text("Одновременно есть преимущества и помехи. Совместное разрешение не определено; встроенный бросок недоступен.", color = DublMuted)
                 preset.contributions.forEach { contribution -> Text("${contribution.label}: ${signed(contribution.value)}", color = DublMuted) }
                 contextOptions.forEach { option ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -446,10 +452,10 @@ fun ContextRollDialog(
             }
         },
         confirmButton = {
-            TextButton(enabled = preset.available, onClick = {
+            TextButton(enabled = preset.available && !mixedFactors, onClick = {
                 val bonus = (preset.bonus ?: return@TextButton) + contextTotals.numericBonus
-                val adv = (advantageText.toIntOrNull()?.coerceIn(0, 9) ?: 0) + contextTotals.advantageDice
-                val hind = (hindranceText.toIntOrNull()?.coerceIn(0, 9) ?: 0) + contextTotals.hindranceDice + conditionModifiers.hindranceDice
+                val adv = totalAdvantage
+                val hind = totalHindrance
                 if (adv > 0 && hind > 0) return@TextButton
                 val mode = when { adv > 0 -> RollMode.ADVANTAGE; hind > 0 -> RollMode.HINDRANCE; else -> RollMode.NORMAL }
                 result = rollCheck(
