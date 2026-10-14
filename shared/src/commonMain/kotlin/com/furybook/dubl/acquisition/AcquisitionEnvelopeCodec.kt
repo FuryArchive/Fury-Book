@@ -5,6 +5,7 @@ import com.furybook.dubl.data.CharacterTransferCodec
 import com.furybook.dubl.data.SnapshotCodec
 import com.furybook.dubl.data.validateLegacySnapshot
 import com.furybook.dubl.model.*
+import com.furybook.dubl.actions.*
 
 /**
  * Stable UTF-8 JSON text: recursive key ordering by Kotlin String (UTF-16 code units), standard
@@ -49,12 +50,13 @@ internal fun decodeProjectionEnvelope(raw: String): StoredCharacter {
 
 /** Wire projection has no recursive outbox, device URI, local CAS or sync/conflict bookkeeping. */
 fun encodeSyncEnvelope(state: StoredCharacter): String {
+    require(state.formatVersion == 1 && state.gameplay == null) { "Gameplay format is local-only; cloud writer is not enabled" }
     validate(state)
     require(state == decodeState(encodeState(state, local = true))) { "Envelope serialization would lose stored values" }
     return canonicalText(encodeState(state, local = false))
 }
 
-fun decodeEnvelope(raw: String): LoadResult = try {
+fun decodeEnvelope(raw: String, allowGameplayFormat: Boolean = false): LoadResult = try {
     val root = JsonReader(raw, strict = true).read().obj()
     if (!root.has("formatVersion")) {
         if (root.has("schema")) {
@@ -65,7 +67,8 @@ fun decodeEnvelope(raw: String): LoadResult = try {
                 LoadResult.MigrationRequired(raw)
             }
         } else LoadResult.Corrupt(raw, "Missing format version")
-    } else if (root.number("formatVersion") != 1) LoadResult.Unsupported(raw, "Unsupported acquisition format")
+    } else if (root.number("formatVersion") !in 1..2 || (root.number("formatVersion") == 2 && !allowGameplayFormat))
+        LoadResult.Unsupported(raw, "Unsupported or disabled canonical format")
     else {
         val state = decodeState(root)
         validate(state)
@@ -97,11 +100,13 @@ private fun encodeState(state: StoredCharacter, local: Boolean): JsonValue.Obj =
  ).values + (if (state.copySources.isEmpty()) emptyMap() else mapOf("copySources" to jsonArray(state.copySources.map { source ->
     jsonObject("sourceCharacterId" to jsonString(source.sourceCharacterId), "destinationCharacterId" to jsonString(source.destinationCharacterId),
         "importOperationId" to jsonString(source.importOperationId), "sourceCanonical" to jsonString(source.sourceCanonical))
-}))) + (if(state.syncProofs.isEmpty()) emptyMap() else mapOf("syncProofs" to jsonArray(state.syncProofs.map(::encodeSyncProof)))))
+}))) + (if(state.syncProofs.isEmpty()) emptyMap() else mapOf("syncProofs" to jsonArray(state.syncProofs.map(::encodeSyncProof)))) +
+    (state.gameplay?.let { mapOf("gameplay" to encodeGameplayJournal(it, state.character.id)) } ?: emptyMap()))
 
 private fun decodeState(root: JsonValue.Obj): StoredCharacter {
     root.keys("formatVersion", "characterId", "characterSnapshot", "extras", "instances", "ledger", "receipts",
-        "revision", "creationPhase", "storageRevision", "outbox", "syncMetadata", *((if(root.has("copySources")) listOf("copySources") else emptyList()) + (if(root.has("syncProofs")) listOf("syncProofs") else emptyList())).toTypedArray())
+        "revision", "creationPhase", "storageRevision", "outbox", "syncMetadata", *((if(root.has("copySources")) listOf("copySources") else emptyList()) + (if(root.has("syncProofs")) listOf("syncProofs") else emptyList()) +
+            (if(root.number("formatVersion") == 2) listOf("gameplay") else emptyList())).toTypedArray())
     val snapshot = root.objectRequired("characterSnapshot")
     if (snapshot.number("schema") != SnapshotCodec.SCHEMA) throw UnsupportedEnvelope("Embedded character schema")
     require(snapshot.list("characters").size == 1) { "Envelope requires exactly one character" }
@@ -123,7 +128,8 @@ private fun decodeState(root: JsonValue.Obj): StoredCharacter {
         if(root.has("copySources")) root.list("copySources").map { value ->
             val source=value.obj().also { it.keys("sourceCharacterId","destinationCharacterId","importOperationId","sourceCanonical") }
             AcquisitionCopySource(source.text("sourceCharacterId"),source.text("destinationCharacterId"),source.text("importOperationId"),source.text("sourceCanonical"))
-        } else emptyList(),if(root.has("syncProofs")) root.list("syncProofs").map { decodeSyncProof(it.obj()) } else emptyList())
+        } else emptyList(),if(root.has("syncProofs")) root.list("syncProofs").map { decodeSyncProof(it.obj()) } else emptyList(),
+        if (root.number("formatVersion") == 2) decodeGameplayJournal(root.objectRequired("gameplay"), character.id) else null)
 }
 
 private fun encodeSyncProof(value:AcquisitionSyncProof)=jsonObject("proofId" to jsonString(value.proofId),
@@ -302,7 +308,14 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
         require(proof.text("schema")=="copy-import-v1" && proof.text("sourceCharacterId")==historical.character.id &&
             proof.text("sourceFingerprint")==fingerprint) { "Import provenance differs" }
     }
-    require(state.formatVersion == 1) { "Unsupported format" }
+    require(state.formatVersion in 1..2) { "Unsupported format" }
+    if (state.formatVersion == 1) require(state.gameplay == null) { "Gameplay requires explicit format migration" }
+    else {
+        checkNotNull(state.gameplay) { "Format 2 requires gameplay history" }.validate(state.character.id)
+        require(state.outbox.isEmpty() && state.syncMetadata == SyncMetadata(0) && state.syncProofs.isEmpty()) {
+            "Gameplay format has no enabled cloud transport"
+        }
+    }
     require(state.character.id.isNotBlank() && state.character.ruleset == DublRuleset.reference) { "Invalid character scope/ruleset" }
     require(state.revision >= 0 && state.storageRevision >= 0 && state.syncMetadata.serverRevision >= 0) { "Invalid revisions" }
     require(state.character.creationComplete == (state.creationPhase == RequirementNode.CreationPhase.Phase.Finalized)) { "Creation phase mismatch" }
@@ -678,6 +691,7 @@ private fun validateSyncPayload(raw: String, characterId: String): JsonValue.Obj
 }
 private fun wireRoot(raw:String,characterId:String):JsonValue.Obj {
     val root=requireCanonical(raw).obj()
+    require(root.number("formatVersion") == 1 && !root.has("gameplay")) { "Gameplay format has no enabled cloud reader" }
     require(root.text("characterId")==characterId) { "Sync payload character scope mismatch" }
     require(!root.has("outbox") && !root.has("storageRevision") && !root.has("syncMetadata")) { "Local metadata in sync payload" }
     require(!root.objectRequired("extras").has("portraitUri")) { "Device metadata in sync payload" }

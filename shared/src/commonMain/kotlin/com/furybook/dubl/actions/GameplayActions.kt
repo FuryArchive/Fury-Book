@@ -43,6 +43,9 @@ data class GameplayReceipt(
     val enduranceAfter: Int,
     val pendingBefore: PendingPhysicalCheck?,
     val pendingAfter: PendingPhysicalCheck?,
+    val weakBefore: Boolean,
+    val weakAfter: Boolean,
+    val resourceConsequencesKnownBefore: Boolean,
 )
 
 /**
@@ -145,7 +148,7 @@ object GameplayActions {
     private fun applied(state: GameplayState, request: GameplayRequest, endurance: Int,
         pending: PendingPhysicalCheck?, weak: Boolean): ActionTransition.Applied {
         val receipt = GameplayReceipt(request, state.revision, state.revision + 1, state.endurance,
-            endurance, state.pending, pending)
+            endurance, state.pending, pending, state.weak, weak, state.resourceConsequencesKnown)
         val next = state.copy(revision = state.revision + 1, endurance = endurance, weak = weak,
             pending = pending, receipts = state.receipts + receipt)
         return ActionTransition.Applied(next, receipt)

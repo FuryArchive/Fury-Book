@@ -2,6 +2,7 @@ package com.furybook.dubl.acquisition
 
 import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.DublCharacter
+import com.furybook.dubl.actions.GameplayJournal
 
 /** Construction-time gates; cloud V2 stays false until every server writer/reader is guarded. */
 data class AcquisitionCapabilities(val localDurable: Boolean, val cloudLedgerV2: Boolean, val formatWritable: Boolean) {
@@ -55,6 +56,7 @@ class StoredCharacter(
     val formatVersion: Int = 1,
     copySources: List<AcquisitionCopySource> = emptyList(),
     syncProofs:List<AcquisitionSyncProof> = emptyList(),
+    val gameplay: GameplayJournal? = null,
 ) {
     val character:DublCharacter = reconcileAcquisitionDoubleTokens(character)
     val syncProofs:List<AcquisitionSyncProof> = EnvelopeList(syncProofs)
@@ -65,16 +67,17 @@ class StoredCharacter(
     override fun equals(other: Any?): Boolean = other is StoredCharacter && character == other.character && extras == other.extras &&
         instances == other.instances && ledger == other.ledger && receipts == other.receipts && outbox == other.outbox &&
         syncMetadata == other.syncMetadata && revision == other.revision && storageRevision == other.storageRevision &&
-        creationPhase == other.creationPhase && formatVersion == other.formatVersion && copySources == other.copySources && syncProofs==other.syncProofs
+        creationPhase == other.creationPhase && formatVersion == other.formatVersion && copySources == other.copySources && syncProofs==other.syncProofs && gameplay == other.gameplay
     override fun hashCode(): Int = listOf(character, extras, instances, ledger, receipts, outbox, syncMetadata, revision,
-        storageRevision, creationPhase, formatVersion, copySources, syncProofs).hashCode()
+        storageRevision, creationPhase, formatVersion, copySources, syncProofs, gameplay).hashCode()
     fun copy(character: DublCharacter = this.character, extras: CharacterSheetExtras = this.extras,
         instances: List<AcquisitionInstance> = this.instances, ledger: Ledger = this.ledger,
         receipts: List<Receipt> = this.receipts, outbox: List<OutboxItem> = this.outbox,
         syncMetadata: SyncMetadata = this.syncMetadata, revision: Long = this.revision,
         storageRevision: Long = this.storageRevision, creationPhase: RequirementNode.CreationPhase.Phase = this.creationPhase,
-        formatVersion: Int = this.formatVersion, copySources: List<AcquisitionCopySource> = this.copySources, syncProofs:List<AcquisitionSyncProof> = this.syncProofs) = StoredCharacter(reconcileAcquisitionDoubleTokens(character,this.character), extras, instances, ledger, receipts, outbox,
-        syncMetadata, revision, storageRevision, creationPhase, formatVersion, copySources, syncProofs)
+        formatVersion: Int = this.formatVersion, copySources: List<AcquisitionCopySource> = this.copySources, syncProofs:List<AcquisitionSyncProof> = this.syncProofs,
+        gameplay: GameplayJournal? = this.gameplay) = StoredCharacter(reconcileAcquisitionDoubleTokens(character,this.character), extras, instances, ledger, receipts, outbox,
+        syncMetadata, revision, storageRevision, creationPhase, formatVersion, copySources, syncProofs, gameplay)
 }
 
 /**

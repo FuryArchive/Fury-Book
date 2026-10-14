@@ -31,7 +31,11 @@ enum class DesktopAcquisitionWriteStage {
 class DesktopAcquisitionStore(
     private val dataDirectory: Path = DesktopCharacterStore.defaultDataDirectory(),
     private val fault: (DesktopAcquisitionWriteStage) -> Unit = {},
+    private val gameplayFormatEnabled: Boolean = false,
 ) : AcquisitionStore {
+    /** Preserve existing trailing-lambda fault-injection callers. */
+    constructor(dataDirectory: Path, fault: (DesktopAcquisitionWriteStage) -> Unit) :
+        this(dataDirectory, fault, false)
     private val container = dataDirectory.toAbsolutePath().normalize().resolve("acquisition-v1")
     private val legacyCharacters = dataDirectory.resolve("characters.json")
     private val legacyExtras = dataDirectory.resolve("sheet-extras.json")
@@ -54,7 +58,7 @@ class DesktopAcquisitionStore(
             paths.filter { it.fileName.toString().endsWith(".json") }.sorted().forEach { path ->
                 require(Files.isRegularFile(path, java.nio.file.LinkOption.NOFOLLOW_LINKS)) { "Invalid canonical head; preserve for recovery" }
                 val raw = readIfExists(path) ?: error("Canonical head disappeared; reload")
-                val loaded = decodeEnvelope(raw)
+                val loaded = decodeEnvelope(raw, allowGameplayFormat = gameplayFormatEnabled)
                 val state = (loaded as? LoadResult.Loaded)?.state ?: throw AcquisitionPreviewUnavailable(loaded)
                 require(path == envelopePath(state.character.id) && ids.add(state.character.id)) { "Canonical head identity differs from its filename" }
             }
@@ -97,11 +101,13 @@ class DesktopAcquisitionStore(
     override suspend fun compareAndSet(characterId: String, expectedStorageRevision: Long, next: StoredCharacter): CommitResult = try {
         // Capture and validate before touching a file. No caller-owned mutable collection survives.
         val encoded = encodeEnvelope(next)
-        val captured = (decodeEnvelope(encoded) as LoadResult.Loaded).state
+        val captured = (decodeEnvelope(encoded, allowGameplayFormat = gameplayFormatEnabled) as LoadResult.Loaded).state
         require(captured.character.id == characterId) { "Character scope differs" }
         locked(characterId) {
             when (val current = loadLocked(characterId)) {
                 is LoadResult.Loaded -> {
+                    if (current.state.formatVersion != captured.formatVersion)
+                        return@locked CommitResult.StorageFailure("Explicit backed-up canonical format migration is required")
                     if (current.state.storageRevision != expectedStorageRevision || expectedStorageRevision == Long.MAX_VALUE ||
                         captured.storageRevision != expectedStorageRevision + 1) return@locked CommitResult.Conflict
                 }
@@ -136,7 +142,7 @@ class DesktopAcquisitionStore(
         }
         if (canonicalRaw != null) {
             val raw = canonicalRaw
-            val loaded = decodeEnvelope(raw)
+            val loaded = decodeEnvelope(raw, allowGameplayFormat = gameplayFormatEnabled)
             if (loaded is LoadResult.Loaded) {
                 if (loaded.state.character.id != characterId) return LoadResult.Corrupt(raw, "Envelope character scope differs")
                 loaded.state.localLegacySourceFence()?.let { origin ->

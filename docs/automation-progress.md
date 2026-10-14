@@ -116,3 +116,18 @@ Added a disconnected shared Overexertion transition kernel for physical attribut
 Verification: real Kotlin 2.4.20 compiler, first failing harness due to absent implementation, then 32 assertions passing. Compiled all 85 non-UI shared Kotlin sources together with the harness and executed those same 32 assertions successfully. No Gradle/platform/UI acceptance claim. The compiler was restored from official Maven Central artifacts with repository SHA1 checks; the previously denied Google dependency operation was not retried.
 
 This is NOT yet user-facing automation: no canonical format migration, durable action service, Undo, event expiry, UI binding, or production enablement in this checkpoint. The test harness is registered through `tools/tests/test_gameplay_actions.py`; that Python runner itself was not run in the restored environment.
+
+## 2026-10-14: opt-in gameplay envelope and durable Desktop proof
+
+Added a strict gameplay journal/codec and whole-envelope CAS service. Gameplay revision/receipts are separate from acquisition revision/XP ledger, while resources, pending action and both histories commit together. Receipt validation re-executes typed transitions; unknown fields/commands, altered costs, broken pending chains and duplicate IDs are rejected. Format 1 encoding is unchanged. Format 2 requires explicit decode opt-in, is disabled by default, and is rejected by both cloud reader and writer. No production caller opts in.
+
+Desktop store has an explicit opt-in used only by tests. Ordinary CAS refuses format upgrades/downgrades; existing-character migration is NOT implemented. Service defaults disabled, does not migrate or use legacy fallback, checks capabilities again before CAS and reconciles uncertain commits using the same ID. Weakness forbids spending; tired/exhausted expenditure consequences remain blocked. Full physical-roll eligibility and UI integration are not complete.
+
+Executed evidence (not inferred from source):
+- 32 action + 14 journal + 29 strict codec + 16 envelope + 22 service assertions passed. Service fault harness uses simulated storage, not a disk claim.
+- Real Desktop store: separate JVM phases start, finish, verify preserve pending state across process exit, debit exactly once, retain acquisition history and notes, and reject default-reader/downgrade writes without changing original bytes. Fault phases after temporary-file flush and after atomic replacement reconcile correctly. This is Linux filesystem evidence, not a power-loss or cross-OS certification.
+- An actual pre-format-2 shared jar, in a separate JVM, round-trips format-1 bytes and returns format-2 bytes unchanged as Unsupported.
+- 49 existing AcquisitionEnvelopeTest, AcquisitionServiceTest and AcquisitionManualBaseRevisionTest JUnit tests passed. The first direct compilation omitted InMemoryAcquisitionStore; rerunning with the existing fixture corrected that test-command omission. No product test assertions were weakened.
+- All 88 non-UI shared Kotlin sources plus the three real Desktop storage classes compiled. No Compose/platform UI build, Android/Web runtime test, full monetary matrix or full regression rerun in this block.
+
+Still open: backup-backed user migration, Undo, events/durations, UI physical/built-in dice flow and rollout acceptance. The current implementation does not turn existing characters into format 2 or claim complete automation.
