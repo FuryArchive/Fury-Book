@@ -1,7 +1,7 @@
 {
   "format": "furybook-incremental-checkpoint-v1",
-  "source_commit": "c6aaaf973a5a961370cda2e64b112d8f39b0c257",
-  "source_tree": "58904800aab06d112c1a53e86b65ebd1e1e42cd4",
+  "source_commit": "14e35119142c9775186ea0925b94e46b1c423c43",
+  "source_tree": "e09dce5b68c0da54ae50aa0c1e8d7234d5fa5ed1",
   "base_archive": "checkpoints/latest.zip",
   "base_source_commit": "cfb3dd67efdff3c4810e91abb9a1180435de2cdf",
   "increments": [
@@ -11,9 +11,14 @@
     },
     {
       "path": "checkpoints/after-2b37180-to-c6aaaf9.bundle",
-      "bytes": 8412,
       "sha256": "e0c7e86040ddfdb83ca8b940f6f0faea0704aaad2ecc82d925e82f2e101013e5"
+    },
+    {
+      "path": "checkpoints/after-c6aaaf9-to-14e3511.bundle",
+      "sha256": "1a7ba97f5b543f4a9e36f32e38bdc585b2318fe5703b13faceda91315dbb8574",
+      "bytes": 15326
     }
   ],
-  "acceptance": "Overexertion pure kernel only: all 85 non-UI shared Kotlin sources compiled; 32 targeted assertions executed. Durable action storage, Undo, event expiry and UI integration not implemented. No production enablement."
+  "verification": "Restore through all bundles reaches exact source tree and git fsck passes. 113 targeted assertions; four real Desktop process/fault phases; pre-format-2 decoder proof; 49 existing acquisition JUnit tests. See source docs/automation-progress.md.",
+  "limits": "Format 2 and durable gameplay are opt-in and disabled in production. Existing-character migration, Undo, events, UI integration and full rollout acceptance remain open. No deployment."
 }
