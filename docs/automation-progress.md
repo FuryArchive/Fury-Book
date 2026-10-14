@@ -262,3 +262,16 @@ field and returns the original bytes unchanged. Default format-1 readers remain 
 
 This persists event boundaries, not activated timed modifiers. Event UI, source-specific effect creation,
 physical-meaning rules and final platform acceptance remain unfinished; all production flags stay off.
+
+### 2026-10-14: Event confirmation and staged controls
+
+Added a retained event review controller, explicit own/other turn selection, matching-current-turn end,
+round/scene boundaries and a rest type plus positive duration. Preview requires the displayed storage
+revision; uncertain outcomes retain the original ID and cannot be discarded after permission changes.
+22 actual Kotlin/JVM controller assertions pass with simulated storage.
+
+Added staged shared event controls and all three host bindings behind unchanged default-off flags.
+Controls are collapsed by default; expanding/collapsing only changes presentation. The panel explicitly
+states that resource refresh, source-specific effect activation/expiry and event Undo are not enabled.
+Action/event views have explicit refresh controls for stale previews. Compose/real-UI acceptance is
+still blocked and not claimed. Existing per-platform serialized write lanes and scope fences are reused.

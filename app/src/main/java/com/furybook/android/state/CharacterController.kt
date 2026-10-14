@@ -101,6 +101,26 @@ class CharacterController internal constructor(
             { UUID.randomUUID().toString() })
     }
     val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && isCanonicalProtected) retainedGameplay else null
+    private val retainedGameplayEvents by lazy {
+        val native = checkNotNull(acquisitionStore)
+        val serialized = object : AcquisitionStore {
+            override suspend fun load(characterId: String) = native.load(characterId)
+            override suspend fun compareAndSet(characterId: String, expectedStorageRevision: Long, next: StoredCharacter): CommitResult {
+                val captured = gameplayScope(); val owner = ownerScope()
+                val operation = checkNotNull(next.gameplay?.events?.commands?.lastOrNull()).operationId
+                val command = AndroidCommandScope(native.storageIdentity, characterId, owner.first, controllerGeneration,
+                    selectionGeneration, owner.second, operation, expectedStorageRevision, snapshot.activeCharacterId)
+                return queue.execute(command) {
+                    withContext(mainDispatcher) { check(currentGameplayScope(captured)) { "Android event view changed while queued" } }
+                    native.compareAndSet(characterId, expectedStorageRevision, next)
+                }
+            }
+        }
+        GameplayEventController(serialized, ::gameplayScope, ::currentGameplayScope,
+            { GameplayCapabilities(experimentalGameplayEnabled && capabilities.localDurable && !disposed, true) },
+            { UUID.randomUUID().toString() })
+    }
+    val gameplayEvents: GameplayEventController? get() = if (gameplay != null) retainedGameplayEvents else null
     private val retainedGameplayMigration by lazy {
         val native = checkNotNull(acquisitionStore)
         GameplayMigrationController(native, ::gameplayScope, ::currentGameplayScope,

@@ -104,3 +104,9 @@ def test_gameplay_events_survive_separate_desktop_processes():
             result = run_harness(Path(__file__).parent / "kotlin/GameplayEventsDesktopHarness.kt",
                                  extra_sources=sources, args=(directory, phase))
             assert f"GAMEPLAY_EVENTS_DESKTOP_OK:{phase}" in result.stdout
+
+
+def test_gameplay_event_confirmation_retains_scope_and_uncertain_id():
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(Path(__file__).parent / "kotlin/GameplayEventControllerHarness.kt")
+    assert "GameplayEventControllerHarness: 22 assertions passed; simulated storage only" in result.stdout

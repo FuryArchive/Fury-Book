@@ -141,6 +141,23 @@ class DesktopAppState(
             { UUID.randomUUID().toString() })
     }
     val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && canonicalMode) retainedGameplay else null
+    private val retainedGameplayEvents by lazy {
+        val native = checkNotNull(acquisitionStore)
+        val serialized = object : AcquisitionStore {
+            override suspend fun load(characterId: String) = withContext(Dispatchers.IO) { native.load(characterId) }
+            override suspend fun compareAndSet(characterId: String, expectedStorageRevision: Long, next: StoredCharacter): CommitResult {
+                val captured = gameplayScope()
+                return canonicalQueue.withLock { withContext(Dispatchers.IO) {
+                    check(currentGameplayScope(captured)) { "Gameplay event scope changed while queued" }
+                    native.compareAndSet(characterId, expectedStorageRevision, next)
+                } }
+            }
+        }
+        GameplayEventController(serialized, ::gameplayScope, ::currentGameplayScope,
+            { GameplayCapabilities(experimentalGameplayEnabled && localAcquisitionEnabled && canonicalViewReady && !disposed, true) },
+            { UUID.randomUUID().toString() })
+    }
+    val gameplayEvents: GameplayEventController? get() = if (gameplay != null) retainedGameplayEvents else null
     private val retainedGameplayMigration by lazy {
         val native = checkNotNull(acquisitionStore)
         val readOnly = object : AcquisitionStore {
