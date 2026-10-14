@@ -31,7 +31,7 @@ def test_untrusted_or_stale_probe_never_reduces_missing_evidence(mutation, reaso
 
 
 def test_supported_witness_does_not_follow_spoofed_case_id_or_loosen_requirements():
-    case = dict(caseId=sorted(CASE_IDS)[0], fromRank=0, toRank=1, optionId='DEFAULT', discountConditions='NONE',
+    case = dict(caseId='athletics|0|1|DEFAULT|CREATION|NONE|EXISTING|FIXED', fromRank=0, toRank=1, optionId='DEFAULT', discountConditions='NONE',
                 instance='EXISTING', parameters={'semanticClass':'FIXED'}, ownedPrerequisites=[], evidenceStatus='CONFIRMED')
     definition = dict(ref={'packId':'dubl-3.69','entryId':'athletics'},kind='SKILL',sourceStatus='Confirmed',
                       repeatPolicy={'type':'Single'},parameterDefinitions=[],abilityOptionIds=[],

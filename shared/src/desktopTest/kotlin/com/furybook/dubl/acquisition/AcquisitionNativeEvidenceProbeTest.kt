@@ -33,12 +33,14 @@ class AcquisitionNativeEvidenceProbeTest {
         val source = FcpTextSource { javaClass.classLoader.getResource(it)?.readText() }
         val catalog = loadAcquisitionCatalog(listOf("dubl-3.69", "dubl-chi-3.69")
             .map { FcpContentPack.load("fcp/$it", source) }, true).catalog
-        val identities = listOf("CREATION", "AFTER_CREATION").map { "athletics|0|1|DEFAULT|$it|NONE|EXISTING|FIXED" }.toSet()
+        val fixedSkills = listOf("athletics", "barter", "awareness", "riding", "lockpicking", "driving", "survival", "animal_handling", "intimidation", "knowledge_academic", "engineering_repair", "performance_vocal", "leadership", "eloquence", "medicine", "piloting", "search", "stealth", "shooting", "melee_weapon", "throwing", "unarmed", "computers")
+        val identities = fixedSkills.flatMap { skill -> listOf("CREATION", "AFTER_CREATION")
+            .map { phase -> "$skill|0|1|DEFAULT|$phase|NONE|EXISTING|FIXED" } }.toSet()
         val rows = File(root, "rulesets/dubl-3.69/acquisition/expected_prices.json").useLines { lines ->
             lines.filter { it.startsWith("{\"caseId\":") }.map { JsonReader(it.removeSuffix(",")).read() as JsonValue.Obj }
                 .filter { (it.values.getValue("caseId") as JsonValue.Str).value in identities }.toList()
         }
-        assertEquals(2, rows.size)
+        assertEquals(46, rows.size)
         val records = rows.map { row ->
             val id = (row.values.getValue("caseId") as JsonValue.Str).value
             val fixture = AcquisitionPriceFixtures({ error("exact row only") }, catalog).decode(jsonStringify(row))
@@ -74,7 +76,7 @@ class AcquisitionNativeEvidenceProbeTest {
             jsonObject(
                 "caseId" to jsonString(id), "outcome" to jsonString("APPLIED"),
                 "binding" to jsonObject("kind" to jsonString("SKILL"),
-                    "definitionRef" to jsonObject("packId" to jsonString(fixture.change.definition.packId), "entryId" to jsonString("athletics")),
+                    "definitionRef" to jsonObject("packId" to jsonString(fixture.change.definition.packId), "entryId" to jsonString(fixture.change.definition.entryId)),
                     "characterId" to jsonString(character.id), "instanceId" to jsonString(fixture.change.instanceId),
                     "parameters" to jsonObject(), "optionId" to JsonValue.Null),
                 "native" to jsonObject("before" to parsed(before), "after" to parsed(after), "reopened" to parsed(encodeEnvelope(reopened)),

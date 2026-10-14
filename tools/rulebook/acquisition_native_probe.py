@@ -3,8 +3,9 @@ from tools.rulebook.acquisition_coverage_records import read, require, semantic_
 from tools.rulebook.acquisition_native_evidence import validate_native
 
 PRODUCER = 'AcquisitionNativeEvidenceProbeTest.fixed_skill_purchase_reopen_and_undo_export_native_envelopes'
-CASE_IDS = frozenset(f'athletics|0|1|DEFAULT|{phase}|NONE|EXISTING|FIXED'
-                     for phase in ('CREATION', 'AFTER_CREATION'))
+FIXED_SKILLS = ('athletics', 'barter', 'awareness', 'riding', 'lockpicking', 'driving', 'survival', 'animal_handling', 'intimidation', 'knowledge_academic', 'engineering_repair', 'performance_vocal', 'leadership', 'eloquence', 'medicine', 'piloting', 'search', 'stealth', 'shooting', 'melee_weapon', 'throwing', 'unarmed', 'computers')
+CASE_IDS = frozenset(f'{skill}|0|1|DEFAULT|{phase}|NONE|EXISTING|FIXED'
+                     for skill in FIXED_SKILLS for phase in ('CREATION', 'AFTER_CREATION'))
 SCOPE = 'DESKTOP_REAL_FILE_STORE_REOPEN_SAME_PROCESS_NOT_UI_OR_CRASH'
 
 
@@ -15,7 +16,7 @@ def execution_requirement(case, definition):
     # This deliberately narrow source witness is not an evaluator that fabricates
     # prerequisites from whatever a runtime happens to require.
     req = definition['requirements']
-    if not (definition['ref'] == {'packId': 'dubl-3.69', 'entryId': 'athletics'}
+    if not (definition['ref'] == {'packId': 'dubl-3.69', 'entryId': case['caseId'].split('|')[0]}
             and definition['kind'] == 'SKILL' and definition['sourceStatus'] == 'Confirmed'
             and definition['repeatPolicy'] == {'type': 'Single'}
             and definition['parameterDefinitions'] == [] and definition['abilityOptionIds'] == []
