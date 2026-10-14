@@ -198,3 +198,13 @@ against view changes. The panel uses the source term «Сверхусилие» 
 This staged UI has NOT been Compose-compiled or interacted with. Full build dependencies remain blocked,
 and the cloud browser could not reach the isolated HTTP probe. Do not treat this source addition as UI
 acceptance. Android/Web screen wiring, built-in dice integration, durations and migration review UI remain open.
+
+### 2026-10-14: Staged Android/Web action-panel hosts
+
+Connected the same shared panel/controller to Android Overview and Web character sheet behind
+constructor-only experimental flags, false by default. The existing production acquisition gates and
+store format gates are unchanged. Each adapter reuses its existing write lane, checks captured owner/view
+before queued dispatch, and reloads/publishes canonical state only into the original scope.
+
+These screen/host additions are staged source only: not platform-compiled or UI-accepted yet.
+No implicit migration, user-state change, production feature activation or deployment occurred.

@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import com.furybook.content.FcpComposition
 import com.furybook.content.FcpManifest
 import com.furybook.dubl.acquisition.*
+import com.furybook.dubl.actions.*
 import com.furybook.dubl.data.CharacterStore
 import com.furybook.dubl.data.CharacterExtrasStore
 import com.furybook.dubl.data.CharacterTransferRejectReason
@@ -44,6 +45,7 @@ class DesktopAppState(
     initialCanonicalStates: Map<String,StoredCharacter> = emptyMap(),
     val localAcquisitionEnabled:Boolean = false,
     private val acquisitionCatalogProvider:(()->AcquisitionCatalog)? = null,
+    val experimentalGameplayEnabled: Boolean = false,
 ) {
     private val characterStore = BrowserCharacterStore()
     private val extrasStore = BrowserCharacterExtrasStore()
@@ -112,6 +114,35 @@ class DesktopAppState(
     private fun currentAcquisitionOwner(scope:AcquisitionScope):Boolean = !disposed && acquisitionStore?.isCurrentScope()==true &&
         scope.storageScopeId==acquisitionStore.storageIdentity && scope.accountGeneration==acquisitionStore.scopeGeneration &&
         scope.controllerGeneration==controllerGeneration
+    fun gameplayScope() = GameplayScope(checkNotNull(acquisitionStore).storageIdentity,
+        "browser:$accountGeneration:$controllerGeneration", snapshot.activeCharacterId, selectionGeneration)
+    private fun currentGameplayScope(value: GameplayScope) = !disposed && acquisitionStore?.isCurrentScope() == true &&
+        accountGeneration == acquisitionStore.scopeGeneration && value == gameplayScope()
+    private val retainedGameplay by lazy {
+        val native = checkNotNull(acquisitionStore)
+        val serialized = object : AcquisitionStore {
+            override suspend fun load(characterId: String) = native.load(characterId)
+            override suspend fun compareAndSet(characterId: String, expectedStorageRevision: Long, next: StoredCharacter): CommitResult {
+                val captured = gameplayScope()
+                return canonicalCommandLane.withLock {
+                    check(currentGameplayScope(captured)) { "Browser gameplay scope changed while queued" }
+                    native.compareAndSet(characterId, expectedStorageRevision, next)
+                }
+            }
+        }
+        GameplayController(serialized, ::gameplayScope, ::currentGameplayScope,
+            { GameplayCapabilities(experimentalGameplayEnabled && localCapabilities().localDurable, true) }, ::webUuid)
+    }
+    val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && canonicalMode) retainedGameplay else null
+    suspend fun refreshAfterGameplay(captured: GameplayScope) {
+        check(currentGameplayScope(captured)) { "Browser gameplay view changed" }
+        val state = (checkNotNull(acquisitionStore).load(captured.characterId) as? LoadResult.Loaded)?.state
+            ?: error("Browser gameplay canonical state unavailable")
+        check(currentGameplayScope(captured)) { "Browser gameplay view changed" }
+        canonicalStates = canonicalStates + (state.character.id to state)
+        canonicalReadState = canonicalReadState.loaded(true); canonicalLoadOutcome = LoadResult.Loaded(state); canonicalViewGeneration++
+        application = createApplication(); refresh(); acquisition.activateCurrentView()
+    }
     val acquisition:AcquisitionController by lazy {
         AcquisitionController(ApplicationAcquisitionCommandPort(commandApplication,checkNotNull(acquisitionStore),::acquisitionCatalog,::localCapabilities,::currentAcquisitionScope,
             { scope,state ->

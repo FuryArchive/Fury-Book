@@ -3,6 +3,7 @@ package com.furybook.android.state
 import com.furybook.android.data.AndroidAcquisitionStore
 import com.furybook.android.data.AndroidLegacyWriteGate
 import com.furybook.dubl.acquisition.*
+import com.furybook.dubl.actions.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.getValue
@@ -43,6 +44,7 @@ class CharacterController internal constructor(
     private val ownerScope: () -> Pair<String?, Long> = { null to 0L },
     private val capabilities: AcquisitionCapabilities = AndroidAcquisitionRuntimeGate.production,
     private val mainDispatcher: kotlinx.coroutines.CoroutineDispatcher = Dispatchers.Main.immediate,
+    val experimentalGameplayEnabled: Boolean = false,
 ) {
     private fun createApplication(canonical: Boolean) = DublApplication(
         characterStore = repository,
@@ -71,6 +73,42 @@ class CharacterController internal constructor(
     private fun currentAcquisitionOwner(scope:AcquisitionScope):Boolean {
         val current=acquisitionScope()
         return !disposed && scope.storageScopeId==current.storageScopeId && scope.controllerGeneration==current.controllerGeneration && scope.accountGeneration==current.accountGeneration
+    }
+    fun gameplayScope(): GameplayScope {
+        val owner = ownerScope()
+        return GameplayScope(checkNotNull(acquisitionStore).storageIdentity,
+            "${owner.first.orEmpty()}:${owner.second}:$controllerGeneration", snapshot.activeCharacterId, selectionGeneration)
+    }
+    private fun currentGameplayScope(value: GameplayScope) = !disposed && value == gameplayScope()
+    private val retainedGameplay by lazy {
+        val native = checkNotNull(acquisitionStore)
+        val serialized = object : AcquisitionStore {
+            override suspend fun load(characterId: String) = native.load(characterId)
+            override suspend fun compareAndSet(characterId: String, expectedStorageRevision: Long, next: StoredCharacter): CommitResult {
+                val captured = gameplayScope()
+                val owner = ownerScope()
+                val operation = checkNotNull(next.gameplay?.receipts?.lastOrNull()).request.operationId
+                val command = AndroidCommandScope(native.storageIdentity, characterId, owner.first, controllerGeneration,
+                    selectionGeneration, owner.second, operation, expectedStorageRevision, snapshot.activeCharacterId)
+                return queue.execute(command) {
+                    withContext(mainDispatcher) { check(currentGameplayScope(captured)) { "Android gameplay view changed while queued" } }
+                    native.compareAndSet(characterId, expectedStorageRevision, next)
+                }
+            }
+        }
+        GameplayController(serialized, ::gameplayScope, ::currentGameplayScope,
+            { GameplayCapabilities(experimentalGameplayEnabled && capabilities.localDurable && !disposed, true) },
+            { UUID.randomUUID().toString() })
+    }
+    val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && isCanonicalProtected) retainedGameplay else null
+    suspend fun refreshAfterGameplay(captured: GameplayScope) {
+        check(currentGameplayScope(captured)) { "Android gameplay view changed" }
+        val state = (checkNotNull(acquisitionStore).load(captured.characterId) as? LoadResult.Loaded)?.state
+            ?: error("Android gameplay canonical state unavailable")
+        withContext(mainDispatcher) {
+            check(currentGameplayScope(captured)) { "Android gameplay view changed" }
+            publish(state); acquisition.activateCurrentView()
+        }
     }
     val acquisition: AcquisitionController by lazy {
         val port=ApplicationAcquisitionCommandPort(commandApplication,checkNotNull(acquisitionStore),catalogProvider,{capabilities},::currentAcquisitionScope,

@@ -1,5 +1,7 @@
 package com.furybook.android.ui.screens
 
+import com.furybook.ui.components.GameplayActionPanel
+
 import com.furybook.dubl.model.allowedRollAttributes
 
 import com.furybook.dubl.model.passiveAwareness
@@ -382,6 +384,12 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            controller.gameplay?.let { actions ->
+                item {
+                    val captured = controller.gameplayScope()
+                    GameplayActionPanel(actions, captured, onCommitted = { controller.refreshAfterGameplay(captured) })
+                }
+            }
             item {
                 CharacterHero(
                     character = character,
