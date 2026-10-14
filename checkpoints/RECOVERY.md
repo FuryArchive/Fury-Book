@@ -1,5 +1,5 @@
 # Furybook recovery
 
-Extract latest.zip and clone its repository.bundle. Apply all increments from current.manifest.json in order using git fetch /absolute/path/to/bundle HEAD and git checkout --detach FETCH_HEAD. Verify each SHA-256 and run git fsck --full. Expected source 47a4e4a91f9ca0a0aabb092a80cfb037fc172121; tree cada654b7b46c02f51fbe70c8cb832b45454f09c. Base manifest describes the immutable base only.
+Extract latest.zip and clone its repository.bundle. Apply every increment in current.manifest.json in order with git fetch /absolute/path/to/bundle HEAD then git checkout --detach FETCH_HEAD. Verify SHA-256 and git fsck --full. Expected source aa21d8a349aea5eaa6c20e6b775be6a2114208bd; tree 229c1f15331384b49c4717c41932bd4ef3a4408c. The old base manifest describes only the immutable base.
 
-Production gates disabled. All three platform panel hosts, migration review and built-in dice aid staged but NOT platform-compiled or UI-tested. Browser runtime remains blocked by test-server connection refusal. Durations, full automation and full platform acceptance remain open. No new APK or deployment.
+All production gates disabled. Compose panels/hosts remain uncompiled and not UI-accepted. Durable event boundaries are implemented; event UI and source-specific timed-effect activation are not. No implicit HP/endurance/AP/reaction refresh. Full automation/platform acceptance remain open. No new APK or deployment.
