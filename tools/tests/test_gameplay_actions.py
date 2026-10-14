@@ -62,3 +62,9 @@ def test_gameplay_migration_backups_and_restarts():
             result = run_harness(Path(__file__).parent / "kotlin/GameplayMigrationHarness.kt",
                                  extra_sources=sources, args=(directory, phase))
             assert f"GAMEPLAY_MIGRATION_PHASE_OK:{phase}" in result.stdout
+
+
+def test_gameplay_controller_retains_confirmation_scope_and_uncertain_id():
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(Path(__file__).parent / "kotlin/GameplayControllerHarness.kt")
+    assert "GameplayControllerHarness: 21 assertions passed; simulated storage only" in result.stdout

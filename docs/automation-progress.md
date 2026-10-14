@@ -175,3 +175,14 @@ The probe contains restart/Undo/default-reader/refusal and transaction-abort sce
 NOT executed: the cloud browser returned ERR_CONNECTION_REFUSED for the local HTTP test server.
 Do not count compilation as browser persistence acceptance. Full UI integration, production activation,
 platform builds, Android native file operations and action duration rules remain unfinished.
+
+### 2026-10-14: Shared gameplay confirmation controller
+
+Added retained preview/start/result/Undo control for all front ends. Preview and dismissal do not
+write; confirmation keeps the exact request ID. Owner/storage/view changes fence reads and dispatch,
+and completed work cannot be displayed in a newly selected view. A storage-uncertain request cannot
+be dismissed or edited, even if a later retry is blocked by revoked capability. The same request
+can be retried and reconciled. Returning to the originating scope exposes its saved outcome.
+
+Actual Kotlin/JVM execution: 21 focused controller assertions pass, using simulated CAS storage.
+This is a shared controller, not yet connected to production screens. No new platform acceptance claim.
