@@ -1,7 +1,8 @@
 {
   "format": "furybook-incremental-checkpoint-v1",
-  "source_commit": "14e35119142c9775186ea0925b94e46b1c423c43",
-  "source_tree": "e09dce5b68c0da54ae50aa0c1e8d7234d5fa5ed1",
+  "source_commit": "33fce1c341cedffea6f88503397a301eaa309794",
+  "source_tree": "d798f4e621c02b3c63e77c7549e1420ef20d0e38",
+  "tracked_files": 693,
   "base_archive": "checkpoints/latest.zip",
   "base_source_commit": "cfb3dd67efdff3c4810e91abb9a1180435de2cdf",
   "increments": [
@@ -15,10 +16,14 @@
     },
     {
       "path": "checkpoints/after-c6aaaf9-to-14e3511.bundle",
-      "sha256": "1a7ba97f5b543f4a9e36f32e38bdc585b2318fe5703b13faceda91315dbb8574",
-      "bytes": 15326
+      "sha256": "1a7ba97f5b543f4a9e36f32e38bdc585b2318fe5703b13faceda91315dbb8574"
+    },
+    {
+      "path": "checkpoints/after-14e3511-to-33fce1c.bundle",
+      "sha256": "8350eac0031541c6f6e0a83169d46fa61d3e2f56e61bfc66159b0b98f4aee302",
+      "bytes": 12299
     }
   ],
-  "verification": "Restore through all bundles reaches exact source tree and git fsck passes. 113 targeted assertions; four real Desktop process/fault phases; pre-format-2 decoder proof; 49 existing acquisition JUnit tests. See source docs/automation-progress.md.",
-  "limits": "Format 2 and durable gameplay are opt-in and disabled in production. Existing-character migration, Undo, events, UI integration and full rollout acceptance remain open. No deployment."
+  "verification": "Restore chain reaches exact target tree; git fsck passes. 134 scoped assertions, 49 existing acquisition JUnit tests, real Desktop action/Undo/restart/fault phases and migration/reopen/original-backup-restore/fault phases. Details in docs/automation-progress.md.",
+  "limits": "Pre-release opt-in local format only. Production gates disabled; no user data migrated. UI, Android/Web adapters, event durations and full platform acceptance remain open. Not a new APK or deployment."
 }

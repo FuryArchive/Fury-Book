@@ -1,13 +1,9 @@
 # Furybook backups
 
-Not a deployable checkout. Main remains untouched.
+Backup branch only. Main is unchanged. No deployment.
 
-Clone the full bundle inside latest.zip (base cfb3dd6). Fetch and checkout HEAD from these bundles in order:
+Clone the full bundle inside latest.zip, then fetch and checkout HEAD from each incremental bundle in current.manifest.json, in the listed order. Keep the base archive and all four bundles. Run git fsck --full.
 
-1. after-cfb3dd6-to-2b37180.bundle
-2. after-2b37180-to-c6aaaf9.bundle
-3. after-c6aaaf9-to-14e3511.bundle
+Expected source HEAD: 33fce1c341cedffea6f88503397a301eaa309794.
 
-Keep latest.zip and all three bundles. Run git fsck --full. Expected source HEAD: 14e35119142c9775186ea0925b94e46b1c423c43.
-
-See current.manifest.json for checksums and scoped verification. No production format migration, Undo, event engine or UI enablement yet.
+Includes shared action kernel, opt-in journal, durable Desktop action/Undo and backed-up local migration. UI, Android/Web adapters, event durations and full platform acceptance remain open. Production defaults remain disabled.
