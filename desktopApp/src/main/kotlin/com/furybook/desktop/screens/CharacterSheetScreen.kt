@@ -1,5 +1,6 @@
 package com.furybook.desktop.screens
 
+import com.furybook.ui.components.GameplayActionPanel
 import com.furybook.dubl.model.passiveAwareness
 import com.furybook.dubl.model.naturalArmorDevelopmentBonus
 
@@ -209,6 +210,12 @@ fun CharacterSheetScreen(
         Box(Modifier.fillMaxSize()) {
             LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 if (state.canonicalMode) item { AcquisitionBalanceCard() }
+                state.gameplay?.let { controller ->
+                    item {
+                        val captured = state.gameplayScope()
+                        GameplayActionPanel(controller, captured, onCommitted = { state.refreshAfterGameplay(captured) })
+                    }
+                }
                 item {
                 CharacterHero(
                     state = state,

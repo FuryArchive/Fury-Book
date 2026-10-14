@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.furybook.dubl.acquisition.*
+import com.furybook.dubl.actions.*
 import com.furybook.dubl.data.DesktopAcquisitionStore
 import com.furybook.dubl.data.CharacterTransferCodec
 import com.furybook.dubl.data.CharacterTransferRejectReason
@@ -46,6 +47,7 @@ class DesktopAppState(
     private val acquisitionStore: DesktopAcquisitionStore? = DesktopAcquisitionStore(),
     private val acquisitionCatalogProvider: (() -> AcquisitionCatalog)? = null,
     private val developmentCatalogOverride: DevelopmentCatalog? = null,
+    val experimentalGameplayEnabled: Boolean = false,
 ) {
     val canonicalMode: Boolean = localAcquisitionEnabled || acquisitionStore?.hasProtectedHeads() != false
     val readOnlyCanonicalMode: Boolean get() = canonicalMode && !localAcquisitionEnabled
@@ -118,6 +120,41 @@ class DesktopAppState(
         scope.controllerGeneration==controllerGeneration && scope.selectionGeneration==selectionGeneration && scope.viewCharacterId==snapshot.activeCharacterId
     private fun currentAcquisitionOwner(scope:AcquisitionScope):Boolean = !disposed && scope.storageScopeId==acquisitionStore?.storageIdentity &&
         scope.controllerGeneration==controllerGeneration && scope.accountGeneration==0L
+    /** Disabled by default; the supplied store must independently opt into format 2. */
+    fun gameplayScope() = GameplayScope(checkNotNull(acquisitionStore).storageIdentity,
+        "local-desktop:$controllerGeneration", snapshot.activeCharacterId, selectionGeneration)
+    private fun currentGameplayScope(value: GameplayScope) = !disposed && value == gameplayScope()
+    private val retainedGameplay by lazy {
+        val native = checkNotNull(acquisitionStore)
+        val background = object : AcquisitionStore {
+            override suspend fun load(characterId: String) = withContext(Dispatchers.IO) { native.load(characterId) }
+            override suspend fun compareAndSet(characterId: String, expectedStorageRevision: Long, next: StoredCharacter): CommitResult {
+                val captured = gameplayScope()
+                return canonicalQueue.withLock { withContext(Dispatchers.IO) {
+                    check(currentGameplayScope(captured)) { "Gameplay view changed while waiting for storage" }
+                    native.compareAndSet(characterId, expectedStorageRevision, next)
+                } }
+            }
+        }
+        GameplayController(background, ::gameplayScope, ::currentGameplayScope,
+            { GameplayCapabilities(experimentalGameplayEnabled && localAcquisitionEnabled && canonicalViewReady && !disposed, true) },
+            { UUID.randomUUID().toString() })
+    }
+    val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && canonicalMode) retainedGameplay else null
+    suspend fun refreshAfterGameplay(captured: GameplayScope) {
+        check(currentGameplayScope(captured)) { "Gameplay view changed" }
+        val state = withContext(Dispatchers.IO) {
+            (checkNotNull(acquisitionStore).load(captured.characterId) as? LoadResult.Loaded)?.state
+                ?: error("Gameplay canonical state unavailable")
+        }
+        withContext(Dispatchers.Main) {
+            check(currentGameplayScope(captured)) { "Gameplay view changed" }
+            val current = checkNotNull(canonicalView)
+            canonicalLoads = canonicalLoads + (state.character.id to LoadResult.Loaded(state))
+            canonicalView = current.copy(characters = current.characters.map { if (it.id == state.character.id) state.character else it })
+            application = createApplication(); refresh(); acquisition.activateCurrentView()
+        }
+    }
     private val canonicalQueue=Mutex()
     var acquisitionUiModel:AcquisitionUiModel? by mutableStateOf(null)
         private set

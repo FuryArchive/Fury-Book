@@ -186,3 +186,15 @@ can be retried and reconciled. Returning to the originating scope exposes its sa
 
 Actual Kotlin/JVM execution: 21 focused controller assertions pass, using simulated CAS storage.
 This is a shared controller, not yet connected to production screens. No new platform acceptance claim.
+
+### 2026-10-14: Staged shared action panel and Desktop host
+
+Added a shared Compose panel for explicit cost review, confirmation/retry, saved pending physical
+check, success/failure input and guarded Undo review. Added Desktop host wiring behind a new default-off
+experimental flag; the supplied store must separately opt into format 2. There is no automatic migration
+or flag change in Main. Host reloads canonical state after an acknowledged action and fences queued writes
+against view changes. The panel uses the source term «Сверхусилие» (P125/P127).
+
+This staged UI has NOT been Compose-compiled or interacted with. Full build dependencies remain blocked,
+and the cloud browser could not reach the isolated HTTP probe. Do not treat this source addition as UI
+acceptance. Android/Web screen wiring, built-in dice integration, durations and migration review UI remain open.
