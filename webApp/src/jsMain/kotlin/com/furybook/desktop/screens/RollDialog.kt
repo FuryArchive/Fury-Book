@@ -1,6 +1,7 @@
 package com.furybook.desktop.screens
 
 import com.furybook.dubl.model.CharacterConditionId
+import com.furybook.dubl.model.requiresVisionDeclaration
 import com.furybook.dubl.model.conditionRollModifiers
 import com.furybook.dubl.model.SkillContribution
 import com.furybook.dubl.model.allowedRollAttributes
@@ -139,7 +140,9 @@ fun SkillRollDialog(
     val effectiveSkill = alternative?.skill ?: skill
     val effectiveAttribute = alternative?.attribute ?: attribute
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
-    val conditionModifiers = character.conditionRollModifiers(RollContext.SKILL, effectiveAttribute, activeConditions)
+    var requiresVision by remember(character.id, effectiveSkill.id, effectiveAttribute, activeConditions) { mutableStateOf<Boolean?>(null) }
+    val visionDeclarationNeeded = requiresVisionDeclaration(RollContext.SKILL, effectiveAttribute, activeConditions)
+    val conditionModifiers = character.conditionRollModifiers(RollContext.SKILL, effectiveAttribute, activeConditions, requiresVision = requiresVision)
     val rawCalculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, effectiveAttribute)
     val calculation = rawCalculation.copy(total = conditionModifiers.apply(rawCalculation.total),
         contributions = rawCalculation.contributions + conditionModifiers.contributions.map { SkillContribution(it.label, it.value) },
@@ -165,7 +168,7 @@ fun SkillRollDialog(
                 OutlinedButton(enabled = alternative == null, onClick = { attrMenu = true }) { Text("Характеристика: ${effectiveAttribute.title}") }
                 DropdownMenu(expanded = attrMenu, onDismissRequest = { attrMenu = false }) {
                     attributes.forEach { option ->
-                        DropdownMenuItem(text = { Text(option.title) }, onClick = { attribute = option; attrMenu = false })
+                        DropdownMenuItem(text = { Text(option.title) }, onClick = { attribute = option; attrMenu = false; result = null })
                     }
                 }
                 FurySegmentedControl(
@@ -199,6 +202,14 @@ fun SkillRollDialog(
                     )
                 }
 
+                if (visionDeclarationNeeded) {
+                    Text("Проверка требует зрения?")
+                    listOf(null to "Не указано", true to "Да", false to "Нет").forEach { (choice, label) ->
+                        TextButton(onClick = { requiresVision = choice; result = null }) {
+                            Text((if (requiresVision == choice) "✓ " else "") + label)
+                        }
+                    }
+                }
                 if (conditionModifiers.notice.isNotBlank()) Text(conditionModifiers.notice, color = DublMuted)
                 if (effects.automaticContributions.isNotEmpty()) {
                     Text("Автоматически: " + effects.automaticContributions.joinToString { "${it.label} ${signed(it.value)}" })
@@ -312,7 +323,9 @@ fun ContextRollDialog(
 
     val attrOptions = if (context == RollContext.ATTRIBUTE) AttributeId.entries else character.allowedRollAttributes(context, skill?.id)
     val selectedAttribute = initialAttribute?.takeIf { it in attrOptions } ?: attribute?.takeIf { it in attrOptions } ?: attrOptions.firstOrNull()
-    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions, skill?.id)
+    var requiresVision by remember(character.id, context, skill?.id, selectedAttribute, activeConditions) { mutableStateOf<Boolean?>(null) }
+    val visionDeclarationNeeded = requiresVisionDeclaration(context, selectedAttribute, activeConditions)
+    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions, skill?.id, requiresVision = requiresVision)
     val basePreset = character.rollPreset(context, skill?.id, selectedAttribute).let { base ->
         base.copy(bonus = conditionModifiers.apply(base.bonus), contributions = base.contributions + conditionModifiers.contributions,
             unavailableReason = conditionModifiers.unavailableReason ?: base.unavailableReason)
@@ -398,6 +411,14 @@ fun ContextRollDialog(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(situationalText, { situationalText = it.take(4) }, label = { Text("Поправка") }, modifier = Modifier.weight(1f), singleLine = true)
                     OutlinedTextField(targetText, { targetText = it.take(4) }, label = { Text("Цель / СЛ") }, modifier = Modifier.weight(1f), singleLine = true)
+                }
+                if (visionDeclarationNeeded) {
+                    Text("Проверка требует зрения?")
+                    listOf(null to "Не указано", true to "Да", false to "Нет").forEach { (choice, label) ->
+                        TextButton(onClick = { requiresVision = choice; result = null }) {
+                            Text((if (requiresVision == choice) "✓ " else "") + label)
+                        }
+                    }
                 }
                 if (conditionModifiers.notice.isNotBlank()) Text(conditionModifiers.notice, color = DublMuted)
                 preset.contributions.forEach { contribution -> Text("${contribution.label}: ${signed(contribution.value)}", color = DublMuted) }

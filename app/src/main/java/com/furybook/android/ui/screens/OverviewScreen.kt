@@ -112,6 +112,7 @@ import com.furybook.dubl.content.DublUiFeature
 import com.furybook.dubl.content.forFeature
 import com.furybook.dubl.content.resourceCurrent
 import com.furybook.dubl.model.AttributeId
+import com.furybook.dubl.model.requiresVisionDeclaration
 import com.furybook.dubl.model.conditionRollModifiers
 import com.furybook.dubl.model.conditionDerivedValues
 import com.furybook.dubl.model.CharacterConditionId
@@ -1727,7 +1728,9 @@ private fun ContextRollSheet(
     }
     var flurryProfile by remember(context, character.id) { mutableStateOf(FlurryWeaponProfile.LIGHT) }
     var shortFlurry by remember(context, character.id) { mutableStateOf(false) }
-    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions, selectedSkillId)
+    var requiresVision by remember(character.id, context, selectedSkillId, selectedAttribute, activeConditions) { mutableStateOf<Boolean?>(null) }
+    val visionDeclarationNeeded = requiresVisionDeclaration(context, selectedAttribute, activeConditions)
+    val conditionModifiers = character.conditionRollModifiers(context, selectedAttribute, activeConditions, selectedSkillId, requiresVision = requiresVision)
     val basePreset = character.rollPreset(context, selectedSkillId, selectedAttribute).let { base ->
         base.copy(bonus = conditionModifiers.apply(base.bonus), contributions = base.contributions + conditionModifiers.contributions,
             unavailableReason = conditionModifiers.unavailableReason ?: base.unavailableReason)
@@ -1772,6 +1775,8 @@ private fun ContextRollSheet(
         effectOptions = contextOptions,
         fixedHindrance = conditionModifiers.hindranceDice,
         conditionNotice = conditionModifiers.notice,
+        visionRequirement = requiresVision,
+        onVisionChoice = if (visionDeclarationNeeded) ({ choice: Boolean? -> requiresVision = choice }) else null,
         flurryProfile = flurryProfile.takeIf { context == RollContext.FLURRY },
         shortFlurry = shortFlurry,
         onFlurryProfile = { flurryProfile = it },
@@ -3427,7 +3432,10 @@ internal fun DublSkillRollSheet(
     val alternative = alternatives.firstOrNull { it.id == alternativeId }
     val effectiveSkill = alternative?.skill ?: skill
     val calculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, initialAttribute)
-    val conditionModifiers = character.conditionRollModifiers(RollContext.SKILL, alternative?.attribute ?: initialAttribute, activeConditions)
+    val effectiveAttribute = alternative?.attribute ?: initialAttribute
+    var requiresVision by remember(character.id, effectiveSkill.id, effectiveAttribute, activeConditions) { mutableStateOf<Boolean?>(null) }
+    val visionDeclarationNeeded = requiresVisionDeclaration(RollContext.SKILL, effectiveAttribute, activeConditions)
+    val conditionModifiers = character.conditionRollModifiers(RollContext.SKILL, effectiveAttribute, activeConditions, requiresVision = requiresVision)
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
     CheckRollSheet(
         title = skill.name,
@@ -3441,6 +3449,8 @@ internal fun DublSkillRollSheet(
         fixedAdvantage = alternative?.advantageDice ?: 0,
         fixedHindrance = conditionModifiers.hindranceDice,
         conditionNotice = conditionModifiers.notice,
+        visionRequirement = requiresVision,
+        onVisionChoice = if (visionDeclarationNeeded) ({ choice: Boolean? -> requiresVision = choice }) else null,
         variantOptions = alternatives.map { it.id to it.label },
         selectedVariant = alternative?.id,
         onVariantSelected = { alternativeId = it },
@@ -3472,7 +3482,10 @@ internal fun DublSkillRollSheet(
     val alternative = alternatives.firstOrNull { it.id == alternativeId }
     val effectiveSkill = alternative?.skill ?: skill
     val calculation = alternative?.calculation(character) ?: character.skillCalculationForRoll(effectiveSkill, selectedAttribute)
-    val conditionModifiers = character.conditionRollModifiers(RollContext.SKILL, alternative?.attribute ?: selectedAttribute, activeConditions)
+    val effectiveAttribute = alternative?.attribute ?: selectedAttribute
+    var requiresVision by remember(character.id, effectiveSkill.id, effectiveAttribute, activeConditions) { mutableStateOf<Boolean?>(null) }
+    val visionDeclarationNeeded = requiresVisionDeclaration(RollContext.SKILL, effectiveAttribute, activeConditions)
+    val conditionModifiers = character.conditionRollModifiers(RollContext.SKILL, effectiveAttribute, activeConditions, requiresVision = requiresVision)
     val effects = SkillEffectRules(character, developmentCatalog, effectCatalog).forSkill(effectiveSkill)
     CheckRollSheet(
         title = skill.name,
@@ -3487,6 +3500,8 @@ internal fun DublSkillRollSheet(
         fixedAdvantage = alternative?.advantageDice ?: 0,
         fixedHindrance = conditionModifiers.hindranceDice,
         conditionNotice = conditionModifiers.notice,
+        visionRequirement = requiresVision,
+        onVisionChoice = if (visionDeclarationNeeded) ({ choice: Boolean? -> requiresVision = choice }) else null,
         variantOptions = alternatives.map { it.id to it.label },
         selectedVariant = alternative?.id,
         onVariantSelected = { alternativeId = it },
@@ -3520,6 +3535,8 @@ private fun CheckRollSheet(
     fixedAdvantage: Int = 0,
     fixedHindrance: Int = 0,
     conditionNotice: String = "",
+    visionRequirement: Boolean? = null,
+    onVisionChoice: ((Boolean?) -> Unit)? = null,
     onVariantSelected: ((String?) -> Unit)? = null,
     onAttributeSelected: ((AttributeId) -> Unit)? = null,
     flurryProfile: FlurryWeaponProfile? = null,
@@ -3533,7 +3550,7 @@ private fun CheckRollSheet(
     var situationalText by remember(rememberKey) { mutableStateOf("0") }
     var targetText by remember(rememberKey) { mutableStateOf("") }
     var selectedEffectIds by remember(rememberKey) { mutableStateOf(setOf<String>()) }
-    var result by remember(rememberKey, checkBonus, selectedAttribute, effectOptions, fixedAdvantage, fixedHindrance, conditionNotice) { mutableStateOf<RollResult?>(null) }
+    var result by remember(rememberKey, checkBonus, selectedAttribute, effectOptions, fixedAdvantage, fixedHindrance, conditionNotice, visionRequirement) { mutableStateOf<RollResult?>(null) }
     val scrollState = rememberScrollState()
 
     val situationalBonus = situationalText.toIntOrNull()?.coerceIn(-99, 99) ?: 0
@@ -3583,6 +3600,13 @@ private fun CheckRollSheet(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (onVisionChoice != null) {
+                Text("Проверка требует зрения?")
+                listOf(null to "Не указано", true to "Да", false to "Нет").forEach { (choice, label) ->
+                    FilterChip(selected = visionRequirement == choice,
+                        onClick = { onVisionChoice(choice); invalidateResult() }, label = { Text(label) })
+                }
+            }
             if (conditionNotice.isNotBlank()) Text(conditionNotice, color = DublAccent)
             if (variantOptions.isNotEmpty()) {
                 Text("Формула для этого броска: выбор подтверждает условие", style = MaterialTheme.typography.labelLarge)

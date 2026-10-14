@@ -275,3 +275,19 @@ Controls are collapsed by default; expanding/collapsing only changes presentatio
 states that resource refresh, source-specific effect activation/expiry and event Undo are not enabled.
 Action/event views have explicit refresh controls for stale previews. Compose/real-UI acceptance is
 still blocked and not claimed. Existing per-platform serialized write lanes and scope fences are reused.
+
+### 2026-10-14: Explicit vision-dependent roll formulas
+
+Added the bounded P14762/P14768 clauses for Blindness and Dazzled: skill-only numeric blindness
+penalties, attack hindrance, and once-only Dexterity/attack dazzled factors. Skill names do not imply
+vision dependence. An explicit visual skill automatically fails under Blindness; an undeclared relevant
+visual dependency blocks the roll instead of silently guessing. Simultaneous affected Blindness and
+Dazzled remain unresolved rather than inventing stacking. Existing five-argument API stays compatible.
+
+Added explicit unset/yes/no visual-dependency controls to Android, Desktop and Web roll surfaces.
+Choice changes invalidate displayed dice; skill attribute changes also clear stale Desktop/Web results.
+These UI changes remain staged, not Compose-compiled or UI-accepted. Defense/adaptation consequences
+are not claimed complete; both conditions retain their partial-automation notice.
+
+Actual scoped Kotlin/JVM compilation and 19 JUnit tests passed across vision, existing condition and
+restrained-condition tests. No resource mutation, automatic recovery, production flag or APK change.

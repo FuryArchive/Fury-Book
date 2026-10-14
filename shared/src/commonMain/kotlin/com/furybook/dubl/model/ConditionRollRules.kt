@@ -23,12 +23,27 @@ data class ConditionRollModifiers(
     fun apply(base: Int?): Int? = if (unavailableReason != null) null else base?.plus(numericBonus)
 }
 
+/** A visual dependency is declared by the player, never inferred from a skill name. */
+fun requiresVisionDeclaration(context: RollContext, attribute: AttributeId?, conditions: Set<CharacterConditionId>): Boolean =
+    (CharacterConditionId.BLINDNESS in conditions && context == RollContext.SKILL) ||
+        (CharacterConditionId.DAZZLED in conditions && attribute == AttributeId.PERCEPTION &&
+            context !in setOf(RollContext.ATTACK, RollContext.FLURRY, RollContext.BREAK_ITEM))
+
+/** Existing call shape stays binary-compatible; unspecified vision is never guessed. */
+fun DublCharacter.conditionRollModifiers(
+    context: RollContext,
+    attribute: AttributeId? = null,
+    active: Set<CharacterConditionId> = emptySet(),
+    skillId: String? = null,
+): ConditionRollModifiers = conditionRollModifiers(context, attribute, active, skillId, requiresVision = null)
+
 /** Pure projection of already-known conditions. No resource expenditure, reset or duration inference. */
 fun DublCharacter.conditionRollModifiers(
     context: RollContext,
     attribute: AttributeId? = null,
     active: Set<CharacterConditionId> = emptySet(),
     skillId: String? = null,
+    requiresVision: Boolean?,
 ): ConditionRollModifiers {
     val conditions = effectiveRollConditions(active)
     val effectiveAttribute = attribute ?: when (context) {
@@ -40,6 +55,9 @@ fun DublCharacter.conditionRollModifiers(
     val attack = context in setOf(RollContext.ATTACK, RollContext.FLURRY, RollContext.BREAK_ITEM)
     val meleeAttack = attack && resolveSkill(skillId ?: "melee_weapon")?.definition?.id in setOf("unarmed", "melee_weapon")
     val entangled = CharacterConditionId.ENTANGLED in conditions
+    val blind = CharacterConditionId.BLINDNESS in conditions
+    val dazzled = CharacterConditionId.DAZZLED in conditions
+    val visionOverlap = blind && dazzled && (attack || effectiveAttribute in setOf(AttributeId.DEXTERITY, AttributeId.PERCEPTION))
     val derivedWeak = context in setOf(RollContext.REFLEXES, RollContext.DODGE, RollContext.INITIATIVE, RollContext.RUN)
     val exhausted = CharacterConditionId.EXHAUSTION in conditions
     val weakPresent = CharacterConditionId.WEAKNESS in conditions
@@ -65,6 +83,14 @@ fun DublCharacter.conditionRollModifiers(
         contributions += RollContribution("Опутанный", -3)
         factors += "Опутанный" to 1
     }
+    // P14762: explicit skill-check penalty and two hindrance dice for attacks.
+    // Vision dependence and long-term adaptation are not inferred from a skill name.
+    if (blind && context == RollContext.SKILL && effectiveAttribute in setOf(AttributeId.PERCEPTION, AttributeId.DEXTERITY))
+        contributions += RollContribution("Слепота", -4)
+    if (blind && attack && !visionOverlap) factors += "Слепота" to 2
+    // P14768's attack/Dexterity clauses count once, not twice on a Dexterity attack.
+    if (dazzled && !visionOverlap && (attack || effectiveAttribute == AttributeId.DEXTERITY ||
+            (effectiveAttribute == AttributeId.PERCEPTION && requiresVision == true))) factors += "Ослепление" to 1
     if (CharacterConditionId.PRONE in conditions && meleeAttack)
         contributions += RollContribution("Сбит с ног: атака ближнего боя", -2)
     if (CharacterConditionId.POISONED in conditions && effectiveAttribute != null)
@@ -77,6 +103,9 @@ fun DublCharacter.conditionRollModifiers(
             RollContext.GRAPPLE, RollContext.DISARM, RollContext.TRIP, RollContext.PUSH, RollContext.KNOCKDOWN)) contributions += RollContribution("Шок", -1)
     return ConditionRollModifiers(contributions, factors.sumOf { it.second },
         when {
+            blind && context == RollContext.SKILL && requiresVision == true -> "Умение требует зрения и автоматически проваливается при Слепоте (P14762)."
+            requiresVision == null && requiresVisionDeclaration(context, effectiveAttribute, conditions) -> "Укажите, требует ли проверка зрения."
+            visionOverlap -> "Совместное действие Слепоты и Ослепления требует отдельного решения; штрафы не складываются автоматически."
             entangled && context == RollContext.RUN -> "Опутанный персонаж не может бежать (P14774)."
             exhaustionUnresolved -> "Сочетание Истощения со Слабостью требует уточнения правила."
             else -> null
