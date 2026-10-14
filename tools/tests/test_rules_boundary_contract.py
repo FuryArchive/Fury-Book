@@ -21,9 +21,16 @@ def test_roll_context_choices_are_owned_by_shared_rules():
     android = read(ANDROID_OVERVIEW)
     desktop = read(DESKTOP_ROLL)
     assert 'context.allowedSkillIds()' in android
-    assert 'context.allowedAttributes(' in android
+    assert 'character.allowedRollAttributes(context,' in android
     assert 'context.allowedSkillIds()' in desktop
-    assert 'context.allowedAttributes(' in desktop
+    assert 'character.allowedRollAttributes(context,' in desktop
+    web = read(ROOT / 'webApp/src/jsMain/kotlin/com/furybook/desktop/screens/RollDialog.kt')
+    assert 'character.allowedRollAttributes(context,' in web
+    shared = read(SHARED / 'com/furybook/dubl/model/CharacterRollContexts.kt')
+    assert 'fun DublCharacter.allowedRollAttributes(' in shared
+    assert 'else context.allowedAttributes(skillId)' in shared
+    for platform in (android, desktop, web):
+        assert 'feat_1e5dba9becf1a19d' not in platform
 
 
 def test_selected_skill_effect_totals_are_owned_by_shared_rules():

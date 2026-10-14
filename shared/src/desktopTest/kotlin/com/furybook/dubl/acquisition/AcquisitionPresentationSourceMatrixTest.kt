@@ -146,7 +146,10 @@ class AcquisitionPresentationSourceMatrixTest {
         }
         } finally { progress?.close() }
         assertEquals(83818,rows);assertEquals(37745,unverified);assertEquals(unverified,unresolvedNumeric+knownNumericUnverified+symbolicRank);assertEquals(2442,symbolicRank)
-        assertEquals(46073,confirmedShown);assertEquals(27606,confirmedBlocked);assertEquals(2008,confirmedCompoundGap);assertEquals(16459,confirmedReceiptEligible)
+        // Source-exact prerequisite grammar moves 16 rows from blocked to compound fixtures.
+        // Full native receipt/Undo matrix independently observes 27590 blocked / 2024 compound;
+        // the 16459 receipt-eligible cases and immutable money oracle remain unchanged.
+        assertEquals(46073,confirmedShown);assertEquals(27590,confirmedBlocked);assertEquals(2024,confirmedCompoundGap);assertEquals(16459,confirmedReceiptEligible)
         println("T17_PRESENTATION_REFRESH confirmedShown=$confirmedShown confirmedAdmissionBlocked=$confirmedBlocked confirmedCompoundFixtureGap=$confirmedCompoundGap confirmedReceiptEligibleReused=$confirmedReceiptEligible")
         println("T17_SOURCE_MATRIX rows=$rows exactDirectBulkPlans=$routes sourceUnverified=$unverified numericUnknown=$unresolvedNumeric numericKnownButUnverified=$knownNumericUnverified symbolicRankUnencodable=$symbolicRank actualAdmissionBlocked=$actualBlocked unsupportedDiscountDimension=$unsupportedDiscount unprojectedPrerequisiteRows=$missingWitness")
     }
