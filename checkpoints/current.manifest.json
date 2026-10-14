@@ -1,8 +1,8 @@
 {
   "format": "furybook-incremental-checkpoint-v1",
-  "source_commit": "fc9205d47529b247ef962e466aa2842ed027271e",
-  "source_tree": "a131cf714b2933206691046d87c24e199768f033",
-  "tracked_files": 699,
+  "source_commit": "47a4e4a91f9ca0a0aabb092a80cfb037fc172121",
+  "source_tree": "cada654b7b46c02f51fbe70c8cb832b45454f09c",
+  "tracked_files": 704,
   "base_archive": "checkpoints/latest.zip",
   "base_source_commit": "cfb3dd67efdff3c4810e91abb9a1180435de2cdf",
   "increments": [
@@ -32,8 +32,13 @@
       "path": "checkpoints/after-6cb1d5f-to-fc9205d.bundle",
       "sha256": "2533e595e3b327b5b2ec858a94fff1d167273f863de05c0f712c767ea661bed8",
       "bytes": 11283
+    },
+    {
+      "path": "checkpoints/after-fc9205d-to-47a4e4a.bundle",
+      "sha256": "c3557779b5c9a155a5f7a4733f80599a3a6fbd0c763822a323db91c449b5dba2",
+      "bytes": 20276
     }
   ],
-  "verification": "Restore chain reaches exact target tree; git fsck passes. 134 scoped assertions, 49 existing acquisition JUnit tests, real Desktop action/Undo/restart/fault phases and migration/reopen/original-backup-restore/fault phases. Details in docs/automation-progress.md. Android adapter: seven host JUnit tests and three separate host JVM phases passed. Browser adapter plus isolated probe compiled and linked with actual Kotlin/JS. Shared confirmation controller: 21 scoped Kotlin/JVM assertions passed. Full restore chain exact tree and fsck verified.",
-  "limits": "Production gates disabled. Shared Compose panel and Desktop opt-in host staged but NOT Compose-compiled or UI-tested. Browser runtime pending connection refusal. Android native/device acceptance, Android/Web screen wiring, built-in dice, durations and full builds remain open. No new APK or deployment."
+  "verification": "Restore chain reaches exact target tree; git fsck passes. 134 scoped assertions, 49 existing acquisition JUnit tests, real Desktop action/Undo/restart/fault phases and migration/reopen/original-backup-restore/fault phases. Details in docs/automation-progress.md. Android adapter: seven host JUnit tests and three separate host JVM phases passed. Browser adapter plus isolated probe compiled and linked with actual Kotlin/JS. Shared confirmation controller: 21 scoped Kotlin/JVM assertions passed. Full restore chain exact tree and fsck verified. Presentation logic: 23 controller, 12 explicit migration review, 9 source-backed roll projection assertions pass. Exact restore tree and fsck verified.",
+  "limits": "Production gates disabled. All three platform panel hosts, migration review and built-in dice aid staged but NOT platform-compiled or UI-tested. Browser runtime remains blocked by test-server connection refusal. Durations, full automation and full platform acceptance remain open. No new APK or deployment."
 }
