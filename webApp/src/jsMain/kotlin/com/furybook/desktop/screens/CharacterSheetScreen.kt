@@ -212,7 +212,7 @@ fun CharacterSheetScreen(
                 state.gameplay?.let { controller ->
                     item {
                         val captured = state.gameplayScope()
-                        GameplayActionPanel(controller, captured, onCommitted = { state.refreshAfterGameplay(captured) })
+                        GameplayActionPanel(controller, captured, migration = state.gameplayMigration, onCommitted = { state.refreshAfterGameplay(captured) })
                     }
                 }
                 item {

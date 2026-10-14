@@ -141,6 +141,24 @@ class DesktopAppState(
             { UUID.randomUUID().toString() })
     }
     val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && canonicalMode) retainedGameplay else null
+    private val retainedGameplayMigration by lazy {
+        val native = checkNotNull(acquisitionStore)
+        val readOnly = object : AcquisitionStore {
+            override suspend fun load(characterId: String) = withContext(Dispatchers.IO) { native.load(characterId) }
+            override suspend fun compareAndSet(characterId: String, expectedStorageRevision: Long, next: StoredCharacter): CommitResult =
+                error("Use explicit gameplay migration")
+        }
+        GameplayMigrationController(readOnly, ::gameplayScope, ::currentGameplayScope,
+            { GameplayCapabilities(experimentalGameplayEnabled && localAcquisitionEnabled && canonicalViewReady && !disposed, true) },
+            { UUID.randomUUID().toString() }) { request ->
+                val captured = gameplayScope()
+                canonicalQueue.withLock { withContext(Dispatchers.IO) {
+                    check(currentGameplayScope(captured)) { "Gameplay migration scope changed while queued" }
+                    native.migrateGameplay(request)
+                } }
+            }
+    }
+    val gameplayMigration: GameplayMigrationController? get() = if (gameplay != null) retainedGameplayMigration else null
     suspend fun refreshAfterGameplay(captured: GameplayScope) {
         check(currentGameplayScope(captured)) { "Gameplay view changed" }
         val state = withContext(Dispatchers.IO) {

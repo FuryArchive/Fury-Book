@@ -67,4 +67,16 @@ def test_gameplay_migration_backups_and_restarts():
 def test_gameplay_controller_retains_confirmation_scope_and_uncertain_id():
     from tools.tests.kotlin_harness_support import run_harness
     result = run_harness(Path(__file__).parent / "kotlin/GameplayControllerHarness.kt")
-    assert "GameplayControllerHarness: 21 assertions passed; simulated storage only" in result.stdout
+    assert "GameplayControllerHarness: 23 assertions passed; simulated storage only" in result.stdout
+
+
+def test_gameplay_migration_requires_explicit_retained_confirmation():
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(Path(__file__).parent / "kotlin/GameplayMigrationControllerHarness.kt")
+    assert "GameplayMigrationControllerHarness: 12 assertions passed; simulated migration only" in result.stdout
+
+
+def test_gameplay_roll_projection_reuses_sheet_rules_without_cancelling_factors():
+    from tools.tests.kotlin_harness_support import run_harness
+    result = run_harness(Path(__file__).parent / "kotlin/GameplayRollProjectionHarness.kt")
+    assert "GameplayRollProjectionHarness: 9 assertions passed" in result.stdout

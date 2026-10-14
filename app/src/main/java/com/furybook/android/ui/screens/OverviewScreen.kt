@@ -387,7 +387,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             controller.gameplay?.let { actions ->
                 item {
                     val captured = controller.gameplayScope()
-                    GameplayActionPanel(actions, captured, onCommitted = { controller.refreshAfterGameplay(captured) })
+                    GameplayActionPanel(actions, captured, migration = controller.gameplayMigration, onCommitted = { controller.refreshAfterGameplay(captured) })
                 }
             }
             item {

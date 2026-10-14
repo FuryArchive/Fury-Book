@@ -9,7 +9,7 @@ import kotlinx.coroutines.sync.withLock
 /** Storage, authenticated owner and selected view must all still match at dispatch. */
 data class GameplayScope(val storageId: String, val ownerId: String, val characterId: String, val generation: Long)
 data class GameplaySheet(val scope: GameplayScope, val storageRevision: Long, val gameplayRevision: Long,
-    val endurance: Int, val pending: PendingPhysicalCheck?, val lastReceipt: GameplayReceipt?)
+    val endurance: Int, val pending: PendingPhysicalCheck?, val lastReceipt: GameplayReceipt?, val roll: GameplayRollProjection?)
 class GameplayReview internal constructor(val key: String, val scope: GameplayScope,
     val request: GameplayRequest, val expectedStorageRevision: Long, val enduranceBefore: Int,
     val enduranceAfter: Int, val pendingAfter: PendingPhysicalCheck?, val ruleVersion: String?)
@@ -46,7 +46,7 @@ class GameplayController(private val store: AcquisitionStore, private val scope:
     suspend fun readSheet(): GameplaySheet = mutex.withLock {
         val captured = scope(); val state = load(captured); val journal = state.gameplay!!
         GameplaySheet(captured, state.storageRevision, journal.revision, state.character.enduranceCurrent,
-            journal.pending, journal.receipts.lastOrNull())
+            journal.pending, journal.receipts.lastOrNull(), pendingGameplayRoll(state))
     }
     private fun projection(state: StoredCharacter): GameplayState {
         val journal = state.gameplay!!
@@ -85,7 +85,11 @@ class GameplayController(private val store: AcquisitionStore, private val scope:
     suspend fun prepareStart(attribute: PhysicalAttribute) = prepare { id, state ->
         StartOverexertion(id, state.character.id, state.gameplay!!.revision, attribute)
     }
-    suspend fun prepareResult(result: PhysicalCheckResult) = prepare { id, state ->
+    suspend fun prepareResult(result: PhysicalCheckResult, expectedStartOperationId: String,
+        expectedStorageRevision: Long) = prepare { id, state ->
+        check(state.storageRevision == expectedStorageRevision && state.gameplay?.pending?.startOperationId == expectedStartOperationId) {
+            "Лист или ожидающая проверка изменились; сначала обновите её данные"
+        }
         ResolvePhysicalCheck(id, state.character.id, state.gameplay!!.revision,
             checkNotNull(state.gameplay!!.pending) { "Нет ожидающей проверки" }.startOperationId, result)
     }

@@ -134,6 +134,18 @@ class DesktopAppState(
             { GameplayCapabilities(experimentalGameplayEnabled && localCapabilities().localDurable, true) }, ::webUuid)
     }
     val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && canonicalMode) retainedGameplay else null
+    private val retainedGameplayMigration by lazy {
+        val native = checkNotNull(acquisitionStore)
+        GameplayMigrationController(native, ::gameplayScope, ::currentGameplayScope,
+            { GameplayCapabilities(experimentalGameplayEnabled && localCapabilities().localDurable, true) }, ::webUuid) { request ->
+                val captured = gameplayScope()
+                canonicalCommandLane.withLock {
+                    check(currentGameplayScope(captured)) { "Browser migration scope changed while queued" }
+                    native.migrateGameplay(request)
+                }
+            }
+    }
+    val gameplayMigration: GameplayMigrationController? get() = if (gameplay != null) retainedGameplayMigration else null
     suspend fun refreshAfterGameplay(captured: GameplayScope) {
         check(currentGameplayScope(captured)) { "Browser gameplay view changed" }
         val state = (checkNotNull(acquisitionStore).load(captured.characterId) as? LoadResult.Loaded)?.state

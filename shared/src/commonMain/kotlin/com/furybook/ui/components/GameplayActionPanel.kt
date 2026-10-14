@@ -13,17 +13,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.furybook.dubl.actions.*
+import com.furybook.dubl.model.RollResult
+import com.furybook.dubl.model.rollFollowUp
+import kotlin.random.Random
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 /** Opt-in host component. The host must supply the current scope and a gated controller. */
 @Composable
 fun GameplayActionPanel(controller: GameplayController, scope: GameplayScope,
-    modifier: Modifier = Modifier, onCommitted: suspend () -> Unit = {}) {
+    migration: GameplayMigrationController? = null, modifier: Modifier = Modifier, onCommitted: suspend () -> Unit = {}) {
     var sheet by remember(controller, scope) { mutableStateOf<GameplaySheet?>(null) }
     var review by remember(controller, scope) { mutableStateOf<GameplayReview?>(null) }
     var busy by remember(controller, scope) { mutableStateOf(false) }
     var message by remember(controller, scope) { mutableStateOf<String?>(null) }
+    var dice by remember(controller, scope, sheet?.storageRevision) { mutableStateOf<RollResult?>(null) }
     val jobs = rememberCoroutineScope()
     // Changing the presentation scope only reloads. It never submits a game event or restores resources.
     LaunchedEffect(controller, scope) {
@@ -49,6 +53,14 @@ fun GameplayActionPanel(controller: GameplayController, scope: GameplayScope,
             Text("Сохранённые действия", style = MaterialTheme.typography.titleMedium)
             sheet?.let { Text("Выносливость: ${it.endurance}") }
             message?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            if (sheet == null && migration != null) {
+                GameplayMigrationPanel(migration, scope) {
+                    onCommitted()
+                    sheet = controller.readSheet().takeIf { it.scope == scope }
+                    review = controller.review?.takeIf { it.scope == scope }
+                    message = null
+                }
+            }
             val shown = review
             if (shown != null) {
                 Text(when (val command = shown.request) {
@@ -57,6 +69,7 @@ fun GameplayActionPanel(controller: GameplayController, scope: GameplayScope,
                     is UndoGameplay -> "Отменить последнее независимое действие"
                 })
                 Text("Выносливость: ${shown.enduranceBefore} → ${shown.enduranceAfter}")
+                if (shown.enduranceBefore > 0 && shown.enduranceAfter == 0) Text("После расхода последнего пункта действует Слабость. Её негативные факторы не отменяются молча костью преимущества.")
                 shown.ruleVersion?.let { Text("Источник: $it", style = MaterialTheme.typography.bodySmall) }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(enabled = !busy, onClick = { run {
@@ -74,9 +87,25 @@ fun GameplayActionPanel(controller: GameplayController, scope: GameplayScope,
                 if (pending != null) {
                     Text("Ожидается проверка: ${pending.attribute.label()}")
                     Text("Уже потрачено: ${pending.endurancePaid}. Преимущество: ${pending.advantageDice} кость. Провал не возвращает расход.")
+                    sheet?.roll?.let { roll ->
+                        for (part in roll.contributions) Text("${part.label}: ${part.value}")
+                        for (notice in roll.notices) Text(notice)
+                        roll.automaticDiceBlockedReason?.let { Text(it) }
+                        OutlinedButton(enabled = !busy && dice == null && roll.automaticDiceBlockedReason == null,
+                            onClick = { dice = roll.roll { Random.nextInt(1, 7) } }) { Text("Бросить встроенные кубы") }
+                        dice?.let { result ->
+                            Text("Кубы: ${result.dice.joinToString()}. Итог: ${result.total}")
+                            result.note?.let { Text(it) }
+                            result.followUp?.let { followUp ->
+                                OutlinedButton(enabled = !busy,
+                                    onClick = { dice = rollFollowUp(result) { Random.nextInt(1, 7) } }) { Text(followUp.buttonTitle) }
+                            }
+                        }
+                    }
+                    Text("Определите исход по сложности и обстоятельствам проверки, затем сохраните успех или провал.")
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(enabled = !busy, onClick = { run { controller.prepareResult(PhysicalCheckResult(true)) } }) { Text("Успех") }
-                        OutlinedButton(enabled = !busy, onClick = { run { controller.prepareResult(PhysicalCheckResult(false)) } }) { Text("Провал") }
+                        Button(enabled = !busy, onClick = { run { controller.prepareResult(PhysicalCheckResult(true), pending.startOperationId, checkNotNull(sheet).storageRevision) } }) { Text("Успех") }
+                        OutlinedButton(enabled = !busy, onClick = { run { controller.prepareResult(PhysicalCheckResult(false), pending.startOperationId, checkNotNull(sheet).storageRevision) } }) { Text("Провал") }
                     }
                 } else if (sheet != null) {
                     Text("Сверхусилие: 1 выносливость, +1 кость преимущества. Только проверка характеристики, не атака или умение.")

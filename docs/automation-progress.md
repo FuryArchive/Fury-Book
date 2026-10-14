@@ -208,3 +208,22 @@ before queued dispatch, and reloads/publishes canonical state only into the orig
 
 These screen/host additions are staged source only: not platform-compiled or UI-accepted yet.
 No implicit migration, user-state change, production feature activation or deployment occurred.
+
+### 2026-10-14: Explicit migration review and physical-check calculation aid
+
+Added a shared migration confirmation controller and staged panel/host wiring for Android, Desktop and
+Web. Preparing never writes. The confirmation warns that old clients cannot write the new format and
+cloud sync is unsupported, then invokes the existing atomic backup/migration adapter with the retained
+ID. Unknown outcomes cannot be dismissed or replaced. All production flags remain off.
+
+Added a pending physical-check projection that reuses existing rollPreset/conditionRollModifiers and
+rollCheck/rollFollowUp rather than copying formulas into the panel. Physical and built-in dice lead to
+the same explicit success/failure review; the app does not invent a target difficulty or auto-submit a
+result. Built-in dice are blocked for unresolved mixed advantage/hindrance and unimplemented condition
+consequences. The last endurance point warns about Weakness. Result preparation now binds the exact
+pending start ID and storage revision, preventing a stale result from resolving a different check.
+
+Actual Kotlin/JVM: 23 controller + 12 migration-controller + 9 roll-projection assertions passed.
+The Compose panels/host wiring are still not platform-compiled or UI-accepted. Reading official Maven
+module metadata confirmed the current Compose runtime depends on AndroidX artifacts from the blocked
+Google dependency route; no mirror bypass was attempted. This is not a finished APK or deployment.
