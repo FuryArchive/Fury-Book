@@ -1,5 +1,5 @@
 # Furybook recovery
 
-Extract latest.zip and clone its repository.bundle. Apply every increment in current.manifest.json in order with git fetch /absolute/path/to/bundle HEAD then git checkout --detach FETCH_HEAD. Verify SHA-256 and git fsck --full. Expected source aa21d8a349aea5eaa6c20e6b775be6a2114208bd; tree 229c1f15331384b49c4717c41932bd4ef3a4408c. The old base manifest describes only the immutable base.
+Extract latest.zip and clone its repository.bundle. Apply every increment from current.manifest.json in order with git fetch /absolute/path/to/bundle HEAD and git checkout --detach FETCH_HEAD. Verify each SHA-256, then git fsck --full. Expected source 9f8dd00394ec1f685c1f24530a01c116511651c7, tree 229fea4770ad9fdfa9fcd19c0bd61941723fb093. Base manifest covers the immutable base only.
 
-All production gates disabled. Compose panels/hosts remain uncompiled and not UI-accepted. Durable event boundaries are implemented; event UI and source-specific timed-effect activation are not. No implicit HP/endurance/AP/reaction refresh. Full automation/platform acceptance remain open. No new APK or deployment.
+Production gates remain off. Shared action/migration/event panels are wired to all three hosts but not Compose-compiled or UI-accepted. Event controls are collapsed and explicitly do not heal/refresh resources or activate timed effects. Source-specific activation/expiry and event Undo remain open, along with full platform acceptance. No new APK or deployment.

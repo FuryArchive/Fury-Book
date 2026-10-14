@@ -1,8 +1,8 @@
 {
   "format": "furybook-incremental-checkpoint-v1",
-  "source_commit": "aa21d8a349aea5eaa6c20e6b775be6a2114208bd",
-  "source_tree": "229c1f15331384b49c4717c41932bd4ef3a4408c",
-  "tracked_files": 711,
+  "source_commit": "9f8dd00394ec1f685c1f24530a01c116511651c7",
+  "source_tree": "229fea4770ad9fdfa9fcd19c0bd61941723fb093",
+  "tracked_files": 714,
   "base_archive": "checkpoints/latest.zip",
   "base_source_commit": "cfb3dd67efdff3c4810e91abb9a1180435de2cdf",
   "increments": [
@@ -42,8 +42,13 @@
       "path": "checkpoints/after-47a4e4a-to-aa21d8a.bundle",
       "sha256": "ea6f954ecde1dac87bac1d3d75b7c3eec3e8a1f8c64e34d53bf3489efb9f3528",
       "bytes": 14328
+    },
+    {
+      "path": "checkpoints/after-aa21d8a-to-9f8dd00.bundle",
+      "sha256": "8ecc5ef2d276dcebe6a196d012aac2f61428018f2fc4765b23a30d3f44fc4059",
+      "bytes": 15128
     }
   ],
-  "verification": "Restore chain reaches exact target tree; git fsck passes. 134 scoped assertions, 49 existing acquisition JUnit tests, real Desktop action/Undo/restart/fault phases and migration/reopen/original-backup-restore/fault phases. Details in docs/automation-progress.md. Android adapter: seven host JUnit tests and three separate host JVM phases passed. Browser adapter plus isolated probe compiled and linked with actual Kotlin/JS. Shared confirmation controller: 21 scoped Kotlin/JVM assertions passed. Full restore chain exact tree and fsck verified. Presentation logic: 23 controller, 12 explicit migration review, 9 source-backed roll projection assertions pass. Exact restore tree and fsck verified. Events milestone: 236 scoped assertions and 49 acquisition JUnit tests passed against current-source JVM compile. Three separate Desktop event/restart phases pass. Actual pre-events format-2 reader rejects extended data and retains original bytes.",
-  "limits": "All production gates disabled. Compose panels/hosts remain uncompiled and not UI-accepted. Durable event boundaries are implemented; event UI and source-specific timed-effect activation are not. No implicit HP/endurance/AP/reaction refresh. Full automation/platform acceptance remain open. No new APK or deployment."
+  "verification": "Restore chain reaches exact target tree; git fsck passes. 134 scoped assertions, 49 existing acquisition JUnit tests, real Desktop action/Undo/restart/fault phases and migration/reopen/original-backup-restore/fault phases. Details in docs/automation-progress.md. Android adapter: seven host JUnit tests and three separate host JVM phases passed. Browser adapter plus isolated probe compiled and linked with actual Kotlin/JS. Shared confirmation controller: 21 scoped Kotlin/JVM assertions passed. Full restore chain exact tree and fsck verified. Presentation logic: 23 controller, 12 explicit migration review, 9 source-backed roll projection assertions pass. Exact restore tree and fsck verified. Events milestone: 236 scoped assertions and 49 acquisition JUnit tests passed against current-source JVM compile. Three separate Desktop event/restart phases pass. Actual pre-events format-2 reader rejects extended data and retains original bytes. Event review controller: 22 focused Kotlin/JVM assertions passed; exact restore tree verified.",
+  "limits": "Production gates remain off. Shared action/migration/event panels are wired to all three hosts but not Compose-compiled or UI-accepted. Event controls are collapsed and explicitly do not heal/refresh resources or activate timed effects. Source-specific activation/expiry and event Undo remain open, along with full platform acceptance. No new APK or deployment."
 }
