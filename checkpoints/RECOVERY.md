@@ -1,14 +1,9 @@
-# Furybook recovery checkpoint
+# Furybook backups
 
-This branch contains backups, not a deployable source checkout. Main is unchanged.
+Not a deployable checkout. Main is unchanged.
 
-Latest source: 2b37180544b6af49fa178e5f77513ce7161b79ae.
+Clone the full bundle inside latest.zip (base cfb3dd6). Fetch and checkout HEAD from after-cfb3dd6-to-2b37180.bundle, then after-2b37180-to-c6aaaf9.bundle, in that order. Keep all three files. Run git fsck --full.
 
-Keep latest.zip (base cfb3dd6) AND after-cfb3dd6-to-2b37180.bundle together. Unpack latest.zip, clone its self-contained Git bundle, then run inside the clone:
+Expected source HEAD: c6aaaf973a5a961370cda2e64b112d8f39b0c257
 
-    git fetch /absolute/path/after-cfb3dd6-to-2b37180.bundle HEAD
-    git switch -c recovered-2b37180 FETCH_HEAD
-    git fsck --full
-
-Expected HEAD: 2b37180544b6af49fa178e5f77513ce7161b79ae.
-See current.manifest.json for hashes and verification limits. Latest.zip remains the older immutable base, not the current source by itself. No production flags or deployment are enabled. Full automation and real UI acceptance are not complete.
+See current.manifest.json for hashes and verification limits. Source includes the first pure Overexertion transition kernel; durable storage, Undo, events and UI are not yet integrated. No production flags enabled.

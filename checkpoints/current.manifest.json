@@ -1,16 +1,19 @@
 {
   "format": "furybook-incremental-checkpoint-v1",
-  "source_commit": "2b37180544b6af49fa178e5f77513ce7161b79ae",
-  "source_tree": "2effbaf590b141620bc62579d200353949c23338",
-  "tracked_files": 677,
+  "source_commit": "c6aaaf973a5a961370cda2e64b112d8f39b0c257",
+  "source_tree": "58904800aab06d112c1a53e86b65ebd1e1e42cd4",
   "base_archive": "checkpoints/latest.zip",
   "base_source_commit": "cfb3dd67efdff3c4810e91abb9a1180435de2cdf",
-  "base_archive_sha256": "40c9b9506295913e9fb0bbdae086c15378287c8354f15827f1fd8f7eb47c075c",
-  "increment": "checkpoints/after-cfb3dd6-to-2b37180.bundle",
-  "increment_bytes": 524184,
-  "increment_sha256": "0a652d89bd8c5857faddcbe242db3673c4ed9a846d10bc16873d87e06987bdfe",
-  "increment_git_blob": "2ccca484582be260a56a9253813adc286f03454e",
-  "verified": "Fresh local clone of source base plus incremental bundle reaches target; full git fsck passes. Latest complete source archive matches 677 tracked files.",
-  "acceptance": "Scoped model/importer/compiler checks recorded in docs/automation-progress.md. Browser/device/server acceptance incomplete. Latest previously delivered APK is 4451b41, excludes 2b37180. Not full automation or deployable backup branch.",
-  "created_utc": "2026-10-14T13:46:00Z"
+  "increments": [
+    {
+      "path": "checkpoints/after-cfb3dd6-to-2b37180.bundle",
+      "sha256": "0a652d89bd8c5857faddcbe242db3673c4ed9a846d10bc16873d87e06987bdfe"
+    },
+    {
+      "path": "checkpoints/after-2b37180-to-c6aaaf9.bundle",
+      "bytes": 8412,
+      "sha256": "e0c7e86040ddfdb83ca8b940f6f0faea0704aaad2ecc82d925e82f2e101013e5"
+    }
+  ],
+  "acceptance": "Overexertion pure kernel only: all 85 non-UI shared Kotlin sources compiled; 32 targeted assertions executed. Durable action storage, Undo, event expiry and UI integration not implemented. No production enablement."
 }
