@@ -1,5 +1,7 @@
 package com.furybook.dubl.model
 
+import kotlin.math.ceil
+
 /** Source P127 explicitly enumerates the physical attributes. */
 private val physicalRollAttributes = setOf(AttributeId.STRENGTH, AttributeId.DEXTERITY, AttributeId.SPEED, AttributeId.CONSTITUTION)
 
@@ -11,10 +13,11 @@ data class ConditionRollModifiers(
     val hindranceDice: Int = 0,
     val unavailableReason: String? = null,
     val unimplemented: Set<CharacterConditionId> = emptySet(),
+    val hindranceSources: List<String> = emptyList(),
 ) {
     val numericBonus: Int get() = contributions.sumOf { it.value }
     val notice: String get() = listOfNotNull(unavailableReason,
-        if (hindranceDice > 0) "Слабость: $hindranceDice негативных фактора на физическую проверку" else null,
+        if (hindranceSources.isNotEmpty()) hindranceSources.joinToString("; ") else null,
         if (unimplemented.isNotEmpty()) "Эффекты состояний пока не рассчитаны: ${unimplemented.joinToString { it.title }}" else null)
         .joinToString("\n")
     fun apply(base: Int?): Int? = if (unavailableReason != null) null else base?.plus(numericBonus)
@@ -34,18 +37,37 @@ fun DublCharacter.conditionRollModifiers(
     }
     val physical = effectiveAttribute in physicalRollAttributes
     val derivedWeak = context in setOf(RollContext.REFLEXES, RollContext.DODGE, RollContext.INITIATIVE, RollContext.RUN)
-    val exhaustionUnresolved = CharacterConditionId.EXHAUSTION in conditions && (physical || derivedWeak)
+    val exhausted = CharacterConditionId.EXHAUSTION in conditions
+    val weakPresent = CharacterConditionId.WEAKNESS in conditions
+    val exhaustionUnresolved = exhausted && weakPresent && (physical || derivedWeak)
     val contributions = mutableListOf<RollContribution>()
-    val weak = CharacterConditionId.WEAKNESS in conditions && !exhaustionUnresolved
+    val factors = mutableListOf<Pair<String, Int>>()
+    val weak = weakPresent && !exhaustionUnresolved
     if (weak && derivedWeak) contributions += RollContribution("Слабость", -2)
+    if (weak && physical) factors += "Слабость" to 2
+    if (exhausted && !exhaustionUnresolved) {
+        if (physical) {
+            contributions += RollContribution("Истощение", -2)
+            factors += "Истощение" to 2
+        }
+        if (context in setOf(RollContext.REFLEXES, RollContext.DODGE, RollContext.INITIATIVE))
+            contributions += RollContribution("Истощение", -3)
+        if (context == RollContext.RUN) contributions += RollContribution("Истощение: половина бега",
+            ceil(runFull / 2).toInt() - runFull.toInt())
+    }
+    if (CharacterConditionId.POISONED in conditions && effectiveAttribute != null)
+        factors += "Отравление" to 1
     if (CharacterConditionId.DEAFNESS in conditions && context == RollContext.INITIATIVE)
         contributions += RollContribution("Глухота", -4)
     if (CharacterConditionId.SHOCK in conditions && context in setOf(RollContext.ATTACK, RollContext.FLURRY,
             RollContext.BREAK_ITEM, RollContext.SKILL, RollContext.ATTRIBUTE, RollContext.REFLEXES,
-            RollContext.DODGE, RollContext.INITIATIVE)) contributions += RollContribution("Шок", -1)
-    return ConditionRollModifiers(contributions, if (weak && physical) 2 else 0,
-        if (exhaustionUnresolved) "Формула Истощения и её сочетание со Слабостью пока не автоматизированы." else null,
-        conditions - setOf(CharacterConditionId.WEAKNESS, CharacterConditionId.SHOCK, CharacterConditionId.DEAFNESS))
+            RollContext.DODGE, RollContext.INITIATIVE, RollContext.PARRY, RollContext.FEINT,
+            RollContext.GRAPPLE, RollContext.DISARM, RollContext.TRIP, RollContext.PUSH, RollContext.KNOCKDOWN)) contributions += RollContribution("Шок", -1)
+    return ConditionRollModifiers(contributions, factors.sumOf { it.second },
+        if (exhaustionUnresolved) "Сочетание Истощения со Слабостью требует уточнения правила." else null,
+        conditions - setOf(CharacterConditionId.WEAKNESS, CharacterConditionId.SHOCK, CharacterConditionId.DEAFNESS,
+            CharacterConditionId.POISONED, CharacterConditionId.EXHAUSTION),
+        factors.map { (source, count) -> "$source: $count негативных фактора" })
 }
 
 data class ConditionDerivedValues(val defense: Int?, val reflexes: Int?, val initiative: Int?, val run: Double?)
@@ -55,9 +77,10 @@ fun DublCharacter.conditionDerivedValues(active: Set<CharacterConditionId> = emp
     val exhausted = CharacterConditionId.EXHAUSTION in conditions
     val weak = CharacterConditionId.WEAKNESS in conditions
     return ConditionDerivedValues(
-        if (exhausted) null else defense - if (weak) 2 else 0,
+        if (exhausted && weak) null else defense - if (exhausted) 3 else if (weak) 2 else 0,
         conditionRollModifiers(RollContext.REFLEXES, active = active).apply(reflexes),
         conditionRollModifiers(RollContext.INITIATIVE, active = active).apply(initiative),
-        if (exhausted) null else runFull + conditionRollModifiers(RollContext.RUN, active = active).numericBonus,
+        if (exhausted && weak) null else if (exhausted) ceil(runFull / 2)
+        else runFull + conditionRollModifiers(RollContext.RUN, active = active).numericBonus,
     )
 }

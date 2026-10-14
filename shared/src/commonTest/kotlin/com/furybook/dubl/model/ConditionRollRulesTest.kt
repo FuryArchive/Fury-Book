@@ -69,4 +69,30 @@ class ConditionRollRulesTest {
         assertEquals(setOf(CharacterConditionId.BLINDNESS), result.unimplemented)
         assertTrue(result.notice.contains("Слепота"))
     }
+
+    @Test fun exhaustion_alone_uses_its_own_formula_without_guessing_overlap_or_recovery() {
+        val active = setOf(CharacterConditionId.EXHAUSTION)
+        val c = healthy.copy(attributes = healthy.attributes + (AttributeId.SPEED to AttributeValue(3)))
+        val values = c.conditionDerivedValues(active)
+        assertEquals(c.defense - 3, values.defense)
+        assertEquals(c.reflexes - 3, values.reflexes)
+        assertEquals(c.initiative - 3, values.initiative)
+        assertEquals(kotlin.math.ceil(c.runFull / 2), values.run)
+        val physical = c.conditionRollModifiers(RollContext.SKILL, AttributeId.STRENGTH, active)
+        assertEquals(-2, physical.numericBonus); assertEquals(2, physical.hindranceDice)
+        assertNull(physical.unavailableReason)
+        assertEquals(0, c.conditionRollModifiers(RollContext.SKILL, AttributeId.INTELLIGENCE, active).numericBonus)
+        assertEquals(3, c.enduranceCurrent)
+    }
+
+    @Test fun poisoned_attribute_factors_and_shock_skill_maneuvers_follow_the_actual_check() {
+        val active = setOf(CharacterConditionId.POISONED, CharacterConditionId.SHOCK)
+        for (context in listOf(RollContext.PARRY, RollContext.FEINT, RollContext.GRAPPLE, RollContext.TRIP,
+            RollContext.DISARM, RollContext.PUSH, RollContext.KNOCKDOWN))
+            assertEquals(-1, healthy.conditionRollModifiers(context, active = active).numericBonus)
+        assertEquals(1, healthy.conditionRollModifiers(RollContext.SKILL, AttributeId.INTELLIGENCE, active).hindranceDice)
+        assertEquals(3, empty.conditionRollModifiers(RollContext.SKILL, AttributeId.STRENGTH, active).hindranceDice)
+        assertEquals(0, healthy.conditionRollModifiers(RollContext.INITIATIVE, active = active).hindranceDice)
+        assertEquals(0, healthy.conditionRollModifiers(RollContext.FORTITUDE, active = active).numericBonus)
+    }
 }

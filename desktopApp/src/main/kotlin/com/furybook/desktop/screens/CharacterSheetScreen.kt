@@ -941,6 +941,7 @@ private fun HeroMetricsStrip(
             DesktopIcon(DesktopIconKind.INITIATIVE, tint = DesktopGold, size = 18.dp)
             Text("Показатели", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
+        if (conditionValues.defense == null) Text("Сочетание Истощения и Слабости требует уточнения правила.", color = DesktopMuted)
         val columns = when {
             embedded -> 2
             compact -> 2

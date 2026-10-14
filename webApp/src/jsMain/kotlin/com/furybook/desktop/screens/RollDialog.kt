@@ -129,7 +129,7 @@ fun SkillRollDialog(
     var effectCountText by remember(skill.id) { mutableStateOf("1") }
     var situationalText by remember(skill.id) { mutableStateOf("0") }
     var targetText by remember(skill.id) { mutableStateOf("") }
-    var result by remember(skill.id) { mutableStateOf<RollResult?>(null) }
+    var result by remember(skill.id, character, activeConditions) { mutableStateOf<RollResult?>(null) }
     var selectedEffects by remember(skill.id) { mutableStateOf(emptySet<String>()) }
     var attrMenu by remember { mutableStateOf(false) }
 
@@ -302,7 +302,7 @@ fun ContextRollDialog(
     var hindranceText by remember(context) { mutableStateOf("0") }
     var situationalText by remember(context) { mutableStateOf("0") }
     var targetText by remember(context) { mutableStateOf("") }
-    var result by remember(context) { mutableStateOf<RollResult?>(null) }
+    var result by remember(context, character, activeConditions) { mutableStateOf<RollResult?>(null) }
     var skillMenu by remember { mutableStateOf(false) }
     var attributeMenu by remember { mutableStateOf(false) }
     var flurryProfile by remember(context) { mutableStateOf(FlurryWeaponProfile.LIGHT) }

@@ -72,3 +72,9 @@ Canonical skill effects now resolve their 20 catalog target labels to 22 stable 
 Thirteen affected effect/alternative tests and all three platform compilers passed (64 seconds); the six source-qualified automation tests passed separately (10 seconds). No monetary corpus rerun was performed for this target-binding-only change.
 
 The current cloud workspace has Chromium installed, but a normal fresh-profile launch fails before opening a page because its local process socket is forbidden. The approved tool-level elevated retry fails identically. Chromium's security sandbox was not disabled. Actual browser interaction therefore remains unverified, not silently replaced by a compiler result.
+
+## Additional condition formulas and UI invalidation
+
+Exhaustion by itself now applies the source's -3 Defense/Reflexes/Initiative, half Run rounded upward, and -2 plus two negative factors for physical-attribute checks. Its combination with Weakness remains unavailable for affected values pending the user's answer; neither stacking nor replacement is assumed. Poisoning adds one negative factor to checks with an actual attribute. Shock also covers skill-based combat maneuvers. These are formula projections, not resource restrictions, recovery or duration automation.
+
+All 15 affected/adjacent model tests and the Android, Desktop and Web compilers passed in 72 seconds. A subsequent UI-only change exposes the unresolved overlap on the sheet, uses the actual condition contributions in Android breakdowns, and invalidates displayed roll results when their character/condition/formula inputs change. All three compilers passed again in 32 seconds; the model tests were not unnecessarily repeated for the UI-only changes. Browser/device interaction remains unverified.

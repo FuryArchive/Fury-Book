@@ -1900,10 +1900,19 @@ private fun statInfo(id: StatId, character: DublCharacter, active: Set<Character
         else -> return base
     }
     if (value == base.value) return base
+    val context = when (id) {
+        StatId.REFLEXES -> RollContext.REFLEXES
+        StatId.INITIATIVE -> RollContext.INITIATIVE
+        StatId.RUN -> RollContext.RUN
+        else -> null
+    }
+    val lines = context?.let { character.conditionRollModifiers(it, active = active).contributions
+        .map { contribution -> "${contribution.label}: ${signed(contribution.value)}" } }
+        ?: listOf("Поправка состояния: ${values.defense?.let { signed(it - character.defense) } ?: "?"}")
     return base.copy(value = value, formula = base.formula + " + поправки состояний",
         breakdown = base.breakdown.filterNot { it.startsWith("Итог:") } +
-            listOf("Учтены состояния: Слабость, Шок, Глухота в применимых формулах", "Итог: $value"),
-        note = if (value == "?") "Истощение пока требует отдельного расчёта; автоматический результат недоступен." else base.note)
+            lines + "Итог: $value",
+        note = if (value == "?") "Сочетание Истощения и Слабости требует уточнения; автоматический результат недоступен." else base.note)
 }
 
 private fun rawStatInfo(id: StatId, character: DublCharacter): StatInfo = when (id) {
@@ -3515,7 +3524,7 @@ private fun CheckRollSheet(
     var situationalText by remember(rememberKey) { mutableStateOf("0") }
     var targetText by remember(rememberKey) { mutableStateOf("") }
     var selectedEffectIds by remember(rememberKey) { mutableStateOf(setOf<String>()) }
-    var result by remember(rememberKey) { mutableStateOf<RollResult?>(null) }
+    var result by remember(rememberKey, checkBonus, selectedAttribute, effectOptions, fixedAdvantage, fixedHindrance, conditionNotice) { mutableStateOf<RollResult?>(null) }
     val scrollState = rememberScrollState()
 
     val situationalBonus = situationalText.toIntOrNull()?.coerceIn(-99, 99) ?: 0
