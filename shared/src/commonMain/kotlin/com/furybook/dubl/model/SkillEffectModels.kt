@@ -199,16 +199,21 @@ class SkillEffectRules(
     private fun SkillEffectDefinition.scaledValue(rank: Int): Int = if (perRank) value * rank else value
 
     private fun SkillEffectDefinition.matchesSkill(skill: ResolvedSkill): Boolean {
-        if (targetSkills.isEmpty()) return false
-        val skillName = developmentNormalize(skill.name)
-        return targetSkills.any { target ->
-            val normalized = developmentNormalize(target)
-            when (normalized) {
-                "знание" -> skill.category == SkillCategory.KNOWLEDGE && skillName.startsWith("знание")
-                "исполнение" -> skillName.startsWith("исполнение")
-                "ремесло" -> skillName.startsWith("ремесло")
-                else -> skillName == normalized
-            }
-        }
+        val definitionId = skill.definition?.id ?: return false
+        return targetSkills.any { target -> definitionId in canonicalEffectSkillTargets[developmentNormalize(target)].orEmpty() }
     }
 }
+
+/** Closed catalog target labels resolve to stable definitions, never editable display names. */
+private val canonicalEffectSkillTargets = mapOf(
+    "атлетика" to setOf("athletics"), "бартер" to setOf("barter"),
+    "верховая езда" to setOf("riding"), "взлом" to setOf("lockpicking"),
+    "внимательность" to setOf("awareness"), "вождение" to setOf("driving"),
+    "выживание" to setOf("survival"), "дрессировка" to setOf("animal_handling"),
+    "запугивание" to setOf("intimidation"), "знание" to setOf("knowledge_academic", "knowledge_template"),
+    "инженерное дело" to setOf("engineering_repair"), "исполнение" to setOf("performance_vocal", "performance_template"),
+    "компьютеры" to setOf("computers"), "красноречие" to setOf("eloquence"),
+    "лидерство" to setOf("leadership"), "медицина" to setOf("medicine"),
+    "пилотирование" to setOf("piloting"), "поиск" to setOf("search"),
+    "ремесло" to setOf("craft_template"), "скрытность" to setOf("stealth"),
+).mapKeys { (label, _) -> developmentNormalize(label) }

@@ -105,4 +105,37 @@ class SkillEffectRulesTest {
         assertTrue(SkillEffectRules(c.copy(development = emptyMap()), DevelopmentCatalog("test", emptyList()), effects)
             .contextOptions(RollContext.FORTITUDE).isEmpty())
     }
+
+    @Test fun canonical_skill_targets_survive_renames_without_accepting_custom_name_spoofs() {
+        val pairs = listOf("Атлетика" to "athletics", "Бартер" to "barter", "Верховая езда" to "riding",
+            "Взлом" to "lockpicking", "Внимательность" to "awareness", "Вождение" to "driving",
+            "Выживание" to "survival", "Дрессировка" to "animal_handling", "Запугивание" to "intimidation",
+            "Знание" to "knowledge_academic", "Знание" to "knowledge_template",
+            "Инженерное дело" to "engineering_repair", "Исполнение" to "performance_vocal",
+            "Исполнение" to "performance_template", "Компьютеры" to "computers", "Красноречие" to "eloquence",
+            "Лидерство" to "leadership", "Медицина" to "medicine", "Пилотирование" to "piloting",
+            "Поиск" to "search", "Ремесло" to "craft_template", "Скрытность" to "stealth")
+        for ((target, definition) in pairs) {
+            val effects = SkillEffectCatalog("test", listOf(SkillEffectDefinition("effect", 0, "Owned", "Source", "", "", "",
+                SkillEffectMode.AUTO_BONUS, RollContext.SKILL, listOf(target), 1, false, "", "owned")))
+            val c = DublCharacter("id", development = mapOf("owned" to OwnedDevelopment(1)), skills = mapOf(
+                "renamed" to CharacterSkill("renamed", definition, "Произвольное имя", rank = 4),
+                "spoof" to CharacterSkill("spoof", name = target, rank = 4)))
+            val rules = SkillEffectRules(c, DevelopmentCatalog("test", emptyList()), effects)
+            assertEquals(1, rules.forSkill(c.resolveSkill("renamed")!!).automaticBonus, definition)
+            assertEquals(0, rules.forSkill(c.resolveSkill("spoof")!!).automaticBonus, definition)
+            assertEquals(0, SkillEffectRules(c.copy(disabledSkillEffectIds = setOf("effect")),
+                DevelopmentCatalog("test", emptyList()), effects).forSkill(c.resolveSkill("renamed")!!).automaticBonus)
+        }
+    }
+
+    @Test fun knowledge_effect_does_not_apply_to_medicine_or_profession_by_category_or_name() {
+        val effects = SkillEffectCatalog("test", listOf(SkillEffectDefinition("knowledge", 0, "Owned", "Source", "", "", "",
+            SkillEffectMode.AUTO_BONUS, RollContext.SKILL, listOf("Знание"), 1, false, "", "owned")))
+        val c = DublCharacter("id", development = mapOf("owned" to OwnedDevelopment(1)), skills = mapOf(
+            "fake" to CharacterSkill("fake", "medicine", "Знание (Академическое)", rank = 5)))
+        val rules = SkillEffectRules(c, DevelopmentCatalog("test", emptyList()), effects)
+        assertEquals(0, rules.forSkill(c.resolveSkill("fake")!!).automaticBonus)
+        assertEquals(0, rules.forSkill(c.resolveSkill("medicine")!!).automaticBonus)
+    }
 }
