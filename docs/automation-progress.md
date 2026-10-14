@@ -85,4 +85,4 @@ Added six source-scoped choices using the existing shared roll-option path: Bart
 
 Current source corrections are retained in both the development and generated effect catalogs: Fast Start refers to sprint, not the older acceleration wording (P11783–11787); Burglar Agility includes the missing combat-hindrance sentence (P10353–10360). That selective hindrance removal and Pack Tactics' distraction penalty remain unimplemented, not silently claimed by the new choices. Previous roll history and authoritative outcomes are not automatically tracked by these selectors.
 
-All 10 scoped model tests and all three platform compilers passed in 66 seconds. Three source-generation/import contract tests passed. No storage format, XP, purchase price, or acquisition eligibility changed. Platform interaction remains unverified.
+All nine scoped model tests and all three platform compilers passed in 66 seconds. Three source-generation/import contract tests passed. No storage format, XP, purchase price, or acquisition eligibility changed. Platform interaction remains unverified.
