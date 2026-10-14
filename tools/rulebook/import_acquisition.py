@@ -151,6 +151,18 @@ def parse_requirement(text, node_id, source, definitions):
     if knowledge:
         return node('SkillFamily', node_id, local, packId=CORE, familyId=KNOWLEDGE_FAMILY,
                     operator='GE', operand=int(knowledge[1]))
+    performance = re.fullmatch(r'Исполнение\s*\(Любое\)\s+(\d+)(?:\s+ранг(?:а|ов)?)?', raw, re.I)
+    if performance:
+        # P10542/P10547 admit any performance, including fixed Vocal and
+        # parameterized instances. Never equate a user-edited name with a family.
+        members = ('performance_vocal', 'performance_template')
+        present = {d['ref']['entryId'] for d in definitions
+                   if d['kind'] == 'SKILL' and d['ref']['packId'] == CORE}
+        if not set(members) <= present:
+            return node('Unresolved', node_id, local, reason='missing-performance-family-universe')
+        return node('AnyOf', node_id, local, children=[
+            node('SkillFamily', node_id+'/'+member, local, packId=CORE, familyId=member,
+                 operator='GE', operand=int(performance[1])) for member in members])
     specialization = re.fullmatch(r'Специализация в оружии(?:\s*\(([^)]+)\))?', raw, re.I)
     if specialization:
         qualifier = specialization[1]

@@ -374,3 +374,19 @@ def test_two_distinct_skills_knowledge_and_attribute_pairs_preserve_source():
     assert pairs['type']=='AnyOf' and len(pairs['children'])==28
     assert all(len(x['children'])==2 and len({y['attributeId'] for y in x['children']})==2 for x in pairs['children'])
     assert all(y['operand']==5 for x in pairs['children'] for y in x['children'])
+
+
+def test_any_performance_uses_stable_closed_families_and_preserves_unknown_specialties():
+    from tools.rulebook.import_acquisition import parse_requirement
+    source = {'documentId': 'core', 'documentVersion': '3.69', 'paragraph': 10541, 'originalText': ''}
+    defs = [{'ref': {'packId': 'dubl-3.69', 'entryId': id}, 'name': 'Renamed', 'kind': 'SKILL'}
+            for id in ('performance_vocal', 'performance_template')]
+    for raw, rank in [('Требование: Исполнение (Любое) 4', 4), ('Исполнение (Любое) 5', 5)]:
+        result = parse_requirement(raw, 'performance', source, defs)
+        assert result['type'] == 'AnyOf'
+        assert {child['familyId'] for child in result['children']} == {'performance_vocal', 'performance_template'}
+        assert all(child['operand'] == rank and child['sourceRef']['originalText'] == raw for child in result['children'])
+        assert result['sourceRef']['originalText'] == raw
+    assert parse_requirement('Исполнение (Любое) 4', 'missing', source, defs[:1])['type'] == 'Unresolved'
+    assert parse_requirement('Исполнение (Танцы) 4', 'named', source, defs)['type'] == 'Unresolved'
+    assert parse_requirement('Исполнение (Комедия) 5', 'named', source, defs)['type'] == 'Unresolved'

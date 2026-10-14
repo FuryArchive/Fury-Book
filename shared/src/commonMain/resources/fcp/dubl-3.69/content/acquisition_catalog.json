@@ -4198,7 +4198,7 @@
         }
       },
       "requirements": {
-        "type": "Unresolved",
+        "type": "AnyOf",
         "nodeId": "feat_f33c232811919ee5/requirements",
         "sourceRef": {
           "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -4207,7 +4207,38 @@
           "paragraph": 10542,
           "originalText": "Требование: Исполнение (Любое) 4"
         },
-        "reason": "unresolved-qualified-or-compound-requirement"
+        "children": [
+          {
+            "type": "SkillFamily",
+            "nodeId": "feat_f33c232811919ee5/requirements/performance_vocal",
+            "sourceRef": {
+              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+              "sheet": "t.9xkxyxwswfn9",
+              "paragraph": 10542,
+              "originalText": "Исполнение (Любое) 4"
+            },
+            "packId": "dubl-3.69",
+            "familyId": "performance_vocal",
+            "operator": "GE",
+            "operand": 4
+          },
+          {
+            "type": "SkillFamily",
+            "nodeId": "feat_f33c232811919ee5/requirements/performance_template",
+            "sourceRef": {
+              "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+              "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+              "sheet": "t.9xkxyxwswfn9",
+              "paragraph": 10542,
+              "originalText": "Исполнение (Любое) 4"
+            },
+            "packId": "dubl-3.69",
+            "familyId": "performance_template",
+            "operator": "GE",
+            "operand": 4
+          }
+        ]
       }
     },
     {
@@ -4277,7 +4308,7 @@
             "operand": 1
           },
           {
-            "type": "Unresolved",
+            "type": "AnyOf",
             "nodeId": "feat_0bf4bbf1c46717a4/requirements/1",
             "sourceRef": {
               "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
@@ -4286,7 +4317,38 @@
               "paragraph": 10547,
               "originalText": "Исполнение (Любое) 5"
             },
-            "reason": "unresolved-qualified-or-compound-requirement"
+            "children": [
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_0bf4bbf1c46717a4/requirements/1/performance_vocal",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 10547,
+                  "originalText": "Исполнение (Любое) 5"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "performance_vocal",
+                "operator": "GE",
+                "operand": 5
+              },
+              {
+                "type": "SkillFamily",
+                "nodeId": "feat_0bf4bbf1c46717a4/requirements/1/performance_template",
+                "sourceRef": {
+                  "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+                  "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+                  "sheet": "t.9xkxyxwswfn9",
+                  "paragraph": 10547,
+                  "originalText": "Исполнение (Любое) 5"
+                },
+                "packId": "dubl-3.69",
+                "familyId": "performance_template",
+                "operator": "GE",
+                "operand": 5
+              }
+            ]
           }
         ]
       }
@@ -115685,34 +115747,6 @@
     },
     {
       "kind": "unresolved-qualified-or-compound-requirement",
-      "definitionId": "feat_f33c232811919ee5",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_f33c232811919ee5/requirements",
-      "message": "unresolved-qualified-or-compound-requirement",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 10542,
-        "originalText": "Требование: Исполнение (Любое) 4"
-      }
-    },
-    {
-      "kind": "unresolved-qualified-or-compound-requirement",
-      "definitionId": "feat_0bf4bbf1c46717a4",
-      "packId": "dubl-3.69",
-      "nodeId": "feat_0bf4bbf1c46717a4/requirements/1",
-      "message": "unresolved-qualified-or-compound-requirement",
-      "sourceRef": {
-        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
-        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
-        "sheet": "t.9xkxyxwswfn9",
-        "paragraph": 10547,
-        "originalText": "Исполнение (Любое) 5"
-      }
-    },
-    {
-      "kind": "unresolved-qualified-or-compound-requirement",
       "definitionId": "feat_7765fc49273697b2",
       "packId": "dubl-3.69",
       "nodeId": "feat_7765fc49273697b2/requirements/3",
@@ -137921,5 +137955,5 @@
       "resolutionRevision": "cff687788481ae6a282a7b49ca6c608aeb2d1546f91df3aa7d1e77de26a276f0"
     }
   },
-  "catalogRevision": "b29cec73eb6bafd71bd3cdb0c16a0191def40fe5e0c74def37f35ee25400fb41"
+  "catalogRevision": "8f25245aea6f3f584d56ed83ead1ea87f4874297de11f2e7f3a7d3d007f0d613"
 }

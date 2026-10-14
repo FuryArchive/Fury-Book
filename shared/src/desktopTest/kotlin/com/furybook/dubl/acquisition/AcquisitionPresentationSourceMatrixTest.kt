@@ -42,7 +42,11 @@ class AcquisitionPresentationSourceMatrixTest {
         val opening=Amount((row.values.getValue("openingXP") as JsonValue.Num).raw.toLong(),(row.values.getValue("openingAP") as JsonValue.Num).raw.toLong())
         return Input(initial(character,instances,phase,opening),AcquisitionTarget(ref,if(attribute==null)"fixture-target" else null,number("toRank"),parameters,text("optionId").takeUnless { it=="DEFAULT" }),catalog)
     }
-    @Test fun all_rows_preserve_exact_direct_bulk_intent_and_unverified_source_presentation() {
+    @Test fun all_rows_preserve_exact_direct_bulk_intent_and_unverified_source_presentation() = runMatrix(false)
+
+    @Test fun performance_prerequisite_rows_preserve_direct_bulk_and_money_boundaries() = runMatrix(true)
+
+    private fun runMatrix(performanceOnly: Boolean) {
         val source=FcpTextSource { javaClass.classLoader.getResource(it)?.readText() }
         val catalog=loadAcquisitionCatalog(listOf("dubl-3.69","dubl-chi-3.69").map { FcpContentPack.load("fcp/$it",source) },true).catalog
         val overlay=JsonReader(File(folder,"author_expected_price_updates.json").readText()).read() as JsonValue.Obj
@@ -54,6 +58,11 @@ class AcquisitionPresentationSourceMatrixTest {
             if(!line.startsWith("{\"caseId\":"))return@forEachLine
             val row=JsonReader(line.removeSuffix(",")).read() as JsonValue.Obj
             val id=(row.values.getValue("caseId") as JsonValue.Str).value
+            if (performanceOnly) {
+                val ref = row.values.getValue("definitionRef")
+                val entry = if (ref is JsonValue.Obj) (ref.values.getValue("id") as JsonValue.Str).value else (ref as JsonValue.Str).value
+                if (entry !in setOf("feat_f33c232811919ee5", "feat_0bf4bbf1c46717a4")) return@forEachLine
+            }
             val values=row.values.toMutableMap()
             patches[id]?.let { patch -> for(key in listOf("expectedCostXP","expectedCostAP","expectedRemainingXP","expectedRemainingAP","expectedUndoXP","expectedUndoAP"))values[key]=(patch as JsonValue.Obj).values.getValue(key);values["evidenceStatus"]=JsonValue.Str("CONFIRMED") }
             val unresolved=(values.getValue("evidenceStatus") as JsonValue.Str).value!="CONFIRMED"
@@ -145,6 +154,15 @@ class AcquisitionPresentationSourceMatrixTest {
             }
         }
         } finally { progress?.close() }
+        if (performanceOnly) {
+            // Exact affected slice of the independent corpus. The prior full-run
+            // evidence had these same classifications; no global count changes.
+            assertEquals(42, rows); assertEquals(14, unverified); assertEquals(0, symbolicRank)
+            assertEquals(28, confirmedShown); assertEquals(16, confirmedBlocked)
+            assertEquals(0, confirmedCompoundGap); assertEquals(12, confirmedReceiptEligible)
+            println("PERFORMANCE_SOURCE_MATRIX rows=$rows confirmed=$confirmedShown blocked=$confirmedBlocked receiptEligible=$confirmedReceiptEligible")
+            return
+        }
         assertEquals(83818,rows);assertEquals(37745,unverified);assertEquals(unverified,unresolvedNumeric+knownNumericUnverified+symbolicRank);assertEquals(2442,symbolicRank)
         // Source-exact prerequisite grammar moves 16 rows from blocked to compound fixtures.
         // Full native receipt/Undo matrix independently observes 27590 blocked / 2024 compound;

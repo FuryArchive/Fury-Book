@@ -104,6 +104,28 @@ class DesktopAcquisitionCatalogTest {
         assertEquals(RequirementStatus.Satisfied, evaluate(condition, context).status)
     }
 
+    @Test fun actual_any_performance_prerequisites_accept_vocal_not_unrelated_high_rank() {
+        val catalog = loadAcquisitionCatalog(packs(), false).catalog
+        fun ref(id: String) = DefinitionRef("dubl-3.69", id)
+        val talented = catalog.definitions.getValue(ref("feat_f33c232811919ee5")).requirements
+        val versatile = catalog.definitions.getValue(ref("feat_0bf4bbf1c46717a4")).requirements
+        val any = assertIs<RequirementNode.AnyOf>(talented)
+        assertEquals(setOf("performance_vocal", "performance_template"),
+            any.children.map { assertIs<RequirementNode.SkillFamily>(it).familyId }.toSet())
+        assertEquals(10542, talented.sourceRef.paragraph)
+        fun instance(id: String, rank: Int) = AcquisitionInstance("owned/$id", ref(id), rank, emptyMap(), null, AcquisitionOrigin.New)
+        fun context(vararg instances: AcquisitionInstance) = AcquisitionContext(DublCharacter("performance"),
+            instances.toList(), emptySet(), RequirementNode.CreationPhase.Phase.Creating, emptyList(), catalog)
+        assertEquals(RequirementStatus.Satisfied, evaluate(talented, context(instance("performance_vocal", 4))).status)
+        assertNotEquals(RequirementStatus.Satisfied, evaluate(talented, context(instance("performance_vocal", 3))).status)
+        assertNotEquals(RequirementStatus.Satisfied, evaluate(talented, context(instance("athletics", 10))).status)
+        assertEquals(RequirementStatus.Satisfied, evaluate(versatile,
+            context(instance("performance_vocal", 5), instance("feat_f33c232811919ee5", 1))).status)
+        assertNotEquals(RequirementStatus.Satisfied, evaluate(versatile,
+            context(instance("performance_vocal", 4), instance("feat_f33c232811919ee5", 1))).status)
+        assertNotEquals(RequirementStatus.Satisfied, evaluate(versatile, context(instance("performance_vocal", 5))).status)
+    }
+
     @Test fun undeclared_payload_is_not_loaded_and_bad_payload_is_diagnostic() {
         val base = """{"format":"fury.content-pack","formatVersion":1,"id":"dubl-3.69","name":"Core","version":"3.69","ruleset":{"id":"dubl","version":"3.69","engineApi":1},"modules":[],"entries":[]} """
         val pack = FcpContentPack.load("", FcpTextSource { if (it == "manifest.json") base else "untrusted" })
