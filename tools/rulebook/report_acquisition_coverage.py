@@ -17,6 +17,7 @@ from tools.rulebook.acquisition_coverage_records import (
 )
 from tools.rulebook.validate_acquisition_matrix import validate_matrix
 from tools.rulebook.acquisition_audit_projection import validate_projection
+from tools.rulebook.acquisition_native_probe import execution_requirement, load_probes
 
 SOURCE_FACETS = ('price', 'admission', 'rankMaximum', 'discount', 'identity', 'option')
 PLATFORMS = ('ANDROID', 'DESKTOP', 'WEB')
@@ -49,7 +50,7 @@ def source_inventory(root):
     roots = ('shared/src', 'app/src', 'desktopApp/src', 'webApp/src', 'rulesets',
              'tools/rulebook', 'tools/tests', '.github/workflows')
     paths = {p for folder in roots for p in (root/folder).rglob('*')
-             if p.is_file() and p.suffix in ('.kt', '.json', '.py', '.kts', '.yml')}
+             if p.is_file() and p.suffix in ('.kt', '.json', '.py', '.kts', '.gradle', '.yml')}
     paths.update(root/name for name in ('build.gradle.kts', 'settings.gradle.kts', 'gradle.properties',
                                       'shared/build.gradle.kts', 'app/build.gradle.kts',
                                       'desktopApp/build.gradle.kts', 'webApp/build.gradle.kts'))
@@ -97,7 +98,7 @@ def load_report_inputs(root, evidence_paths=()):
             candidateDefinitionRef=candidate, actualDefinitionRef=definition['ref'] if definition else None,
             actualKind=definition['kind'] if definition else None, sourceFacets=facets,
             sourceLinks=case['sourceRef'], sourceOccurrenceIds=case['sourceId'],
-            executionRequirement={'expectedOutcome':'UNRESOLVED'})
+            executionRequirement=execution_requirement(case, definition))
     source_audit = validate_projection(root)
     occurrences = source['sourceOccurrences']; graph = source['definitions']
     matched = [r for r in occurrences if r['runtimeId']]
@@ -119,8 +120,7 @@ def load_report_inputs(root, evidence_paths=()):
             effectiveUnknown=sum(c['evidenceStatus']!='CONFIRMED' for c in cases)),
         sourceRuleRevision=authority_revision(rules,'SOURCE_DERIVED'), authorRevision=authority_revision(rules,'USER_RULING'),
         catalogPayloadRevisions={key:value['catalogRevision'] for key,value in packs.items()}, integrityErrors=[])
-    # Until the native/provenance reader is implemented, supplied records fail closed.
-    evidence = [dict(type='UNVERIFIED_INPUT', path=str(p)) for p in evidence_paths]
+    evidence = load_probes(evidence_paths, manifest, cases, packs)
     return manifest, cases, evidence
 
 
@@ -130,7 +130,13 @@ def report_coverage(manifest, cases, evidence):
     for case in cases: indexed[case['caseId']].append(case)
     if set(indexed) != set(required): integrity.append('case_universe_mismatch')
     if any(len(rows)!=1 for rows in indexed.values()): integrity.append('duplicate_case')
-    if evidence: integrity.append('evidence_validation_pending')
+    native = {}
+    for item in evidence:
+        identity = item.get('caseId')
+        if item.get('type') != 'VALIDATED_NATIVE_PROBE_CASE' or identity not in required or identity in native:
+            integrity.append('invalid_or_duplicate_native_evidence')
+        else:
+            native[identity] = item
     results = []
     for identity, requirement in required.items():
         rows = indexed.get(identity, []); case = rows[0] if rows else {}
@@ -141,7 +147,8 @@ def report_coverage(manifest, cases, evidence):
         source_blockers = [name for name,status in requirement['sourceFacets'].items() if status!='CONFIRMED']
         if requirement['candidateDefinitionRef']!=requirement['actualDefinitionRef']:
             source_blockers.append('definition_pack_mismatch')
-        missing = ['SHARED_JVM:rules_apply_receipt_ledger_restart_undo'] + [p+':'+s for p in PLATFORMS for s in STAGES]
+        accepted = native.get(identity) if not failures and not source_blockers and not integrity else None
+        missing = ([] if accepted else ['SHARED_JVM:rules_apply_receipt_ledger_restart_undo']) + [p+':'+s for p in PLATFORMS for s in STAGES]
         status = 'FAILED' if failures else ('SOURCE_UNVERIFIED' if source_blockers else 'UI_UNVERIFIED')
         price = 'UNKNOWN_NULL' if case.get('evidenceStatus')!='CONFIRMED' else (
             'KNOWN_ZERO' if [case.get('expectedCostXP'),case.get('expectedCostAP')]==[0,0] else 'KNOWN_AMOUNT')
@@ -150,18 +157,23 @@ def report_coverage(manifest, cases, evidence):
             sourceFacets=requirement['sourceFacets'], sourceLinks=requirement['sourceLinks'],
             sourceOccurrenceIds=requirement['sourceOccurrenceIds'], priceClassification=price,
             expectedMoney={k:case.get(k) for k in MONEY_FIELDS}, executionRequirement=requirement['executionRequirement'],
-            sourceBlockers=source_blockers, missingEvidence=missing, failures=failures, evidenceIds=[]))
+            sourceBlockers=source_blockers, missingEvidence=missing, failures=failures,
+            evidenceIds=[accepted['evidenceId']] if accepted else [], nativeExecution=accepted))
     gates = {name: {'status':'NOT_RUN','evidenceIds':[]} for name in REQUIRED_GATES}
     if manifest.get('scope') == 'PRODUCTION' and manifest.get('sourceAudit') and not integrity:
         gates['source_universe_integrity'] = {'status':'PASS','evidenceIds':['PINNED_SOURCE_AUDIT_JOIN'],
             'scope':'SOURCE_IDENTITIES_ONLY_NOT_RUNTIME_ACCEPTANCE'}
+    observed = [r['nativeExecution'] for r in results if r['nativeExecution']]
+    if observed:
+        gates['runtime_case_acceptance'] = {'status':'PARTIAL', 'evidenceIds':[r['evidenceId'] for r in observed],
+            'verifiedCases':len(observed), 'requiredCases':len(required), 'scope':observed[0]['scope']}
     assertions = {rule['id']: {'status':'NOT_RUN','evidenceIds':[]} for rule in manifest['sourceRules']['rules']}
     return dict(schemaVersion=1, integrityOK=not integrity, integrityErrors=integrity, releaseReady=False,
         testedCommit=manifest['testedCommit'], inputDigests=manifest['inputDigests'], requiredCaseCount=len(required),
         sourceUniverse=manifest['sourceUniverse'], sourceAudit=manifest.get('sourceAudit'), sourcePriceCounts=manifest.get('sourcePriceCounts',{}),
         acceptanceCounts=dict(Counter(r['status'] for r in results)), cases=results, gates=gates,
         sourceAssertions=assertions, pendingAuthorDecisions=manifest['sourceRules']['pendingDecisions'],
-        limitations=['WIP: native execution evidence is not yet joined. Pinned source identities are validated, not runtime behavior; no release acceptance.'])
+        limitations=['Native joining is limited to the exact bounded probe subset. All other runtime cases and platform interaction remain unverified; no release acceptance.'])
 
 
 def main(argv=None):
@@ -170,7 +182,17 @@ def main(argv=None):
     parser.add_argument('--evidence-dir', type=Path, default=Path('build/acquisition-evidence'))
     parser.add_argument('--output', type=Path, default=Path('build/acquisition-evidence/coverage.json'))
     parser.add_argument('--require-release-ready', action='store_true')
+    parser.add_argument('--prepare-native-probe', type=Path, help='Write source/commit binding for the bounded native exporter; does not certify execution.')
     args=parser.parse_args(argv)
+    if args.prepare_native_probe:
+        root=args.repo_root.resolve()
+        require(not args.prepare_native_probe.exists(), 'refuse_overwriting_native_input')
+        binding=dict(testedCommit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=root,text=True).strip(),
+                     inputDigests=source_inventory(root))
+        args.prepare_native_probe.parent.mkdir(parents=True,exist_ok=True)
+        args.prepare_native_probe.write_text(json.dumps(binding,ensure_ascii=False)+'\n')
+        print('Prepared source binding only; native execution is still NOT_RUN.')
+        return 0
     try:
         paths=[] if not args.evidence_dir.exists() else [p for p in args.evidence_dir.iterdir() if p.resolve()!=args.output.resolve()]
         report=report_coverage(*load_report_inputs(args.repo_root,paths))

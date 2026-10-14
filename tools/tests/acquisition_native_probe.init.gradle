@@ -1,0 +1,6 @@
+allprojects {
+ tasks.withType(Test).configureEach {
+  systemProperty 'furybook.acquisition.native.input', System.getenv('FURY_NATIVE_INPUT')
+  systemProperty 'furybook.acquisition.native.output', System.getenv('FURY_NATIVE_OUTPUT')
+ }
+}

@@ -50,3 +50,7 @@ The acquisition-wide T19 report now validates and joins the pinned original sour
 - Closed Mind and Hero of Second Chance are explicit per-roll conditions, not automatic advantage or permission to attempt a roll again. They do not infer mental attacks, previous failure, or resources.
 - Android now exposes the existing generic attribute-check dialog and routes its Fortitude shortcut through the same contextual effect path. All three UIs supply the selected attribute to the shared condition resolver so a Strength bonus cannot leak into Dexterity after changing the selection.
 - Changed-area verification passed: both affected model test classes (11 tests), plus Android, Desktop and Web compilation in 70 seconds. The completed aggregate regression above predates these additions. Actual platform interaction is still unverified.
+
+## Bounded native evidence join
+
+Added a real Desktop-file-store producer for two immutable Athletics 0→1 cases (creation and after creation), plus strict source/commit-bound consumption in the full-denominator report. Receipt, signed ledger, persisted ownership, reopened state and inverse Undo are validated from native canonical envelopes, not a claimed PASS summary. The runtime gate can be PARTIAL only; platform interaction and release gates stay open. The initial native export ran successfully; 42 affected Python native/probe/report contract tests passed. The final same-commit export/report integration is run separately after committing these sources. See [reproduction and scope](acquisition-native-probe.md).
