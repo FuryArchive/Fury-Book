@@ -80,10 +80,19 @@ class AndroidAcquisitionActions(val controller: CharacterController, private val
     }
     fun selectInstance(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, instance: AcquisitionInstanceView) = action {
         controller.acquisition.selectTarget(model.key, prompt.targetIndex, instance.instanceId,
-            parameters = instance.parameters, optionId = instance.optionId)
+            parameters = instance.parameters, optionId = instance.optionId.takeUnless {
+                view?.catalog?.definitions?.get(instance.definition)?.classificationSources?.get("payment:transition-options")?.originalText?.isNotBlank() == true
+            }, targetRank = instance.rank + 1)
     }
     fun selectNew(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, parameters: Map<String, String>) = action {
         controller.acquisition.selectTarget(model.key, prompt.targetIndex, null, newInstance = true, parameters = parameters)
+    }
+    fun selectNewSpecialization(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, name: String, choiceId: String?) = action {
+        controller.acquisition.selectNewSpecialization(model.key, prompt.targetIndex, name, choiceId)
+    }
+    fun selectParameters(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, parameters: Map<String, String>) = action {
+        controller.acquisition.selectTarget(model.key, prompt.targetIndex, prompt.selectedInstanceId,
+            parameters = parameters, targetRank = prompt.targetRank)
     }
     fun selectAbility(model: AcquisitionUiModel, index: Int, option: String) = action {
         controller.acquisition.selectAbilityOption(model.key, index, option)
@@ -104,12 +113,7 @@ class AndroidAcquisitionActions(val controller: CharacterController, private val
     }
     fun target(kind: AcquisitionKind, id: String, rank: Int): AcquisitionTarget? {
         val current = view?.takeIf { it.scope.viewCharacterId == controller.active.id } ?: return null
-        val holding = current.state.instances.singleOrNull { it.instanceId == id }
-        val definition = if (holding != null) current.catalog.definitions[holding.definition]?.takeIf { it.kind == kind }
-            else current.catalog.definitions.values.singleOrNull { it.kind == kind && it.ref.entryId == id }
-        if (definition == null) return null
-        val owned = holding ?: current.state.instances.singleOrNull { it.definition == definition.ref }
-        return AcquisitionTarget(definition.ref, owned?.instanceId, rank, owned?.parameters.orEmpty(), owned?.abilityOptionId)
+        return acquisitionTargetForSelection(current, kind, id, rank)
     }
     fun openTarget(kind: AcquisitionKind, id: String, rank: Int, includeTarget: Boolean = true) {
         val target = target(kind, id, rank)

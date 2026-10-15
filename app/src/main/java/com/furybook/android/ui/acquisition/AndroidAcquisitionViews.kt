@@ -11,7 +11,11 @@ import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import com.furybook.android.state.CharacterController
 import com.furybook.dubl.acquisition.*
+import com.furybook.ui.components.SkillSpecializationPicker
+import com.furybook.ui.components.AcquisitionParameterPicker
 import com.furybook.ui.components.DublCard
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 val AcquisitionDefinitionKey = SemanticsPropertyKey<String>("AcquisitionDefinition")
 var SemanticsPropertyReceiver.acquisitionDefinition by AcquisitionDefinitionKey
@@ -39,7 +43,7 @@ fun AcquisitionEntrySummary(kind: AcquisitionKind, id: String, rank: Int, modifi
     LaunchedEffect(snapshot, kind, id, rank) {
         val target = actions.target(kind, id, rank) ?: return@LaunchedEffect
         val request = AcquisitionRequest(actions.controller.active.id, listOf(target))
-        review = try { actions.controller.acquisition.quoteCardReview(request) }
+        review = try { withContext(Dispatchers.Default) { actions.controller.acquisition.quoteCardReview(request) } }
             catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled } catch (_: Exception) { null }
     }
     val shown = review
@@ -77,7 +81,7 @@ fun AcquisitionReceiptSummary(receipt: AcquisitionReceiptView, onUndo: (() -> Un
         Text(acquisitionAmount(receipt.cost), Modifier.testTag("acquisition.price"))
         Text("Остаток тогда: ${acquisitionAmount(receipt.remaining)}")
         receipt.currentBalance?.let { Text("Остаток сейчас: ${acquisitionAmount(it)}") }
-        receipt.rows.forEach { Text(acquisitionRowLabel(it)) }
+        receipt.rows.forEach { Text(acquisitionRowLabel(it) + " · " + acquisitionPrice(it.price)) }
         if (receipt.replayed) Text("Показан сохранённый результат, без повторной оплаты", style = MaterialTheme.typography.bodySmall)
         if (onUndo != null) TextButton(onClick = onUndo, Modifier.testTag("acquisition.undo")) { Text("Проверить отмену") }
     }
@@ -195,23 +199,31 @@ fun AcquisitionPurchaseSurface(model: AcquisitionUiModel, actions: AndroidAcquis
 @Composable
 private fun SelectionEditor(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, actions: AndroidAcquisitionActions, enabled: Boolean) {
     if (prompt.instances.size <= 1 && prompt.parameters.isEmpty() && !prompt.canCreateNew) return
-    var parameters by remember(model.scope, prompt.definition) { mutableStateOf(emptyMap<String, String>()) }
+    var parameters by remember(model.scope, prompt.definition, prompt.targetIndex, prompt.targetRank, prompt.selectedInstanceId) { mutableStateOf(prompt.selectedParameters) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Экземпляр: ${prompt.label}")
-        prompt.instances.forEach { item -> OutlinedButton(onClick = { actions.selectInstance(model, prompt, item) }, enabled = enabled,
-            modifier = Modifier.testTag("acquisition.choice")) { Text("${item.label} · ранг ${item.rank}") } }
-        prompt.parameters.forEach { field ->
-            Text(field.label)
-            if (field.unresolved) Text("Допустимые параметры не подтверждены источником")
-            field.options.forEach { option -> FilterChip(selected = parameters[field.key] == option.id,
-                onClick = { parameters = parameters + (field.key to option.id) }, enabled = enabled,
-                label = { Text(option.label) }, modifier = Modifier.testTag("acquisition.choice")) }
-            if (field.userDefined) OutlinedTextField(parameters[field.key].orEmpty(), { parameters = parameters + (field.key to it) },
-                label = { Text("Явный параметр специализации") }, enabled = enabled, modifier = Modifier.testTag("acquisition.choice"))
-        }
+        val maximum = actions.view?.catalog?.definitions?.get(prompt.definition)?.maxRank
+        prompt.instances.forEach { item -> OutlinedButton(onClick = { actions.selectInstance(model, prompt, item) },
+            enabled = enabled && maximum != null && item.rank < maximum,
+            modifier = Modifier.testTag("acquisition.choice")) {
+            Text(if (maximum != null && item.rank >= maximum) "${item.label} · ранг ${item.rank} (максимум)"
+                else "${item.label} · ранг ${item.rank} → ${item.rank + 1}")
+        } }
+        if (prompt.specializedSkill) {
+            key(model.scope, prompt.definition, prompt.targetIndex) {
+                SkillSpecializationPicker(prompt.parameters.flatMap { it.options }, enabled && prompt.canCreateNew) { name, choice ->
+                    actions.selectNewSpecialization(model, prompt, name, choice)
+                }
+            }
+        } else {
+        AcquisitionParameterPicker(prompt.parameters, parameters, enabled, { java.util.UUID.randomUUID().toString() }, { parameters = it })
+        if (prompt.canEditSelectedParameters) TextButton(onClick = { actions.selectParameters(model, prompt, parameters) },
+            enabled = enabled && AcquisitionNamedParameters.complete(prompt.parameters, parameters),
+            modifier = Modifier.testTag("acquisition.parameters.select")) { Text("Применить выбор") }
         if (prompt.canCreateNew) TextButton(onClick = { actions.selectNew(model, prompt, parameters) },
-            enabled = enabled && prompt.parameters.all { !it.unresolved && !parameters[it.key].isNullOrBlank() },
+            enabled = enabled && AcquisitionNamedParameters.complete(prompt.parameters, parameters),
             modifier = Modifier.testTag("acquisition.choice")) { Text("Новая специализация с этими параметрами") }
+        }
     }
 }
 

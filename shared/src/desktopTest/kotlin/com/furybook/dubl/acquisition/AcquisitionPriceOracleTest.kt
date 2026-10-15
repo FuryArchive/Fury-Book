@@ -28,7 +28,17 @@ class AcquisitionPriceOracleTest {
         assertEquals(30L, quote(marathonCase).xp)
         assertEquals(30L, quote(sprinterCase).xp)
         assertEquals(45L, quote(eagleCase).xp)
-        assertEquals(RequirementStatus.SourceUnresolved, evaluate(catalog.definitions.getValue(eagleCase.change.definition).requirements, eagleCase.context).status)
+        // Its 45 XP quote is independent of admission: the source now names both real predecessors.
+        val eagle = catalog.definitions.getValue(eagleCase.change.definition).requirements
+        fun ranks(node: RequirementNode): List<RequirementNode.OwnedRank> = when (node) {
+            is RequirementNode.OwnedRank -> listOf(node)
+            is RequirementNode.AllOf -> node.children.flatMap(::ranks)
+            is RequirementNode.AnyOf -> node.children.flatMap(::ranks)
+            else -> emptyList()
+        }
+        assertTrue(ranks(eagle).any { it.entryId == "feat_a4724bc98b972fd7" && it.operand == 1 })
+        assertTrue(ranks(eagle).any { it.entryId == "feat_7fa988dc9e4fc7c7" && it.operand == 2 })
+        assertEquals(RequirementStatus.Unsatisfied, evaluate(eagle, eagleCase.context).status)
     }
 
     @Test fun self_taught_first_rank() {
@@ -82,8 +92,14 @@ class AcquisitionPriceOracleTest {
             val unknown = f(semantic)
             assertTrue(unknown.change.parameters.isEmpty())
             assertEquals(5L, quote(unknown).xp)
-            assertNotEquals(RequirementStatus.Satisfied,
-                evaluate(catalog.definitions.getValue(unknown.change.definition).requirements, unknown.context).status)
+            val definition = catalog.definitions.getValue(unknown.change.definition)
+            // No additional prerequisite is required by the source; identity still needs an explicit choice.
+            assertEquals(RequirementStatus.Satisfied, evaluate(definition.requirements, unknown.context).status)
+            val identity = validateAcquisitionTarget(definition.ref, definition.maxRank!!,
+                definition.parameterDefinitions, definition.repeatPolicy, unknown.change.instanceId,
+                unknown.change.toRank, unknown.change.parameters, unknown.change.optionId,
+                unknown.context.instances, definition.abilityOptionIds, catalog)
+            assertEquals(RequirementStatus.ChoiceRequired, assertIs<IdentityValidation.Blocked>(identity).status)
         }
         val second = f("TWO_DISTINCT", "SECOND_DISTINCT")
         assertEquals("spec:b", second.change.parameters["specialization"])

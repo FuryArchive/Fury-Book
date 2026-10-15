@@ -31,6 +31,14 @@ class AcquisitionSavedEvidenceTest {
         assertEquals("Saved condition",price.discountProofs.single().reason)
         assertEquals(RequirementWitness.OwnedInstance("old-pack","old-entry","old-instance",2),price.discountProofs.single().witnesses.single())
     }
+    @Test fun receipt_rows_use_recorded_prices_even_when_live_catalog_is_unavailable() {
+        val catalog = AcquisitionCatalog(emptyMap(), "unrelated-current-catalog", "different-rules")
+        val historical = AcquisitionPresentation.receipt(receipt, catalog, true, entry())
+        assertEquals(Amount(20,0), assertIs<AcquisitionDisplayedPrice.Known>(historical.rows.single().price).amount)
+        val missing = AcquisitionPresentation.receipt(receipt, catalog, true)
+        assertIs<AcquisitionDisplayedPrice.Unknown>(missing.rows.single().price)
+        assertEquals(historical.rows, missing.withRecordedPrices(savedAcquisitionOperation(receipt,entry())).rows)
+    }
     @Test fun wrong_operation_never_binds_another_history_entry() {
         val view=savedAcquisitionOperation(receipt,entry(id="someone-else"))
         assertNull(view.type);assertNull(view.ruleVersions);assertIs<AcquisitionSavedEvidence.Unavailable>(view.evidence)

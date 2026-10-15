@@ -178,7 +178,7 @@ def validate_source_rules(records, source, excerpts):
             decisions = {FIXED: 'RANKED_FEAT_PRICE', CARRY: 'POST_CREATION_BRANCH_ACCESS', INITIAL: 'INITIAL_AP_CAMPAIGN_POLICY'}
             require(r['questionReference'] == {'decisionId': decisions[r['id']], 'artifactSha256': DECISION_SHA}, 'Author question artifact mismatch')
         else:
-            require(r['runtimeBinding'] == ('SOURCE_ONLY_NOT_IN_CATALOG' if r['id'] == 'AR_DRAWBACK_STAGE_AND_REWARD' else 'BOUND'), 'Incorrect source runtime binding')
+            require(r['runtimeBinding'] == ('BOUND_NATIVE_CURRENT' if r['id'] == 'AR_DRAWBACK_STAGE_AND_REWARD' else 'BOUND'), 'Incorrect source runtime binding')
             for assertion in r['assertions']:
                 require(assertion['id'] not in assertions, 'Duplicate assertion ID'); assertions.add(assertion['id'])
     fixed = by_id[FIXED]
@@ -304,12 +304,12 @@ def validate_bounded_source_assertions(rules, source):
         'requiresOwnedRank': 1, 'steps': [{'fromRank': 0, 'toRank': 1, 'baseXP': '10', 'discountedXP': '5', 'ap': '0'},
         {'fromRank': 1, 'toRank': 2, 'baseXP': '20', 'discountedXP': '10', 'ap': '0'}]}], 'Changed exact source discount facts')
     drawbacks = rules['AR_DRAWBACK_STAGE_AND_REWARD']
-    require(drawbacks['scope'] == {'type': 'SOURCE_ONLY', 'facet': 'DRAWBACK_STAGE_REWARD'}, 'Invented drawback runtime binding')
+    require(drawbacks['scope'] == {'type': 'CURRENT_NATIVE_DRAWBACK_SET', 'facet': 'DRAWBACK_STAGE_REWARD'}, 'Changed bounded native drawback scope')
     require(drawbacks['assertions'] == [
         {'id': 'drawback-general', 'type': 'DRAWBACK_POLICY', 'creationRewardPerRank': True, 'laterRewardXP': '0', 'prerequisitesPhase': 'Creating'},
         {'id': 'drawback-illness-illustration', 'type': 'SOURCE_ILLUSTRATION', 'name': 'Болезненность', 'maxRank': 1, 'signedCostXP': '-20',
          'creationBalanceDeltaXP': '20', 'laterRewardXP': '0', 'creationAttributeId': 'CON', 'creationMaximum': 3},
-        {'id': 'drawback-event', 'type': 'EVENT_DRAWBACK_POLICY', 'creationAllowed': False, 'rewardXP': '0'}], 'Changed source-only drawback fact')
+        {'id': 'drawback-event', 'type': 'EVENT_DRAWBACK_POLICY', 'creationAllowed': False, 'rewardXP': '0'}], 'Changed source-derived drawback fact')
     smetanie = rules['AR_SMETANIE_BULL_RUSH_TWO']
     require(smetanie['scope'] == {'type': 'DEFINITION', 'definitionRefs': [definition_ref('feat_2cda0df5bcdba24b'), definition_ref('feat_73b6672717f97e05')],
         'sourceIds': ['ordinary:t.9xkxyxwswfn9:41315', 'ordinary:t.9xkxyxwswfn9:41452'], 'facet': 'PREREQUISITE_RANK'}, 'Overbroad prerequisite source scope')

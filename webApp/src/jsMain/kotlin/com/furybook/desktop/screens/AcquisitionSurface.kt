@@ -14,6 +14,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.*
 import androidx.compose.ui.unit.dp
 import com.furybook.dubl.acquisition.*
+import com.furybook.ui.components.SkillSpecializationPicker
+import com.furybook.ui.components.AcquisitionParameterPicker
 import com.furybook.dubl.acquisition.RequirementStatus
 import com.furybook.dubl.application.DublApplication
 import com.furybook.dubl.model.*
@@ -155,10 +157,19 @@ class WebAcquisitionActions(val state: DesktopAppState, private val scope: Corou
     }
     fun selectInstance(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, instance: AcquisitionInstanceView) = action {
         state.acquisition.selectTarget(model.key, prompt.targetIndex, instance.instanceId,
-            parameters = instance.parameters, optionId = instance.optionId)
+            parameters = instance.parameters, optionId = instance.optionId.takeUnless {
+                view?.catalog?.definitions?.get(instance.definition)?.classificationSources?.get("payment:transition-options")?.originalText?.isNotBlank() == true
+            }, targetRank = instance.rank + 1)
     }
     fun selectNew(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, parameters: Map<String, String>) = action {
         state.acquisition.selectTarget(model.key, prompt.targetIndex, null, newInstance = true, parameters = parameters)
+    }
+    fun selectNewSpecialization(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, name: String, choiceId: String?) = action {
+        state.acquisition.selectNewSpecialization(model.key, prompt.targetIndex, name, choiceId)
+    }
+    fun selectParameters(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, parameters: Map<String, String>) = action {
+        state.acquisition.selectTarget(model.key, prompt.targetIndex, prompt.selectedInstanceId,
+            parameters = parameters, targetRank = prompt.targetRank)
     }
     fun selectAbility(model: AcquisitionUiModel, index: Int, option: String) = action {
         state.acquisition.selectAbilityOption(model.key, index, option)
@@ -179,12 +190,7 @@ class WebAcquisitionActions(val state: DesktopAppState, private val scope: Corou
     }
     fun target(kind: AcquisitionKind, id: String, rank: Int): AcquisitionTarget? {
         val current = view?.takeIf { it.scope.viewCharacterId == state.activeCharacter.id } ?: return null
-        val holding = current.state.instances.singleOrNull { it.instanceId == id }
-        val definition = if (holding != null) current.catalog.definitions[holding.definition]?.takeIf { it.kind == kind }
-            else current.catalog.definitions.values.singleOrNull { it.kind == kind && it.ref.entryId == id }
-        if (definition == null) return null
-        val owned = holding ?: current.state.instances.singleOrNull { it.definition == definition.ref }
-        return AcquisitionTarget(definition.ref, owned?.instanceId, rank, owned?.parameters.orEmpty(), owned?.abilityOptionId)
+        return acquisitionTargetForSelection(current, kind, id, rank)
     }
     fun openTarget(kind: AcquisitionKind, id: String, rank: Int, includeTarget: Boolean = true) {
         val target = target(kind, id, rank)
@@ -335,7 +341,7 @@ fun AcquisitionReceiptSummary(receipt: AcquisitionReceiptView, onUndo: (() -> Un
         Text(acquisitionAmount(receipt.cost), Modifier.testTag("acquisition.price"))
         Text("Остаток тогда: ${acquisitionAmount(receipt.remaining)}")
         receipt.currentBalance?.let { Text("Остаток сейчас: ${acquisitionAmount(it)}") }
-        receipt.rows.forEach { Text(acquisitionRowLabel(it)) }
+        receipt.rows.forEach { Text(acquisitionRowLabel(it) + " · " + acquisitionPrice(it.price)) }
         receipt.savedOperation?.let { saved ->
             Text("Операция: ${saved.operationId}",Modifier.testTag("acquisition.receipt.operation"),style=MaterialTheme.typography.labelSmall)
             Text("Тип: ${saved.type?.let(::savedOperationType) ?: "не сохранён"} · Этап: ${saved.phase?.let { acquisitionRequirementValue(RequirementValue.Phase(it),"") } ?: "не сохранён"}",style=MaterialTheme.typography.bodySmall)
@@ -486,23 +492,31 @@ fun AcquisitionPurchaseSurface(model: AcquisitionUiModel, actions: WebAcquisitio
 @Composable
 private fun SelectionEditor(model: AcquisitionUiModel, prompt: AcquisitionSelectionPrompt, actions: WebAcquisitionActions, enabled: Boolean) {
     if (prompt.instances.size <= 1 && prompt.parameters.isEmpty() && !prompt.canCreateNew) return
-    var parameters by remember(model.scope, prompt.definition) { mutableStateOf(emptyMap<String, String>()) }
+    var parameters by remember(model.scope, prompt.definition, prompt.targetIndex, prompt.targetRank, prompt.selectedInstanceId) { mutableStateOf(prompt.selectedParameters) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text("Экземпляр: ${prompt.label}")
-        prompt.instances.forEach { item -> OutlinedButton(onClick = { actions.selectInstance(model, prompt, item) }, enabled = enabled,
-            modifier = Modifier.testTag("acquisition.choice")) { Text("${item.label} · ранг ${item.rank}") } }
-        prompt.parameters.forEach { field ->
-            Text(field.label)
-            if (field.unresolved) Text("Допустимые параметры не подтверждены источником")
-            field.options.forEach { option -> FilterChip(selected = parameters[field.key] == option.id,
-                onClick = { parameters = parameters + (field.key to option.id) }, enabled = enabled,
-                label = { Text(option.label) }, modifier = Modifier.testTag("acquisition.choice")) }
-            if (field.userDefined) OutlinedTextField(parameters[field.key].orEmpty(), { parameters = parameters + (field.key to it) },
-                label = { Text("Явный параметр специализации") }, enabled = enabled, modifier = Modifier.testTag("acquisition.choice"))
-        }
+        val maximum = actions.view?.catalog?.definitions?.get(prompt.definition)?.maxRank
+        prompt.instances.forEach { item -> OutlinedButton(onClick = { actions.selectInstance(model, prompt, item) },
+            enabled = enabled && maximum != null && item.rank < maximum,
+            modifier = Modifier.testTag("acquisition.choice")) {
+            Text(if (maximum != null && item.rank >= maximum) "${item.label} · ранг ${item.rank} (максимум)"
+                else "${item.label} · ранг ${item.rank} → ${item.rank + 1}")
+        } }
+        if (prompt.specializedSkill) {
+            key(model.scope, prompt.definition, prompt.targetIndex) {
+                SkillSpecializationPicker(prompt.parameters.flatMap { it.options }, enabled && prompt.canCreateNew) { name, choice ->
+                    actions.selectNewSpecialization(model, prompt, name, choice)
+                }
+            }
+        } else {
+        AcquisitionParameterPicker(prompt.parameters, parameters, enabled, { webUuid() }, { parameters = it })
+        if (prompt.canEditSelectedParameters) TextButton(onClick = { actions.selectParameters(model, prompt, parameters) },
+            enabled = enabled && AcquisitionNamedParameters.complete(prompt.parameters, parameters),
+            modifier = Modifier.testTag("acquisition.parameters.select")) { Text("Применить выбор") }
         if (prompt.canCreateNew) TextButton(onClick = { actions.selectNew(model, prompt, parameters) },
-            enabled = enabled && prompt.parameters.all { !it.unresolved && !parameters[it.key].isNullOrBlank() },
+            enabled = enabled && AcquisitionNamedParameters.complete(prompt.parameters, parameters),
             modifier = Modifier.testTag("acquisition.choice")) { Text("Новый экземпляр с этими параметрами") }
+        }
     }
 }
 
@@ -633,33 +647,36 @@ internal fun PrerequisiteSelectionEditor(model: AcquisitionUiModel, questionId: 
                 }
             definition?.let { value ->
                 Text(labels.definition(value.ref), style = MaterialTheme.typography.titleSmall)
-                value.parameterDefinitions.forEachIndexed { index, field ->
-                    Text("Параметр ${index + 1}")
-                    when (val domain = field.domain) {
-                        is ParameterDomain.StableIds -> domain.valueIds.sorted().forEachIndexed { number, id ->
-                            FilterChip(selected = parameters[field.key] == id, onClick = { parameters = parameters + (field.key to id) },
-                                label = { Text(view.instances.firstOrNull { it.instanceId == id }?.label ?: "Вариант ${number + 1}") })
+                val specialized = AcquisitionSkillSpecializations.supported(value)
+                if (specialized) {
+                    key(value.ref) {
+                        SkillSpecializationPicker(AcquisitionSkillSpecializations.choices(value).map { AcquisitionParameterOption(it.id, it.label) }, targetRank != null) { name, choice ->
+                            selected = selected + AcquisitionSkillSpecializations.newTarget(value, "ui-choice:${webUuid()}",
+                                name, checkNotNull(targetRank), choice)
+                            definition = null; query = ""
                         }
-                        ParameterDomain.UserDefinedIds -> OutlinedTextField(parameters[field.key].orEmpty(),
-                            { parameters = parameters + (field.key to it) }, label = { Text("Явный параметр специализации") })
-                        is ParameterDomain.Unresolved -> Text("Допустимые параметры не подтверждены")
                     }
+                } else {
+                AcquisitionParameterPicker(acquisitionParameterFields(value, view.state, view.catalog, targetRank ?: 1, parameters),
+                    parameters, true, { webUuid() }, { parameters = it })
                 }
+                if (!specialized) {
                 value.abilityOptionIds?.sorted()?.forEachIndexed { number, id ->
                     FilterChip(selected = option == id, onClick = { option = id },
-                        label = { Text(when (id) { "morale" -> "Мораль"; "chi" -> "Ци"; else -> "Вариант ${number + 1}" }) })
+                        label = { Text(acquisitionAbilityOptionLabel(value, id, number)) })
                 }
                 val abilityOptions = value.abilityOptionIds
-                val paramsValid = value.parameterDefinitions.all { it.domain !is ParameterDomain.Unresolved && !parameters[it.key].isNullOrBlank() }
+                val paramsValid = AcquisitionNamedParameters.complete(acquisitionParameterFields(value, view.state, view.catalog, targetRank ?: 1, parameters), parameters)
                 TextButton(onClick = {
                     selected = selected + AcquisitionTarget(value.ref, "ui-choice:${webUuid()}", checkNotNull(targetRank), parameters, option)
                     definition = null; query = ""
-                }, enabled = targetRank != null && paramsValid && abilityOptions != null &&
+                }, enabled = !specialized && targetRank != null && paramsValid && abilityOptions != null &&
                     (abilityOptions.isEmpty() || option in abilityOptions) && value.repeatPolicy !is RepeatPolicy.Unresolved) { Text("Добавить новый экземпляр в запрос") }
+                }
             }
             Text("Выбрано: ${selected.size}")
             selected.forEachIndexed { index, target -> Row {
-                Text("${labels.definition(target.definition)} · ранг ${target.targetRank}", Modifier.weight(1f))
+                Text("${labels.acquisition(target.definition, target.parameters)} · ранг ${target.targetRank}", Modifier.weight(1f))
                 TextButton(onClick = { selected = selected.filterIndexed { i, _ -> i != index } }) { Text("Убрать") }
             } }
         }

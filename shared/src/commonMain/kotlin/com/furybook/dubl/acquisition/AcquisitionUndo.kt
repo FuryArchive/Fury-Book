@@ -106,7 +106,8 @@ private fun validatePurchaseInverse(state:StoredCharacter,entry:LedgerEntry,rece
     require(tokenChanges==encodedEntry.values["changes"]) { "Receipt token transitions differ from ledger" }
     require(confirmedAmount(token.values.getValue("cost"))==receipt.result.cost)
     require(confirmedAmount(token.values.getValue("remaining"))==receipt.result.remaining)
-    require((pureNoop || entry.changes.isNotEmpty()) && entry.amountDelta.xp<=0 && entry.amountDelta.ap<=0)
+    require((pureNoop || entry.changes.isNotEmpty()) && entry.amountDelta.ap<=0 &&
+        entry.amountDelta == Amount.ZERO - receipt.result.cost) { "Purchase delta differs from its saved signed price" }
     require((token.values["issues"] as JsonValue.Arr).values.isEmpty()) { "Saved acquisition was blocked" }
     val evidence=objectJson(entry.evidenceCanonical)
     require(evidence.text("phase")==entry.creationPhase.name)
@@ -143,10 +144,19 @@ private fun purchaseForward(before:StoredCharacter,after:StoredCharacter,changes
             require(value.base==change.fromRank)
             character=character.copy(attributes=character.attributes+(id to value.copy(base=change.toRank)))
         } else {
-            require((old?.rank ?: 0)==change.fromRank && (old==null || (old.definition==change.definition && old.parameters==change.parameters && old.abilityOptionId==change.optionId))) { "Original rank or identity differs from recorded transition" }
-            instances=instances.filterNot { it.instanceId==change.instanceId }+AcquisitionInstance(change.instanceId,change.definition,change.toRank,change.parameters,change.optionId,old?.origin ?: AcquisitionOrigin.New)
+            val mana = change.kind == AcquisitionKind.MANA && change.definition == MANA_RESERVE_REF
+            // Old receipts may predate alias coupling. Prefer their exact recorded instance rank;
+            // a new alias-aware transition may instead start at a preserved legacy reserve rank.
+            val originalRank = if (mana && (old?.rank ?: 0) != change.fromRank) manaReserveRank(character, instances) else old?.rank ?: 0
+            require(originalRank==change.fromRank && (old==null || (old.definition==change.definition &&
+                old.parameters.all { AcquisitionOrderedSelections.preservesPrefix(it.value,change.parameters[it.key]) } &&
+                (change.paymentOption || old.abilityOptionId==change.optionId)))) { "Original rank or identity differs from recorded transition" }
+            instances=instances.filterNot { it.instanceId==change.instanceId }+AcquisitionInstance(change.instanceId,change.definition,change.toRank,change.parameters,change.ownedAbilityOptionId(),old?.origin ?: AcquisitionOrigin.New)
             when(change.kind) {
-                AcquisitionKind.MANA -> character=character.copy(manaEnabled=true,magic=character.magic.copy(manaRank=change.toRank))
+                AcquisitionKind.MANA -> character=if(mana) projectManaReserveCharacter(character,change.fromRank,change.toRank,
+                    after.character.magic.power != character.magic.power,
+                    after.character.development[MagicEquipmentRules.BASE_MANA_ENTRY_ID] != character.development[MagicEquipmentRules.BASE_MANA_ENTRY_ID])
+                    else character.copy(manaEnabled=true,magic=character.magic.copy(manaRank=change.toRank))
                 AcquisitionKind.CHI_BONUS -> character=character.copy(chiBonusRanks=change.toRank)
                 AcquisitionKind.DEVELOPMENT -> {
                     // Rich/ambiguous instances may intentionally have no legacy presentation row.
@@ -166,8 +176,11 @@ private fun purchaseForward(before:StoredCharacter,after:StoredCharacter,changes
                         ?: CharacterSkill(key,change.definition.entryId,final.name,rank=change.toRank))))
                 }
                 AcquisitionKind.SPELL -> {
-                    val prior=character.magic.spells.filter { !it.custom && it.catalogId==change.definition.entryId }.also { require(it.size<=1) }.singleOrNull()
-                    val final=after.character.magic.spells.single { !it.custom && it.catalogId==change.definition.entryId }
+                    val exact=after.character.magic.spells.singleOrNull { !it.custom && it.catalogId==change.definition.entryId && it.uid==change.instanceId }
+                    val final=exact ?: after.character.magic.spells.single { !it.custom && it.catalogId==change.definition.entryId }.also {
+                        require(change.parameters.isEmpty()) { "A parameterized spell must retain its instance identity" }
+                    }
+                    val prior=character.magic.spells.singleOrNull { !it.custom && it.catalogId==change.definition.entryId && it.uid==final.uid }
                     val spell=prior?.copy(learned=true) ?: KnownSpell(change.instanceId,change.definition.entryId,final.name,learned=true)
                     character=character.copy(magic=character.magic.copy(spells=character.magic.spells.filterNot { it===prior }+spell))
                 }
@@ -302,7 +315,7 @@ private fun validatedConfirmationToken(receipt: Receipt, characterId: String): J
     require((token.values.getValue("issues") as JsonValue.Arr).values.isEmpty()) { "Saved acquisition has unresolved issues" }
     val cost=confirmedAmount(token.values.getValue("cost"))
     val remaining=confirmedAmount(token.values.getValue("remaining"))
-    require(cost.xp>=0 && cost.ap>=0 && remaining.xp>=0 && remaining.ap>=0) { "Saved acquisition has unresolved/invalid amounts" }
+    require(cost.ap>=0 && remaining.xp>=0 && remaining.ap>=0) { "Saved acquisition has unresolved/invalid amounts" }
     // T07 emits choice rows only for explicit AnyOf selections. Already-satisfied
     // requirements and sole skill-family members resolve without a question/selection.
     (token.values.getValue("choices") as JsonValue.Arr).values.forEach { value ->

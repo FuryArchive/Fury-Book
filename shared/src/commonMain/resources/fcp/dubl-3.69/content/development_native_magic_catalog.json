@@ -1,0 +1,686 @@
+{
+  "version": "3.69",
+  "entries": [
+    {
+      "id": "feat_430bb8e0abcdd492",
+      "name": "Кровавое ремесло",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 40,
+      "costType": "choice",
+      "ranks": 3,
+      "requirements": "Воля 4, Некромантия 2 или Магия крови 2",
+      "benefit": "Вы уменьшаете урон, наносимый себе при сотворении заклинаний магии крови, на 1 за каждый ранг (минимум 1 урон). Также вы можете использовать проверку Медицина+Интеллект для остановки кровотечения, вызванного вашей магией, с преимуществом.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:18",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 18,
+        "originalText": "Кровавое ремесло (40)\u000bРанги: 3\u000bТребование: Воля 4, Некромантия 2 или Магия крови 2\u000bВыгода: Вы уменьшаете урон, наносимый себе при сотворении заклинаний магии крови, на 1 за каждый ранг (минимум 1 урон). Также вы можете использовать проверку Медицина+Интеллект для остановки кровотечения, вызванного вашей магией, с преимуществом."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 40
+        },
+        {
+          "source": "Очки способностей",
+          "value": 40
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_0f2944736b20e934",
+      "name": "Жила",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 30,
+      "costType": "choice",
+      "ranks": 1,
+      "requirements": "Телосложение 3, Кровавое ремесло 1",
+      "benefit": "Вы получаете +1 к максимальному запасу кровавой маны. Можно брать несколько раз, но не более Телосложения/2.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:19",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 19,
+        "originalText": "Жила (30)\u000bРанги: 1\u000bТребование: Телосложение 3, Кровавое ремесло 1\u000bВыгода: Вы получаете +1 к максимальному запасу кровавой маны. Можно брать несколько раз, но не более Телосложения/2."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 30
+        },
+        {
+          "source": "Очки способностей",
+          "value": 30
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_2bc0c0f6d2533f48",
+      "name": "Гемоглобиновая чувствительность",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 20,
+      "costType": "choice",
+      "ranks": 1,
+      "requirements": "Восприятие 4, Медицина 2",
+      "benefit": "Вы можете ощущать кровь живых существ в радиусе 10 метров, даже сквозь лёгкие преграды (дерево, ткань, штукатурка). Это действует как слепое зрение по отношению к кровеносным системам: вы знаете направление и примерное расстояние до существ с кровью.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:20",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 20,
+        "originalText": "Гемоглобиновая чувствительность (20)\u000bРанги: 1\u000bТребование: Восприятие 4, Медицина 2\u000bВыгода: Вы можете ощущать кровь живых существ в радиусе 10 метров, даже сквозь лёгкие преграды (дерево, ткань, штукатурка). Это действует как слепое зрение по отношению к кровеносным системам: вы знаете направление и примерное расстояние до существ с кровью."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 20
+        },
+        {
+          "source": "Очки способностей",
+          "value": 20
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_5414a31b67464d86",
+      "name": "Кровопускание",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 25,
+      "costType": "choice",
+      "ranks": 1,
+      "requirements": "Холодное оружие 3 или Рукопашный бой 3",
+      "benefit": "Ваши атаки холодным оружием или рукопашные атаки могут быть объявлены «кровопускающими». Если вы наносите урон, вы можете дополнительно нанести 1 урон себе и получить 1 кровавую ману. Это можно делать не чаще одного раза в раунд.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:21",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 21,
+        "originalText": "Кровопускание (25)\u000bРанги: 1\u000bТребование: Холодное оружие 3 или Рукопашный бой 3\u000bВыгода: Ваши атаки холодным оружием или рукопашные атаки могут быть объявлены «кровопускающими». Если вы наносите урон, вы можете дополнительно нанести 1 урон себе и получить 1 кровавую ману. Это можно делать не чаще одного раза в раунд."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 25
+        },
+        {
+          "source": "Очки способностей",
+          "value": 25
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_a3ade88a3e1363f0",
+      "name": "Кровавый договор",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 50,
+      "costType": "choice",
+      "ranks": 1,
+      "requirements": "Харизма 4, Красноречие 3, Магия крови 3",
+      "benefit": "Вы можете заключить кровавый договор с добровольным существом. Оно наносит себе 1 урон (непоглощаемый) и даёт вам каплю своей крови. После этого вы можете использовать его кровь как свою для сотворения заклинаний магии крови (расходуя его здоровье, а не своё) на расстоянии до 10 метров без необходимости касания. Договор длится 24 часа. Существо может разорвать договор, нанеся себе ещё 1 урон.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:23",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 23,
+        "originalText": "Кровавый договор (50)\u000bРанги: 1\u000bТребование: Харизма 4, Красноречие 3, Магия крови 3\u000bВыгода: Вы можете заключить кровавый договор с добровольным существом. Оно наносит себе 1 урон (непоглощаемый) и даёт вам каплю своей крови. После этого вы можете использовать его кровь как свою для сотворения заклинаний магии крови (расходуя его здоровье, а не своё) на расстоянии до 10 метров без необходимости касания. Договор длится 24 часа. Существо может разорвать договор, нанеся себе ещё 1 урон."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 50
+        },
+        {
+          "source": "Очки способностей",
+          "value": 50
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_ebf4f5172711cb45",
+      "name": "Геморрагический шок",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 40,
+      "costType": "choice",
+      "ranks": 2,
+      "requirements": "Запугивание 4, Медицина 3, Кровавое ремесло 2",
+      "benefit": "Когда вы наносите урон кровотечением (своим заклинанием или оружием), цель должна пройти проверку Стойкости против сложности (10 + ваш ранг навыка + Воля). При провале цель получает ошеломление на 1 раунд за ранг навыка. Является эффектом страха.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:24",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 24,
+        "originalText": "Геморрагический шок (40)\u000bРанги: 2\u000bТребование: Запугивание 4, Медицина 3, Кровавое ремесло 2\u000bВыгода: Когда вы наносите урон кровотечением (своим заклинанием или оружием), цель должна пройти проверку Стойкости против сложности (10 + ваш ранг навыка + Воля). При провале цель получает ошеломление на 1 раунд за ранг навыка. Является эффектом страха."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 40
+        },
+        {
+          "source": "Очки способностей",
+          "value": 40
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_974035a0351dc15e",
+      "name": "Вампирическое восстановление",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 45,
+      "costType": "choice",
+      "ranks": 1,
+      "requirements": "Некромантия 4, Медицина 4",
+      "benefit": "Когда вы наносите урон магией крови, вы восстанавливаете здоровье в размере ½ нанесённого урона (округляется вниз). Не действует на урон, нанесённый себе. Эффект не суммируется с другими вампирическими эффектами.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:25",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 25,
+        "originalText": "Вампирическое восстановление (45)\u000bРанги: 1\u000bТребование: Некромантия 4, Медицина 4\u000bВыгода: Когда вы наносите урон магией крови, вы восстанавливаете здоровье в размере ½ нанесённого урона (округляется вниз). Не действует на урон, нанесённый себе. Эффект не суммируется с другими вампирическими эффектами."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 45
+        },
+        {
+          "source": "Очки способностей",
+          "value": 45
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_a08f840bb3a709ed",
+      "name": "Мастер кровавых уз",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 60,
+      "costType": "choice",
+      "ranks": 1,
+      "requirements": "Кровные узы (заклинание), Воля 5, Медицина 5",
+      "benefit": "Заклинание «Кровные узы» может быть использовано без затрат маны, если вы наносите себе урон равный стоимости заклинания. Длительность увеличивается вдвое. Вы можете одновременно поддерживать количество связей, равное вашему Телосложению.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:26",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.p31luippa5oq:205",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.p31luippa5oq:206",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.p31luippa5oq:207"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 26,
+        "originalText": "Мастер кровавых уз (60)\u000bРанги: 1\u000bТребование: Кровные узы (заклинание), Воля 5, Медицина 5\u000bВыгода: Заклинание «Кровные узы» может быть использовано без затрат маны, если вы наносите себе урон равный стоимости заклинания. Длительность увеличивается вдвое. Вы можете одновременно поддерживать количество связей, равное вашему Телосложению."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 60
+        },
+        {
+          "source": "Очки способностей",
+          "value": 60
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_3717f841001954c9",
+      "name": "Кровавое неистовство",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 50,
+      "costType": "choice",
+      "ranks": 2,
+      "requirements": "Телосложение 4, Воля 4, Неистовство или Ярость",
+      "benefit": "В состоянии неистовства или ярости вы можете за каждый ранг навыка один раз в раунд активировать эффект: получив урон от атаки, вы можете нанести себе дополнительно 2 урона и получить +2 к урону следующей атаки в ближнем бою. Бонус накапливается, но сбрасывается, если вы не атаковали в раунде.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:27",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 27,
+        "originalText": "Кровавое неистовство (50)\u000bРанги: 2\u000bТребование: Телосложение 4, Воля 4, Неистовство или Ярость\u000bВыгода: В состоянии неистовства или ярости вы можете за каждый ранг навыка один раз в раунд активировать эффект: получив урон от атаки, вы можете нанести себе дополнительно 2 урона и получить +2 к урону следующей атаки в ближнем бою. Бонус накапливается, но сбрасывается, если вы не атаковали в раунде."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 50
+        },
+        {
+          "source": "Очки способностей",
+          "value": 50
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_c4f3ccc4c64ffa58",
+      "name": "Кровавое перерождение",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "cost": 100,
+      "costType": "choice",
+      "ranks": 1,
+      "requirements": "Кровавое ремесло 3, Вампирическое восстановление, Телосложение 6, Воля 6",
+      "benefit": "Когда ваше здоровье опускается до 0 или ниже, вы можете мгновенно потратить все очки кровавой маны (минимум 5) и все пункты выносливости. Вы восстанавливаете количество здоровья, равное потраченной кровавой мане ×2, и сбрасываете все негативные эффекты (кроме смертельных ран). Это действие не требует ОД и может быть использовано один раз в день. После этого вы получаете состояние истощения на 1 час.",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:29",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.pc460xp23p5s:16"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.pc460xp23p5s",
+        "paragraph": 29,
+        "originalText": "Кровавое перерождение (100)\u000bРанги: 1\u000bТребование: Кровавое ремесло 3, Вампирическое восстановление, Телосложение 6, Воля 6\u000bВыгода: Когда ваше здоровье опускается до 0 или ниже, вы можете мгновенно потратить все очки кровавой маны (минимум 5) и все пункты выносливости. Вы восстанавливаете количество здоровья, равное потраченной кровавой мане ×2, и сбрасываете все негативные эффекты (кроме смертельных ран). Это действие не требует ОД и может быть использовано один раз в день. После этого вы получаете состояние истощения на 1 час."
+      },
+      "abilityOptions": [
+        {
+          "source": "Опыт",
+          "value": 100
+        },
+        {
+          "source": "Очки способностей",
+          "value": 100
+        }
+      ],
+      "notes": "Оплата на выбор: опыт или очки способностей (стоимость указана в скобках)."
+    },
+    {
+      "id": "feat_dc5abdfd21e897ae",
+      "name": "Руна: Феху (Fehu)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Создаёт 1d4×10 золотых монет (раз в день) или даёт +2 к Бартеру на 10 минут",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:22",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:23",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:24",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:25",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:26"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚠ",
+      "runeGrade": 1,
+      "keyword": "Богатство, скот"
+    },
+    {
+      "id": "feat_2065179abdd85ddf",
+      "name": "Руна: Уруз (Uruz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Даёт +2 к Силе на 1 минуту или восстанавливает 1d6 здоровья",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:27",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:28",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:29",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:30",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:31"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚢ",
+      "runeGrade": 2,
+      "keyword": "Сила, здоровье"
+    },
+    {
+      "id": "feat_d2ca3b443b33d4ff",
+      "name": "Руна: Турисаз (Thurisaz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Создаёт барьер поглощения 10 урона на 1 минуту или наносит 1d8 дробящего урона врагу",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:32",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:33",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:34",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:35",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:36"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚦ",
+      "runeGrade": 2,
+      "keyword": "Защита, молот Тора"
+    },
+    {
+      "id": "feat_ca6aecbddfc01bd1",
+      "name": "Руна: Ансуз (Ansuz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Даёт преимущество на проверку Красноречия или Интеллекта на 10 минут",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:37",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:38",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:39",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:40",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:41"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚨ",
+      "runeGrade": 2,
+      "keyword": "Речь, мудрость"
+    },
+    {
+      "id": "feat_fbc63002ae302fe6",
+      "name": "Руна: Райдо (Raido)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Увеличивает бег на 2 на 1 час или даёт +2 к Верховая езда/Вождение",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:42",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:43",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:44",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:45",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:46"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚱ",
+      "runeGrade": 1,
+      "keyword": "Путь, поездка"
+    },
+    {
+      "id": "feat_7d2387cf4d3d73a7",
+      "name": "Руна: Кеназ (Kenaz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Создаёт свет (как заклинание Свет) или наносит 1d6 огненного урона",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:47",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:48",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:49",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:50",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:51"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚲ",
+      "runeGrade": 2,
+      "keyword": "Факел, огонь"
+    },
+    {
+      "id": "feat_70ac90444f76af66",
+      "name": "Руна: Гебо (Gebo)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Позволяет передать 1d6 здоровья союзнику или даёт +2 к помощи в проверке",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:52",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:53",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:54",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:55",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:56"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚷ",
+      "runeGrade": 1,
+      "keyword": "Дар, партнёрство"
+    },
+    {
+      "id": "feat_48cbc7073adc322a",
+      "name": "Руна: Вуньо (Wunjo)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Снимает лёгкие ментальные эффекты (страх, уныние) или даёт +1 моральный бонус",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:57",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:58",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:59",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:60",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:61"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚹ",
+      "runeGrade": 1,
+      "keyword": "Радость"
+    },
+    {
+      "id": "feat_c18bd89398bec5f9",
+      "name": "Руна: Хагалаз (Hagalaz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Наносит 2d6 урона (дробящий/холод) в радиусе 2 метра или ломает предмет",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:62",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:63",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:64",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:65",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:66"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚺ",
+      "runeGrade": 3,
+      "keyword": "Град, разрушение"
+    },
+    {
+      "id": "feat_34e8855e2a9a1a6b",
+      "name": "Руна: Наутиз (Nauthiz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Накладывает на цель штраф -2 к атаке на 1 минуту или даёт сопротивление холоду 5",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:67",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:68",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:69",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:70",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:71"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᚾ",
+      "runeGrade": 2,
+      "keyword": "Нужда, ограничение"
+    },
+    {
+      "id": "feat_143b61549ddb5fc4",
+      "name": "Руна: Иса (Isa)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Замораживает небольшую область (труднопроходимая местность) или парализует цель на 1 раунд (Стойкость)",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:72",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:73",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:74",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:75",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:76"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᛁ",
+      "runeGrade": 2,
+      "keyword": "Лёд"
+    },
+    {
+      "id": "feat_d75bdef0c732f47c",
+      "name": "Руна: Йера (Jera)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "cost": 20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Ускоряет рост растений или позволяет перебросить одну проверку в течение часа",
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:77",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:78",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:79",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:80",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:81"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      },
+      "runeGlyph": "ᛃ",
+      "runeGrade": 3,
+      "keyword": "Цикл, урожай"
+    }
+  ]
+}

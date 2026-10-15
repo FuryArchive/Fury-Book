@@ -36,16 +36,20 @@ object AcquisitionCommandRouting {
         if (request.characterId != scope.characterId) return AcquisitionRouteResult.Blocked("Запрос относится к другому персонажу")
         for (target in request.targets) {
             val definition = catalog.definitions[target.definition] ?: return AcquisitionRouteResult.Blocked("Запись недоступного пакета")
-            val owned = state.instances.filter { it.definition == target.definition }
+            val mana = manaReserveDefinition(target.definition, catalog)
+            val owned = if (mana != null) manaReserveInstances(state.instances) else state.instances.filter { it.definition == target.definition }
             val instance = target.instanceId?.let { id -> state.instances.singleOrNull { it.instanceId == id } }
-            if (instance != null && instance.definition != target.definition) return AcquisitionRouteResult.Blocked("Экземпляр относится к другой записи")
+            if (instance != null && instance.definition != target.definition && !(mana != null && isManaReserveRef(instance.definition)))
+                return AcquisitionRouteResult.Blocked("Экземпляр относится к другой записи")
+            if (target.targetRank < 0) return AcquisitionRouteResult.ManualReviewRequired()
+            // No current rank exists until a repeatable skill's instance has been explicitly selected.
+            if (mana == null && target.instanceId == null && (owned.size > 1 || definition.repeatPolicy != RepeatPolicy.Single))
+                return AcquisitionRouteResult.NeedsExplicitSelection("Выберите существующий или новый экземпляр", EnvelopeList(owned.map { it.instanceId }))
             val current = when (definition.kind) {
                 AcquisitionKind.ATTRIBUTE -> AttributeId.entries.singleOrNull { "attribute:${it.name}" == definition.ref.entryId }?.let { state.character.attributes[it]?.base } ?: 0
-                else -> instance?.rank ?: if(target.instanceId == null) owned.singleOrNull()?.rank ?: 0 else 0
+                else -> if (mana != null) manaReserveRank(state.character, state.instances) else instance?.rank ?: if(target.instanceId == null) owned.singleOrNull()?.rank ?: 0 else 0
             }
-            if (target.targetRank < current || target.targetRank < 0) return AcquisitionRouteResult.ManualReviewRequired()
-            if (target.instanceId == null && (owned.size > 1 || definition.repeatPolicy != RepeatPolicy.Single))
-                return AcquisitionRouteResult.NeedsExplicitSelection("Выберите существующий или новый экземпляр", EnvelopeList(owned.map { it.instanceId }))
+            if (target.targetRank < current) return AcquisitionRouteResult.ManualReviewRequired()
         }
         return AcquisitionRouteResult.QuoteRequest(request)
     }

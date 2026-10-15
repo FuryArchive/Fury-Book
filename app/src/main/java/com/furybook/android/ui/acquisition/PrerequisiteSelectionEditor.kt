@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.furybook.dubl.acquisition.*
+import com.furybook.ui.components.SkillSpecializationPicker
+import com.furybook.ui.components.AcquisitionParameterPicker
 import java.util.UUID
 
 /** Explicit user input, not inferred eligibility. Shared checks the complete selected targets. */
@@ -40,33 +42,36 @@ internal fun PrerequisiteSelectionEditor(model: AcquisitionUiModel, questionId: 
                 }
             definition?.let { value ->
                 Text(labels.definition(value.ref), style = MaterialTheme.typography.titleSmall)
-                value.parameterDefinitions.forEachIndexed { index, field ->
-                    Text("Параметр ${index + 1}")
-                    when (val domain = field.domain) {
-                        is ParameterDomain.StableIds -> domain.valueIds.sorted().forEachIndexed { number, id ->
-                            FilterChip(selected = parameters[field.key] == id, onClick = { parameters = parameters + (field.key to id) },
-                                label = { Text(view.instances.firstOrNull { it.instanceId == id }?.label ?: "Вариант ${number + 1}") })
+                val specialized = AcquisitionSkillSpecializations.supported(value)
+                if (specialized) {
+                    key(value.ref) {
+                        SkillSpecializationPicker(AcquisitionSkillSpecializations.choices(value).map { AcquisitionParameterOption(it.id, it.label) }, targetRank != null) { name, choice ->
+                            selected = selected + AcquisitionSkillSpecializations.newTarget(value, "ui-choice:${UUID.randomUUID()}",
+                                name, checkNotNull(targetRank), choice)
+                            definition = null; query = ""
                         }
-                        ParameterDomain.UserDefinedIds -> OutlinedTextField(parameters[field.key].orEmpty(),
-                            { parameters = parameters + (field.key to it) }, label = { Text("Явный параметр специализации") })
-                        is ParameterDomain.Unresolved -> Text("Допустимые параметры не подтверждены")
                     }
+                } else {
+                AcquisitionParameterPicker(acquisitionParameterFields(value, view.state, view.catalog, targetRank ?: 1, parameters),
+                    parameters, true, { UUID.randomUUID().toString() }, { parameters = it })
                 }
+                if (!specialized) {
                 value.abilityOptionIds?.sorted()?.forEachIndexed { number, id ->
                     FilterChip(selected = option == id, onClick = { option = id },
-                        label = { Text(when (id) { "morale" -> "Мораль"; "chi" -> "Ци"; else -> "Вариант ${number + 1}" }) })
+                        label = { Text(acquisitionAbilityOptionLabel(value, id, number)) })
                 }
                 val abilityOptions = value.abilityOptionIds
-                val paramsValid = value.parameterDefinitions.all { it.domain !is ParameterDomain.Unresolved && !parameters[it.key].isNullOrBlank() }
+                val paramsValid = AcquisitionNamedParameters.complete(acquisitionParameterFields(value, view.state, view.catalog, targetRank ?: 1, parameters), parameters)
                 TextButton(onClick = {
                     selected = selected + AcquisitionTarget(value.ref, "ui-choice:${UUID.randomUUID()}", checkNotNull(targetRank), parameters, option)
                     definition = null; query = ""
-                }, enabled = targetRank != null && paramsValid && abilityOptions != null &&
+                }, enabled = !specialized && targetRank != null && paramsValid && abilityOptions != null &&
                     (abilityOptions.isEmpty() || option in abilityOptions) && value.repeatPolicy !is RepeatPolicy.Unresolved) { Text("Добавить новый экземпляр в запрос") }
+                }
             }
             Text("Выбрано: ${selected.size}")
             selected.forEachIndexed { index, target -> Row {
-                Text("${labels.definition(target.definition)} · ранг ${target.targetRank}", Modifier.weight(1f))
+                Text("${labels.acquisition(target.definition, target.parameters)} · ранг ${target.targetRank}", Modifier.weight(1f))
                 TextButton(onClick = { selected = selected.filterIndexed { i, _ -> i != index } }) { Text("Убрать") }
             } }
         }

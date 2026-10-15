@@ -41,6 +41,17 @@ data class AcquisitionUiModel(val scope: AcquisitionScope, val key: AcquisitionQ
 class AcquisitionLabels(private val catalog: AcquisitionCatalog) {
     fun definition(ref: DefinitionRef): String = catalog.definitions[ref]?.name?.takeIf { it.isNotBlank() && it != ref.entryId }
         ?: "Запись недоступного пакета"
+    fun acquisition(ref: DefinitionRef, parameters: Map<String, String>): String {
+        val entry=catalog.definitions[ref] ?: return definition(ref)
+        AcquisitionSkillSpecializations.displayName(entry,parameters)?.let { return it }
+        val choices=entry.parameterDefinitions.mapNotNull { parameter ->
+            if(parameter.selectionSource is ParameterSelectionSource.OrderedOwnedInstances)
+                parameter.displayNameKey?.let { AcquisitionOrderedSelections.decode(parameters[it]) }?.joinToString(" → ")
+            else parameter.choices.singleOrNull { it.id==parameters[parameter.key] }?.label
+                ?: parameter.displayNameKey?.let { parameters[it] }?.takeIf { it.isNotBlank() }
+        }
+        return definition(ref) + if(choices.isEmpty()) "" else " (${choices.joinToString()})"
+    }
     fun requirement(node: RequirementNode): String = when(node) {
         is RequirementNode.AllOf -> "Все условия"
         is RequirementNode.AnyOf -> "Одно из условий"
@@ -48,6 +59,8 @@ class AcquisitionLabels(private val catalog: AcquisitionCatalog) {
         is RequirementNode.Specialization -> definition(DefinitionRef(node.packId,node.entryId))
         is RequirementNode.LearnedSpell -> definition(DefinitionRef(node.packId,node.entryId))
         is RequirementNode.Attribute -> "Характеристика: ${node.attributeId.title}"
+        is RequirementNode.NumericProperty -> when(node.propertyId) { "MAGIC_POWER"->"Сила магии";"FORTITUDE"->"Стойкость";else->"Показатель требует уточнения" }
+        is RequirementNode.SelectedInstance -> if((node.predicate as? RequirementNode.SkillFamily)?.familyId=="knowledge") "Выбранное знание" else "Выбранная запись"
         is RequirementNode.SkillFamily -> "Навык выбранной группы"
         is RequirementNode.BranchAccess -> "Доступ к ветке"
         is RequirementNode.DistinctCount -> "Различные приобретения"
@@ -73,20 +86,32 @@ object AcquisitionPresentation {
         }
         val blocks=plan.issues.map { AcquisitionBlock(it.status, explanation(it.status),it.definition?.let(labels::definition),it.sourceRef?.originalText) }.toMutableList()
         if(!capabilities.localDurable || !capabilities.formatWritable) blocks+=AcquisitionBlock(RequirementStatus.Conflict,"Надёжное локальное сохранение недоступно. Доступны просмотр и экспорт.",null,null)
-        fun matches(target:AcquisitionTarget,change:AcquisitionChange)=target.definition==change.definition &&
-            (target.instanceId==null || target.instanceId==change.instanceId) && target.parameters==change.parameters && target.optionId==change.optionId
-        val rows=plan.changes.mapIndexed { index,change -> AcquisitionDisplayRow(change.definition,labels.definition(change.definition),change.fromRank,change.toRank,
+        fun matches(target:AcquisitionTarget,change:AcquisitionChange):Boolean {
+            val mana=manaReserveDefinition(target.definition,catalog)?.ref?.let { it==manaReserveDefinition(change.definition,catalog)?.ref } == true
+            val parameters=if(target.parameters.isEmpty() && catalog.definitions[target.definition]?.repeatPolicy==RepeatPolicy.Single)
+                state.instances.singleOrNull { it.definition==target.definition && (target.instanceId==null || it.instanceId==target.instanceId) }?.parameters ?: target.parameters else target.parameters
+            return (target.definition==change.definition || mana) && (target.instanceId==null || target.instanceId==change.instanceId || mana) &&
+                parameters==change.parameters && target.optionId==change.optionId
+        }
+        val rows=plan.changes.mapIndexed { index,change -> AcquisitionDisplayRow(change.definition,labels.acquisition(change.definition,change.parameters),change.fromRank,change.toRank,
             plan.prices.getOrNull(index)?.let(::price) ?: AcquisitionDisplayedPrice.Unknown(),plan.request.targets.any { matches(it,change) }) }.toMutableList()
         for(target in plan.request.targets) if(plan.changes.none { matches(target,it) }) {
             val owned=attained(target,state,catalog)
             val excluded=!plan.request.includeTargets
-            rows+=AcquisitionDisplayRow(target.definition,labels.definition(target.definition),null,target.targetRank,
+            val display=manaReserveDefinition(target.definition,catalog)?.ref ?: target.definition
+            if (display==MANA_RESERVE_REF && rows.any { it.definition==display && it.toRank==target.targetRank }) continue
+            rows+=AcquisitionDisplayRow(display,labels.acquisition(display,target.parameters),null,target.targetRank,
                 if(owned || excluded) AcquisitionDisplayedPrice.Known(Amount.ZERO) else AcquisitionDisplayedPrice.Unknown(),true,owned,excluded)
         }
+        for(selected in includedGrantOwnedSelections(plan.projectedContext)) {
+            rows+=AcquisitionDisplayRow(selected.definition,labels.acquisition(selected.definition,selected.parameters),
+                selected.targetRank,selected.targetRank,AcquisitionDisplayedPrice.Known(Amount.ZERO),false,true,false)
+        }
         val context=acquisitionContext(state,catalog,plan.request.externalConfirmations)
-        val nodes=plan.request.targets.mapNotNull { catalog.definitions[it.definition]?.requirements }
-        val requirements=nodes.map { requirement(it,evaluate(it,plan.projectedContext),labels) }
-        val baseRequirements=nodes.map { requirement(it,evaluate(it,context),labels) }
+        val nodes=plan.request.targets.mapNotNull { target -> catalog.definitions[target.definition]?.requirements?.let { target to it } } +
+            includedGrantRequirements(plan.request,plan.projectedContext).map { it.target to it.requirement }
+        val requirements=nodes.map { (target,node) -> requirement(node,evaluate(node,plan.projectedContext,target.parameters),labels) }
+        val baseRequirements=nodes.map { (target,node) -> requirement(node,evaluate(node,context,target.parameters),labels) }
         return AcquisitionUiModel(scope,key,phase,when(phase) {
             AcquisitionUiPhase.Ready -> when {
                 !plan.request.includeTargets -> if(plan.changes.isEmpty()) "Требования выполнены; цель не приобретается" else "Проверьте цену требований и подтвердите"
@@ -98,23 +123,28 @@ object AcquisitionPresentation {
         },plan.cost?.let { AcquisitionDisplayedPrice.Known(it) } ?: AcquisitionDisplayedPrice.Unknown(),plan.remaining,
             EnvelopeList(rows),EnvelopeList(requirements),EnvelopeList(plan.questions.map { question -> AcquisitionChoiceView(question.id,"Выберите вариант",
                 EnvelopeList(question.options.mapIndexed { index,option -> AcquisitionChoiceOptionView(option.id,
-                    option.changes.joinToString { labels.definition(it.definition) }.ifBlank { "Вариант ${index+1}" },price(option.quote)) }),question.selectedId) }),
+                    option.changes.joinToString { labels.acquisition(it.definition,it.parameters) }.ifBlank { "Вариант ${index+1}" },price(option.quote)) }),question.selectedId) }),
             EnvelopeList(blocks),phase==AcquisitionUiPhase.Ready,sync=sync(state,capabilities),request=plan.request,selections=selectionPrompts(plan.request,state,catalog),baseRequirements=EnvelopeList(baseRequirements))
     }
     /** A canonical ownership fact, independent of executability or an empty plan. */
     private fun attained(target:AcquisitionTarget,state:StoredCharacter,catalog:AcquisitionCatalog):Boolean {
         val definition=catalog.definitions[target.definition] ?: return false
+        if(manaReserveDefinition(target.definition,catalog)!=null) return target.parameters.isEmpty() && target.optionId==null &&
+            (target.instanceId==null || state.instances.none { it.instanceId==target.instanceId && !isManaReserveRef(it.definition) }) &&
+            manaReserveRank(state.character,state.instances)>=target.targetRank
         if(definition.kind==AcquisitionKind.ATTRIBUTE) {
             val attribute=AttributeId.entries.singleOrNull { target.definition==DefinitionRef("dubl-3.69","attribute:${it.name}") } ?: return false
             return target.parameters.isEmpty() && target.optionId==null && (state.character.attributes[attribute]?.base ?: return false)>=target.targetRank
         }
         val owned=if(target.instanceId!=null) state.instances.singleOrNull { it.instanceId==target.instanceId && it.definition==target.definition }
             else if(definition.repeatPolicy==RepeatPolicy.Single) state.instances.singleOrNull { it.definition==target.definition } else null
-        return owned!=null && owned.rank>=target.targetRank && owned.parameters==target.parameters && owned.abilityOptionId==target.optionId
+        val parameters=if(target.parameters.isEmpty() && definition.repeatPolicy==RepeatPolicy.Single) owned?.parameters ?: target.parameters else target.parameters
+        return owned!=null && owned.rank>=target.targetRank && owned.parameters==parameters &&
+            (definition.hasTransitionPaymentOptions || owned.abilityOptionId==target.optionId)
     }
     fun receipt(receipt: Receipt, catalog: AcquisitionCatalog, replayed: Boolean, entry: LedgerEntry? = null) = AcquisitionReceiptView(receipt.result.cost,receipt.result.remaining,receipt.status,replayed,
-        EnvelopeList(receipt.result.changes.map { AcquisitionDisplayRow(it.definition,AcquisitionLabels(catalog).definition(it.definition),it.fromRank,it.toRank,
-            AcquisitionDisplayedPrice.Unknown("Стоимость сохранена в итоге операции"),true) }), savedOperation=savedAcquisitionOperation(receipt,entry))
+        EnvelopeList(receipt.result.changes.map { AcquisitionDisplayRow(it.definition,AcquisitionLabels(catalog).acquisition(it.definition,it.parameters),it.fromRank,it.toRank,
+            AcquisitionDisplayedPrice.Unknown("Стоимость сохранена в итоге операции"),true) })).withRecordedPrices(savedAcquisitionOperation(receipt,entry))
     fun sync(state: StoredCharacter, capabilities: AcquisitionCapabilities) = AcquisitionSyncView(when {
         state.syncMetadata.remoteConflictCanonical!=null || state.syncMetadata.pendingResolution!=null -> AcquisitionSyncStatus.Conflict
         !capabilities.canSync -> AcquisitionSyncStatus.LocalOnlyUnavailable
@@ -129,8 +159,17 @@ object AcquisitionPresentation {
         RequirementStatus.Satisfied -> "Условие выполнено"
     }
     private fun requirement(node:RequirementNode,result:RequirementResult,labels:AcquisitionLabels):AcquisitionRequirementView {
-        val nodes=when(node) { is RequirementNode.AllOf->node.children;is RequirementNode.AnyOf->node.children;is RequirementNode.Exclusive->listOf(node.conflicting);is RequirementNode.DistinctCount->listOf(node.predicate);else->emptyList() }
+        val nodes=when(node) { is RequirementNode.AllOf->node.children;is RequirementNode.AnyOf->node.children;is RequirementNode.Exclusive->listOf(node.conflicting);is RequirementNode.DistinctCount->listOf(node.predicate);is RequirementNode.SelectedInstance->listOf(node.predicate);else->emptyList() }
         return AcquisitionRequirementView(node.nodeId,labels.requirement(node),result.status,result.actualValue,result.requiredValue,node as? RequirementNode.ExternalEvidence,
             EnvelopeList(nodes.map { child -> requirement(child,result.children.firstOrNull { it.nodeId==child.nodeId } ?: RequirementResult(RequirementStatus.SourceUnresolved,child.nodeId),labels) }),node.sourceRef.originalText)
     }
+}
+
+/** Align rows with their recorded ordered transitions; never re-quote an old purchase. */
+internal fun AcquisitionReceiptView.withRecordedPrices(operation: AcquisitionSavedOperation?): AcquisitionReceiptView {
+    val recorded = (operation?.evidence as? AcquisitionSavedEvidence.Recorded)?.prices
+    val priced = if (recorded != null && recorded.size == rows.size) EnvelopeList(rows.mapIndexed { index, row ->
+        row.copy(price = AcquisitionDisplayedPrice.Known(recorded[index].cost))
+    }) else rows
+    return copy(rows = priced, savedOperation = operation)
 }

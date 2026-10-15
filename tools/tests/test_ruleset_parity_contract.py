@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from tools.tests.native_runtime_catalog_expectations import assert_native_runtime_ids
 
 ROOT = Path(__file__).resolve().parents[2]
 CORE_PACK = ROOT / 'shared/src/commonMain/resources/fcp/dubl-3.69'
@@ -14,12 +15,14 @@ CATALOGS = {
     'development_regular_catalog.json': (CORE, ('entries', 287)),
     'development_special_catalog.json': (CORE, ('entries', 304)),
     'development_ability_roots_catalog.json': (CORE, ('entries', 41)),
-    'development_martial_catalog.json': (CORE, ('entries', 122)),
+    'development_martial_catalog.json': (CORE, ('entries', 501)),
+    'development_native_supplement_catalog.json': (CORE, ('entries', 64)),
+    'development_native_magic_catalog.json': (CORE, ('entries', 22)),
     'development_chi_catalog.json': (CHI, ('entries', 27)),
     'development_magic_catalog.json': (CORE, ('entries', 15)),
     'development_catalog.json': (CORE, ('entries', 0)),
     'chi_catalog.json': (CHI, (('schools', 9), ('techniques', 68))),
-    'magic_equipment_catalog.json': (CORE, (('spells', 265), ('gear', 260))),
+    'magic_equipment_catalog.json': (CORE, (('spells', 298), ('gear', 260))),
     'skill_effects_catalog.json': (CORE, ('effects', 283)),
 }
 
@@ -61,6 +64,8 @@ def test_canonical_catalog_counts_and_ids_are_locked():
             assert len(root[key]) == count, (name, key, len(root[key]))
             ids = [item['id'] for item in root[key]]
             assert len(ids) == len(set(ids))
+            if key == 'entries':
+                assert_native_runtime_ids(name, root[key])
 
 
 def test_importers_write_to_owning_fcp_by_default():

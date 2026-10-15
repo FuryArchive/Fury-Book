@@ -93,7 +93,8 @@ class AcquisitionService(private val store: AcquisitionStore, private val catalo
     private data class Prepared(val state: StoredCharacter? = null, val issues: List<AcquisitionIssue> = emptyList())
     private fun prepareCommit(command: ConfirmAcquisition, state: StoredCharacter, catalog: AcquisitionCatalog,
         confirmed: AcquisitionPlan): Prepared {
-        val replay = validateAcquisitionProjection(confirmed.changes, state, catalog, command.request.externalConfirmations)
+        val replay = validateAcquisitionProjection(confirmed.changes, state, catalog, command.request.externalConfirmations,
+            command.request.prerequisiteSelections)
         if (replay.issues.isNotEmpty()) return Prepared(issues = replay.issues)
         val normalized = normalizeProjection(state, replay.context, confirmed.changes, catalog)
         val after = acquisitionContext(normalized, catalog, command.request.externalConfirmations)
@@ -102,20 +103,22 @@ class AcquisitionService(private val store: AcquisitionStore, private val catalo
         // Replay checks every step; the stored projection must match the last step of each instance.
         for (change in confirmed.changes.associateBy { it.instanceId }.values) {
             val definition = catalog.definitions.getValue(change.definition)
-            val proof = evaluate(definition.requirements, after)
+            val proof = evaluate(definition.requirements, after, change.parameters)
             if (proof.status != RequirementStatus.Satisfied) issues += AcquisitionIssue(proof.status,
                 proof.reason ?: "Final requirement failed", definition.ref, proof.nodeId, definition.requirements.sourceRef)
             if (change.kind != AcquisitionKind.ATTRIBUTE) require(after.instances.single { it.instanceId == change.instanceId }.let {
-                it.definition == change.definition && it.rank == change.toRank && it.parameters == change.parameters && it.abilityOptionId == change.optionId
+                it.definition == change.definition && it.rank == change.toRank && it.parameters == change.parameters && it.abilityOptionId == change.ownedAbilityOptionId()
             }) { "Normalized ownership differs from confirmed transition" }
         }
         // Existing manual violations do not become a blanket gate. A new violation of a previously
         // satisfied conjunct (including an exclusion) is forbidden, even on an already-invalid root.
-        for (ref in before.instances.filter { it.rank > 0 }.map { it.definition }.distinct()) {
+        for (owned in before.instances.filter { it.rank > 0 }) {
+            val ref = owned.definition
             val definition = catalog.definitions[ref] ?: continue
+            val currentParameters = after.instances.singleOrNull { it.instanceId == owned.instanceId }?.parameters ?: owned.parameters
             fun check(node: RequirementNode) {
-                val previous = evaluate(node, before)
-                val next = evaluate(node, after)
+                val previous = evaluate(node, before, owned.parameters)
+                val next = evaluate(node, after, currentParameters)
                 if (previous.status == RequirementStatus.Satisfied && next.status != RequirementStatus.Satisfied)
                     issues += AcquisitionIssue(next.status, next.reason ?: "Purchase invalidates existing requirement", ref, node.nodeId, node.sourceRef)
                 if (node is RequirementNode.AllOf) node.children.forEach(::check)
@@ -161,21 +164,19 @@ private fun normalizeProjection(state: StoredCharacter, projected: AcquisitionCo
             AcquisitionKind.SPELL -> {
                 require(catalog.definitions.values.count { it.kind == AcquisitionKind.SPELL && it.ref.entryId == change.definition.entryId } == 1) {
                     "Spell presentation cannot represent ambiguous pack identity" }
-                val matches = character.magic.spells.filter { !it.custom && it.catalogId == change.definition.entryId }
+                val separateInstance=definition.repeatPolicy!=RepeatPolicy.Single || change.parameters.isNotEmpty()
+                val matches = character.magic.spells.filter { !it.custom && it.catalogId == change.definition.entryId &&
+                    (!separateInstance || it.uid==change.instanceId) }
                 require(matches.size <= 1) { "Ambiguous learned spell presentation" }
                 val old = matches.singleOrNull()
-                val spell = old?.copy(learned = true) ?: KnownSpell(change.instanceId, change.definition.entryId, definition.name, learned = true)
+                val spell = old?.copy(learned = true) ?: KnownSpell(change.instanceId, change.definition.entryId,
+                    AcquisitionLabels(catalog).acquisition(change.definition,change.parameters), learned = true)
                 require(character.magic.spells.none { it.uid == spell.uid && it !== old }) { "Spell presentation identity collision" }
                 character = character.copy(magic = character.magic.copy(spells = character.magic.spells.filterNot { it === old } + spell))
             }
             // These legacy containers have no pack/parameter/option identity. Only project a lossless
             // single definition, retaining the authoritative richer instances for canonical consumers.
-            AcquisitionKind.DEVELOPMENT -> if (definition.repeatPolicy == RepeatPolicy.Single && change.parameters.isEmpty() && change.optionId == null &&
-                catalog.definitions.keys.count { it.entryId == change.definition.entryId } == 1) {
-                val old = character.development[change.definition.entryId]
-                character = character.copy(development = character.development + (change.definition.entryId to
-                    (old?.copy(rank = change.toRank) ?: OwnedDevelopment(change.toRank))))
-            }
+            AcquisitionKind.DEVELOPMENT -> character = projectSingleDevelopment(character, definition, change, catalog)
             AcquisitionKind.SKILL -> {
                 val owned = state.instances.singleOrNull { it.instanceId == change.instanceId }
                 val legacyKey = (owned?.origin as? AcquisitionOrigin.Legacy)?.ownershipKey?.removePrefix("skill:")
@@ -187,7 +188,7 @@ private fun normalizeProjection(state: StoredCharacter, projected: AcquisitionCo
                 }
                 updatedSkillKeys += key
                 character = character.copy(skills = character.skills + (key to (old?.copy(rank = change.toRank)
-                    ?: CharacterSkill(key, change.definition.entryId, definition.name, rank = change.toRank))))
+                    ?: CharacterSkill(key, change.definition.entryId, AcquisitionLabels(catalog).acquisition(change.definition, change.parameters), rank = change.toRank))))
             }
             AcquisitionKind.SCHOOL -> Unit // Names cannot encode canonical school identity; instances are authoritative.
         }

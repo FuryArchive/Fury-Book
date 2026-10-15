@@ -17,6 +17,7 @@ import com.furybook.dubl.acquisition.RequirementStatus as AcquisitionRequirement
 enum class DevelopmentCostType {
     XP,
     ABILITY,
+    CHOICE,
 }
 
 data class AbilityOption(
@@ -354,7 +355,7 @@ class DevelopmentRules(
         if (maxRank == null) checks += RequirementCheck(RequirementStatus.MANUAL, "Максимальный ранг не подтверждён источником")
         val maxed = maxRank != null && currentRank >= maxRank
         val failed = checks.any { it.status == RequirementStatus.FAIL }
-        val manual = checks.any { it.status == RequirementStatus.MANUAL }
+        val manual = entry.costType == DevelopmentCostType.CHOICE || checks.any { it.status == RequirementStatus.MANUAL }
         val reason = when {
             maxed -> "Максимальный ранг"
             failed -> "Не выполнены требования"
@@ -501,7 +502,7 @@ class DevelopmentRules(
         val checks = requirements(entry)
         val abilityCost = abilityCost(entry, optionIndex)
         val failed = checks.any { it.status == RequirementStatus.FAIL }
-        val manual = checks.any { it.status == RequirementStatus.MANUAL }
+        val manual = entry.costType == DevelopmentCostType.CHOICE || checks.any { it.status == RequirementStatus.MANUAL }
         val maxed = currentRank >= entry.maxRank.coerceAtLeast(1)
         // The rulebook phrases the OS budget as a recommendation, not a hard limit.
         // Overspending is surfaced by the budget summary but does not invalidate a GM-approved build.

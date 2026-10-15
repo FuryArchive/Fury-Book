@@ -38,10 +38,16 @@ class DesktopAcquisitionCatalogTest {
             is RequirementNode.AllOf -> n.children.flatMap(::nodes)
             is RequirementNode.AnyOf -> n.children.flatMap(::nodes)
             is RequirementNode.DistinctCount -> nodes(n.predicate)
+            is RequirementNode.SelectedInstance -> nodes(n.predicate)
             else -> emptyList()
         }
-        val knowledge = assertIs<RequirementNode.SkillFamily>(entry("feat_cd965f927a426cc2").requirements)
+        val selectedKnowledge = nodes(entry("feat_cd965f927a426cc2").requirements)
+            .filterIsInstance<RequirementNode.SelectedInstance>().single()
+        assertEquals("knowledgeInstanceId", selectedKnowledge.parameterKey)
+        val knowledge = assertIs<RequirementNode.SkillFamily>(selectedKnowledge.predicate)
         assertEquals("knowledge", knowledge.familyId)
+        assertEquals(ComparisonOperator.GE, knowledge.operator)
+        assertEquals(4, knowledge.operand)
         assertTrue("knowledge" in entry("knowledge_template").familyIds)
         assertEquals(278, entry("knowledge_template").classificationSources.getValue("family:knowledge").paragraph)
         val specialization = nodes(entry("feat_a834e752f2e3132b").requirements).filterIsInstance<RequirementNode.Specialization>().single()
@@ -101,7 +107,11 @@ class DesktopAcquisitionCatalogTest {
         val knowledge = AcquisitionInstance("knowledge/academic", ref("knowledge_academic"), 4, emptyMap(), null, AcquisitionOrigin.New)
         val context = AcquisitionContext(DublCharacter("actual"), listOf(knowledge), emptySet(),
             RequirementNode.CreationPhase.Phase.Creating, emptyList(), catalog)
-        assertEquals(RequirementStatus.Satisfied, evaluate(condition, context).status)
+        assertEquals(RequirementStatus.ChoiceRequired, evaluate(condition, context).status)
+        assertEquals(RequirementStatus.Satisfied,
+            evaluate(condition, context, mapOf("knowledgeInstanceId" to knowledge.instanceId)).status)
+        assertEquals(RequirementStatus.Unsatisfied,
+            evaluate(condition, context, mapOf("knowledgeInstanceId" to "knowledge/missing")).status)
     }
 
     @Test fun actual_any_performance_prerequisites_accept_vocal_not_unrelated_high_rank() {

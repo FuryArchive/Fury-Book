@@ -234,7 +234,7 @@ internal object GeneratedSkillCatalog {
             untrained = UntrainedRule.NO,
             auto6 = "Да",
             auto12 = "Да",
-            template = true,
+            template = false,
         ),
         SkillDefinition(
             id = "stealth",
@@ -300,6 +300,17 @@ internal object GeneratedSkillCatalog {
             untrained = UntrainedRule.UNSPECIFIED,
             auto6 = "Не указано в базовой таблице",
             auto12 = "Не указано в базовой таблице",
+            template = false,
+        ),
+        SkillDefinition(
+            id = "runology",
+            name = "Рунология",
+            description = "Активация вязей и идентификация незнакомых рун.",
+            category = SkillCategory.KNOWLEDGE,
+            defaultAttribute = AttributeId.INTELLIGENCE,
+            untrained = UntrainedRule.UNSPECIFIED,
+            auto6 = "",
+            auto12 = "",
             template = false,
         ),
     )

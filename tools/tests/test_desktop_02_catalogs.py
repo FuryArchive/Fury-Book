@@ -1,6 +1,7 @@
 import json
 import unittest
 from pathlib import Path
+from tools.tests.native_runtime_catalog_expectations import assert_native_runtime_ids
 
 ROOT = Path(__file__).resolve().parents[2]
 CORE = ROOT / 'shared/src/commonMain/resources/fcp/dubl-3.69/content'
@@ -9,7 +10,9 @@ DEV_LAYERS = {
     'development_regular_catalog.json': (CORE, 287),
     'development_special_catalog.json': (CORE, 304),
     'development_ability_roots_catalog.json': (CORE, 41),
-    'development_martial_catalog.json': (CORE, 122),
+    'development_martial_catalog.json': (CORE, 501),
+    'development_native_supplement_catalog.json': (CORE, 64),
+    'development_native_magic_catalog.json': (CORE, 22),
     'development_chi_catalog.json': (CHI, 27),
     'development_magic_catalog.json': (CORE, 15),
     'development_catalog.json': (CORE, 0),
@@ -32,15 +35,16 @@ class Desktop02CatalogsTest(unittest.TestCase):
         for name, (root, expected) in DEV_LAYERS.items():
             payload = json.loads((root / name).read_text())
             self.assertEqual(len(payload['entries']), expected, name)
+            assert_native_runtime_ids(name, payload['entries'])
             development_total += expected
-        self.assertEqual(development_total, 796)
+        self.assertEqual(development_total, 1261)
 
         chi = json.loads((CHI / 'chi_catalog.json').read_text())
         magic = json.loads((CORE / 'magic_equipment_catalog.json').read_text())
         effects = json.loads((CORE / 'skill_effects_catalog.json').read_text())
         self.assertEqual(len(chi['schools']), 9)
         self.assertEqual(len(chi['techniques']), 68)
-        self.assertEqual(len(magic['spells']), 265)
+        self.assertEqual(len(magic['spells']), 298)
         self.assertEqual(len(magic['gear']), 260)
         self.assertEqual(len(effects['effects']), 283)
 

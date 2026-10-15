@@ -1,6 +1,9 @@
 package com.furybook.desktop.screens
 
 import com.furybook.dubl.acquisition.LoadResult
+import com.furybook.dubl.acquisition.ownedDevelopmentInstances
+import com.furybook.dubl.acquisition.AcquisitionRequest
+import com.furybook.dubl.acquisition.AcquisitionTarget
 
 import com.furybook.ui.components.GameplayActionPanel
 
@@ -118,8 +121,6 @@ import com.furybook.dubl.model.resolvedSkills
 import com.furybook.dubl.model.displayNotes
 import com.furybook.dubl.model.skillCalculationForRoll
 import com.furybook.desktop.DesktopAppState
-import com.furybook.dubl.acquisition.AcquisitionRequest
-import com.furybook.dubl.acquisition.AcquisitionTarget
 import com.furybook.dubl.acquisition.DefinitionRef
 import androidx.compose.ui.platform.testTag
 import kotlinx.coroutines.delay
@@ -1325,6 +1326,9 @@ private fun SheetDevelopmentPanel(
     val developmentItems = remember(rules) {
         rules.ownedSheetSections().flatMap { it.items }.distinctBy { it.entry.id }
     }
+    val acquisitionActions = LocalWebAcquisition.current
+    val canonicalView = acquisitionActions?.view?.takeIf { it.scope.viewCharacterId == character.id }
+    val richInstances = canonicalView?.ownedDevelopmentInstances(unprojectedOnly = true).orEmpty()
     val developmentDefaults = defaultDevelopmentGroups(character, state)
     val developmentGroups = SheetGroupingRules.normalize(
         extras.developmentGroups,
@@ -1351,7 +1355,18 @@ private fun SheetDevelopmentPanel(
                     }
                 },
             )
-            if (developmentItems.isEmpty()) {
+            richInstances.forEach { owned ->
+                val maximum = canonicalView?.catalog?.definitions?.get(owned.definition)?.maxRank
+                Row(Modifier.fillMaxWidth().testTag("acquisition.sheet.instance.${owned.instanceId}"),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("${owned.label} · ранг ${owned.rank}", Modifier.weight(1f))
+                    OutlinedButton(onClick = {
+                        acquisitionActions?.open(AcquisitionRequest(character.id, listOf(AcquisitionTarget(owned.definition,
+                            owned.instanceId, owned.rank + 1, owned.parameters, owned.optionId))))
+                    }, enabled = maximum != null && owned.rank < maximum) { Text("Повысить ранг") }
+                }
+            }
+            if (developmentItems.isEmpty() && richInstances.isEmpty()) {
                 EmptyState("Взятых навыков и боевых искусств пока нет.")
             } else {
                 developmentGroups.forEach { group ->

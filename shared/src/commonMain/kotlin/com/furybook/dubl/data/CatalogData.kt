@@ -43,7 +43,11 @@ fun parseDevelopmentCatalog(raw: String): DevelopmentCatalog {
             section = item.string("section", "Навыки"),
             category = item.string("category", "Общие"),
             cost = item.int("cost", 0),
-            costType = if (item.string("costType", "xp") == "ability") DevelopmentCostType.ABILITY else DevelopmentCostType.XP,
+            costType = when (item.string("costType", "xp")) {
+                "ability" -> DevelopmentCostType.ABILITY
+                "choice" -> DevelopmentCostType.CHOICE
+                else -> DevelopmentCostType.XP
+            },
             maxRank = item.int("ranks", 1).coerceAtLeast(1),
             requirements = item.string("requirements"),
             benefit = item.string("benefit"),

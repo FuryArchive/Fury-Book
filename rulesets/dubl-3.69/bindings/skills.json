@@ -148,7 +148,7 @@
       "name": "Ремесло",
       "category": "TECHNICAL",
       "defaultAttributeHint": "INTELLIGENCE",
-      "template": true
+      "template": false
     },
     {
       "id": "stealth",

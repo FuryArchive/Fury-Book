@@ -83,16 +83,16 @@ fun MagicScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                         enabled = character.manaCurrent < character.effectiveManaMaximum,
                         onClick = { state.changeMana(1) },
                     ) { Text("+") }
-                    Text("Ранг маны ${character.magic.manaRank}/5", color = DublGold)
-                    RankStepper(character.magic.manaRank, max = if(state.canonicalMode) Int.MAX_VALUE else 5, enabled = state.canonicalMode || !character.creationComplete) { next ->
-                        if(state.canonicalMode) { if(next>character.magic.manaRank) actions?.openTarget(AcquisitionKind.MANA,"mana:rank",next) else actions?.lowerHolding(AcquisitionKind.MANA,"mana:rank",next) }
+                    Text("Ранг маны ${MagicEquipmentRules.manaReserveRank(character)}/5", color = DublGold)
+                    RankStepper(MagicEquipmentRules.manaReserveRank(character), max = if(state.canonicalMode) Int.MAX_VALUE else 5, enabled = state.canonicalMode || !character.creationComplete) { next ->
+                        if(state.canonicalMode) { if(next>MagicEquipmentRules.manaReserveRank(character)) actions?.openTarget(AcquisitionKind.MANA,"mana:rank",next) else actions?.lowerHolding(AcquisitionKind.MANA,"mana:rank",next) }
                         else state.setMagicManaRank(next)
                     }
                     Text("Восстановление ${MagicEquipmentRules.manaRecoveryPerRound(character)}/раунд", color = DublMuted)
                 }
                 if(state.canonicalMode) {
                     Text(actions?.view?.balance?.let(::acquisitionAmount) ?: "Баланс недоступен")
-                    AcquisitionEntrySummary(AcquisitionKind.MANA,"mana:rank",character.magic.manaRank+1)
+                    AcquisitionEntrySummary(AcquisitionKind.MANA,"mana:rank",MagicEquipmentRules.manaReserveRank(character)+1)
                 } else Text("XP: ранг маны ${MagicEquipmentRules.manaRankXp(character)} · школы ${MagicEquipmentRules.magicSchoolPowerXp(character)} · заклинания ${MagicEquipmentRules.learnedSpellXp(character)}", color = DublMuted)
             }
         }

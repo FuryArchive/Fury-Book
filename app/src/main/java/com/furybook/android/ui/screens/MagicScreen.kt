@@ -116,7 +116,7 @@ fun MagicScreen(controller: CharacterController) {
         if (acquisition?.canonical == true) item { AcquisitionBalanceCard() }
         item {
             MagicCoreCard(
-                manaRank = character.magic.manaRank,
+                manaRank = MagicEquipmentRules.manaReserveRank(character),
                 creationComplete = character.creationComplete,
                 currentMana = character.manaCurrent,
                 maxMana = maxMana,
@@ -126,7 +126,7 @@ fun MagicScreen(controller: CharacterController) {
                 schoolXp = MagicEquipmentRules.magicSchoolPowerXp(character),
                 onManaRank = { rank ->
                     if (acquisition?.canonical == true) {
-                        if (rank > character.magic.manaRank) acquisition.openTarget(AcquisitionKind.MANA, "mana:rank", rank)
+                        if (rank > MagicEquipmentRules.manaReserveRank(character)) acquisition.openTarget(AcquisitionKind.MANA, "mana:rank", rank)
                         else acquisition.lowerHolding(AcquisitionKind.MANA, "mana:rank", rank)
                     } else controller.setMagicManaRank(rank)
                 },

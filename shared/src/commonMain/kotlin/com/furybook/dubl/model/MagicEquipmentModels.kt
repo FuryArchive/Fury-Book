@@ -174,6 +174,10 @@ object MagicEquipmentRules {
     const val INCREASED_MANA_ENTRY_ID = "feat_fd7bee8198e57574"
     const val MEDITATION_ENTRY_ID = "feat_f6f37c05cf7c5257"
 
+    /** The development card and magic panel display the same reserve, including old saved aliases. */
+    fun manaReserveRank(character: DublCharacter): Int = maxOf(character.magic.manaRank,
+        character.development[BASE_MANA_ENTRY_ID]?.rank ?: 0, 0)
+
     private val manaTable = arrayOf(
         intArrayOf(1, 2, 3, 4, 5),
         intArrayOf(2, 4, 6, 8, 10),

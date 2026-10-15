@@ -1,0 +1,1595 @@
+{
+  "version": "3.69",
+  "entries": [
+    {
+      "id": "feat_7eece523ffdc8431",
+      "name": "Акробатическое уклонение",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 30,
+      "ranks": null,
+      "requirements": "Акробатика",
+      "benefit": "Вы тратите весь раунд на передвижение и проходите проверку ловкость+атлетика, результат становится Вашей защитой до начала следующего хода.\nКаждая атака после первой уменьшает Ваш бонус защиты на 2.\nВы передвигаетесь на ½ Вашего бега.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12045",
+        "core:P12046",
+        "core:P12047",
+        "core:P12048",
+        "core:P12049",
+        "core:P12050",
+        "core:P12051"
+      ],
+      "incomplete": true,
+      "mechanicsConflict": "В актуальном источнике не указано максимальное число рангов."
+    },
+    {
+      "id": "feat_09f9775a6c2feee1",
+      "name": "Бег по стенам",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 30,
+      "ranks": null,
+      "requirements": "Акробатика, Подвижность",
+      "benefit": "Вы проходите проверку атлетика+ловкость и бежите по стенам.\nДальность определяется как если бы Вы проходили проверку на дальность или высоту прыжков.\nЕсли Вы начинаете передвижение по стене с разбега, то добавляете ½ пройденного расстояния на проверку атлетики.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12052",
+        "core:P12053",
+        "core:P12054",
+        "core:P12055",
+        "core:P12056",
+        "core:P12057",
+        "core:P12058"
+      ],
+      "incomplete": true,
+      "mechanicsConflict": "В актуальном источнике не указано максимальное число рангов."
+    },
+    {
+      "id": "feat_0ef834f631b34bd6",
+      "name": "Ласточкин хвост",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 40,
+      "ranks": 1,
+      "requirements": "Акробатика, Бег по стенам.",
+      "benefit": "Вы можете оттолкнуться от стены во время бега и совершить прыжок в любом направлении.\nЭто считается прыжком с разбега, даже если Вы не набирали скорость.\nВы можете использовать этот трюк для смены направления движения или для атаки сверху, получая преимущество на атаку, если прыгаете на противника.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12059",
+        "core:P12060",
+        "core:P12061",
+        "core:P12062",
+        "core:P12063"
+      ]
+    },
+    {
+      "id": "feat_e8bda6bbcde463dc",
+      "name": "Отскок",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 30,
+      "ranks": null,
+      "requirements": "Акробатика",
+      "benefit": "Во время бега по стенам Вы можете совершить прыжок будто делали его с разбега. Во время лазания Вы можете потратить 1 пункт выносливости и совершить прыжок будто делали его с разбега.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12064",
+        "core:P12065",
+        "core:P12066",
+        "core:P12067",
+        "core:P12068"
+      ],
+      "incomplete": true,
+      "mechanicsConflict": "В актуальном источнике не указано максимальное число рангов."
+    },
+    {
+      "id": "feat_b196f0df5a5f4f97",
+      "name": "Прыжок мангуста",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 30,
+      "ranks": null,
+      "requirements": "Акробатика",
+      "benefit": "Вы проводите толкание с помощью атлетика+ловкость и отталкиваетесь от цели на то же расстояние что и толкаете её.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12069",
+        "core:P12070",
+        "core:P12071",
+        "core:P12072",
+        "core:P12073"
+      ],
+      "incomplete": true,
+      "mechanicsConflict": "В актуальном источнике не указано максимальное число рангов."
+    },
+    {
+      "id": "feat_6e9661053ca5aeac",
+      "name": "Бросок кобры",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 30,
+      "ranks": null,
+      "requirements": "Акробатика",
+      "benefit": "Прыжки с места считаются рывком, при использовании легкого оружия и рукопашных атак.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12074",
+        "core:P12075",
+        "core:P12076",
+        "core:P12077",
+        "core:P12078"
+      ],
+      "incomplete": true,
+      "mechanicsConflict": "В актуальном источнике не указано максимальное число рангов."
+    },
+    {
+      "id": "feat_ed75c3cad687fd4f",
+      "name": "Удар падающей звезды",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 40,
+      "ranks": 1,
+      "requirements": "Бросок кобры, Атлетика 5.",
+      "benefit": "Если Вы совершаете прыжок с высоты не менее 3 метров и атакуете противника,то:\nВы наносите дополнительный урон, равный кости урона оружия (не более 1d6) за каждую градацию высоты (максимум +3d6).\nВы также можете использовать этот трюк для сбивания противника с ног, получая 1 ПФ за каждую градацию высоты.\nВы должны успешно пройти проверку атлетики, чтобы уменьшить урона от падения до 0, иначе атака проваливается, а Вы получаете урон.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12079",
+        "core:P12080",
+        "core:P12081",
+        "core:P12082",
+        "core:P12083",
+        "core:P12084"
+      ]
+    },
+    {
+      "id": "feat_6f1e44966e0faf18",
+      "name": "Хлесткая подсечка",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 40,
+      "ranks": null,
+      "requirements": "Акробатика",
+      "benefit": "Вы проводите подсечку и сбивание применяя атлетика+ловкость.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12085",
+        "core:P12086",
+        "core:P12087",
+        "core:P12088",
+        "core:P12089"
+      ],
+      "incomplete": true,
+      "mechanicsConflict": "В актуальном источнике не указано максимальное число рангов."
+    },
+    {
+      "id": "feat_e008a111407e9ccd",
+      "name": "Ударное скольжение",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 40,
+      "ranks": null,
+      "requirements": "Акробатика",
+      "benefit": "Получив физический урон в ближнем бою Вы отталкиваетесь на 1 метр за каждые 5 нанесенного урона. Уменьшенный и проигнорированный урон тоже влияют на расстояние отталкивания.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12090",
+        "core:P12091",
+        "core:P12092",
+        "core:P12093",
+        "core:P12094"
+      ],
+      "incomplete": true,
+      "mechanicsConflict": "В актуальном источнике не указано максимальное число рангов."
+    },
+    {
+      "id": "feat_91a36213ead60ec0",
+      "name": "Сальто-атака",
+      "section": "Ветки способностей",
+      "category": "Акробатика",
+      "tags": [
+        "Акробатика"
+      ],
+      "costType": "xp",
+      "cost": 40,
+      "ranks": 1,
+      "requirements": "Акробатика, Рукопашный бой 3 или Холодное оружие 3.",
+      "benefit": "Если вы совершаете кувырок или сальто в качестве части передвижения, вы можете:\nПровести одну атаку рукопашным, легким метательным и холодным оружием во время этого движения без штрафа за мультидействие.\nАтака получает преимущество, если вы приземляетесь за спиной или сбоку от противника.",
+      "accessId": "access_45edee695a349bf7",
+      "sourceRefs": [
+        "core:P12095",
+        "core:P12096",
+        "core:P12097",
+        "core:P12098",
+        "core:P12099"
+      ]
+    },
+    {
+      "id": "feat_8786ba2fa2651690",
+      "name": "Боевой азарт",
+      "section": "Ветки способностей",
+      "category": "Боевой азарт",
+      "tags": [
+        "Боевой азарт"
+      ],
+      "costType": "xp",
+      "cost": 50,
+      "ranks": null,
+      "requirements": "Атлетика 3, Рукопашный бой 3, Холодное оружие 3, Метание 3 и Стрельба 3.",
+      "benefit": "За каждый промах по противнику и попадание противника по Вам, Вы получаете очки боевого азарта (не более 3). Перед броском атаки Вы можете добавить очки азарта и получить бонус к атаке или бонус к защите, если атакуют Вас. Вне боя очки боевого азарта существуют одну минуту, после чего обнуляются.",
+      "accessId": "access_40c3d6bcbdac132a",
+      "sourceRefs": [
+        "core:P12301",
+        "core:P12302",
+        "core:P12303",
+        "core:P12304",
+        "core:P12305"
+      ],
+      "incomplete": true,
+      "mechanicsConflict": "В актуальном источнике не указано максимальное число рангов."
+    },
+    {
+      "id": "drawback_cab508624d01d110",
+      "name": "Болезненность",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Телосложение 3 и меньше",
+      "benefit": "Недостаток: Вы получаете -2 на все проверки сопротивления болезням и на проверки лечения болезней. Штрафы за болезнь выше на 1.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:443",
+        "native-drawback:t.jaljeq1rpes0:457"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -20\u000bРанги: 1\u000bТребование: Телосложение 3 и меньше\u000bОписание: Вы часто болеете. Ваш организм ослаблен и с трудом сопротивляется инфекциям.\u000bНедостаток: Вы получаете -2 на все проверки сопротивления болезням и на проверки лечения болезней. Штрафы за болезнь выше на 1."
+      }
+    },
+    {
+      "id": "drawback_ad1534cc3e1d15a5",
+      "name": "Коротышка",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы считаетесь на 1 размер меньше для силовых проверок против существ вашего и большего размера.\nПримечание: Вы не можете брать способность «Громила».",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:733",
+        "native-drawback:t.jaljeq1rpes0:743"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы очень маленький для своего вида. Ваш рост и телосложение значительно ниже нормы.\u000bНедостаток: Вы считаетесь на 1 размер меньше для силовых проверок против существ вашего и большего размера.\u000bПримечание: Вы не можете брать способность «Громила»."
+      }
+    },
+    {
+      "id": "drawback_912792560e4baf64",
+      "name": "Тощий",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Телосложение <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете -1 на проверки Силы и теряете 10% грузоподъёмности.\nВыгода: Вы получаете +1 к Защите.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:1038",
+        "native-drawback:t.jaljeq1rpes0:1044"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 3\u000bТребование: Телосложение <5\u000bОписание: Вы болезненно худой. Ваши кости обтянуты кожей, а мышцы почти отсутствуют.\u000bНедостаток: За каждый ранг вы получаете -1 на проверки Силы и теряете 10% грузоподъёмности.\u000bВыгода: Вы получаете +1 к Защите."
+      }
+    },
+    {
+      "id": "drawback_ed98d834fb063e6a",
+      "name": "Тугоухость",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -20,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Восприятие <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете -1 на проверки, связанные со слухом.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:1308",
+        "native-drawback:t.jaljeq1rpes0:1319"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -20\u000bРанги: 3\u000bТребование: Восприятие <5\u000bОписание: У вас плохо со слухом. Вы часто переспрашиваете и не замечаете тихих звуков.\u000bНедостаток: За каждый ранг вы получаете -1 на проверки, связанные со слухом."
+      }
+    },
+    {
+      "id": "drawback_b65d429f13c9b861",
+      "name": "Плохое зрение",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Восприятие <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете -1 на проверки, связанные со зрением.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:1534",
+        "native-drawback:t.jaljeq1rpes0:1548"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 3\u000bТребование: Восприятие <5\u000bОписание: Вы плохо видите. Мир для вас — размытые очертания и нечёткие детали.\u000bНедостаток: За каждый ранг вы получаете -1 на проверки, связанные со зрением."
+      }
+    },
+    {
+      "id": "drawback_3e782fa09f0c1c5a",
+      "name": "Крепкий сон",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы получаете штраф -4 и две помехи (вместо одной помехи и штрафа -2) на любые проверки Внимательности во время сна.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:1756",
+        "native-drawback:t.jaljeq1rpes0:1768"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 1\u000bТребование: —\u000bОписание: У вас невероятно крепкий сон. Разбудить вас — целая проблема.\u000bНедостаток: Вы получаете штраф -4 и две помехи (вместо одной помехи и штрафа -2) на любые проверки Внимательности во время сна."
+      }
+    },
+    {
+      "id": "drawback_9eb847f1372d56c6",
+      "name": "Лень",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Воля <5",
+      "benefit": "Недостаток: Любые проверки физических характеристик проходят с помехой, если они производятся не в опасной для жизни ситуации.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:2007",
+        "native-drawback:t.jaljeq1rpes0:2012"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 1\u000bТребование: Воля <5\u000bОписание: Вам сложно заставить себя что-то делать, а если и делаете, то нехотя.\u000bНедостаток: Любые проверки физических характеристик проходят с помехой, если они производятся не в опасной для жизни ситуации."
+      }
+    },
+    {
+      "id": "drawback_c784188e153ee981",
+      "name": "Увечье",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Выберите одну конечность (руку или ногу). Проверки, использующие эту конечность, получают штраф -2. При критическом провале на проверку с использованием этой конечности вы получаете 1d4 урона.\nОсобое: Может быть получено во время игры как следствие критического попадания.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:2264",
+        "native-drawback:t.jaljeq1rpes0:2271"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы получили серьёзную травму, которая оставила неизгладимый след на Вашем теле.\u000bНедостаток: Выберите одну конечность (руку или ногу). Проверки, использующие эту конечность, получают штраф -2. При критическом провале на проверку с использованием этой конечности вы получаете 1d4 урона.\u000bОсобое: Может быть получено во время игры как следствие критического попадания."
+      }
+    },
+    {
+      "id": "drawback_2d4c0614f0f0e6e3",
+      "name": "Хромота",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Ваш Бег уменьшается на 2. Вы получаете -2 на проверки Скрытности при попытке двигаться бесшумно.\nОсобое: Может быть получено во время игры как следствие травмы ноги.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:2685",
+        "native-drawback:t.jaljeq1rpes0:2693"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы хромаете при ходьбе. Ваша походка неровная и заметная.\u000bНедостаток: Ваш Бег уменьшается на 2. Вы получаете -2 на проверки Скрытности при попытке двигаться бесшумно.\u000bОсобое: Может быть получено во время игры как следствие травмы ноги."
+      }
+    },
+    {
+      "id": "drawback_d13a549cdbbd01ec",
+      "name": "Глухота",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы автоматически проваливаете все проверки, связанные со слухом. Вы получаете -4 к Инициативе. Вы не можете использовать заклинания с вербальным компонентом.\nВыгода: Вы получаете +2 к проверкам против эффектов, основанных на звуке (например, «Ужасающий крик»).",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:2978",
+        "native-drawback:t.jaljeq1rpes0:2986"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы полностью лишены слуха. Мир для вас — тишина.\u000bНедостаток: Вы автоматически проваливаете все проверки, связанные со слухом. Вы получаете -4 к Инициативе. Вы не можете использовать заклинания с вербальным компонентом.\u000bВыгода: Вы получаете +2 к проверкам против эффектов, основанных на звуке (например, «Ужасающий крик»)."
+      }
+    },
+    {
+      "id": "drawback_906b02bca8520a01",
+      "name": "Немота",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы не можете использовать заклинания с вербальным компонентом. Вы получаете -4 на проверки Красноречия, Запугивания и Лидерства (если не используете письменную речь или жесты).\nОсобое: Вы можете выучить язык жестов или использовать письменные принадлежности для общения.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:3357",
+        "native-drawback:t.jaljeq1rpes0:3364"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы не можете говорить. Вы общаетесь жестами, письмом или иными способами.\u000bНедостаток: Вы не можете использовать заклинания с вербальным компонентом. Вы получаете -4 на проверки Красноречия, Запугивания и Лидерства (если не используете письменную речь или жесты).\u000bОсобое: Вы можете выучить язык жестов или использовать письменные принадлежности для общения."
+      }
+    },
+    {
+      "id": "drawback_3931b4ab2c0edac1",
+      "name": "Слепота",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -60,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы автоматически проваливаете все проверки, связанные со зрением. Вы получаете -4 на все проверки атаки (кроме рукопашных атак по существам в пределах 1 метра). Вы теряете бонус Ловкости к Защите.\nВыгода: Вы получаете +4 к проверкам Внимательности (слух) и +2 к проверкам Внимательности (осязание).",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:3770",
+        "native-drawback:t.jaljeq1rpes0:3778"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -60\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы полностью лишены зрения. Мир для вас — звуки, запахи и прикосновения.\u000bНедостаток: Вы автоматически проваливаете все проверки, связанные со зрением. Вы получаете -4 на все проверки атаки (кроме рукопашных атак по существам в пределах 1 метра). Вы теряете бонус Ловкости к Защите.\u000bВыгода: Вы получаете +4 к проверкам Внимательности (слух) и +2 к проверкам Внимательности (осязание)."
+      }
+    },
+    {
+      "id": "drawback_67ce7c0d39c02ad6",
+      "name": "Дефект речи",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы получаете -2 на проверки Красноречия, Запугивания и Лидерства. Использование заклинаний с вербальным компонентом требует проверки Воли (Сл 12) — при провале заклинание не срабатывает.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:4211",
+        "native-drawback:t.jaljeq1rpes0:4223"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -20\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы заикаетесь или имеете иной дефект речи, который мешает вам говорить чётко.\u000bНедостаток: Вы получаете -2 на проверки Красноречия, Запугивания и Лидерства. Использование заклинаний с вербальным компонентом требует проверки Воли (Сл 12) — при провале заклинание не срабатывает."
+      }
+    },
+    {
+      "id": "drawback_b3c3e444fbf8d1cc",
+      "name": "Медленное заживление",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Телосложение <5",
+      "benefit": "Недостаток: Вы восстанавливаете вдвое меньше здоровья при отдыхе. Кровотечение на вас длится вдвое дольше.\nОсобое: Магическое лечение действует на вас нормально.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:4549",
+        "native-drawback:t.jaljeq1rpes0:4570"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 1\u000bТребование: Телосложение <5\u000bОписание: Ваше тело медленно восстанавливается после ран.\u000bНедостаток: Вы восстанавливаете вдвое меньше здоровья при отдыхе. Кровотечение на вас длится вдвое дольше.\u000bОсобое: Магическое лечение действует на вас нормально."
+      }
+    },
+    {
+      "id": "drawback_c75b605368cccbaf",
+      "name": "Тучность",
+      "section": "Недостатки",
+      "category": "Физические недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Телосложение >5",
+      "benefit": "Недостаток: За каждый ранг вы получаете -1 к Бегу, -1 к Защите и -1 на проверки Ловкости.\nВыгода: Вы получаете +1 к проверкам против сбивания и толкания за каждый ранг.\nОсобое: При 3 рангах ваш Бег не может быть ниже 1 метра.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:4843",
+        "native-drawback:t.jaljeq1rpes0:4852"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 3\u000bТребование: Телосложение >5\u000bОписание: Вы страдаете избыточным весом. Ваше тело массивно и неповоротливо.\u000bНедостаток: За каждый ранг вы получаете -1 к Бегу, -1 к Защите и -1 на проверки Ловкости.\u000bВыгода: Вы получаете +1 к проверкам против сбивания и толкания за каждый ранг.\u000bОсобое: При 3 рангах ваш Бег не может быть ниже 1 метра."
+      }
+    },
+    {
+      "id": "drawback_69875d76b5ca9d1a",
+      "name": "Зависимость",
+      "section": "Недостатки",
+      "category": "Психологические недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы должны удовлетворять свою зависимость раз в день. Если вы этого не делаете, вы получаете -2 на все проверки за каждый ранг зависимости. После 3 дней без удовлетворения вы получаете состояние «Ослабленный».\nОсобое: Вы можете потратить 1 пункт Выносливости, чтобы подавить желание на 1 час.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:5235",
+        "native-drawback:t.jaljeq1rpes0:5247"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы зависимы от определённого вещества или действия (алкоголь, наркотики, азартные игры, магия и т.п.).\u000bНедостаток: Вы должны удовлетворять свою зависимость раз в день. Если вы этого не делаете, вы получаете -2 на все проверки за каждый ранг зависимости. После 3 дней без удовлетворения вы получаете состояние «Ослабленный».\u000bОсобое: Вы можете потратить 1 пункт Выносливости, чтобы подавить желание на 1 час."
+      }
+    },
+    {
+      "id": "drawback_dfc13db9b8ea97a9",
+      "name": "Кошмары",
+      "section": "Недостатки",
+      "category": "Психологические недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Воля <5",
+      "benefit": "Недостаток: Вы восстанавливаете Выносливость на 1 пункт меньше при отдыхе за сутки. Вы получаете -2 на все проверки в течение первого часа после пробуждения.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:5703",
+        "native-drawback:t.jaljeq1rpes0:5711"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 1\u000bТребование: Воля <5\u000bОписание: Вас мучают кошмары. Ночь для вас — время ужаса.\u000bНедостаток: Вы восстанавливаете Выносливость на 1 пункт меньше при отдыхе за сутки. Вы получаете -2 на все проверки в течение первого часа после пробуждения."
+      }
+    },
+    {
+      "id": "drawback_5d2c7f01e06d22e6",
+      "name": "Мягкосердечность",
+      "section": "Недостатки",
+      "category": "Психологические недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 2,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы получаете -2 на все проверки атаки против существ, которые не могут защищаться или находятся в беспомощном состоянии. Вы должны пройти проверку Воли (Сл 12), чтобы причинить вред беззащитному существу.\nОсобое: При провале проверки вы не можете атаковать эту цель.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:5972",
+        "native-drawback:t.jaljeq1rpes0:5989"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 2\u000bТребование: —\u000bОписание: Вы не можете пройти мимо чужого страдания. Чужая боль отзывается в вашем сердце.\u000bНедостаток: Вы получаете -2 на все проверки атаки против существ, которые не могут защищаться или находятся в беспомощном состоянии. Вы должны пройти проверку Воли (Сл 12), чтобы причинить вред беззащитному существу.\u000bОсобое: При провале проверки вы не можете атаковать эту цель."
+      }
+    },
+    {
+      "id": "drawback_372a42ae123e9897",
+      "name": "Нервный тик",
+      "section": "Недостатки",
+      "category": "Психологические недостатки",
+      "cost": -20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы получаете -2 на проверки Скрытности. В стрессовых ситуациях (бой, погоня) вы должны пройти проверку Воли (Сл 10), иначе ваш тик выдаёт вас (если вы скрываетесь).",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:6398",
+        "native-drawback:t.jaljeq1rpes0:6410"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -20\u000bРанги: 1\u000bТребование: —\u000bОписание: У вас есть нервный тик — непроизвольное подёргивание, кашель или иное движение.\u000bНедостаток: Вы получаете -2 на проверки Скрытности. В стрессовых ситуациях (бой, погоня) вы должны пройти проверку Воли (Сл 10), иначе ваш тик выдаёт вас (если вы скрываетесь)."
+      }
+    },
+    {
+      "id": "drawback_5d446241ec98a632",
+      "name": "Паранойя",
+      "section": "Недостатки",
+      "category": "Психологические недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Воля <5",
+      "benefit": "Недостаток: Вы получаете -2 на проверки Красноречия и Лидерства при попытке убедить кого-то. Вы должны пройти проверку Воли (Сл 15), чтобы доверить союзнику важную задачу или информацию.\nВыгода: Вы получаете +2 на проверки Внимательности против скрытых угроз и проверки Воли против обмана.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:6716",
+        "native-drawback:t.jaljeq1rpes0:6725"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 1\u000bТребование: Воля <5\u000bОписание: Вы никому не доверяете. В каждом вы видите потенциального врага.\u000bНедостаток: Вы получаете -2 на проверки Красноречия и Лидерства при попытке убедить кого-то. Вы должны пройти проверку Воли (Сл 15), чтобы доверить союзнику важную задачу или информацию.\u000bВыгода: Вы получаете +2 на проверки Внимательности против скрытых угроз и проверки Воли против обмана."
+      }
+    },
+    {
+      "id": "drawback_f2d2e81b06338020",
+      "name": "Вспыльчивость",
+      "section": "Недостатки",
+      "category": "Психологические недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Воля <5",
+      "benefit": "Недостаток: Когда вас оскорбляют или провоцируют, вы должны пройти проверку Воли (Сл 12), иначе атакуете источник раздражения. Вы получаете -2 на проверки Красноречия и Лидерства в стрессовых ситуациях.\nВыгода: Вы получаете +2 к Инициативе в первом раунде боя.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:7135",
+        "native-drawback:t.jaljeq1rpes0:7149"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 1\u000bТребование: Воля <5\u000bОписание: Вы вспыхиваете как спичка. Малейшая провокация — и вы уже в ярости.\u000bНедостаток: Когда вас оскорбляют или провоцируют, вы должны пройти проверку Воли (Сл 12), иначе атакуете источник раздражения. Вы получаете -2 на проверки Красноречия и Лидерства в стрессовых ситуациях.\u000bВыгода: Вы получаете +2 к Инициативе в первом раунде боя."
+      }
+    },
+    {
+      "id": "drawback_a90f27a24a4b6b6c",
+      "name": "Лунатизм",
+      "section": "Недостатки",
+      "category": "Психологические недостатки",
+      "cost": -20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Раз в неделю (или чаще, на усмотрение Мастера) вы совершаете ночное действие. Вы получаете -4 на все проверки Внимательности во время сна. Вы можете покинуть безопасное место, не осознавая этого.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:7533",
+        "native-drawback:t.jaljeq1rpes0:7542"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -20\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы ходите во сне. Ваши ночные похождения могут быть опасны.\u000bНедостаток: Раз в неделю (или чаще, на усмотрение Мастера) вы совершаете ночное действие. Вы получаете -4 на все проверки Внимательности во время сна. Вы можете покинуть безопасное место, не осознавая этого."
+      }
+    },
+    {
+      "id": "drawback_189e0ce8b72ce9bb",
+      "name": "Фобия",
+      "section": "Недостатки",
+      "category": "Психологические недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Воля <5",
+      "benefit": "Недостаток: В присутствии объекта фобии вы получаете -2 на все проверки за каждый ранг фобии. Вы должны пройти проверку Воли (Сл 12 + ранг) каждый раунд, чтобы приблизиться к объекту фобии.\nОсобое: Вы не можете атаковать объект фобии без прохождения проверки.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:7859",
+        "native-drawback:t.jaljeq1rpes0:7865"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 3\u000bТребование: Воля <5\u000bОписание: Вы страдаете иррациональным страхом перед чем-то (высота, темнота, пауки, огонь, вода и т.п.).\u000bНедостаток: В присутствии объекта фобии вы получаете -2 на все проверки за каждый ранг фобии. Вы должны пройти проверку Воли (Сл 12 + ранг) каждый раунд, чтобы приблизиться к объекту фобии.\u000bОсобое: Вы не можете атаковать объект фобии без прохождения проверки."
+      }
+    },
+    {
+      "id": "drawback_229576df8d7bf1ec",
+      "name": "Трусость",
+      "section": "Недостатки",
+      "category": "Психологические недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Воля <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете 1 негативный фактор на все проверки против страха. Вы должны пройти проверку Воли (Сл 15), чтобы остаться в бою, если ваше здоровье ниже половины.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:8275",
+        "native-drawback:t.jaljeq1rpes0:8284"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 3\u000bТребование: Воля <5\u000bОписание: Вы боитесь опасности и предпочитаете избегать прямых столкновений.\u000bНедостаток: За каждый ранг вы получаете 1 негативный фактор на все проверки против страха. Вы должны пройти проверку Воли (Сл 15), чтобы остаться в бою, если ваше здоровье ниже половины."
+      }
+    },
+    {
+      "id": "drawback_c20b51bc6f083d58",
+      "name": "Уродство",
+      "section": "Недостатки",
+      "category": "Социальные недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Харизма <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете 1 негативный фактор на проверки Красноречия и Бартера (когда внешность имеет значение). Вы получаете +1 на проверки Запугивания за каждый ранг.\nОсобое: Некоторые существа могут отказаться иметь с вами дело.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:8615",
+        "native-drawback:t.jaljeq1rpes0:8624",
+        "native-drawback:t.jaljeq1rpes0:9242"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 3\u000bТребование: Харизма <5\u000bОписание: Ваша внешность вызывает отвращение или страх.\u000bНедостаток: За каждый ранг вы получаете 1 негативный фактор на проверки Красноречия и Бартера (когда внешность имеет значение). Вы получаете +1 на проверки Запугивания за каждый ранг.\u000bПримеры уродства:"
+      }
+    },
+    {
+      "id": "drawback_734f6bbbf0228e2f",
+      "name": "Одноглазый",
+      "section": "Недостатки",
+      "category": "Социальные недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: За каждый ранг вы получаете 1 негативный фактор на проверки Внимательности (зрение) и проверки, связанные с оценкой расстояния.\nОсобое: Во время игры вы можете выкупить недостаток (потратив опыт), чтобы остался только 1 ранг. Это может быть магическое исцеление, протез или иная сюжетная причина.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:9359",
+        "native-drawback:t.jaljeq1rpes0:9370"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы потеряли один глаз. Ваше поле зрения ограничено.\u000bНедостаток: За каждый ранг вы получаете 1 негативный фактор на проверки Внимательности (зрение) и проверки, связанные с оценкой расстояния.\u000bОсобое: Во время игры вы можете выкупить недостаток (потратив опыт), чтобы остался только 1 ранг. Это может быть магическое исцеление, протез или иная сюжетная причина."
+      }
+    },
+    {
+      "id": "drawback_a0dd05b109f33757",
+      "name": "Бестолковый",
+      "section": "Недостатки",
+      "category": "Социальные недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 2,
+      "requirements": "Интеллект <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете -1 на проверки Интеллекта и все проверки, связанные с обучением.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:9780",
+        "native-drawback:t.jaljeq1rpes0:9792"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 2\u000bТребование: Интеллект <5\u000bОписание: Вы медленно соображаете. Вам нужно время, чтобы понять даже простые вещи.\u000bНедостаток: За каждый ранг вы получаете -1 на проверки Интеллекта и все проверки, связанные с обучением."
+      }
+    },
+    {
+      "id": "drawback_01caa893a480cbdb",
+      "name": "Доверчивый",
+      "section": "Недостатки",
+      "category": "Социальные недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Интеллект <5 или Воля <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете -1 на проверки Проницательности (Внимательность + Интеллект) для распознания лжи и обмана.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:10031",
+        "native-drawback:t.jaljeq1rpes0:10042"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 3\u000bТребование: Интеллект <5 или Воля <5\u000bОписание: Вы верите людям на слово. Обмануть вас — проще простого.\u000bНедостаток: За каждый ранг вы получаете -1 на проверки Проницательности (Внимательность + Интеллект) для распознания лжи и обмана."
+      }
+    },
+    {
+      "id": "drawback_4a5f04735be68515",
+      "name": "Рукожоп",
+      "section": "Недостатки",
+      "category": "Социальные недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Ловкость <5",
+      "benefit": "Недостаток: Вы получаете -2 на все проверки Ремесла, Инженерного дела и Взлома. При критическом провале на любую проверку с использованием рук вы получаете 1d4 урона.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:10302",
+        "native-drawback:t.jaljeq1rpes0:10310"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 1\u000bТребование: Ловкость <5\u000bОписание: У вас руки не из того места растут. Всё, что вы делаете руками, получается криво.\u000bНедостаток: Вы получаете -2 на все проверки Ремесла, Инженерного дела и Взлома. При критическом провале на любую проверку с использованием рук вы получаете 1d4 урона."
+      }
+    },
+    {
+      "id": "drawback_b8d8f78bee179f6f",
+      "name": "Неуклюжесть",
+      "section": "Недостатки",
+      "category": "Социальные недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 2,
+      "requirements": "Ловкость <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете -1 на проверки Атлетики (лазание, прыжки) и Скрытности. Вы получаете -1 к Защите.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:10618",
+        "native-drawback:t.jaljeq1rpes0:10630"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 2\u000bТребование: Ловкость <5\u000bОписание: Вы неуклюжи. Ваши движения неловки и плохо скоординированы.\u000bНедостаток: За каждый ранг вы получаете -1 на проверки Атлетики (лазание, прыжки) и Скрытности. Вы получаете -1 к Защите."
+      }
+    },
+    {
+      "id": "drawback_181a437917c503e7",
+      "name": "Слабак (Сила)",
+      "section": "Недостатки",
+      "category": "Недостатки, снижающие характеристики",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: За каждый ранг ваша Сила снижается на 1.\nОсобое: Если ваша Сила опускается до 0 или ниже, вы не можете носить оружие, требующее Силы, и не можете совершать силовые проверки.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:11128",
+        "native-drawback:t.jaljeq1rpes0:11142"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы физически слабы. Ваши мышцы не развиты, а тело не знает нагрузки.\u000bНедостаток: За каждый ранг ваша Сила снижается на 1.\u000bОсобое: Если ваша Сила опускается до 0 или ниже, вы не можете носить оружие, требующее Силы, и не можете совершать силовые проверки."
+      }
+    },
+    {
+      "id": "drawback_2523e7a7a3a97101",
+      "name": "Хилый (Телосложение)",
+      "section": "Недостатки",
+      "category": "Недостатки, снижающие характеристики",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: За каждый ранг ваше Телосложение снижается на 1.\nОсобое: Если ваше Телосложение опускается до 0 или ниже, вы получаете состояние «Ослабленный» перманентно.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:11446",
+        "native-drawback:t.jaljeq1rpes0:11467"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы болезненны и слабы телом. Ваш организм не выдерживает нагрузок.\u000bНедостаток: За каждый ранг ваше Телосложение снижается на 1.\u000bОсобое: Если ваше Телосложение опускается до 0 или ниже, вы получаете состояние «Ослабленный» перманентно."
+      }
+    },
+    {
+      "id": "drawback_a0f942e069cc9556",
+      "name": "Неуклюжий (Ловкость)",
+      "section": "Недостатки",
+      "category": "Недостатки, снижающие характеристики",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: За каждый ранг ваша Ловкость снижается на 1.\nОсобое: Если ваша Ловкость опускается до 0 или ниже, вы не можете совершать действия, требующие точности (взлом, метание, акробатика).",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:11751",
+        "native-drawback:t.jaljeq1rpes0:11772"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы неповоротливы. Ваши движения лишены точности и координации.\u000bНедостаток: За каждый ранг ваша Ловкость снижается на 1.\u000bОсобое: Если ваша Ловкость опускается до 0 или ниже, вы не можете совершать действия, требующие точности (взлом, метание, акробатика)."
+      }
+    },
+    {
+      "id": "drawback_e2fa776810fa04f3",
+      "name": "Медлительный (Скорость)",
+      "section": "Недостатки",
+      "category": "Недостатки, снижающие характеристики",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: За каждый ранг ваша Скорость снижается на 1.\nОсобое: Если ваша Скорость опускается до 0 или ниже, ваш Бег становится минимальным (1 метр), и вы не можете совершать рывки.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:12076",
+        "native-drawback:t.jaljeq1rpes0:12100"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы медлительны. Ваше тело не слушается вас так быстро, как хотелось бы.\u000bНедостаток: За каждый ранг ваша Скорость снижается на 1.\u000bОсобое: Если ваша Скорость опускается до 0 или ниже, ваш Бег становится минимальным (1 метр), и вы не можете совершать рывки."
+      }
+    },
+    {
+      "id": "drawback_de922465326abd46",
+      "name": "Тупица (Интеллект)",
+      "section": "Недостатки",
+      "category": "Недостатки, снижающие характеристики",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: За каждый ранг ваш Интеллект снижается на 1.\nОсобое: Если ваш Интеллект опускается до 0 или ниже, вы не можете читать, писать и говорить более чем на одном языке (примитивном).",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:12404",
+        "native-drawback:t.jaljeq1rpes0:12423"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы не блещете умом. Вам сложно усваивать новую информацию и решать сложные задачи.\u000bНедостаток: За каждый ранг ваш Интеллект снижается на 1.\u000bОсобое: Если ваш Интеллект опускается до 0 или ниже, вы не можете читать, писать и говорить более чем на одном языке (примитивном)."
+      }
+    },
+    {
+      "id": "drawback_3399d4ec1a5975fc",
+      "name": "Безвольный (Воля)",
+      "section": "Недостатки",
+      "category": "Недостатки, снижающие характеристики",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: За каждый ранг ваша Воля снижается на 1.\nОсобое: Если ваша Воля опускается до 0 или ниже, вы автоматически проваливаете все проверки против эффектов очарования, запугивания и страха.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:12744",
+        "native-drawback:t.jaljeq1rpes0:12762"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы слабы духом. Вас легко сломать и подчинить.\u000bНедостаток: За каждый ранг ваша Воля снижается на 1.\u000bОсобое: Если ваша Воля опускается до 0 или ниже, вы автоматически проваливаете все проверки против эффектов очарования, запугивания и страха."
+      }
+    },
+    {
+      "id": "drawback_10c5fa534ffe4613",
+      "name": "Невыразительный (Харизма)",
+      "section": "Недостатки",
+      "category": "Недостатки, снижающие характеристики",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: За каждый ранг ваша Харизма снижается на 1.\nОсобое: Если ваша Харизма опускается до 0 или ниже, все существа, кроме ваших близких союзников, относятся к вам равнодушно или с лёгкой неприязнью при первой встрече.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:13053",
+        "native-drawback:t.jaljeq1rpes0:13079"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы невыразительны. Ваша внешность и манера общения не производят впечатления.\u000bНедостаток: За каждый ранг ваша Харизма снижается на 1.\u000bОсобое: Если ваша Харизма опускается до 0 или ниже, все существа, кроме ваших близких союзников, относятся к вам равнодушно или с лёгкой неприязнью при первой встрече."
+      }
+    },
+    {
+      "id": "drawback_8ec48b76b983d1a2",
+      "name": "Рассеянный (Восприятие)",
+      "section": "Недостатки",
+      "category": "Недостатки, снижающие характеристики",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "—",
+      "benefit": "Недостаток: За каждый ранг ваше Восприятие снижается на 1.\nОсобое: Если ваше Восприятие опускается до 0 или ниже, ваша пассивная внимательность становится равна 0, и вы автоматически проваливаете все проверки Внимательности.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:13430",
+        "native-drawback:t.jaljeq1rpes0:13454"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 3\u000bТребование: —\u000bОписание: Вы витаете в облаках. Мир вокруг проходит мимо вас.\u000bНедостаток: За каждый ранг ваше Восприятие снижается на 1.\u000bОсобое: Если ваше Восприятие опускается до 0 или ниже, ваша пассивная внимательность становится равна 0, и вы автоматически проваливаете все проверки Внимательности."
+      }
+    },
+    {
+      "id": "drawback_582ac3b755907559",
+      "name": "Медленный ученик",
+      "section": "Недостатки",
+      "category": "Дополнительные недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Интеллект <5",
+      "benefit": "Недостаток: Время, необходимое для изучения новых навыков и умений, увеличивается на 25%.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:13807",
+        "native-drawback:t.jaljeq1rpes0:13824"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 1\u000bТребование: Интеллект <5\u000bОписание: Вы медленно учитесь. Вам требуется больше времени, чтобы освоить новое.\u000bНедостаток: Время, необходимое для изучения новых навыков и умений, увеличивается на 25%."
+      }
+    },
+    {
+      "id": "drawback_62721ea71eec51cb",
+      "name": "Не в форме",
+      "section": "Недостатки",
+      "category": "Дополнительные недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 2,
+      "requirements": "Телосложение <5",
+      "benefit": "Недостаток: За каждый ранг вы перманентно теряете 1 пункт Выносливости.\nОсобое: При 2 рангах вы теряете 2 пункта Выносливости навсегда.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:14046",
+        "native-drawback:t.jaljeq1rpes0:14057"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 2\u000bТребование: Телосложение <5\u000bОписание: Вы не в форме. Ваше тело не готово к нагрузкам.\u000bНедостаток: За каждый ранг вы перманентно теряете 1 пункт Выносливости.\u000bОсобое: При 2 рангах вы теряете 2 пункта Выносливости навсегда."
+      }
+    },
+    {
+      "id": "drawback_d0bb45960865f56a",
+      "name": "Немощность",
+      "section": "Недостатки",
+      "category": "Дополнительные недостатки",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Сила <3 и Телосложение <3",
+      "benefit": "Недостаток: Вы не можете носить среднюю и тяжёлую броню. Вы получаете -4 на все проверки Атлетики. Ваш Бег уменьшается на 3. За каждый ранг вы получаете дополнительный штраф -1 на все проверки, связанные с физическими нагрузками.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:14304",
+        "native-drawback:t.jaljeq1rpes0:14315"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 3\u000bТребование: Сила <3 и Телосложение <3\u000bОписание: Вы физически немощны. Ваше тело не способно на серьёзные нагрузки.\u000bНедостаток: Вы не можете носить среднюю и тяжёлую броню. Вы получаете -4 на все проверки Атлетики. Ваш Бег уменьшается на 3. За каждый ранг вы получаете дополнительный штраф -1 на все проверки, связанные с физическими нагрузками."
+      }
+    },
+    {
+      "id": "drawback_841b6bc13a405ee3",
+      "name": "Тугодум",
+      "section": "Недостатки",
+      "category": "Дополнительные недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Интеллект <4",
+      "benefit": "Недостаток: Вы получаете -4 на проверки Знаний (все). Вы не можете использовать навыки, требующие сложного анализа (Инженерное дело, Компьютеры) без помощи союзника.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:14684",
+        "native-drawback:t.jaljeq1rpes0:14692"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 1\u000bТребование: Интеллект <4\u000bОписание: Вы с трудом понимаете сложные концепции.\u000bНедостаток: Вы получаете -4 на проверки Знаний (все). Вы не можете использовать навыки, требующие сложного анализа (Инженерное дело, Компьютеры) без помощи союзника."
+      }
+    },
+    {
+      "id": "drawback_4075693430ca928a",
+      "name": "Рассеянный (дополнительный)",
+      "section": "Недостатки",
+      "category": "Дополнительные недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Восприятие <5",
+      "benefit": "Недостаток: Вы получаете -2 на проверки Внимательности. Вы должны проходить проверку Воли (Сл 10) каждый час, чтобы не потерять концентрацию на текущей задаче.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:14959",
+        "native-drawback:t.jaljeq1rpes0:14987"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 1\u000bТребование: Восприятие <5\u000bОписание: Вы рассеяны. Ваше внимание постоянно переключается.\u000bНедостаток: Вы получаете -2 на проверки Внимательности. Вы должны проходить проверку Воли (Сл 10) каждый час, чтобы не потерять концентрацию на текущей задаче."
+      }
+    },
+    {
+      "id": "drawback_a395a18880e8ec4a",
+      "name": "Медлительность",
+      "section": "Недостатки",
+      "category": "Дополнительные недостатки",
+      "cost": -40,
+      "costType": "xp",
+      "ranks": 2,
+      "requirements": "Скорость <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете -2 к Инициативе.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:15260",
+        "native-drawback:t.jaljeq1rpes0:15275"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -40\u000bРанги: 2\u000bТребование: Скорость <5\u000bОписание: Вы медлительны. Ваши реакции замедлены.\u000bНедостаток: За каждый ранг вы получаете -2 к Инициативе."
+      }
+    },
+    {
+      "id": "drawback_03a5a7df38f1941c",
+      "name": "Заторможенная реакция",
+      "section": "Недостатки",
+      "category": "Дополнительные недостатки",
+      "cost": -30,
+      "costType": "xp",
+      "ranks": 3,
+      "requirements": "Ловкость <5",
+      "benefit": "Недостаток: За каждый ранг вы получаете -1 на проверки Рефлексов.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:15431",
+        "native-drawback:t.jaljeq1rpes0:15453"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -30\u000bРанги: 3\u000bТребование: Ловкость <5\u000bОписание: Ваши рефлексы притуплены. Вы не успеваете реагировать на опасность.\u000bНедостаток: За каждый ранг вы получаете -1 на проверки Рефлексов."
+      }
+    },
+    {
+      "id": "drawback_ed3b6fca77c9b5cd",
+      "name": "Медленное чтение",
+      "section": "Недостатки",
+      "category": "Дополнительные недостатки",
+      "cost": -20,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "Интеллект <5",
+      "benefit": "Недостаток: Время, необходимое для чтения и изучения документов, удваивается. Вы получаете -2 на проверки, связанные с быстрым чтением или поиском информации в тексте.",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:15646",
+        "native-drawback:t.jaljeq1rpes0:15663"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -20\u000bРанги: 1\u000bТребование: Интеллект <5\u000bОписание: Вы читаете медленно, по слогам.\u000bНедостаток: Время, необходимое для чтения и изучения документов, удваивается. Вы получаете -2 на проверки, связанные с быстрым чтением или поиском информации в тексте."
+      }
+    },
+    {
+      "id": "drawback_931cebd9c6274542",
+      "name": "Неудачник",
+      "section": "Недостатки",
+      "category": "Дополнительные недостатки",
+      "cost": -50,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Один раз за игровой день Мастер может заставить вас перебросить успешную проверку (результат второго броска обязателен).\nОсобое: Вы не можете брать способность «Удача».",
+      "tags": [
+        "Недостатки"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:15923",
+        "native-drawback:t.jaljeq1rpes0:15933"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: -50\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы неудачливы. Судьба словно играет против вас.\u000bНедостаток: Один раз за игровой день Мастер может заставить вас перебросить успешную проверку (результат второго броска обязателен).\u000bОсобое: Вы не можете брать способность «Удача»."
+      }
+    },
+    {
+      "id": "drawback_a5a24082b1ceb7c2",
+      "name": "Потеря руки",
+      "section": "Недостатки",
+      "category": "Особые недостатки (приобретаемые в игре)",
+      "cost": 0,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы не можете использовать двуручное оружие. Все действия, требующие двух рук, невозможны. Вы получаете -4 на проверки, требующие использования рук.",
+      "tags": [
+        "Недостатки",
+        "Событийные"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:16401",
+        "native-drawback:t.jaljeq1rpes0:16413"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: —\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы потеряли руку.\u000bНедостаток: Вы не можете использовать двуручное оружие. Все действия, требующие двух рук, невозможны. Вы получаете -4 на проверки, требующие использования рук."
+      }
+    },
+    {
+      "id": "drawback_f1fc28e73f27d88e",
+      "name": "Потеря ноги",
+      "section": "Недостатки",
+      "category": "Особые недостатки (приобретаемые в игре)",
+      "cost": 0,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Ваш Бег уменьшается вдвое. Вы не можете совершать рывки и атаки с разбега. Вы получаете -4 на проверки Атлетики (прыжки, лазание) и Акробатики.",
+      "tags": [
+        "Недостатки",
+        "Событийные"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:16638",
+        "native-drawback:t.jaljeq1rpes0:16650"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: —\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы потеряли ногу.\u000bНедостаток: Ваш Бег уменьшается вдвое. Вы не можете совершать рывки и атаки с разбега. Вы получаете -4 на проверки Атлетики (прыжки, лазание) и Акробатики."
+      }
+    },
+    {
+      "id": "drawback_a7d776728b59b789",
+      "name": "Шрам",
+      "section": "Недостатки",
+      "category": "Особые недостатки (приобретаемые в игре)",
+      "cost": 0,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Вы получаете -2 на проверки Красноречия и Бартера (когда внешность имеет значение). Вы получаете +1 на проверки Запугивания.",
+      "tags": [
+        "Недостатки",
+        "Событийные"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:16871",
+        "native-drawback:t.jaljeq1rpes0:16876"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: —\u000bРанги: 1\u000bТребование: —\u000bОписание: У вас остался уродливый шрам от тяжёлой раны.\u000bНедостаток: Вы получаете -2 на проверки Красноречия и Бартера (когда внешность имеет значение). Вы получаете +1 на проверки Запугивания."
+      }
+    },
+    {
+      "id": "drawback_b00e4507bec12ef6",
+      "name": "Посттравматический синдром",
+      "section": "Недостатки",
+      "category": "Особые недостатки (приобретаемые в игре)",
+      "cost": 0,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: В ситуациях, напоминающих о травме, вы должны пройти проверку Воли (Сл 15), иначе получаете состояние «Испуганный» на 1d4 раунда.",
+      "tags": [
+        "Недостатки",
+        "Событийные"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:17106",
+        "native-drawback:t.jaljeq1rpes0:17133"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: —\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы пережили ужасное событие, которое оставило след в вашей психике.\u000bНедостаток: В ситуациях, напоминающих о травме, вы должны пройти проверку Воли (Сл 15), иначе получаете состояние «Испуганный» на 1d4 раунда."
+      }
+    },
+    {
+      "id": "drawback_cff1163a13cd6d7d",
+      "name": "Проклятие",
+      "section": "Недостатки",
+      "category": "Особые недостатки (приобретаемые в игре)",
+      "cost": 0,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "—",
+      "benefit": "Недостаток: Один раз в день Мастер может наложить на вас один негативный эффект (помеха на проверку, -2 к характеристике, 1d4 урона и т.п.) по своему усмотрению.\nОсобое: Проклятие можно снять только сюжетно (квест, ритуал, божественное вмешательство).",
+      "tags": [
+        "Недостатки",
+        "Событийные"
+      ],
+      "sourceRefs": [
+        "native-drawback:t.jaljeq1rpes0:17390",
+        "native-drawback:t.jaljeq1rpes0:17400"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.jaljeq1rpes0",
+        "paragraph": null,
+        "originalText": "Стоимость: —\u000bРанги: 1\u000bТребование: —\u000bОписание: Вы прокляты. Тёмная сила преследует вас.\u000bНедостаток: Один раз в день Мастер может наложить на вас один негативный эффект (помеха на проверку, -2 к характеристике, 1d4 урона и т.п.) по своему усмотрению.\u000bОсобое: Проклятие можно снять только сюжетно (квест, ритуал, божественное вмешательство)."
+      }
+    },
+    {
+      "id": "weapon_proficiency_template",
+      "name": "Владение оружием",
+      "section": "Владение оружием",
+      "category": "Владение оружием",
+      "cost": null,
+      "costType": "xp",
+      "ranks": 1,
+      "requirements": "",
+      "benefit": "Владение выбранной группой оружия.",
+      "notes": "При создании персонажа — одна группа за каждые 2 ранга боевого умения. Обычная цена покупки в источнике не указана.",
+      "incomplete": true,
+      "repeatable": true,
+      "acquisitionSourceRef": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "documentVersion": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "sheet": "t.8ytvz7nqjhpl",
+        "paragraph": 1,
+        "originalText": "СТРЕЛЬБА, ХОЛОДНОЕ ОРУЖИЕ, РУКОПАШНЫЙ БОЙ И МЕТАНИЕ"
+      }
+    }
+  ]
+}

@@ -6,7 +6,8 @@ import gc
 import json
 from pathlib import Path
 
-from .import_acquisition import build_acquisition_catalogs, correct_development_payload
+from .import_acquisition import (build_acquisition_catalogs, correct_development_payload,
+                                 build_native_development_supplement)
 from .extract_docx import extract_docx, write_json
 from .diagnostics import make_diagnostic
 from .provenance import attach_provenance
@@ -247,7 +248,8 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
             ability_diagnostics.extend(compare_ability_roots_runtime(ability_candidate, runtime_development))
         promoted_ability = promote_ability_roots(ability_candidate, ability_bindings, version="3.69")
         _write(ability_candidate, output_dir / "content/development_ability_roots_source.json")
-        _write(promoted_ability, output_dir / "content/development_ability_roots.json")
+        _write(correct_development_payload(promoted_ability, repo_root) if acquisition_enabled else promoted_ability,
+               output_dir / "content/development_ability_roots.json")
         all_diagnostics.extend(ability_diagnostics)
         ability_total = len(ability_bindings.get("bindings", []))
         ability_linked = len(ability_candidate.get("entries", []))
@@ -278,6 +280,9 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
         if any(entry.get("section") == "Боевые искусства" for entry in runtime_development.get("entries", [])):
             martial_diagnostics.extend(compare_martial_runtime(martial_candidate, runtime_development))
         promoted_martial = promote_martial_arts(martial_candidate, version="3.69")
+        if (repo_root / "rulesets/dubl-3.69/acquisition/native_martial_rules.json").exists():
+            from .native_martial_rules import correct_native_martial_payload
+            promoted_martial = correct_native_martial_payload(promoted_martial, repo_root)
         _write(martial_candidate, output_dir / "content/development_martial_source.json")
         _write(promoted_martial, output_dir / "content/development_martial.json")
         all_diagnostics.extend(martial_diagnostics)
@@ -383,6 +388,9 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
             "spells": promoted_core.get("spells", []) + promoted_archmage.get("spells", []),
             "gear": promoted_gear.get("gear", []),
         }
+        if (repo_root / "rulesets/dubl-3.69/acquisition/native_magic_supplement_rules.json").exists():
+            from .native_magic_supplement import correct_native_magic_equipment_payload
+            promoted_magic = correct_native_magic_equipment_payload(promoted_magic, repo_root)
         _write(core_spell_payload, output_dir / "content/magic_core_source.json")
         _write(archmage_spell_payload, output_dir / "content/magic_archmage_source.json")
         _write(gear_payload, output_dir / "content/equipment_source.json")
@@ -390,6 +398,11 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
         all_diagnostics.extend(magic_source_diagnostics)
         total = len(json.loads(spell_bindings_path.read_text(encoding="utf-8")).get("core", [])) + len(json.loads(spell_bindings_path.read_text(encoding="utf-8")).get("archmage", [])) + len(json.loads(gear_bindings_path.read_text(encoding="utf-8")).get("bindings", [])) if spell_bindings_path.exists() and gear_bindings_path.exists() else 1
         linked = len(core_spell_payload.get("spells", [])) + len(archmage_spell_payload.get("spells", [])) + len(gear_payload.get("gear", []))
+        if (repo_root / "rulesets/dubl-3.69/acquisition/native_magic_supplement_rules.json").exists():
+            from .native_magic_supplement import load_native_magic_supplement
+            supplement_spell_count = sum(r['kind'] == 'SPELL' for r in load_native_magic_supplement(repo_root)['records'])
+            total += supplement_spell_count
+            linked += supplement_spell_count
         source_errors = sum(1 for d in magic_source_diagnostics if d.get("severity") == "error")
         domains["magic_equipment"] = domain_meta("magic_equipment", {
             "status": "source_generated",
@@ -460,14 +473,46 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
                 )]
                 binding_count = len(bindings.get("bindings", []))
                 skill_coverage = {"total": binding_count, "linked": 0, "ambiguous": 0, "missing": binding_count}
+        if (repo_root / "rulesets/dubl-3.69/acquisition/native_magic_supplement_rules.json").exists():
+            from .native_magic_supplement import correct_native_magic_skills_payload
+            skills_payload = correct_native_magic_skills_payload(skills_payload, repo_root)
+            skill_coverage["total"] += 1
+            skill_coverage["linked"] += 1
         _write(skills_payload, output_dir / "content/skills.json")
         all_diagnostics.extend(skill_diagnostics)
         domains["skills"] = domain_meta("skills", {
             "status": "source_generated_candidate",
-            "sourcePolicy": ["core"],
+            "sourcePolicy": ["core", "archmage"] if (repo_root / "rulesets/dubl-3.69/acquisition/native_magic_supplement_rules.json").exists() else ["core"],
             "bindings": "rulesets/dubl-3.69/bindings/skills.json",
             "output": "content/skills.json",
             "coverage": skill_coverage,
+        })
+
+    if acquisition_enabled and (repo_root / "rulesets/dubl-3.69/acquisition/native_occurrence_bindings.json").exists():
+        native_supplement = build_native_development_supplement(repo_root)
+        _write(native_supplement, output_dir / "content/development_native_supplement.json")
+        domains["development_native_supplement"] = domain_meta("development_native_supplement", {
+            "status": "source_generated",
+            "sourcePolicy": ["core"],
+            "bindings": [str(p.relative_to(repo_root)) for p in [
+                repo_root / "rulesets/dubl-3.69/acquisition/native_occurrence_bindings.json",
+                repo_root / "rulesets/dubl-3.69/acquisition/native_drawback_rules.json",
+                repo_root / "rulesets/dubl-3.69/acquisition/native_weapon_proficiencies.json"] if p.exists()],
+            "output": "content/development_native_supplement.json",
+            "coverage": {"total": len(native_supplement["entries"]),
+                         "linked": len(native_supplement["entries"]), "ambiguous": 0, "missing": 0},
+        })
+
+    if acquisition_enabled and (repo_root / "rulesets/dubl-3.69/acquisition/native_magic_supplement_rules.json").exists():
+        from .native_magic_supplement import native_magic_development_payload
+        native_magic = native_magic_development_payload(repo_root)
+        _write(native_magic, output_dir / "content/development_native_magic.json")
+        domains["development_native_magic"] = domain_meta("development_native_magic", {
+            "status": "source_generated", "sourcePolicy": ["archmage"],
+            "bindings": "rulesets/dubl-3.69/acquisition/native_magic_supplement_rules.json",
+            "output": "content/development_native_magic.json",
+            "coverage": {"total": len(native_magic["entries"]), "linked": len(native_magic["entries"]),
+                         "ambiguous": 0, "missing": 0},
         })
 
     if domain_config.get("skill_effects", {}).get("status") == "source_generated":
@@ -491,6 +536,8 @@ def build_ruleset(source_or_sources: Path | dict[str, Path], repo_root: Path, ou
                 "development_martial.json",
                 "development_chi.json",
                 "development_magic.json",
+                "development_native_supplement.json",
+                "development_native_magic.json",
             ):
                 path = output_dir / "content" / filename
                 if path.exists():

@@ -35,7 +35,9 @@ def test_actual_source_corrections_and_parent_question():
     assert eagle['priceRule']['sourceRef']['resolutionId'] == 'UR_FIXED_DEVELOPMENT_PRICE_PER_RANK'
     assert eagle['priceRule']['xp'] == '45'
     assert eagle['priceRule']['sourceRef']['paragraph'] == 13387
-    assert any(n.get('reason') == 'Q_EAGLE_PARENT_ACCESS' for n in nodes(eagle['requirements']))
+    assert not any(n.get('reason') == 'Q_EAGLE_PARENT_ACCESS' for n in nodes(eagle['requirements']))
+    assert any(n['type'] == 'BranchAccess' and n['branchId'] == 'access_3fa2fc858d18365b'
+               for n in nodes(eagle['requirements']))
 
 
 def test_display_corrections_remove_only_obsolete_price_incomplete():
@@ -56,8 +58,10 @@ def test_martial_tail_preserved():
         tree = es[entry]['requirements']
         assert tree['type'] == 'AllOf'
         assert any(n['type'] == 'AnyOf' for n in nodes(tree))
-        assert any(n['sourceRef']['originalText'] == tail for n in tree['children'])
-        assert any(n['type'] == 'Unresolved' and 'source-unverified' in n['reason'] for n in nodes(tree))
+        assert any(n['sourceRef']['originalText'] == tail and n['type'] == 'OwnedRank' for n in nodes(tree))
+        assert any(n.get('reason') == 'conflicting-current-native-martial-variants' for n in nodes(tree))
+        assert not any(n['type'] == 'Unresolved' and 'source-unverified' in n['reason'] for n in nodes(tree))
+        assert tree['sourceRef']['documentId'] == '1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0'
 
 
 def test_spell_reference_not_feat_alias():
@@ -73,7 +77,8 @@ def test_spell_reference_not_feat_alias():
     assert only_spell['type'] == 'LearnedSpell'
     actual = entries()['feat_5368c7691988fd41']['requirements']
     assert any(n['type'] == 'LearnedSpell' and n['entryId'] == 'spell_e3bebd434e638daa' for n in nodes(actual))
-    assert any(n['type'] == 'Unresolved' and n['reason'] == 'source-unverified' for n in nodes(actual))
+    assert not any(n['type'] == 'Unresolved' and n['reason'] == 'source-unverified' for n in nodes(actual))
+    assert actual['sourceRef']['documentId'] == '1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg'
 
 
 def test_smetanie_not_above_max_but_world_burner_is():
@@ -147,14 +152,16 @@ def test_invalid_or_alternative_stays_local_and_potential_scc_does_not_block():
     assert fixed[1]['requirements']['type'] == 'OwnedRank'
     assert any(d['kind'] == 'dependency-cycle' for d in diagnostics)
     actual = entries()['feat_963c20ec0c14be88']['requirements']
-    heavy = [n for n in nodes(actual) if n['type'] == 'AnyOf' and any('Мастер тяжелого оружия' in x.get('reason', '') for x in n['children'])]
+    heavy = [n for n in nodes(actual) if n['type'] == 'AnyOf' and any(x.get('entryId') == 'feat_b13c4d437b322235' for x in n['children'])]
     assert len(heavy) == 1
+    assert all(n['type'] == 'OwnedRank' for n in heavy[0]['children'])
     assert not any('Мастер тяжелого оружия' in n.get('reason', '') for n in actual.get('children', []))
 
 
 def test_source_knowledge_weapon_qualifier_and_distinct_cries_are_typed():
     es = entries()
-    knowledge = es['feat_cd965f927a426cc2']['requirements']
+    knowledge = next(n for n in nodes(es['feat_cd965f927a426cc2']['requirements'])
+                     if n['type'] == 'SkillFamily' and n['sourceRef']['paragraph'] == 10530)
     assert knowledge['type'] == 'SkillFamily'
     assert (knowledge['familyId'], knowledge['operand']) == ('knowledge', 4)
     assert knowledge['sourceRef']['paragraph'] == 10530
@@ -245,8 +252,11 @@ def test_duplicate_occurrences_confirm_price_without_choosing_admission_context(
     definition = es['feat_a1b2117d80ed94e3']
     assert definition['sourceStatus'] == 'NeedsResolution'
     assert definition['priceRule']['xp'] == '40'
-    assert definition['requirements']['type'] == 'Unresolved'
-    assert 'duplicate-source-context' in definition['requirements']['reason']
+    # The price helper never chooses admission. A separately cited native binding
+    # now proves these two occurrences have the same prerequisites.
+    assert definition['requirements']['type'] == 'AllOf'
+    assert [(n['type'], n.get('entryId', n.get('familyId')), n['operand']) for n in definition['requirements']['children']] == [
+        ('OwnedRank', 'feat_7a05da069e5a5667', 1), ('SkillFamily', 'barter', 4), ('SkillFamily', 'eloquence', 2)]
     assert len([key for key in definition['classificationSources'] if key.startswith('price:')]) == 2
     mutated = copy.deepcopy(source)
     price_ref = price['sources'][1]

@@ -204,14 +204,19 @@ private fun decodeEntry(value: JsonValue.Obj): LedgerEntry {
         RuleVersions(versions.text("catalogRevision"), versions.text("resolutionRevision")), value.optionalText("reversesId"),
         value.phase("creationPhase"), value.text("evidenceCanonical"))
 }
-private fun encodeChange(change: AcquisitionChange) = jsonObject(
+private fun encodeChange(change: AcquisitionChange): JsonValue.Obj = jsonObject(
     "kind" to jsonString(change.kind.name), "definition" to encodeDefinition(change.definition),
     "instanceId" to jsonString(change.instanceId), "fromRank" to jsonNumber(change.fromRank), "toRank" to jsonNumber(change.toRank),
-    "parameters" to stringMap(change.parameters), "optionId" to nullable(change.optionId))
+    "parameters" to stringMap(change.parameters), "optionId" to nullable(change.optionId)).let {
+        if (change.paymentOption) JsonValue.Obj(it.values + ("paymentOption" to jsonBoolean(true))) else it
+    }
 private fun decodeChange(value: JsonValue.Obj): AcquisitionChange {
-    value.keys("kind", "definition", "instanceId", "fromRank", "toRank", "parameters", "optionId")
+    val payment = "paymentOption" in value.values
+    value.keys(*(listOf("kind", "definition", "instanceId", "fromRank", "toRank", "parameters", "optionId") +
+        if (payment) listOf("paymentOption") else emptyList()).toTypedArray())
+    if (payment) require(value.values["paymentOption"] == jsonBoolean(true)) { "Only an explicit true payment marker may be stored" }
     return AcquisitionChange(AcquisitionKind.valueOf(value.text("kind")), decodeDefinition(value.objectRequired("definition")),
-        value.text("instanceId"), value.number("fromRank"), value.number("toRank"), value.strings("parameters"), value.optionalText("optionId"))
+        value.text("instanceId"), value.number("fromRank"), value.number("toRank"), value.strings("parameters"), value.optionalText("optionId"), payment)
 }
 private fun encodeDefinition(value: DefinitionRef) = jsonObject("packId" to jsonString(value.packId), "entryId" to jsonString(value.entryId))
 private fun decodeDefinition(value: JsonValue.Obj): DefinitionRef {
@@ -543,8 +548,18 @@ private fun copiedHoldingChain(state:StoredCharacter,initial:AcquisitionInstance
             changes.forEach { change ->
                 val prior=requireNotNull(expected) { "Paid change lacks preceding holding" }
                 require(change.kind==kind && change.definition==prior.definition && change.parameters==prior.parameters &&
-                    change.optionId==prior.abilityOptionId && change.fromRank==prior.rank && change.toRank>0)
-                expected=prior.copy(rank=change.toRank)
+                    (change.paymentOption || change.optionId==prior.abilityOptionId) && change.fromRank==prior.rank && change.toRank>0)
+                val retainedOption = if (change.paymentOption && later.type == LedgerEntryType.Undo) {
+                    val original = state.ledger.entries.single { it.operationId == later.reversesId }
+                    require(original.changes.asReversed().map { it.copy(fromRank=it.toRank,toRank=it.fromRank) } == later.changes)
+                    val first = original.changes.first { it.instanceId == initial.instanceId }
+                    if (change.toRank == first.fromRank) {
+                        val proof = requireNotNull(decodeAcquisitionUndoEvidence(original.evidenceCanonical))
+                        val before = requireCanonical(proof.beforeCanonical).obj()
+                        before.list("instances").map { decodeInstance(it.obj()) }.single { it.instanceId == initial.instanceId }.abilityOptionId
+                    } else null
+                } else change.ownedAbilityOptionId()
+                expected=prior.copy(rank=change.toRank,abilityOptionId=retainedOption)
             }
         } else if(later.type==LedgerEntryType.ManualCorrection || later.type==LedgerEntryType.ConfirmLegacyParameter) {
             expected=recordedCopiedHoldingMutation(state,later,expected,initial,reverse=false)

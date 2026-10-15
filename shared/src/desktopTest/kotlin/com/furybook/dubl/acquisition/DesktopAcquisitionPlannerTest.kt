@@ -84,7 +84,8 @@ class DesktopAcquisitionPlannerTest {
         for (chi in listOf(false,true)) {
             val c = catalog(chi)
             val definitions = c.definitions.values.filter { it.kind == AcquisitionKind.DEVELOPMENT }
-            assertEquals(if (chi) 796 else 768,definitions.size)
+            // Current catalog inventory; the frozen source-only price matrix has its own denominator.
+            assertEquals(if (chi) 1261 else 1233,definitions.size)
             val counts = linkedMapOf("input-valid" to 0,"manual-blocked" to 0,"stress-rejected" to 0)
             // Explicitly funded, in-cap attributes, source-backed fixed skills only. No imaginary owned feats.
             val skills = c.definitions.values.filter { it.kind == AcquisitionKind.SKILL && it.repeatPolicy is RepeatPolicy.Single && it.maxRank != null }
@@ -97,7 +98,19 @@ class DesktopAcquisitionPlannerTest {
                     counts["input-valid"] = counts.getValue("input-valid")+1
                     assertTrue(validateAcquisitionProjection(p.changes,original,c).issues.isEmpty(),d.ref.toString())
                     assertNotNull(p.cost); assertNotNull(p.remaining)
-                    p.changes.forEach { assertTrue(it.toRank <= c.definitions.getValue(it.definition).maxRank!!) }
+                    p.changes.forEach { change ->
+                        val changed = c.definitions.getValue(change.definition)
+                        if (changed.maxRank != null) {
+                            assertTrue(change.toRank <= changed.maxRank, changed.ref.toString())
+                        } else {
+                            // A confirmed first purchase does not invent an unknown later rank ceiling.
+                            assertEquals(0, change.fromRank, changed.ref.toString())
+                            assertEquals(1, change.toRank, changed.ref.toString())
+                            assertIs<RepeatPolicy.Single>(changed.repeatPolicy)
+                            assertTrue(changed.classificationSources["purchase:initial-rank-confirmed"]
+                                ?.originalText?.isNotBlank() == true, changed.ref.toString())
+                        }
+                    }
                 } else {
                     counts["manual-blocked"] = counts.getValue("manual-blocked")+1
                     assertTrue(p.issues.isNotEmpty() || p.questions.any { !it.resolved },d.ref.toString())
@@ -113,6 +126,33 @@ class DesktopAcquisitionPlannerTest {
             assertEquals(definitions.size*2,counts.getValue("stress-rejected"))
             assertTrue(counts.getValue("input-valid")>0); assertTrue(counts.getValue("manual-blocked")>0)
             println("T07 actual IDs chi=$chi $counts")
+        }
+    }
+
+    @Test fun shared_martial_style_choices_remain_valid_after_the_first_chain_acquires_that_style() {
+        val c = catalog()
+        val hidari = ref("martial_technique_3ee589b0fb715375")
+        val migi = ref("martial_technique_23fd4936857b5c0a")
+        val style = ref("martial_style_2cb08b5fe00825ab")
+        val original = state(listOf(instance("melee_weapon", 4), AcquisitionInstance("proficiency-polearms",
+            ref("weapon_proficiency_template"), 1, mapOf("groupId" to "polearms", "groupName" to "Древковое"), null, AcquisitionOrigin.New)))
+            .let { it.copy(ledger = it.ledger.copy(opening = it.ledger.opening.copy(balance = Amount(1000, 10)))) }
+        val choices = listOf(hidari, migi).associate { entry ->
+            acquisitionChoiceId(entry, entry.entryId + "/requirements/styles") to entry.entryId + "/requirements/style/0"
+        }
+        for (targets in listOf(listOf(hidari, migi), listOf(migi, hidari))) {
+            val request = AcquisitionRequest("real", targets.map { AcquisitionTarget(it, targetRank = 1) }, choices)
+            val result = plan(request, original, c)
+            assertTrue(result.executable, result.issues.toString())
+            assertEquals(Amount(120, 0), result.cost)
+            assertEquals(1, result.changes.count { it.definition == style })
+            assertEquals(setOf(style, migi, hidari), result.changes.map { it.definition }.toSet())
+            val unknown = plan(AcquisitionRequest("real", request.targets,
+                choices + (acquisitionChoiceId(migi, migi.entryId + "/requirements/styles") to "unknown-style")), original, c)
+            assertFalse(unknown.executable)
+            assertTrue(unknown.issues.any { it.status == RequirementStatus.Conflict })
+            val irrelevant = plan(AcquisitionRequest("real", request.targets, choices + ("unrelated-choice" to "unrelated")), original, c)
+            assertFalse(irrelevant.executable)
         }
     }
 }

@@ -41,6 +41,9 @@ data class AcquisitionDefinition(
     val familyIds: Set<String> = emptySet(),
     val categoryIds: Set<String> = emptySet(),
     val classificationSources: Map<String, RuleSourceRef> = emptyMap(),
+    val includedGrants: List<IncludedGrant> = emptyList(),
+    val instanceCountLimit: InstanceCountLimit? = null,
+    val newParameterValueRequirement: NewParameterValueRequirement? = null,
 )
 
 data class AcquisitionCatalog(
@@ -160,7 +163,27 @@ private fun parseDefinition(o: JsonValue.Obj): AcquisitionDefinition {
             "UserDefinedIds" -> ParameterDomain.UserDefinedIds
             "Unresolved" -> ParameterDomain.Unresolved(domain.requiredString("reason"))
             else -> error("Unknown parameter domain")
-        })
+        }, item.array("choices").map { value ->
+            val choice = value.requiredObject()
+            ParameterChoice(choice.requiredString("id"), choice.requiredString("label"), parseSource(choice.requiredObject("sourceRef")),
+                choice.objectValue("parameterValues")?.values?.mapValues { it.value.requiredText() }.orEmpty(),
+                choice.array("weaponKinds").map { raw -> val kind = raw.requiredObject()
+                    WeaponProficiencyKind(kind.requiredString("id"), kind.requiredString("label"), parseSource(kind.requiredObject("sourceRef"))) })
+        }, item.array("excludedLabels").map { value ->
+            val excluded = value.requiredObject()
+            ParameterExcludedLabel(excluded.requiredString("label"), parseSource(excluded.requiredObject("sourceRef")))
+        }, item.optionalString("label"), item.values["requiredAtRank"]?.let { item.requiredInt("requiredAtRank") } ?: 1,
+            item.objectValue("selectionSource")?.let { selection ->
+                when(selection.requiredString("type")) {
+                    "OwnedInstances" -> ParameterSelectionSource.OwnedInstances(selection.requiredString("familyId"), selection.requiredInt("minimumRank"))
+                    "OwnedWeaponKinds" -> ParameterSelectionSource.OwnedWeaponKinds
+                    "OrderedOwnedInstances" -> ParameterSelectionSource.OrderedOwnedInstances(selection.requiredArray("definitions").map { raw ->
+                        val ref=raw.requiredObject(); DefinitionRef(ref.requiredString("packId"),ref.requiredString("entryId"))
+                    }.toSet(),selection.requiredInt("baseLength"),selection.requiredBool("plusTargetRank"),
+                        selection.values["minimumRank"]?.let { selection.requiredInt("minimumRank") } ?: 1)
+                    else -> error("Unsupported parameter selection source")
+                }
+            }, item.optionalString("uniqueWithinGroup"), item.optionalString("displayNameKey"), item.optionalString("identityDomain"))
     }
     val definition = AcquisitionDefinition(
         DefinitionRef(ref.requiredString("packId"), ref.requiredString("entryId")),
@@ -168,6 +191,7 @@ private fun parseDefinition(o: JsonValue.Obj): AcquisitionDefinition {
         if (o.isNull("maxRank")) null else o.requiredInt("maxRank"),
         when (repeat.requiredString("type")) {
             "Single" -> RepeatPolicy.Single
+            "Independent" -> RepeatPolicy.Independent
             "DistinctParameter" -> RepeatPolicy.DistinctParameter(repeat.requiredArray("parameterKeys").map { it.requiredText() }.toSet(), repeat.requiredBool("requireUnique"))
             "Unresolved" -> RepeatPolicy.Unresolved(repeat.requiredString("reason"))
             else -> error("Unknown repeat policy")
@@ -179,6 +203,28 @@ private fun parseDefinition(o: JsonValue.Obj): AcquisitionDefinition {
         o.array("familyIds").map { it.requiredText() }.toSet(),
         o.array("categoryIds").map { it.requiredText() }.toSet(),
         o.objectValue("classificationSources")?.values?.mapValues { parseSource(it.value.requiredObject()) }.orEmpty(),
+        o.array("includedGrants").map { raw ->
+            val grant = raw.requiredObject()
+            IncludedGrant(parseSource(grant.requiredObject("sourceRef")), grant.requiredString("parameterKey"),
+                grant.requiredInt("activateAtRank"), grant.requiredObject("targetByValue").values.mapValues { (_, value) ->
+                    val target = value.requiredObject()
+                    DefinitionRef(target.requiredString("packId"), target.requiredString("entryId"))
+                }, grant.requiredInt("targetRank"), grant.requiredBool("requireNewOwnership"), grant.requiredBool("retainsSourceEligibility"),
+                grant.objectValue("targetDefinition")?.let { DefinitionRef(it.requiredString("packId"), it.requiredString("entryId")) },
+                grant.values["creationOnly"]?.let { grant.requiredBool("creationOnly") } ?: false,
+                grant.objectValue("targetParameterChoices")?.values?.mapValues { (_, values) ->
+                    (values as? JsonValue.Arr ?: error("Expected allowed parameter values")).values.map { it.requiredText() }.toSet()
+                }.orEmpty(), grant.objectValue("customTargetEvidence")?.let { custom -> IncludedGrantCustomEvidence(
+                    custom.requiredString("parameterKey"), custom.requiredString("evidenceKey"), parseSource(custom.requiredObject("sourceRef")),
+                    custom.array("allowedNamedGroupIds").map { it.requiredText() }.toSet()) })
+        },
+        o.objectValue("instanceCountLimit")?.let { limit ->
+            InstanceCountLimit(parseSource(limit.requiredObject("sourceRef")), parseAttributeId(limit.requiredString("attributeId")),
+                limit.requiredInt("numerator"), limit.requiredInt("denominator"))
+        },
+        o.objectValue("newParameterValueRequirement")?.let { rule -> NewParameterValueRequirement(
+            rule.requiredArray("parameterKeys").map { it.requiredText() }.toSet(), rule.requiredInt("minimumNewValues"),
+            parseSource(rule.requiredObject("sourceRef"))) },
     )
     require(definition.maxRank == null || definition.maxRank >= 0) { "Invalid rank cap" }
     // Missing source authority must remain a root conjunction blocker even if a
@@ -192,6 +238,13 @@ private fun parseSource(o: JsonValue.Obj) = RuleSourceRef(
     o.optionalString("resolutionId"), o.optionalString("resolutionRevision"),
 )
 
+private fun parseAttributeId(id: String): AttributeId = when (id) {
+    "STR" -> AttributeId.STRENGTH; "DEX" -> AttributeId.DEXTERITY; "CON" -> AttributeId.CONSTITUTION
+    "SPD" -> AttributeId.SPEED; "PER" -> AttributeId.PERCEPTION; "INT" -> AttributeId.INTELLIGENCE
+    "WIL" -> AttributeId.WILL; "CHA" -> AttributeId.CHARISMA
+    else -> error("Unknown attribute ID")
+}
+
 private fun parseRequirement(o: JsonValue.Obj): RequirementNode {
     val id = o.requiredString("nodeId"); val source = parseSource(o.requiredObject("sourceRef"))
     fun op() = ComparisonOperator.valueOf(o.requiredString("operator"))
@@ -202,16 +255,14 @@ private fun parseRequirement(o: JsonValue.Obj): RequirementNode {
     return when (o.requiredString("type")) {
         "AllOf" -> RequirementNode.AllOf(id, source, children(), o.optionalString("noRequirementsStatement")?.let { NoRequirementsEvidence(source, it) })
         "AnyOf" -> RequirementNode.AnyOf(id, source, children())
-        "Attribute" -> RequirementNode.Attribute(id, source, when (o.requiredString("attributeId")) {
-            "STR" -> AttributeId.STRENGTH; "DEX" -> AttributeId.DEXTERITY; "CON" -> AttributeId.CONSTITUTION
-            "SPD" -> AttributeId.SPEED; "PER" -> AttributeId.PERCEPTION; "INT" -> AttributeId.INTELLIGENCE
-            "WIL" -> AttributeId.WILL; "CHA" -> AttributeId.CHARISMA
-            else -> error("Unknown attribute ID")
-        }, op(), number())
+        "Attribute" -> RequirementNode.Attribute(id, source, parseAttributeId(o.requiredString("attributeId")), op(), number())
         "OwnedRank" -> RequirementNode.OwnedRank(id, source, pack(), entry(), op(), number(), o.optionalString("instanceId"))
+        "NumericProperty" -> RequirementNode.NumericProperty(id, source, o.requiredString("propertyId"), op(), number())
+        "SelectedInstance" -> RequirementNode.SelectedInstance(id, source, o.requiredString("parameterKey"), parseRequirement(o.requiredObject("predicate")))
         "SkillFamily" -> RequirementNode.SkillFamily(id, source, pack(), o.requiredString("familyId"), op(), number())
         "Specialization" -> RequirementNode.Specialization(id, source, pack(), entry(), op(), number(), o.objectValue("qualifier")?.let { ParameterMatch(it.requiredString("key"), it.requiredString("valueId")) }, o.optionalString("instanceId"))
-        "BranchAccess" -> RequirementNode.BranchAccess(id, source, pack(), o.requiredString("branchId"), o.optionalString("accessOptionId"), op(), o.requiredBool("operand"))
+        "BranchAccess" -> RequirementNode.BranchAccess(id, source, pack(), o.requiredString("branchId"), o.optionalString("accessOptionId"), op(), o.requiredBool("operand"),
+            o.objectValue("parameterBindings")?.values?.mapValues { it.value.requiredText() }.orEmpty())
         "LearnedSpell" -> RequirementNode.LearnedSpell(id, source, pack(), entry(), op(), o.requiredBool("operand"))
         "DistinctCount" -> RequirementNode.DistinctCount(id, source, parseRequirement(o.requiredObject("predicate")), DistinctScope.valueOf(o.requiredString("uniqueness")), op(), number())
         "CreationPhase" -> RequirementNode.CreationPhase(id, source, RequirementNode.CreationPhase.Phase.valueOf(o.requiredString("operand")), op())
@@ -258,7 +309,14 @@ private fun validateReferences(definitions: MutableMap<DefinitionRef, Acquisitio
                 is RequirementNode.AllOf -> return RequirementNode.AllOf(n.nodeId, n.sourceRef, n.children.map { validateNode(it, positiveDependency) }, n.noRequirementsEvidence)
                 is RequirementNode.AnyOf -> return RequirementNode.AnyOf(n.nodeId, n.sourceRef, n.children.map { validateNode(it, positiveDependency) })
                 is RequirementNode.DistinctCount -> return n.copy(predicate = validateNode(n.predicate, positiveDependency))
+                is RequirementNode.SelectedInstance -> return if (d.parameterDefinitions.none { it.key == n.parameterKey })
+                    problem(n, "missing-subject-parameter", n.parameterKey) else n.copy(predicate = validateNode(n.predicate, positiveDependency))
                 is RequirementNode.Exclusive -> return n.copy(conflicting = validateNode(n.conflicting, positiveDependency = false))
+                is RequirementNode.NumericProperty -> return when {
+                    n.propertyId !in setOf("MAGIC_POWER","FORTITUDE") -> problem(n, "unsupported-numeric-property", n.propertyId)
+                    n.operand < 0 -> problem(n, "numeric-property-out-of-range", n.operand.toString())
+                    else -> n
+                }
                 else -> Unit
             }
             val ref = when (n) {
@@ -288,10 +346,13 @@ private fun validateReferences(definitions: MutableMap<DefinitionRef, Acquisitio
             }
             // A family is an existential choice: one verified member can witness
             // the rank even when another member's maximum is unknown.
-            if (rank != null && targets.none { it.maxRank != null && rank >= 0 && rank <= it.maxRank })
+            if (rank != null && targets.none { target -> confirmedPurchaseRankCeiling(target)?.let { rank >= 0 && rank <= it } == true })
                 return problem(n, if (targets.any { it.maxRank == null }) "unresolved-reference-rank" else "rank-out-of-range", "$rank / ${targets.map { it.maxRank }}")
             if (n is RequirementNode.BranchAccess && n.accessOptionId != null && targets.none { it.abilityOptionIds?.contains(n.accessOptionId) == true })
                 return problem(n, "option-out-of-range", n.accessOptionId)
+            if (n is RequirementNode.BranchAccess && n.parameterBindings.any { (target, subject) ->
+                    d.parameterDefinitions.none { it.key == subject } || targets.any { definition -> definition.parameterDefinitions.none { it.key == target } }
+                }) return problem(n, "invalid-parameter-binding", "Subject and access parameter keys must both be declared")
             return n
         }
         fun validatePrice(price: PriceRule, path: String): PriceRule {
@@ -301,7 +362,7 @@ private fun validateReferences(definitions: MutableMap<DefinitionRef, Acquisitio
             }
             return when (price) {
                 is PriceRule.TransitionTable -> price.copy(transitions = price.transitions.filter { row ->
-                    if (d.maxRank == null || row.toRank > d.maxRank) {
+                    if (confirmedPurchaseRankCeiling(d)?.let { row.toRank <= it } != true) {
                         priceProblem("price-rank-out-of-range", "${row.fromRank}->${row.toRank} / ${d.maxRank}", row.sourceRef)
                         false // This exact absent transition is Unknown, not a zero or a fallback row.
                     } else true
@@ -316,7 +377,38 @@ private fun validateReferences(definitions: MutableMap<DefinitionRef, Acquisitio
                 else -> price
             }
         }
-        definitions[d.ref] = d.copy(requirements = validateNode(d.requirements), priceRule = validatePrice(d.priceRule, d.ref.entryId + "/price"))
+        var checked = d.copy(requirements = validateNode(d.requirements), priceRule = validatePrice(d.priceRule, d.ref.entryId + "/price"))
+        if (d.newParameterValueRequirement?.parameterKeys?.any { key -> d.parameterDefinitions.none { it.key == key } } == true) {
+            diagnostics += CatalogDiagnostic("invalid-new-parameter-value-requirement", "Unknown parameter key", d.ref,
+                sourceRef = d.newParameterValueRequirement.sourceRef)
+            checked = block(checked, "invalid-new-parameter-value-requirement")
+        }
+        for(parameter in d.parameterDefinitions) {
+            val ordered=parameter.selectionSource as? ParameterSelectionSource.OrderedOwnedInstances ?: continue
+            if(parameter.displayNameKey==null || ordered.definitions.any { it !in snapshot }) {
+                diagnostics+=CatalogDiagnostic("invalid-ordered-selection",parameter.key,d.ref,sourceRef=d.sourceRef)
+                checked=block(checked,"invalid-ordered-selection:"+parameter.key)
+            }
+        }
+        for (grant in d.includedGrants) {
+            val parameter = d.parameterDefinitions.singleOrNull { it.key == grant.parameterKey }
+            val fixed = grant.targetDefinition?.let(snapshot::get)
+            val invalid = d.maxRank == null || grant.activateAtRank > d.maxRank ||
+                if (grant.targetDefinition != null) {
+                    fixed == null || fixed.ref == d.ref || fixed.maxRank?.let { it < grant.targetRank } != false ||
+                        grant.targetParameterChoices.any { (key, allowed) -> fixed.parameterDefinitions.singleOrNull { it.key == key }
+                            ?.let { targetParameter -> allowed.any { value -> targetParameter.choices.none { it.id == value } } } != false } ||
+                        (grant.customTargetEvidence != null && grant.customTargetEvidence.parameterKey !in grant.targetParameterChoices)
+                } else parameter == null || parameter.requiredAtRank > grant.activateAtRank || grant.targetByValue.any { (value, ref) ->
+                    ref == d.ref || snapshot[ref]?.maxRank?.let { it < grant.targetRank } != false ||
+                        ((parameter.domain as? ParameterDomain.StableIds)?.valueIds?.contains(value) == false)
+                }
+            if (invalid) {
+                diagnostics += CatalogDiagnostic("invalid-included-grant", grant.parameterKey, d.ref, sourceRef = grant.sourceRef)
+                checked = block(checked, "invalid-included-grant:" + grant.parameterKey)
+            }
+        }
+        definitions[d.ref] = checked
     }
     // An SCC across OR/count/price branches is only a potential cycle. T05 must
     // detect recursion on the selected proof path; do not rewrite these nodes.

@@ -64,6 +64,14 @@
     },
     {
       "kind": "dubl.development",
+      "path": "content/development_native_supplement_catalog.json",
+      "modules": [
+        "core"
+      ],
+      "order": 115
+    },
+    {
+      "kind": "dubl.development",
       "path": "content/development_ability_roots_catalog.json",
       "modules": [
         "core"
@@ -85,6 +93,14 @@
         "core"
       ],
       "order": 150
+    },
+    {
+      "kind": "dubl.development",
+      "path": "content/development_native_magic_catalog.json",
+      "modules": [
+        "archmage"
+      ],
+      "order": 155
     },
     {
       "kind": "dubl.development",

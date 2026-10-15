@@ -10,8 +10,11 @@ from .diagnostics import make_diagnostic
 MARTIAL_SECTIONS = {
     "рукопашные искусства": "Рукопашные",
     "оружейные искусства": "Оружейные",
+    "гибридные искусства": "Гибридные",
+    "другое": "Рукопашные",
+    "кунг-фу": "Кунг-фу",
+    "оружейное кунг-фу": "Оружейные",
 }
-STOP_SECTION = "гибридные искусства"
 STYLE_ALIASES = {"карате": "Каратэ", "ган ката": "Ган-Ката"}
 
 
@@ -193,10 +196,10 @@ def _paragraph_techniques(style_name: str, martial_type: str, blocks: list[dict]
         if not _is_paragraph(block):
             continue
         text=str(block.get("text", "")); n=normalize(text)
-        if n=="приемы":
+        if n in {"приемы", "стойки", "навыки"}:
             active=True; continue
         if _style(block)=="Heading 3":
-            if n=="приемы": active=True
+            if n in {"приемы", "стойки", "навыки"}: active=True
             elif n=="совершенная способность": active=False
             continue
         if not active or not re.search(r"Стоимость\s*:\s*\d+", text, re.I):
@@ -269,8 +272,8 @@ def import_martial_arts(raw_ir: dict, source_key: str = "melee") -> tuple[dict, 
         text=clean(block.get("text")); n=normalize(text)
         if _style(block)=="Title" and n in MARTIAL_SECTIONS:
             flush(); current_type=MARTIAL_SECTIONS[n]; continue
-        if _style(block)=="Title" and n==STOP_SECTION:
-            flush(); break
+        if _style(block)=="Title" and n=="ци":
+            flush(); current_type=None; continue
         if current_type and _style(block)=="Title" and text:
             flush(); active_name=canonical_style_name(text); active_type=current_type; continue
         if active_name: active_blocks.append(block)

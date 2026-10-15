@@ -68,8 +68,10 @@ class AcquisitionController(private val port:AcquisitionCommandPort,private val 
     suspend fun quoteCard(request:AcquisitionRequest)=quoteCardReview(request).model
     suspend fun readReviewDetails(key:AcquisitionQuoteKey)=forKey(key).readReviewDetails(key)
     suspend fun selectAbilityOption(key:AcquisitionQuoteKey,index:Int,optionId:String)=forKey(key).selectAbilityOption(key,index,optionId)
-    suspend fun selectTarget(key:AcquisitionQuoteKey,index:Int,instanceId:String?,newInstance:Boolean=false,parameters:Map<String,String> = emptyMap(),optionId:String?=null)=
-        forKey(key).selectTarget(key,index,instanceId,newInstance,parameters,optionId)
+    suspend fun selectTarget(key:AcquisitionQuoteKey,index:Int,instanceId:String?,newInstance:Boolean=false,parameters:Map<String,String> = emptyMap(),optionId:String?=null,targetRank:Int?=null)=
+        forKey(key).selectTarget(key,index,instanceId,newInstance,parameters,optionId,targetRank)
+    suspend fun selectNewSpecialization(key:AcquisitionQuoteKey,index:Int,name:String,choiceId:String?=null)=
+        forKey(key).selectNewSpecialization(key,index,name,choiceId)
     suspend fun preview(intent:AcquisitionIntent)=checkNotNull(selected(true)).route(scope(),intent)
     suspend fun preview(request:AcquisitionRequest)=checkNotNull(selected(true)).open(scope(),request)
     suspend fun replaceSelections(key:AcquisitionQuoteKey,request:AcquisitionRequest)=forKey(key).replaceSelections(key,request)

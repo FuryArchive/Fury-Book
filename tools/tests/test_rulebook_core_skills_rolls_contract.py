@@ -46,8 +46,13 @@ def test_skill_synergy_and_assistance_are_shared_rulebook_rules():
 
 
 def test_android_quick_fortitude_uses_shared_roll_preset_instead_of_stale_formula_copy():
-    assert 'val fortitudePreset = character.rollPreset(RollContext.FORTITUDE)' in ANDROID_OVERVIEW
-    assert 'formulaText = fortitudePreset.formulaText' in ANDROID_OVERVIEW
+    fortitude_sheet = ANDROID_OVERVIEW.split('if (showFortitudeRoll) {', 1)[1].split('selectedRollContext?.let', 1)[0]
+    assert 'ContextRollSheet(' in fortitude_sheet
+    assert 'context = RollContext.FORTITUDE' in fortitude_sheet
+    context_sheet = ANDROID_OVERVIEW.split('private fun ContextRollSheet(', 1)[1].split('\n@Composable', 1)[0]
+    assert 'val basePreset = character.rollPreset(context, selectedSkillId, selectedAttribute)' in context_sheet
+    assert 'formulaText = preset.formulaText' in context_sheet
+    assert 'checkBonus = preset.bonus' in context_sheet
 
 
 def test_skill_check_rules_execute_without_platform_dependencies():

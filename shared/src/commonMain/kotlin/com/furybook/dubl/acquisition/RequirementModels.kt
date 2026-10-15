@@ -89,6 +89,23 @@ sealed interface RequirementNode {
         val operand: Int,
     ) : RequirementNode
 
+    /** Existing derived/read-only character fact, never an automatically purchasable rank. */
+    data class NumericProperty(
+        override val nodeId: String,
+        override val sourceRef: RuleSourceRef,
+        val propertyId: String,
+        val operator: ComparisonOperator,
+        val operand: Int,
+    ) : RequirementNode {
+        init { require(propertyId.isNotBlank()) { "A numeric property requires a stable ID" } }
+    }
+
+    /** The subject chooses an existing instance ID; the predicate proves that exact instance. */
+    data class SelectedInstance(override val nodeId: String, override val sourceRef: RuleSourceRef,
+        val parameterKey: String, val predicate: RequirementNode) : RequirementNode {
+        init { require(parameterKey.isNotBlank()) }
+    }
+
     data class OwnedRank(
         override val nodeId: String,
         override val sourceRef: RuleSourceRef,
@@ -119,7 +136,7 @@ sealed interface RequirementNode {
         val instanceId: String? = null,
     ) : RequirementNode
 
-    data class BranchAccess(
+    class BranchAccess(
         override val nodeId: String,
         override val sourceRef: RuleSourceRef,
         val packId: String,
@@ -127,8 +144,23 @@ sealed interface RequirementNode {
         val accessOptionId: String? = null,
         val operator: ComparisonOperator = ComparisonOperator.EQ,
         val operand: Boolean = true,
+        parameterBindings: Map<String, String> = emptyMap(),
     ) : RequirementNode {
-        init { require(operator == ComparisonOperator.EQ) { "Access compares boolean presence with EQ" } }
+        /** Prerequisite parameter key -> this subject's selected parameter key. */
+        val parameterBindings: Map<String, String> = RequirementMapSnapshot(parameterBindings)
+        init {
+            require(operator == ComparisonOperator.EQ) { "Access compares boolean presence with EQ" }
+            require(this.parameterBindings.all { it.key.isNotBlank() && it.value.isNotBlank() })
+        }
+        fun copy(nodeId: String = this.nodeId, sourceRef: RuleSourceRef = this.sourceRef,
+            packId: String = this.packId, branchId: String = this.branchId, accessOptionId: String? = this.accessOptionId,
+            operator: ComparisonOperator = this.operator, operand: Boolean = this.operand,
+            parameterBindings: Map<String, String> = this.parameterBindings) =
+            BranchAccess(nodeId, sourceRef, packId, branchId, accessOptionId, operator, operand, parameterBindings)
+        override fun equals(other: Any?): Boolean = other is BranchAccess && nodeId == other.nodeId && sourceRef == other.sourceRef &&
+            packId == other.packId && branchId == other.branchId && accessOptionId == other.accessOptionId &&
+            operator == other.operator && operand == other.operand && parameterBindings == other.parameterBindings
+        override fun hashCode(): Int = listOf(nodeId, sourceRef, packId, branchId, accessOptionId, operator, operand, parameterBindings).hashCode()
     }
 
     data class LearnedSpell(
@@ -244,4 +276,20 @@ private class RequirementSnapshot<T>(values: List<T>) : AbstractList<T>() {
     private val values = values.toList()
     override val size: Int get() = values.size
     override fun get(index: Int): T = values[index]
+}
+
+private class RequirementMapSnapshot<K, V>(values: Map<K, V>) : AbstractMap<K, V>() {
+    private class Entry<K, V>(override val key: K, override val value: V) : Map.Entry<K, V> {
+        override fun equals(other: Any?): Boolean = other is Map.Entry<*, *> && key == other.key && value == other.value
+        override fun hashCode(): Int = (key?.hashCode() ?: 0) xor (value?.hashCode() ?: 0)
+    }
+    private val captured = values.map { Entry(it.key, it.value) }
+    override val entries: Set<Map.Entry<K, V>> = object : AbstractSet<Map.Entry<K, V>>() {
+        override val size get() = captured.size
+        override fun iterator(): Iterator<Map.Entry<K, V>> = object : Iterator<Map.Entry<K, V>> {
+            private var index = 0
+            override fun hasNext() = index < captured.size
+            override fun next(): Map.Entry<K, V> = captured[index++]
+        }
+    }
 }

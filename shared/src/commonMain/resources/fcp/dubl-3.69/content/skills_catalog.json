@@ -327,7 +327,7 @@
       "untrained": "NO",
       "category": "TECHNICAL",
       "defaultAttributeHint": "INTELLIGENCE",
-      "template": true,
+      "template": false,
       "sourceRefs": [
         "core:t-000163"
       ],
@@ -422,6 +422,33 @@
       "sourceRefs": [
         "core:p-000945"
       ]
+    },
+    {
+      "id": "runology",
+      "name": "Рунология",
+      "description": "Активация вязей и идентификация незнакомых рун.",
+      "category": "KNOWLEDGE",
+      "defaultAttributeHint": "INTELLIGENCE",
+      "untrained": "UNSPECIFIED",
+      "auto6": "",
+      "auto12": "",
+      "template": false,
+      "sourceRefs": [
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:paragraphs/13",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:paragraphs/129",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:paragraphs/130",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:paragraphs/131",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:paragraphs/132",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:paragraphs/133",
+        "native:1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg:t.lreol0hqcnc8:paragraphs/12"
+      ],
+      "acquisitionSourceRef": {
+        "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+        "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+        "sheet": "t.lreol0hqcnc8",
+        "paragraph": 13,
+        "originalText": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5)."
+      }
     }
   ]
 }

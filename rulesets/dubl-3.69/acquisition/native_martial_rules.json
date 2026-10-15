@@ -43816,7 +43816,13 @@
           "benefitSha256": "2629f13057ba6de8db75d7358094da0f5f8fd5c3ff515745d383c94242cb3255"
         }
       ],
-      "missingRankSource": true
+      "missingRankSource": true,
+      "initialRankPurchaseConfirmed": {
+        "priceEvidence": "t.vojedk94bfa5:4608",
+        "fromRank": 0,
+        "toRank": 1,
+        "basis": "The current native priced card confirms one acquisition at100XP; no maximum or subsequent rank price is supplied."
+      }
     },
     {
       "ref": {

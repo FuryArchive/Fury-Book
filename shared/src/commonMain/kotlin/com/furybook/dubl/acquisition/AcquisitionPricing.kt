@@ -41,17 +41,21 @@ class AcquisitionChange(
     val toRank: Int,
     parameters: Map<String, String>,
     val optionId: String?,
+    /** This recorded option selects only this transition's payment; it is not retained ability identity. */
+    val paymentOption: Boolean = false,
 ) {
+    init { require(!paymentOption || !optionId.isNullOrBlank()) { "A payment transition requires its explicit option" } }
     val parameters: Map<String, String> = PriceParameterSnapshot(parameters)
     fun copy(kind: AcquisitionKind = this.kind, definition: DefinitionRef = this.definition,
         instanceId: String = this.instanceId, fromRank: Int = this.fromRank, toRank: Int = this.toRank,
-        parameters: Map<String, String> = this.parameters, optionId: String? = this.optionId) =
-        AcquisitionChange(kind, definition, instanceId, fromRank, toRank, parameters, optionId)
+        parameters: Map<String, String> = this.parameters, optionId: String? = this.optionId,
+        paymentOption: Boolean = this.paymentOption) =
+        AcquisitionChange(kind, definition, instanceId, fromRank, toRank, parameters, optionId, paymentOption)
     override fun equals(other: Any?): Boolean = other is AcquisitionChange && kind == other.kind &&
         definition == other.definition && instanceId == other.instanceId && fromRank == other.fromRank &&
-        toRank == other.toRank && parameters == other.parameters && optionId == other.optionId
-    override fun hashCode(): Int = listOf(kind, definition, instanceId, fromRank, toRank, parameters, optionId).hashCode()
-    override fun toString(): String = "AcquisitionChange($kind, $definition, $instanceId, $fromRank->$toRank, $parameters, $optionId)"
+        toRank == other.toRank && parameters == other.parameters && optionId == other.optionId && paymentOption == other.paymentOption
+    override fun hashCode(): Int = listOf(kind, definition, instanceId, fromRank, toRank, parameters, optionId, paymentOption).hashCode()
+    override fun toString(): String = "AcquisitionChange($kind, $definition, $instanceId, $fromRank->$toRank, $parameters, $optionId, paymentOption=$paymentOption)"
 }
 
 private class PriceParameterSnapshot(parameters: Map<String, String>) : AbstractMap<String, String>() {
@@ -84,12 +88,21 @@ fun quote(change: AcquisitionChange, context: AcquisitionContext): PriceResult {
     val definition = context.catalog.definitions[change.definition]
         ?: return PriceResult.Unknown("Missing definition ${change.definition}")
     if (definition.kind != change.kind) return PriceResult.Unknown("Acquisition kind mismatch")
+    if (change.paymentOption && !definition.hasTransitionPaymentOptions)
+        return PriceResult.Unknown("Source does not establish transition-only payment options")
     if (definition.sourceStatus == SourceStatus.Unavailable) return PriceResult.Unknown("Source unavailable")
     if (change.fromRank > change.toRank) return PriceResult.Unknown("Reverse acquisition requires a separate operation")
     if (change.kind != AcquisitionKind.ATTRIBUTE && change.fromRank < 0) return PriceResult.Unknown("Invalid negative rank")
     // A no-change request is explicitly zero, never an inference from missing price evidence.
     if (change.fromRank == change.toRank) return PriceResult.Known(Amount.ZERO, definition.sourceRef)
-    return try { PriceEvaluation(change, context).price(definition.priceRule) }
+    includedGrantQuote(change, context)?.let { return it }
+    return try {
+        val result = PriceEvaluation(change, context).price(definition.priceRule)
+        val paymentSource = definition.classificationSources["payment:transition-options"]?.takeIf { change.paymentOption }
+        if (result is PriceResult.Known && paymentSource != null)
+            result.copy(componentSources = (result.componentSources + paymentSource).distinct())
+        else result
+    }
     catch (_: ArithmeticException) { PriceResult.Unknown("Amount overflow") }
 }
 
@@ -129,7 +142,7 @@ private class PriceEvaluation(private val change: AcquisitionChange, private val
                 price(selected, depth + 1)
             }
             is PriceRule.Conditional -> {
-                val proof = evaluate(rule.condition, context)
+                val proof = evaluate(rule.condition, context, change.parameters)
                 val branch = when (proof.status) {
                     RequirementStatus.Satisfied -> rule.whenTrue
                     RequirementStatus.Unsatisfied -> rule.whenFalse

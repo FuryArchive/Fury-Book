@@ -64,11 +64,11 @@ data class DublCharacter(
     val strengthSizeModifier: Int get() = size - 5
     val speedSizeModifier: Int get() = 5 - size
 
-    fun attribute(id: AttributeId): Int = when (id) {
+    fun attribute(id: AttributeId): Int = (when (id) {
         AttributeId.STRENGTH -> attributeRaw(id) + strengthSizeModifier
         AttributeId.SPEED -> attributeRaw(id) + speedSizeModifier
         else -> attributeRaw(id)
-    }
+    }) + drawbackAttributeModifier(id)
 
     val strength: Int get() = attribute(AttributeId.STRENGTH)
     val dexterity: Int get() = attribute(AttributeId.DEXTERITY)

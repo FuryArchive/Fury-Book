@@ -165,6 +165,7 @@ import com.furybook.dubl.model.selectedTotals
 import com.furybook.android.state.CharacterController
 import com.furybook.android.ui.acquisition.*
 import com.furybook.dubl.acquisition.AcquisitionKind
+import com.furybook.dubl.acquisition.ownedDevelopmentInstances
 import androidx.compose.ui.platform.testTag
 import com.furybook.android.ui.components.containSheetOverscroll
 import com.furybook.ui.components.DublCard
@@ -483,6 +484,12 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 onConfigure = { showDevelopmentGroupManager = true },
                 onEntryClick = { selectedDevelopmentId = it.id },
             )
+            acquisition?.takeIf { it.canonical }?.view?.takeIf { it.scope.viewCharacterId==character.id }
+                ?.ownedDevelopmentInstances(unprojectedOnly=true)?.let { instances ->
+                items(instances,key={ "canonical-development-${it.instanceId}" }) { owned ->
+                    CanonicalOwnedDevelopmentCard(owned)
+                }
+            }
         }
 
         if (compactHeroVisible) {

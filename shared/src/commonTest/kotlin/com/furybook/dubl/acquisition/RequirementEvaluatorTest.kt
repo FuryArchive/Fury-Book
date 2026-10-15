@@ -206,6 +206,16 @@ class RequirementEvaluatorTest {
         }
     }
 
+    @Test fun distinct_count_cannot_prune_a_skill_family_whose_source_membership_is_unknown() {
+        val defs=listOf(definition("unclassified",kind=AcquisitionKind.SKILL))
+        val predicate=RequirementNode.SkillFamily("family-unknown",source,pack,"unresolved-family",ComparisonOperator.GE,1)
+        val ctx=context(defs,listOf(instance("unclassified",4)))
+        for((operator,operand) in listOf(ComparisonOperator.GE to 1,ComparisonOperator.EQ to 0)) {
+            val count=RequirementNode.DistinctCount("family-count",source,predicate,DistinctScope.Definition,operator,operand)
+            assertEquals(RequirementStatus.SourceUnresolved,evaluate(count,ctx).status)
+        }
+    }
+
     @Test fun acquisition_context_deeply_snapshots_reachable_catalog_collections() {
         val parameters = mutableListOf(ParameterDefinition("weaponTypeId", ParameterDomain.StableIds(setOf("melee"))))
         val options = mutableSetOf("mastery")

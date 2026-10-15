@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -34,9 +35,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.platform.testTag
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -707,7 +710,7 @@ private fun DevelopmentCompactCard(
                 Text("$rank/${entry.maxRank}", color = DublFocus, fontWeight = FontWeight.Bold)
             }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP", color = DublMuted)
+                Text(if (entry.costType == DevelopmentCostType.CHOICE) "Выберите XP или ОСп" else if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP", color = DublMuted)
                 Text(
                     status,
                     color = when {
@@ -853,7 +856,7 @@ private fun DevelopmentUnlocksCard(
                         Column(Modifier.weight(1f)) {
                             Text(target.name, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             Text(
-                                if (target.isAbility) "Спец. ветка" else "${target.cost} XP",
+                                if (target.costType == DevelopmentCostType.CHOICE) "Выберите XP или ОСп" else if (target.isAbility) "Спец. ветка" else "${target.cost} XP",
                                 color = DublMuted,
                                 style = MaterialTheme.typography.labelSmall,
                             )
@@ -936,7 +939,7 @@ private fun DevelopmentInspector(
                     border = BorderStroke(1.dp, DublGold.copy(alpha = 0.28f)),
                 ) {
                     Text(
-                        if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP / ранг",
+                        if (entry.costType == DevelopmentCostType.CHOICE) "Выберите XP или ОСп" else if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP / ранг",
                         modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
                         color = DublGold,
                         fontWeight = FontWeight.SemiBold,
@@ -1125,7 +1128,7 @@ private fun DevelopmentEntryCard(
     val manualRequirement = availability.checks.any { it.status == RequirementStatus.MANUAL }
     SectionCard(title = entry.name, action = { OutlinedButton(onClick = onDetails) { Text("Подробнее") } }) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text("${entry.category.ifBlank { entry.section }} · ${if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP"}", color = DublMuted)
+            Text("${entry.category.ifBlank { entry.section }} · ${if (entry.costType == DevelopmentCostType.CHOICE) "Выберите XP или ОСп" else if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP"}", color = DublMuted)
             Text("Ранг ${owned.rank}/${entry.maxRank}", color = DublFocus, fontWeight = FontWeight.Bold)
             if (hasRequirementIssue) {
                 Text(
@@ -1183,7 +1186,7 @@ internal fun DevelopmentDetailsDialog(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 KeyValue("Раздел", entry.section)
                 KeyValue("Категория", entry.category)
-                KeyValue("Стоимость", if (entry.isAbility) "${rules.abilityCost(entry, optionIndex)} ОС" else "${entry.cost} XP / ранг")
+                KeyValue("Стоимость", if (entry.costType == DevelopmentCostType.CHOICE) "Выберите XP или ОСп" else if (entry.isAbility) "${rules.abilityCost(entry, optionIndex)} ОС" else "${entry.cost} XP / ранг")
                 KeyValue("Ранг", "${owned.rank}/${entry.maxRank}")
                 if (entry.abilityOptions.isNotEmpty()) {
                     Text("Источник ОС / вариант", fontWeight = FontWeight.SemiBold)
@@ -1516,38 +1519,51 @@ private fun CanonicalDevelopmentBrowser(state: DesktopAppState, modifier: Modifi
     var hints by remember(view?.catalog) { mutableStateOf<com.furybook.dubl.acquisition.AcquisitionDependencyHints?>(null) }
     val cache = remember { DesktopDependencyHintCache() }
     val catalog = remember(state.snapshot, state.contentRevision) { state.developmentCatalog }
-    LaunchedEffect(view, catalog) {
-        if (view == null) return@LaunchedEffect
-        val prepared = withContext(Dispatchers.Default) {
-            val index = cache.get(view.catalog)
-            val quotes = linkedMapOf<String, com.furybook.dubl.acquisition.AcquisitionReview>()
-            for (entry in catalog.entries) {
-                ensureActive()
-                val target = actions.target(com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT, entry.id,
-                    (view.instances.singleOrNull { it.definition.entryId == entry.id }?.rank ?: 0) + 1) ?: continue
-                val request = com.furybook.dubl.acquisition.AcquisitionRequest(view.scope.characterId, listOf(target))
-                try { quotes[entry.id] = state.acquisition.quoteCardReview(request) }
-                catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { }
-            }
-            index to quotes.toMap()
-        }
-        hints = prepared.first; reviews = prepared.second
-    }
-    val source = catalog.entries.filter { entry ->
+    val listState = rememberLazyListState()
+    val candidates = remember(catalog, tab, search, filter, planned) { catalog.entries.filter { entry ->
         val category = when(tab) {
             DevelopmentTab.REGULAR -> entry.isRegularDevelopment
             DevelopmentTab.SPECIAL -> entry.isSpecialDevelopment
             DevelopmentTab.MARTIAL -> entry.isMartialArt
             DevelopmentTab.CHI -> entry.isChiDevelopment
-            DevelopmentTab.OWNED -> true
+            DevelopmentTab.OWNED -> false
         }
-        category && (search.isBlank() || listOf(entry.name, entry.benefit, entry.requirements, entry.category).any { it.contains(search, true) }) && when(filter) {
-            DevelopmentBrowserFilter.ALL -> true
-            DevelopmentBrowserFilter.PLAN -> entry.id in planned
-            DevelopmentBrowserFilter.AVAILABLE -> reviews[entry.id]?.model?.phase == com.furybook.dubl.acquisition.AcquisitionUiPhase.Ready
-            DevelopmentBrowserFilter.ALMOST -> reviews[entry.id]?.model?.let { it.phase == com.furybook.dubl.acquisition.AcquisitionUiPhase.Ready && it.rows.count { row -> !row.isTarget && !row.alreadyOwned } == 1 } == true
+        category && (search.isBlank() || listOf(entry.name, entry.benefit, entry.requirements, entry.category).any { it.contains(search, true) }) && (filter != DevelopmentBrowserFilter.PLAN || entry.id in planned)
+    }.sortedBy { it.name } }
+    // Hints never hold back prices or the purchase action.
+    LaunchedEffect(view?.catalog) {
+        hints = view?.let { withContext(Dispatchers.Default) { cache.get(it.catalog) } }
+    }
+    LaunchedEffect(view, candidates, filter, selected?.id, listState) {
+        if (view == null) return@LaunchedEffect
+        suspend fun quoteEntries(entries: List<DevelopmentEntry>) {
+            for (entry in entries.distinctBy { it.id }) {
+                ensureActive()
+                if (entry.id in reviews) continue
+                val target = actions.target(com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT, entry.id,
+                    (view.instances.singleOrNull { it.definition.entryId == entry.id }?.rank ?: 0) + 1) ?: continue
+                val request = com.furybook.dubl.acquisition.AcquisitionRequest(view.scope.characterId, listOf(target))
+                val review = try { withContext(Dispatchers.Default) { state.acquisition.quoteCardReview(request) } }
+                    catch (cancelled: CancellationException) { throw cancelled } catch (_: Exception) { null }
+                if (review != null) reviews = reviews + (entry.id to review)
+                yield()
+            }
         }
-    }.sortedBy { it.name }
+        // Avoid starting work for each intermediate search keystroke.
+        delay(120)
+        if (filter == DevelopmentBrowserFilter.AVAILABLE || filter == DevelopmentBrowserFilter.ALMOST) {
+            // These filters need quotes to decide visibility; publish each matching candidate as it finishes.
+            quoteEntries(listOfNotNull(selected) + candidates)
+        } else {
+            snapshotFlow { listState.layoutInfo.visibleItemsInfo.mapNotNull { it.key as? String }.toSet() }
+                .collectLatest { visible -> quoteEntries(listOfNotNull(selected) + candidates.filter { it.id in visible }) }
+        }
+    }
+    val source = candidates.filter { entry -> when(filter) {
+        DevelopmentBrowserFilter.ALL, DevelopmentBrowserFilter.PLAN -> true
+        DevelopmentBrowserFilter.AVAILABLE -> reviews[entry.id]?.model?.phase == com.furybook.dubl.acquisition.AcquisitionUiPhase.Ready
+        DevelopmentBrowserFilter.ALMOST -> reviews[entry.id]?.model?.let { it.phase == com.furybook.dubl.acquisition.AcquisitionUiPhase.Ready && it.rows.count { row -> !row.isTarget && !row.alreadyOwned } == 1 } == true
+    } }
     Column(modifier.fillMaxSize(), verticalArrangement=Arrangement.spacedBy(10.dp)) {
         SectionCard("Навыки и развитие") {
             Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
@@ -1574,7 +1590,7 @@ private fun CanonicalDevelopmentBrowser(state: DesktopAppState, modifier: Modifi
             }
         }
         Row(Modifier.fillMaxSize(),horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            LazyColumn(Modifier.weight(1f).fillMaxSize(),verticalArrangement=Arrangement.spacedBy(10.dp)) {
+            LazyColumn(Modifier.weight(1f).fillMaxSize(),state=listState,verticalArrangement=Arrangement.spacedBy(10.dp)) {
                 if(tab==DevelopmentTab.CHI) {
                     item { ChiResourceCard(state) }
                     item { ChiTechniquesCard(state,search) }
@@ -1593,13 +1609,18 @@ private fun CanonicalDevelopmentBrowser(state: DesktopAppState, modifier: Modifi
                         Column(Modifier.padding(12.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
                             Text(entry.name,fontWeight=FontWeight.Bold)
                             val quote=reviews[entry.id]
+                            val target=actions.target(com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT,entry.id,
+                                (view?.instances?.singleOrNull { it.definition.entryId==entry.id }?.rank ?: 0)+1)
                             if(quote==null) Text("Цена уточняется или запись недоступна",Modifier.testTag("acquisition.status")) else AcquisitionCardSummary(quote.model)
                             if(entry.benefit.isNotBlank()) Text(entry.benefit,color=DublMuted,maxLines=2,overflow=TextOverflow.Ellipsis)
                             val ref=quote?.model?.request?.targets?.singleOrNull()?.definition
                             val count=ref?.let { hints?.dependents(it)?.size } ?: 0
                             if(count>0) Text("Связанные навыки: $count (подсказка, не допуск)",color=DublGold)
                             Row(horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-                                TextButton(onClick={quote?.model?.request?.let(actions::open)},enabled=quote?.model?.request!=null,modifier=Modifier.testTag("acquisition.open")) { Text("Просмотреть покупку") }
+                                TextButton(onClick={
+                                    val request=quote?.model?.request ?: target?.let { com.furybook.dubl.acquisition.AcquisitionRequest(state.snapshot.activeCharacterId,listOf(it)) }
+                                    request?.let(actions::open)
+                                },enabled=target!=null,modifier=Modifier.testTag("acquisition.open")) { Text("Просмотреть покупку") }
                                 TextButton(onClick={selected=entry}) { Text("Подробнее") }
                             }
                         }
@@ -1619,7 +1640,8 @@ private fun CanonicalDevelopmentBrowser(state: DesktopAppState, modifier: Modifi
                         reviews[entry.id]?.let { AcquisitionCardSummary(it.model); AcquisitionRequirementRows(it.model,actions); AcquisitionWitnessRows(it.details) }
                         TextButton(onClick={planned=if(entry.id in planned) planned-entry.id else planned+entry.id}) { Text(if(entry.id in planned) "Убрать из плана" else "В план") }
                         Button(onClick={actions.openTarget(com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT,entry.id,(view?.instances?.singleOrNull { it.definition.entryId==entry.id }?.rank ?: 0)+1,false)}) {Text("Добрать только требования")}
-                        Button(onClick={reviews[entry.id]?.model?.request?.let(actions::open)}) {Text("Добрать и взять")}
+                        Button(onClick={reviews[entry.id]?.model?.request?.let(actions::open) ?: actions.openTarget(com.furybook.dubl.acquisition.AcquisitionKind.DEVELOPMENT,entry.id,
+                            (view?.instances?.singleOrNull { it.definition.entryId==entry.id }?.rank ?: 0)+1)}) {Text("Добрать и взять")}
                         val ref=reviews[entry.id]?.model?.request?.targets?.singleOrNull()?.definition
                         ref?.let { hints?.dependents(it) }?.forEach { dependent -> TextButton(onClick={selected=catalog.byId(dependent.entryId)}) {Text(com.furybook.dubl.acquisition.AcquisitionLabels(view!!.catalog).definition(dependent))} }
                     }

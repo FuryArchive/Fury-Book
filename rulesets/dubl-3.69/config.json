@@ -63,14 +63,15 @@
     "skills": {
       "status": "source_generated",
       "sources": [
-        "core"
+        "core",
+        "archmage"
       ],
       "runtimeArtifact": "shared/src/commonMain/resources/fcp/dubl-3.69/content/skills_catalog.json",
       "compiledArtifact": {
         "type": "skill_catalog_kotlin",
-        "path": "shared/src/commonMain/kotlin/com/dubl/character/android/model/GeneratedSkillCatalog.kt"
+        "path": "shared/src/commonMain/kotlin/com/furybook/dubl/model/GeneratedSkillCatalog.kt"
       },
-      "note": "Rulebook-generated mechanics plus tracked persistence/UI bindings. Computers exists in the book outside the base table; unspecified Auto6/Auto12/untrained semantics remain non-executable rather than guessed."
+      "note": "Rulebook-generated mechanics plus tracked persistence/UI bindings. Current native Archmage Runology explicitly uses the ordinary skill table and Intellect. Unspecified Auto6/Auto12/untrained semantics remain unspecified."
     },
     "development_regular": {
       "status": "source_generated",
@@ -119,6 +120,21 @@
       ],
       "runtimeArtifact": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_magic_catalog.json",
       "note": "Magic Development skills are generated from the core DUBL 3.69 Magic/Magical Skills section."
+    },
+    "development_native_supplement": {
+      "status": "source_generated",
+      "sources": [
+        "core"
+      ],
+      "runtimeArtifact": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_native_supplement_catalog.json",
+      "note": "Explicit exact native occurrence bindings recover missing core cards; omitted source rank maxima remain unresolved in strict acquisition."
+    },
+    "development_native_magic": {
+      "status": "source_generated",
+      "sources": [
+        "archmage"
+      ],
+      "runtimeArtifact": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_native_magic_catalog.json"
     }
   },
   "semanticAudit": {

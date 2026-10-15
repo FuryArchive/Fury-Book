@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+from tools.tests.native_runtime_catalog_expectations import assert_native_runtime_ids
 
 ROOT = Path(__file__).resolve().parents[2]
 CORE = ROOT / "shared/src/commonMain/resources/fcp/dubl-3.69/content"
@@ -17,7 +18,9 @@ LAYERS = (
     ("development_regular", "development_regular_catalog.json", 287, "core", CORE),
     ("development_special", "development_special_catalog.json", 304, "core", CORE),
     ("development_ability_roots", "development_ability_roots_catalog.json", 41, "core", CORE),
-    ("development_martial", "development_martial_catalog.json", 122, "melee", CORE),
+    ("development_martial", "development_martial_catalog.json", 501, "melee", CORE),
+    ("development_native_supplement", "development_native_supplement_catalog.json", 64, "core", CORE),
+    ("development_native_magic", "development_native_magic_catalog.json", 22, "archmage", CORE),
     ("development_chi", "development_chi_catalog.json", 27, "melee", CHI),
     ("development_magic", "development_magic_catalog.json", 15, "core", CORE),
 )
@@ -38,8 +41,9 @@ def test_all_development_domains_are_source_generated_and_owned_by_declared_fcp(
         assert meta["runtimeArtifact"] == f"shared/src/commonMain/resources/fcp/{pack}/content/{filename}"
         catalog = _catalog(filename, root)
         assert len(catalog["entries"]) == expected_count
+        assert_native_runtime_ids(filename, catalog["entries"])
         total += expected_count
-    assert total == 796
+    assert total == 1261
     assert _catalog("development_catalog.json")["entries"] == []
 
 
@@ -84,7 +88,12 @@ def test_promoted_ability_roots_keep_source_semantics_and_draft_markers():
     assert battle_rush["benefit"] == ""
 
     connections = next(entry for entry in roots["entries"] if entry["name"] == "Связи")
-    assert connections["abilityOptions"] == [{"source": "???", "value": 1}]
+    prices = json.loads((ROOT / "rulesets/dubl-3.69/acquisition/native_development_prices.json").read_text(encoding="utf-8"))
+    source_binding = next(record for record in prices["accessPrices"]
+                          if record["definitionRef"]["entryId"] == connections["id"])
+    assert source_binding["options"][0]["source"]["text"] == "Социальное"
+    assert connections["abilityOptions"] == [{"source": option["source"]["text"], "value": int(option["price"]["text"])}
+                                              for option in source_binding["options"]] == [{"source": "Социальное", "value": 1}]
     assert connections["repeatable"] is True
     assert connections["incomplete"] is True
     assert "локаль" in connections["conflictNote"].casefold()
@@ -94,7 +103,8 @@ def test_martial_chi_and_magic_development_have_expected_sections_and_counts():
     martial = _catalog("development_martial_catalog.json")
     chi_dev = _catalog("development_chi_catalog.json", CHI)
     magic = _catalog("development_magic_catalog.json")
-    assert len(martial["entries"]) == 122
+    assert len(martial["entries"]) == 501
+    assert_native_runtime_ids("development_martial_catalog.json", martial["entries"])
     assert all(entry["section"] == "Боевые искусства" for entry in martial["entries"])
     assert len(chi_dev["entries"]) == 27
     assert all(entry["section"] == "ЦИ" for entry in chi_dev["entries"])
@@ -137,9 +147,11 @@ def test_android_and_desktop_compose_core_and_optional_development_layers():
     assert core_development == [
         "development_regular_catalog.json",
         "development_special_catalog.json",
+        "development_native_supplement_catalog.json",
         "development_ability_roots_catalog.json",
         "development_martial_catalog.json",
         "development_magic_catalog.json",
+        "development_native_magic_catalog.json",
         "development_catalog.json",
     ]
     assert chi_development == ["development_chi_catalog.json"]

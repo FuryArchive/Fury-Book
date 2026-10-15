@@ -260,8 +260,9 @@ private fun confirmLegacy(state:StoredCharacter,p:MutationPayload.ConfirmLegacyP
     val definition=catalog.definitions[instance.definition] ?: throw IllegalArgumentException("Unknown legacy definition")
     require(instance.origin==AcquisitionOrigin.Legacy(source.characterId,source.schema.toString(),source.sourceRevision,source.sourceFingerprint,(instance.origin as AcquisitionOrigin.Legacy).ownershipKey)) { "Legacy scope mismatch" }
     require(instance.instanceId==legacyInstanceId(instance.definition,instance.origin)) { "Legacy identity mismatch" }
-    require(instance.parameters.keys==definition.parameterDefinitions.map { it.key }.toSet()) { "Missing or unknown parameter" }
-    definition.parameterDefinitions.forEach { parameter ->
+    val activeParameters=definition.parameterDefinitions.filter { it.requiredAtRank<=instance.rank }
+    require(instance.parameters.keys==activeParameters.map { it.key }.toSet()) { "Missing or unknown parameter" }
+    activeParameters.forEach { parameter ->
         val value=instance.parameters.getValue(parameter.key)
         when(val domain=parameter.domain) {
             is ParameterDomain.StableIds -> require(value in domain.valueIds) { "Unknown parameter value" }

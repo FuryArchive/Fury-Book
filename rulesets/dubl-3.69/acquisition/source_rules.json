@@ -134,7 +134,7 @@
         "No repeat or parameter identity confirmation."
       ],
       "testRefs": [
-        "tools/tests/test_acquisition_source_rules.py::test_exact_source_assertions_preserve_source_only_drawbacks_and_separate_authority",
+        "tools/tests/test_acquisition_source_rules.py::test_exact_source_assertions_preserve_drawback_stage_and_separate_authority",
         "tools/tests/test_acquisition_source_rules.py::test_malformed_overbroad_or_false_authority_fails",
         "shared/src/desktopTest/kotlin/com/furybook/dubl/acquisition/AcquisitionAuthorFoundationTest.kt::AcquisitionAuthorFoundationTest.numeric_per_rank_price_does_not_override_creation_only_source_condition"
       ]
@@ -454,7 +454,7 @@
         "No retrospective discount."
       ],
       "testRefs": [
-        "tools/tests/test_acquisition_source_rules.py::test_exact_source_assertions_preserve_source_only_drawbacks_and_separate_authority",
+        "tools/tests/test_acquisition_source_rules.py::test_exact_source_assertions_preserve_drawback_stage_and_separate_authority",
         "tools/tests/test_acquisition_source_rules.py::test_malformed_overbroad_or_false_authority_fails",
         "tools/tests/test_rulebook_acquisition_import.py::test_self_taught_is_explicit_source_backed_conditional_price"
       ]
@@ -462,10 +462,10 @@
     {
       "id": "AR_DRAWBACK_STAGE_AND_REWARD",
       "authority": "SOURCE_DERIVED",
-      "topic": "Drawback stage/reward assertions are source-only, with no catalog purchase node.",
-      "statement": "Drawback stage/reward assertions are source-only, with no catalog purchase node.",
+      "topic": "Current native drawback entries bind the cited creation reward, finalized zero reward and creation-only prerequisites.",
+      "statement": "Current native drawback entries bind the cited creation reward, finalized zero reward and creation-only prerequisites.",
       "scope": {
-        "type": "SOURCE_ONLY",
+        "type": "CURRENT_NATIVE_DRAWBACK_SET",
         "facet": "DRAWBACK_STAGE_REWARD"
       },
       "assertions": [
@@ -561,13 +561,13 @@
           "textSha256": "36f5d4605567d6c3553b6bbcb3c7efbbc0092847adf533d9053908715142b38a"
         }
       ],
-      "runtimeBinding": "SOURCE_ONLY_NOT_IN_CATALOG",
+      "runtimeBinding": "BOUND_NATIVE_CURRENT",
       "nonClaims": [
-        "SOURCE_ONLY_NOT_IN_CATALOG: no runtime reward, invented definition or executable purchase.",
-        "No general negative-price or later purchase/payment policy."
+        "Only the exact source-bound entries in native_drawback_rules.json; no generic permission to invent negative prices.",
+        "Existing holdings and paid history are not awarded or repriced retroactively; this does not implement drawback gameplay effects or an unspecified buyback price."
       ],
       "testRefs": [
-        "tools/tests/test_acquisition_source_rules.py::test_exact_source_assertions_preserve_source_only_drawbacks_and_separate_authority",
+        "tools/tests/test_acquisition_source_rules.py::test_exact_source_assertions_preserve_drawback_stage_and_separate_authority",
         "tools/tests/test_acquisition_source_rules.py::test_malformed_overbroad_or_false_authority_fails"
       ]
     },
@@ -744,7 +744,7 @@
         "No combat effects implementation or inferred price formula."
       ],
       "testRefs": [
-        "tools/tests/test_acquisition_source_rules.py::test_exact_source_assertions_preserve_source_only_drawbacks_and_separate_authority",
+        "tools/tests/test_acquisition_source_rules.py::test_exact_source_assertions_preserve_drawback_stage_and_separate_authority",
         "tools/tests/test_acquisition_source_rules.py::test_malformed_overbroad_or_false_authority_fails"
       ]
     },
@@ -24168,12 +24168,12 @@
       "questionId": "Q_NEGATIVE_PRICE_REWARD",
       "facet": "DRAWBACK_STAGE_REWARD",
       "scope": {
-        "type": "SOURCE_ONLY",
+        "type": "CURRENT_NATIVE_DRAWBACK_SET",
         "facet": "DRAWBACK_STAGE_REWARD"
       },
       "status": "SOURCE_CONFIRMED",
       "ruleId": "AR_DRAWBACK_STAGE_AND_REWARD",
-      "reason": "Drawback stage/reward assertions are source-only, with no catalog purchase node.",
+      "reason": "Current native entries now bind the source-confirmed stage/reward policy; exact card identities and eligibility remain independently verified.",
       "remainingFacets": [
         {
           "facet": "ALL_OUTSIDE_EXPLICIT_SCOPE",

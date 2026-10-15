@@ -170,15 +170,26 @@ class AcquisitionPresentationSession(private val port:AcquisitionCommandPort,pri
         require(key==model?.key && pending==null);return open(checkNotNull(model).scope,request)
     }
     suspend fun selectTarget(key:AcquisitionQuoteKey,targetIndex:Int,instanceId:String?,newInstance:Boolean=false,
-        parameters:Map<String,String> = emptyMap(),optionId:String?=null):AcquisitionUiModel {
+        parameters:Map<String,String> = emptyMap(),optionId:String?=null,targetRank:Int?=null):AcquisitionUiModel {
         require(key==model?.key && pending==null)
         val view=checkNotNull(model);val request=checkNotNull(view.request)
         val selection=view.selections.single { it.targetIndex==targetIndex }
         require(!newInstance || selection.canCreateNew)
         require(newInstance || instanceId==null || selection.instances.any { it.instanceId==instanceId })
-        val target=request.targets[targetIndex].copy(instanceId=if(newInstance)newId() else instanceId,parameters=parameters,optionId=optionId)
+        val target=request.targets[targetIndex].copy(instanceId=if(newInstance)newId() else instanceId,parameters=parameters,optionId=optionId,
+            targetRank=targetRank ?: request.targets[targetIndex].targetRank)
         return replaceSelections(key,AcquisitionRequest(request.characterId,request.targets.mapIndexed { index,old -> if(index==targetIndex)target else old },
             request.choiceSelections,request.includeTargets,request.prerequisiteSelections,request.externalConfirmations))
+    }
+    /** Player-facing name or a source-backed choice; the opaque identity is allocated here once. */
+    suspend fun selectNewSpecialization(key:AcquisitionQuoteKey,targetIndex:Int,name:String,choiceId:String?=null):AcquisitionUiModel {
+        require(key==model?.key && pending==null)
+        val view=checkNotNull(model);val request=checkNotNull(view.request)
+        val selection=view.selections.single { it.targetIndex==targetIndex }
+        require(selection.specializedSkill && selection.canCreateNew)
+        val definition=port.catalog.definitions.getValue(selection.definition)
+        val target=AcquisitionSkillSpecializations.newTarget(definition,newId(),name,request.targets[targetIndex].targetRank,choiceId)
+        return replaceSelections(key,request.withTarget(targetIndex,target))
     }
     suspend fun refresh(key:AcquisitionQuoteKey):AcquisitionUiModel {
         require(key==model?.key && pending==null);return open(checkNotNull(model).scope,checkNotNull(plan).request)
@@ -336,7 +347,7 @@ class AcquisitionPresentationSession(private val port:AcquisitionCommandPort,pri
             val view=checkNotNull(model)
             val saved=state.receipts.singleOrNull { it.operationId==pending?.operationId }
             val operation=saved?.let { savedAcquisitionOperation(it,state.ledger.entries.singleOrNull { entry -> entry.operationId==it.operationId }) }
-            set(view.copy(sync=AcquisitionPresentation.sync(state,port.capabilities),receipt=view.receipt?.copy(currentBalance=balance(state.ledger),savedOperation=operation ?: view.receipt.savedOperation)))
+            set(view.copy(sync=AcquisitionPresentation.sync(state,port.capabilities),receipt=view.receipt?.copy(currentBalance=balance(state.ledger))?.withRecordedPrices(operation ?: view.receipt.savedOperation)))
             if(!current()) return set(checkNotNull(model).copy(viewRefreshError="Сохранено для исходного персонажа; текущий выбор изменился"))
             port.publish(checkNotNull(model).scope,state)
             set(checkNotNull(model).copy(viewRefreshError=null))

@@ -18,6 +18,7 @@ class AcquisitionDependencyHints(catalog: AcquisitionCatalog) {
                     is RequirementNode.AllOf -> node.children.forEach(::visit)
                     is RequirementNode.AnyOf -> node.children.forEach(::visit)
                     is RequirementNode.DistinctCount -> visit(node.predicate)
+                    is RequirementNode.SelectedInstance -> visit(node.predicate)
                     is RequirementNode.OwnedRank -> add(DefinitionRef(node.packId, node.entryId))
                     is RequirementNode.Specialization -> add(DefinitionRef(node.packId, node.entryId))
                     is RequirementNode.BranchAccess -> if (node.operand) add(DefinitionRef(node.packId, node.branchId))
@@ -30,7 +31,7 @@ class AcquisitionDependencyHints(catalog: AcquisitionCatalog) {
                         }.forEach { add(it.ref) }
                     }
                     // A prohibition is not something this acquisition unlocks.
-                    is RequirementNode.Exclusive, is RequirementNode.Attribute,
+                    is RequirementNode.Exclusive, is RequirementNode.Attribute, is RequirementNode.NumericProperty,
                     is RequirementNode.CreationPhase, is RequirementNode.ExternalEvidence,
                     is RequirementNode.Unresolved -> Unit
                 }

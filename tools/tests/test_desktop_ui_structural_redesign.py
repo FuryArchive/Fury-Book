@@ -122,7 +122,9 @@ def test_hero_metrics_expose_only_requested_quick_rolls():
     metrics = sheet.split('private fun HeroMetricsStrip', 1)[1].split('private fun SkillsDevelopmentWorkspace', 1)[0]
     for token in ('RollContext.REFLEXES', 'RollContext.INITIATIVE', 'RollContext.FORTITUDE', 'RollContext.RUN'):
         assert token in metrics
-    assert 'Metric(DesktopIconKind.DEFENSE, "Защита", character.defense.toString(), null)' in metrics
+    assert 'val conditionValues = character.conditionDerivedValues(activeConditions, temporaryDefenseBonus)' in metrics
+    assert 'Metric(DesktopIconKind.DEFENSE, "Защита", (conditionValues.defense?.toString() ?: "?"), null)' in metrics
+    assert 'temporaryDefenseBonus = state.activeCombat?.defenseBonus ?: 0' in sheet
     assert 'Metric(DesktopIconKind.SIZE, "Размер", character.size.toString(), null)' in metrics
 
 def test_notes_flow_through_shared_application_boundary_and_persistence():

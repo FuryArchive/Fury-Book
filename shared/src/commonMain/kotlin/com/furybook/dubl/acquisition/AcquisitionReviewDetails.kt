@@ -13,7 +13,6 @@ data class AcquisitionWitnessView(val witness:RequirementWitness,val label:Strin
 data class AcquisitionWitnessProof(val nodeId:String,val status:RequirementStatus,val witnesses:List<AcquisitionWitnessView>,val children:List<AcquisitionWitnessProof>)
 
 /** Labels only. These stable option IDs remain catalog authority; no payment rule lives here. */
-private fun abilityLabel(id:String,index:Int):String=when(id) { "morale"->"Мораль";"chi"->"Ци";else->"Вариант ${index+1}" }
 internal fun AcquisitionRequest.withTarget(index:Int,target:AcquisitionTarget)=AcquisitionRequest(characterId,
     targets.mapIndexed { i,old -> if(i==index)target else old },choiceSelections,includeTargets,prerequisiteSelections,externalConfirmations)
 internal fun acquisitionReviewDetails(scope:AcquisitionScope,key:AcquisitionQuoteKey,request:AcquisitionRequest,state:StoredCharacter,catalog:AcquisitionCatalog,reviewedPlan:AcquisitionPlan?=null):AcquisitionReviewDetails {
@@ -22,7 +21,7 @@ internal fun acquisitionReviewDetails(scope:AcquisitionScope,key:AcquisitionQuot
         is RequirementWitness.OwnedInstance->(instances.firstOrNull { it.instanceId==value.instanceId }?.label
             ?: labels.definition(DefinitionRef(value.packId,value.entryId)))+" · ранг ${value.rank}"
         is RequirementWitness.LearnedSpell->labels.definition(DefinitionRef(value.packId,value.entryId))+" · изучено"
-        is RequirementWitness.Branch->labels.definition(DefinitionRef(value.packId,value.branchId))+" · "+abilityLabel(value.accessOptionId,0)
+        is RequirementWitness.Branch->labels.definition(DefinitionRef(value.packId,value.branchId))+" · "+acquisitionAbilityOptionLabel(catalog.definitions[DefinitionRef(value.packId,value.branchId)],value.accessOptionId,0)
         is RequirementWitness.External->"Подтверждённое внешнее условие"
     })
     fun proof(value:RequirementResult):AcquisitionWitnessProof=AcquisitionWitnessProof(value.nodeId,value.status,
@@ -39,7 +38,13 @@ internal fun acquisitionReviewDetails(scope:AcquisitionScope,key:AcquisitionQuot
             AcquisitionAbilitySelection(index,target.definition,labels.definition(target.definition),target.optionId,
                 EnvelopeList(ids.orEmpty().sorted().mapIndexed { number,id ->
                     val selected=plan(request.withTarget(index,target.copy(optionId=id)),state,catalog)
-                    AcquisitionChoiceOptionView(id,abilityLabel(id,number),selected.cost?.let { AcquisitionDisplayedPrice.Known(it) } ?: AcquisitionDisplayedPrice.Unknown())
+                    AcquisitionChoiceOptionView(id,acquisitionAbilityOptionLabel(definition,id,number),selected.cost?.let { AcquisitionDisplayedPrice.Known(it) } ?: AcquisitionDisplayedPrice.Unknown())
                 }),ids==null)
-        }),EnvelopeList(request.targets.mapIndexedNotNull { index,target -> catalog.definitions[target.definition]?.requirements?.let { AcquisitionRequirementEvidence(index,proof(evaluate(it,exact.projectedContext)),proof(evaluate(it,context))) } }))
+        }),EnvelopeList(request.targets.mapIndexedNotNull { index,target -> catalog.definitions[target.definition]?.requirements?.let {
+            AcquisitionRequirementEvidence(index,proof(evaluate(it,exact.projectedContext,target.parameters)),proof(evaluate(it,context,target.parameters)))
+        } } + includedGrantRequirements(request,exact.projectedContext).map { selected ->
+            AcquisitionRequirementEvidence(request.targets.indexOfFirst { it.definition==selected.owner },
+                proof(evaluate(selected.requirement,exact.projectedContext,selected.target.parameters)),
+                proof(evaluate(selected.requirement,context,selected.target.parameters)))
+        }))
 }

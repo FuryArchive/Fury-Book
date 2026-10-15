@@ -14,15 +14,15 @@ def inputs():
     return (read(DATA/'source_rules.json'), read(DATA/'source_questions.json'), read(DATA/'source_review_excerpts.json'))
 
 
-def test_exact_source_assertions_preserve_source_only_drawbacks_and_separate_authority():
+def test_exact_source_assertions_preserve_drawback_stage_and_separate_authority():
     records, source, excerpts = inputs()
     merged = validate_source_rules(records, source, excerpts)
     by_id = {r['id']: r for r in records['rules']}
     assert {r['id'] for r in records['rules'] if r['authority'] == 'SOURCE_DERIVED'} == SOURCE_IDS
     assert 'только при создании' in merged['sourceEvidence']['core:P11670']['text']
     drawback = by_id['AR_DRAWBACK_STAGE_AND_REWARD']
-    assert drawback['scope'] == {'type': 'SOURCE_ONLY', 'facet': 'DRAWBACK_STAGE_REWARD'}
-    assert drawback['runtimeBinding'] == 'SOURCE_ONLY_NOT_IN_CATALOG'
+    assert drawback['scope'] == {'type': 'CURRENT_NATIVE_DRAWBACK_SET', 'facet': 'DRAWBACK_STAGE_REWARD'}
+    assert drawback['runtimeBinding'] == 'BOUND_NATIVE_CURRENT'
     assert drawback['assertions'][1]['signedCostXP'] == '-20'
     assert drawback['assertions'][1]['creationBalanceDeltaXP'] == '20'
     assert drawback['assertions'][1]['laterRewardXP'] == '0'

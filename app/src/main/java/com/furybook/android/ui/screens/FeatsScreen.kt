@@ -93,8 +93,11 @@ import com.furybook.dubl.model.withoutChiContent
 import com.furybook.android.state.CharacterController
 import com.furybook.android.ui.acquisition.*
 import com.furybook.dubl.acquisition.AcquisitionKind
+import com.furybook.dubl.acquisition.AcquisitionCharacterView
+import com.furybook.dubl.acquisition.RepeatPolicy
 import com.furybook.dubl.acquisition.AcquisitionDependencyHintCache
 import com.furybook.dubl.acquisition.acquisitionContext
+import com.furybook.dubl.acquisition.ownedDevelopmentInstances
 import com.furybook.dubl.content.DublUiRegistry
 import androidx.compose.ui.platform.testTag
 import com.furybook.android.ui.components.containSheetOverscroll
@@ -114,6 +117,14 @@ private enum class DevelopmentTab(val title: String) {
     MARTIAL_ARTS("Боевые искусства"),
     CHI("ЦИ"),
     OWNED("Взято"),
+}
+
+private fun developmentNextRank(entryId:String,view:AcquisitionCharacterView?,legacyRank:Int):Int {
+    if(view==null) return legacyRank+1
+    val definition=view.catalog.definitions.values.singleOrNull { it.kind==AcquisitionKind.DEVELOPMENT && it.ref.entryId==entryId }
+        ?: return 1
+    return if(definition.repeatPolicy==RepeatPolicy.Single)
+        (view.instances.filter { it.definition==definition.ref }.maxOfOrNull { it.rank } ?: 0)+1 else 1
 }
 
 private enum class DevelopmentBrowserFilter(val title: String) {
@@ -160,7 +171,7 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     val character = controller.active
     val content = LocalAndroidAcquisitionContent.current
     val acquisition = LocalAndroidAcquisition.current
-    val canonicalView = acquisition?.view
+    val canonicalView = acquisition?.takeIf { it.canonical }?.view?.takeIf { it.scope.viewCharacterId==character.id }
     val context = LocalContext.current
     val chiTabUi = remember(context.applicationContext, chiPackEnabled) {
         DublUiRegistry.mounts(content.composition, FcpUiSurface.DEVELOPMENT_TABS, FcpUiComponent.DEVELOPMENT_BROWSER).forFeature(DublUiFeature.CHI)
@@ -248,7 +259,8 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     val chiRules = remember(character, catalog) { ChiRules(character, catalog) }
 
     fun increase(entry: DevelopmentEntry, optionIndex: Int) {
-        if (acquisition?.canonical == true) { acquisition.openTarget(AcquisitionKind.DEVELOPMENT, entry.id, progress.rank(entry.id) + 1); return }
+        if (acquisition?.canonical == true) { acquisition.openTarget(AcquisitionKind.DEVELOPMENT, entry.id, developmentNextRank(entry.id,canonicalView,progress.rank(entry.id))); return }
+        if(entry.costType==DevelopmentCostType.CHOICE) return
         val availability = rules.availability(entry, optionIndex)
         when {
             availability.canIncrease -> {
@@ -345,7 +357,7 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 )
                 .map { it.entry }
                 .toList()
-            Triple(filterKey, entries, prepareDevelopmentRows(entries, { it.id }, ::calculateAvailability))
+            Triple(filterKey, entries, if(canonicalView!=null) emptyMap() else prepareDevelopmentRows(entries, { it.id }, ::calculateAvailability))
         }
     }
     val publishedRows = filteredEntriesAsync?.takeIf { it.first == filterKey }
@@ -353,6 +365,8 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     fun availabilityFor(entry: DevelopmentEntry): DevelopmentAvailability = checkNotNull(publishedRows).third.getValue(entry.id)
     val filteredEntriesPreparing = publishedRows == null
     val searchActive = query.isNotBlank()
+    val canonicalOwned = canonicalView?.takeIf { tab==DevelopmentTab.OWNED }?.ownedDevelopmentInstances()
+        ?.filter { query.isBlank() || developmentNormalize(it.label).contains(developmentNormalize(query)) }
 
     fun groupId(prefix: String, name: String): String = "$prefix:$name"
     fun toggleGroup(id: String) {
@@ -605,14 +619,24 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                         DevelopmentTab.SPECIAL -> "Записей спец. веток: ${filteredEntries.size}"
                         DevelopmentTab.MARTIAL_ARTS -> "Стилей и приёмов: ${filteredEntries.size}"
                         DevelopmentTab.CHI -> ""
-                        DevelopmentTab.OWNED -> "Взято: ${filteredEntries.size}"
+                        DevelopmentTab.OWNED -> "Взято: ${canonicalOwned?.size ?: filteredEntries.size}"
                     },
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
-            if (filteredEntriesPreparing) {
+            if (canonicalOwned!=null) {
+                if(canonicalOwned.isEmpty()) item {
+                    DublCard(Modifier.fillMaxWidth()) {
+                        Text(if(query.isBlank()) "Пока ничего не взято" else "Ничего не найдено",
+                            style=MaterialTheme.typography.titleMedium)
+                    }
+                }
+                items(canonicalOwned,key={ "owned-${it.instanceId}" }) { owned ->
+                    CanonicalOwnedDevelopmentCard(owned)
+                }
+            } else if (filteredEntriesPreparing) {
                 item {
                     DublCard(Modifier.fillMaxWidth()) {
                         Text(
@@ -665,7 +689,8 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                     }
                     if (expanded) {
                         items(entries, key = { it.id }) { entry ->
-                            DevelopmentRow(
+                            if(canonicalView!=null) CanonicalDevelopmentRow(entry) { selectedEntryId=entry.id }
+                            else DevelopmentRow(
                                 entry = entry,
                                 availability = availabilityFor(entry),
                                 progress = progress,
@@ -698,7 +723,8 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                     }
                     if (expanded) {
                         items(branchEntries.sortedWith(compareBy<DevelopmentEntry>({ if (it.isAbility) 0 else 1 }, { developmentNormalize(it.name) })), key = { it.id }) { entry ->
-                            DevelopmentRow(
+                            if(canonicalView!=null) CanonicalDevelopmentRow(entry) { selectedEntryId=entry.id }
+                            else DevelopmentRow(
                                 entry = entry,
                                 availability = availabilityFor(entry),
                                 progress = progress,
@@ -720,7 +746,8 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                         }
                         if (expanded) {
                             items(entries, key = { it.id }) { entry ->
-                                DevelopmentRow(
+                                if(canonicalView!=null) CanonicalDevelopmentRow(entry) { selectedEntryId=entry.id }
+                                else DevelopmentRow(
                                     entry = entry,
                                     availability = availabilityFor(entry),
                                     progress = progress,
@@ -819,11 +846,11 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                     }
                 },
                 onAcquireRequirements = {
-                    if (acquisition?.canonical == true) acquisition.openTarget(AcquisitionKind.DEVELOPMENT, entry.id, progress.rank(entry.id) + 1, false)
+                    if (acquisition?.canonical == true) acquisition.openTarget(AcquisitionKind.DEVELOPMENT, entry.id, developmentNextRank(entry.id,canonicalView,progress.rank(entry.id)), false)
                     else acquisitionRequest = DevelopmentAcquisitionRequest.single(entry.id, includeTarget = false)
                 },
                 onAcquireAll = { optionIndex ->
-                    if (acquisition?.canonical == true) acquisition.openTarget(AcquisitionKind.DEVELOPMENT, entry.id, progress.rank(entry.id) + 1)
+                    if (acquisition?.canonical == true) acquisition.openTarget(AcquisitionKind.DEVELOPMENT, entry.id, developmentNextRank(entry.id,canonicalView,progress.rank(entry.id)))
                     else acquisitionRequest = DevelopmentAcquisitionRequest.single(
                         entryId = entry.id,
                         includeTarget = true,
@@ -1489,6 +1516,18 @@ private fun developmentCostLabel(xp: Int, ability: Int): String = buildString {
 }
 
 @Composable
+private fun CanonicalDevelopmentRow(entry:DevelopmentEntry,onClick:()->Unit) {
+    val actions=LocalAndroidAcquisition.current ?: return
+    DublCard(Modifier.fillMaxWidth().testTag("acquisition.definition.${entry.id}")) {
+        Text(entry.name,style=MaterialTheme.typography.titleSmall,fontWeight=FontWeight.Bold)
+        if(entry.benefit.isNotBlank()) Text(entry.benefit,style=MaterialTheme.typography.bodySmall,
+            color=MaterialTheme.colorScheme.onSurfaceVariant,maxLines=2,overflow=TextOverflow.Ellipsis)
+        AcquisitionEntrySummary(AcquisitionKind.DEVELOPMENT,entry.id,developmentNextRank(entry.id,actions.view,0))
+        TextButton(onClick=onClick) { Text("Подробнее") }
+    }
+}
+
+@Composable
 private fun DevelopmentRow(
     entry: DevelopmentEntry,
     availability: DevelopmentAvailability,
@@ -1525,7 +1564,7 @@ private fun DevelopmentRow(
         else -> "Закрыто"
     }
 
-    if (acquisition?.canonical == true) AcquisitionEntrySummary(AcquisitionKind.DEVELOPMENT, entry.id, rank + 1)
+    if (acquisition?.canonical == true) AcquisitionEntrySummary(AcquisitionKind.DEVELOPMENT, entry.id, developmentNextRank(entry.id,acquisition.view,rank))
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -1566,7 +1605,7 @@ private fun DevelopmentRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    if (acquisition?.canonical == true) "Цена в просмотре" else if (entry.isAbility) {
+                    if (acquisition?.canonical == true) "Цена в просмотре" else if(entry.costType==DevelopmentCostType.CHOICE) "Выберите XP или ОСп" else if (entry.isAbility) {
                         if (entry.abilityOptions.isNotEmpty()) {
                             val values = entry.abilityOptions.map { it.value }.distinct().sorted()
                             values.joinToString("–") + " ОС"
@@ -1791,7 +1830,7 @@ private fun DevelopmentUnlocksCard(
                                 Column(Modifier.weight(1f)) {
                                     Text(target.name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                                     Text(
-                                        if (target.isAbility) "Доступ к ветке" else "${target.cost} XP",
+                                        if(target.costType==DevelopmentCostType.CHOICE) "Выберите XP или ОСп" else if (target.isAbility) "Доступ к ветке" else "${target.cost} XP",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
@@ -1860,6 +1899,7 @@ private fun DevelopmentDetailSheet(
     val ownedInvalid = currentRank > 0 && availability.checks.any { it.status != RequirementStatus.OK }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val primaryActionLabel = if (canonical) "Просмотреть покупку" else when {
+        entry.costType==DevelopmentCostType.CHOICE -> "Выберите XP или ОСп"
         entry.isAbility && missing!!.steps.isEmpty() && missing!!.unresolvedRequirements.isEmpty() ->
             "Открыть ветку · ${developmentCostLabel(acquirePlan!!.xpCost, acquirePlan!!.abilityCost)}"
         missing!!.steps.isEmpty() && missing!!.unresolvedRequirements.isEmpty() ->
@@ -1910,7 +1950,7 @@ private fun DevelopmentDetailSheet(
                     border = BorderStroke(1.dp, DublGold.copy(alpha = 0.28f)),
                 ) {
                     Text(
-                        if (canonical) "Цена в подтверждённом просмотре" else if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP / ранг",
+                        if (canonical) "Цена в подтверждённом просмотре" else if(entry.costType==DevelopmentCostType.CHOICE) "Выберите XP или ОСп" else if (entry.isAbility) "${availability.abilityCost} ОС" else "${entry.cost} XP / ранг",
                         modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
@@ -1941,7 +1981,7 @@ private fun DevelopmentDetailSheet(
 
             Button(
                 onClick = { onAcquireAll(optionIndex) },
-                enabled = currentRank < entry.maxRank,
+                enabled = currentRank < entry.maxRank && (canonical || entry.costType!=DevelopmentCostType.CHOICE),
                 modifier = Modifier.fillMaxWidth().testTag("acquisition.open"),
             ) { Text(if (canonical) "Просмотреть покупку" else primaryActionLabel) }
 
@@ -1968,7 +2008,7 @@ private fun DevelopmentDetailSheet(
             }
 
             if (canonical) {
-                AcquisitionEntrySummary(AcquisitionKind.DEVELOPMENT, entry.id, currentRank + 1)
+                AcquisitionEntrySummary(AcquisitionKind.DEVELOPMENT, entry.id, developmentNextRank(entry.id,acquisition?.view,currentRank))
                 TextButton(onClick = onAcquireRequirements) { Text("Добрать только требования") }
             } else DevelopmentRequirementsCard(
                 entry = entry,
@@ -2044,11 +2084,12 @@ private fun DevelopmentDetailSheet(
                 )
                 Button(
                     onClick = { onIncrease(optionIndex) },
-                    enabled = availability.canIncrease || availability.canForceIncrease,
+                    enabled = entry.costType!=DevelopmentCostType.CHOICE && (availability.canIncrease || availability.canForceIncrease),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(
                         when {
+                            entry.costType==DevelopmentCostType.CHOICE -> "Выберите XP или ОСп"
                             availability.canIncrease && entry.isAbility -> "Открыть вручную · ${availability.abilityCost} ОС"
                             availability.canIncrease && currentRank > 0 -> "+ ранг вручную · ${entry.cost} XP"
                             availability.canIncrease -> "Получить вручную · ${entry.cost} XP"
