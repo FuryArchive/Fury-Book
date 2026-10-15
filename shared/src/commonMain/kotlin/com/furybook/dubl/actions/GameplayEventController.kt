@@ -11,6 +11,9 @@ sealed interface GameBoundaryChoice {
     data object EndRound : GameBoundaryChoice
     data object EndScene : GameBoundaryChoice
     data class Rest(val kind: RestKind, val minutes: Int) : GameBoundaryChoice
+    data class SpendActions(val count: Int) : GameBoundaryChoice
+    data object SpendReaction : GameBoundaryChoice
+    data class ReserveDefense(val count: Int) : GameBoundaryChoice
 }
 data class GameplayEventView(val scope: GameplayScope, val storageRevision: Long, val timeline: GameplayTimeline)
 class GameplayEventReview internal constructor(val scope: GameplayScope, val expectedStorageRevision: Long,
@@ -61,6 +64,9 @@ class GameplayEventController(private val store: AcquisitionStore, private val s
             GameBoundaryChoice.EndRound -> GameBoundary.RoundEnded(boundaryId)
             GameBoundaryChoice.EndScene -> GameBoundary.SceneEnded(boundaryId)
             is GameBoundaryChoice.Rest -> GameBoundary.RestCompleted(boundaryId, choice.kind, choice.minutes)
+            is GameBoundaryChoice.SpendActions -> GameBoundary.ActionPointsSpent(boundaryId, choice.count)
+            GameBoundaryChoice.SpendReaction -> GameBoundary.ReactionSpent(boundaryId)
+            is GameBoundaryChoice.ReserveDefense -> GameBoundary.DefenseReserved(boundaryId, choice.count)
         }
         val command = RecordGameBoundary(id, captured.characterId, timeline.revision, boundary)
         val transition = GameplayEvents.apply(timeline, command)

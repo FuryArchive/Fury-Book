@@ -8,6 +8,9 @@ sealed interface GameBoundary {
     data class RoundEnded(override val boundaryId: String) : GameBoundary
     data class SceneEnded(override val boundaryId: String) : GameBoundary
     data class RestCompleted(override val boundaryId: String, val kind: RestKind, val minutes: Int) : GameBoundary
+    data class ActionPointsSpent(override val boundaryId: String, val count: Int) : GameBoundary
+    data class ReactionSpent(override val boundaryId: String) : GameBoundary
+    data class DefenseReserved(override val boundaryId: String, val count: Int) : GameBoundary
 }
 enum class RestKind { BRIEF, FULL, OTHER }
 data class RecordGameBoundary(val operationId: String, val characterId: String, val expectedRevision: Long,
@@ -23,7 +26,8 @@ sealed interface EffectExpiry {
     data class Unresolved(val source: String, val reason: String) : EffectExpiry
 }
 data class TimedEffectInstance(val instanceId: String, val sourceRule: String, val createdAtRevision: Long,
-    val expiry: EffectExpiry)
+    val expiry: EffectExpiry, val defenseBonus: Int = 0)
+data class CombatResources(val actionPoints: Int, val reactions: Int, val defenseBonus: Int)
 data class OpenGameTurn(val actorId: String, val startedBoundaryId: String)
 data class GameBoundaryReceipt(val request: RecordGameBoundary, val expiredEffectIds: List<String>,
     val blockedEffectIds: List<String>, val afterRevision: Long)
@@ -36,6 +40,7 @@ class GameplayTimeline(val characterId: String, val revision: Long = 0, val ownT
     private val savedReceipts = receipts.map { it.copy(expiredEffectIds = it.expiredEffectIds.toList(), blockedEffectIds = it.blockedEffectIds.toList()) }
     val effects get() = savedEffects.toList()
     val receipts get() = savedReceipts.map { it.copy(expiredEffectIds = it.expiredEffectIds.toList(), blockedEffectIds = it.blockedEffectIds.toList()) }
+    val combat: CombatResources
     init {
         require(characterId.isNotBlank() && revision >= 0 && ownTurnOrdinal >= 0 && roundOrdinal >= 0)
         require(savedEffects.map { it.instanceId }.distinct().size == savedEffects.size)
@@ -43,6 +48,7 @@ class GameplayTimeline(val characterId: String, val revision: Long = 0, val ownT
         require(savedReceipts.map { it.request.boundary.boundaryId }.distinct().size == savedReceipts.size)
         require(savedReceipts.size.toLong() == revision)
         var replayOwn = 0L; var replayRound = 0L; var replayOpen: OpenGameTurn? = null
+        var actions = 3; var reactions = 1
         savedReceipts.forEachIndexed { index, receipt ->
             require(receipt.request.characterId == characterId && receipt.request.expectedRevision == index.toLong() && receipt.afterRevision == index + 1L)
             require(receipt.request.operationId.isNotBlank() && receipt.request.boundary.boundaryId.isNotBlank())
@@ -52,7 +58,9 @@ class GameplayTimeline(val characterId: String, val revision: Long = 0, val ownT
             when (val event = receipt.request.boundary) {
                 is GameBoundary.TurnStarted -> {
                     require(event.actorId.isNotBlank() && replayOpen == null)
-                    if (event.actorId == characterId) replayOwn++
+                    if (event.actorId == characterId) {
+                        replayOwn++; actions = 3; reactions = 1
+                    }
                     replayOpen = OpenGameTurn(event.actorId, event.boundaryId)
                 }
                 is GameBoundary.TurnEnded -> {
@@ -61,6 +69,15 @@ class GameplayTimeline(val characterId: String, val revision: Long = 0, val ownT
                 is GameBoundary.RoundEnded -> replayRound++
                 is GameBoundary.SceneEnded -> Unit
                 is GameBoundary.RestCompleted -> require(event.minutes > 0)
+                is GameBoundary.ActionPointsSpent -> {
+                    require(replayOpen?.actorId == characterId && event.count in 1..actions)
+                    actions -= event.count
+                }
+                is GameBoundary.DefenseReserved -> {
+                    require(replayOpen?.actorId == characterId && event.count in 1..actions)
+                    actions -= event.count
+                }
+                is GameBoundary.ReactionSpent -> { require(reactions > 0); reactions-- }
             }
         }
         require(ownTurnOrdinal == replayOwn && roundOrdinal == replayRound && openTurn == replayOpen) { "Timeline counters differ from explicit events" }
@@ -68,6 +85,16 @@ class GameplayTimeline(val characterId: String, val revision: Long = 0, val ownT
         require(savedEffects.none { it.instanceId in expiredIds }) { "Expired effect ID cannot be resurrected" }
         savedEffects.forEach {
             require(it.instanceId.isNotBlank() && it.sourceRule.isNotBlank() && it.createdAtRevision in 0..revision)
+            require(it.defenseBonus >= 0)
+            if (it.defenseBonus > 0) {
+                require(it.sourceRule == "core:P14265")
+                val origin = savedReceipts.singleOrNull { receipt ->
+                    val event = receipt.request.boundary
+                    event is GameBoundary.DefenseReserved && "${event.boundaryId}:defense" == it.instanceId &&
+                        event.count == it.defenseBonus && receipt.afterRevision == it.createdAtRevision
+                }
+                require(origin != null && it.expiry is EffectExpiry.NextOwnTurnStart)
+            }
             when (val expiry = it.expiry) {
                 is EffectExpiry.NextOwnTurnStart -> require(expiry.afterOrdinal == ownTurnOrdinal)
                 is EffectExpiry.OwnTurnEnd -> require(expiry.ordinal > ownTurnOrdinal || (expiry.ordinal == ownTurnOrdinal && expiry.ordinal > 0 && openTurn?.actorId == characterId))
@@ -77,6 +104,7 @@ class GameplayTimeline(val characterId: String, val revision: Long = 0, val ownT
             }
         }
         openTurn?.let { require(it.actorId.isNotBlank() && it.startedBoundaryId.isNotBlank()) }
+        combat = CombatResources(actions, reactions, savedEffects.sumOf { it.defenseBonus })
     }
 }
 sealed interface BoundaryTransition {
@@ -116,6 +144,15 @@ object GameplayEvents {
             }
             is GameBoundary.RestCompleted -> if (event.minutes <= 0) return blocked("Rest needs a positive explicit duration")
             is GameBoundary.SceneEnded -> Unit
+            is GameBoundary.ActionPointsSpent -> {
+                if (open?.actorId != state.characterId) return blocked("ОД можно тратить только в свой открытый ход")
+                if (event.count !in 1..state.combat.actionPoints) return blocked("Недостаточно ОД или неверная величина расхода")
+            }
+            is GameBoundary.DefenseReserved -> {
+                if (open?.actorId != state.characterId) return blocked("Защитное откладывание доступно в свой ход")
+                if (event.count !in 1..state.combat.actionPoints) return blocked("Недостаточно ОД для откладывания")
+            }
+            is GameBoundary.ReactionSpent -> if (state.combat.reactions == 0) return blocked("Реакция уже потрачена")
         }
         val expired = mutableListOf<String>(); val unresolved = mutableListOf<String>()
         for (effect in state.effects) {
@@ -130,7 +167,10 @@ object GameplayEvents {
             if (end) expired += effect.instanceId
         }
         val receipt = GameBoundaryReceipt(request, expired.toList(), unresolved.toList(), state.revision + 1)
+        val created = if (event is GameBoundary.DefenseReserved) listOf(TimedEffectInstance(
+            "${event.boundaryId}:defense", "core:P14265", state.revision + 1,
+            EffectExpiry.NextOwnTurnStart(state.ownTurnOrdinal), event.count)) else emptyList()
         return BoundaryTransition.Applied(GameplayTimeline(state.characterId, state.revision + 1, own, round, open,
-            state.effects.filterNot { it.instanceId in expired }, state.receipts + receipt), receipt)
+            state.effects.filterNot { it.instanceId in expired } + created, state.receipts + receipt), receipt)
     }
 }

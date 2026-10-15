@@ -49,10 +49,12 @@ internal fun GameplayEventPanel(controller: GameplayEventController, scope: Game
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         TextButton(onClick = { expanded = !expanded }) { Text(if (expanded) "Свернуть события" else "Ходы, раунды и отдых") }
         if (expanded) {
-        Text("Запись события не восстанавливает ресурсы. Активация и окончание конкретных эффектов пока не подключены.")
+        Text("В начале своего хода: 3 ОД, 1 реакция. Здоровье и выносливость автоматически не восстанавливаются.")
         message?.let { Text(it) }
         val timeline = view?.timeline
         if (timeline != null) {
+            Text("ОД: ${timeline.combat.actionPoints} / 3 · Реакция: ${timeline.combat.reactions} / 1", style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+            if (timeline.combat.defenseBonus > 0) Text("Защитное откладывание: +${timeline.combat.defenseBonus} к Защите до начала следующего своего хода (P14265).")
             Text("Начато своих ходов: ${timeline.ownTurnOrdinal}. Завершено раундов: ${timeline.roundOrdinal}.")
             Text(timeline.openTurn?.let { if (it.actorId == scope.characterId) "Сейчас ваш ход" else "Сейчас ход: ${it.actorId}" } ?: "Открытого хода нет")
         }
@@ -64,6 +66,9 @@ internal fun GameplayEventPanel(controller: GameplayEventController, scope: Game
                 is GameBoundary.RoundEnded -> "Завершить раунд"
                 is GameBoundary.SceneEnded -> "Завершить сцену"
                 is GameBoundary.RestCompleted -> "Записать отдых: ${event.kind.label()}, ${event.minutes} мин."
+                is GameBoundary.ActionPointsSpent -> "Потратить ${event.count} ОД"
+                is GameBoundary.ReactionSpent -> "Потратить реакцию"
+                is GameBoundary.DefenseReserved -> "Отложить ${event.count} ОД: +${event.count} к Защите до начала своего следующего хода"
             })
             Text("Отмена записанных событий пока не поддерживается. Событие также закроет отмену предшествующего действия.")
             Button(enabled = !busy, onClick = { run {
@@ -76,6 +81,14 @@ internal fun GameplayEventPanel(controller: GameplayEventController, scope: Game
             } }) { Text("Записать / повторить") }
             TextButton(enabled = !busy, onClick = { run { controller.dismiss() } }) { Text("Закрыть") }
         } else if (timeline != null) {
+            for (cost in 1..3) {
+                OutlinedButton(enabled = !busy && timeline.openTurn?.actorId == scope.characterId && timeline.combat.actionPoints >= cost,
+                    onClick = { prepare(GameBoundaryChoice.SpendActions(cost)) }) { Text("Потратить $cost ОД") }
+                OutlinedButton(enabled = !busy && timeline.openTurn?.actorId == scope.characterId && timeline.combat.actionPoints >= cost,
+                    onClick = { prepare(GameBoundaryChoice.ReserveDefense(cost)) }) { Text("Отложить $cost ОД для защиты") }
+            }
+            OutlinedButton(enabled = !busy && timeline.combat.reactions > 0,
+                onClick = { prepare(GameBoundaryChoice.SpendReaction) }) { Text("Потратить реакцию") }
             OutlinedButton(enabled = !busy && timeline.openTurn == null, onClick = { prepare(GameBoundaryChoice.StartOwnTurn) }) { Text("Начать свой ход") }
             OutlinedTextField(value = otherActor, onValueChange = { otherActor = it }, label = { Text("Другой участник") }, singleLine = true)
             OutlinedButton(enabled = !busy && timeline.openTurn == null && otherActor.isNotBlank(),
