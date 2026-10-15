@@ -1,0 +1,38 @@
+{
+  "application": "Furybook",
+  "codeCommit": "1ccd63905277c4b31a87126564920eb415b385ca",
+  "branch": "codex/furybook-rules-completion-20261015",
+  "date": "2026-10-15",
+  "builds": {
+    "Furybook-1ccd639-android-preview.apk": {
+      "bytes": 16996136,
+      "sha256": "b13e8187839c890252f2ff2509687087f983adeedd4e9369dbf9dc2df50ac1dd"
+    },
+    "Furybook-1ccd639-linux-x86_64.AppImage": {
+      "bytes": 67443192,
+      "sha256": "d242fc6f07398ef7025fc12f1ba9a24fdbc49af24a931e61d5e938d9b44add58"
+    },
+    "Furybook-1ccd639-screenshots.zip": {
+      "bytes": 526313,
+      "sha256": "c14a5f4d6e483f1ac2482fcad7ff08074d0946b81511c9f7110d90814391f25a"
+    },
+    "Furybook-1ccd639-web.zip": {
+      "bytes": 13066996,
+      "sha256": "cc608f2458c8eda76cc2705a3909f8460d48b43cf0aa585dccd87bd0216d10a8"
+    }
+  },
+  "validation": {
+    "sharedJUnit": 540,
+    "androidJUnit": 67,
+    "desktopComposeUi": 3,
+    "browserChromiumTests": 31,
+    "desktopFreshProcesses": 3,
+    "browserFreshProcesses": [
+      33429,
+      33851
+    ]
+  },
+  "cloudFormat2WritesEnabled": false,
+  "fullCatalogAutomation": false,
+  "windowsInstallerBuilt": false
+}
