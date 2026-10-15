@@ -320,6 +320,9 @@ private fun validateState(state: StoredCharacter, historical: StoredCharacter?, 
         require(state.gameplay.lastCommittedStorageRevision?.let { it <= state.storageRevision } != false) {
             "Gameplay history claims a future storage commit"
         }
+        require(state.gameplay.lastAcquisitionStorageRevision?.let { it <= state.storageRevision } != false) {
+            "Acquisition history claims a future storage commit"
+        }
         require(state.outbox.isEmpty() && state.syncMetadata == SyncMetadata(0) && state.syncProofs.isEmpty()) {
             "Gameplay format has no enabled cloud transport"
         }

@@ -56,7 +56,7 @@ class AcquisitionUndo(private val store: AcquisitionStore) {
                 return if(it.status==ReceiptStatus.Undone) ApplyResult.AlreadyUndone(it) else ApplyResult.AlreadyApplied(it)
             }
             if(state.revision!=expectedRevision) return undoBlocked("Character changed; Undo requires the expected gameplay revision")
-            val projection=encodeSyncEnvelope(state)
+            val projection=canonicalOperationProjection(state)
             if(originalProjection!=null && originalProjection!=projection) return undoBlocked("Canonical state changed during Undo")
             originalProjection=projection
             val next=try {
@@ -254,6 +254,9 @@ internal fun activeLegacyRemovalKeys(state:StoredCharacter):Set<String> = buildS
 private data class UndoCandidate(val entry: LedgerEntry, val receipt: Receipt, val restored: StoredCharacter)
 /** Shared by the read-only UI query and the committing command. */
 private fun resolveUndoCandidate(state: StoredCharacter): UndoCandidate {
+    require(state.formatVersion != 2 || state.gameplay?.lastAcquisitionStorageRevision == state.storageRevision) {
+        "После операции были игровые события или другие изменения; её отмена недоступна"
+    }
     var index=state.ledger.entries.lastIndex
     require(index>=0) { "No operation to undo" }
     // Revision remains a durable operation/history counter. Only fully validated inert

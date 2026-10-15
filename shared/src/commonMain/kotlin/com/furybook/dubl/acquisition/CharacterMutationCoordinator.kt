@@ -115,7 +115,7 @@ class CharacterMutationCoordinator(private val store: AcquisitionStore, private 
                 return if(it.status==ReceiptStatus.Undone) MutationResult.AlreadyUndone(it) else MutationResult.AlreadyApplied(it)
             }
             if(state.revision != command.expectedRevision) return MutationResult.Stale(state.revision)
-            val projection=encodeSyncEnvelope(state)
+            val projection=canonicalOperationProjection(state)
             if(original!=null && original!=projection) return MutationResult.Stale(state.revision)
             original=projection
             val next=try { prepare(command,state,acquisitionContext(state,catalogProvider()).catalog) }
@@ -189,10 +189,25 @@ internal fun appendCanonicalOperation(before:StoredCharacter,after:StoredCharact
     val receipts=before.receipts.map { if(it.operationId==reverses) it.copy(status=ReceiptStatus.Undone) else it }+receipt
     val saved=after.copy(ledger=before.ledger.copy(entries=before.ledger.entries+entry),receipts=receipts,
         outbox=before.outbox,syncMetadata=before.syncMetadata,revision=before.revision+1,storageRevision=before.storageRevision+1)
+    if (saved.formatVersion == 2) {
+        val journal = checkNotNull(before.gameplay)
+        val inert = type == LedgerEntryType.NonFinancial && delta == Amount.ZERO &&
+            before.character == after.character && before.extras == after.extras && before.instances == after.instances &&
+            before.creationPhase == after.creationPhase
+        val marker = if (inert && journal.lastAcquisitionStorageRevision != before.storageRevision)
+            journal.lastAcquisitionStorageRevision else saved.storageRevision
+        val local = saved.copy(gameplay = journal.copy(lastAcquisitionStorageRevision = marker))
+        encodeEnvelope(local)
+        return local
+    }
     val queued=saved.copy(outbox=saved.outbox+OutboxItem(id,before.syncMetadata.serverRevision,encodeSyncEnvelope(saved)))
     encodeEnvelope(queued)
     return queued
 }
+
+/** Comparing a local operation must not invoke or enable the cloud wire encoder. */
+internal fun canonicalOperationProjection(state: StoredCharacter): String =
+    if (state.formatVersion == 2) encodeEnvelope(state) else encodeSyncEnvelope(state)
 
 /** Conservative financial projection: descriptive/check edits, current resources and equipment may change.
  * Skill modifier/formulaNote are existing check edits, unused by acquisition evaluation/pricing;

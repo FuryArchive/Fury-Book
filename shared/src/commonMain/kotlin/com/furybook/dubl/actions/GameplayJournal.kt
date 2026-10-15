@@ -8,6 +8,7 @@ class GameplayJournal(
     val lastCommittedStorageRevision: Long? = null,
     val migration: GameplayMigrationProof? = null,
     val events: GameplayEventLog? = null,
+    val lastAcquisitionStorageRevision: Long? = null,
 ) {
     private val saved = receipts.toList()
     val receipts: List<GameplayReceipt> get() = saved.toList()
@@ -15,17 +16,20 @@ class GameplayJournal(
         receipts: List<GameplayReceipt> = this.receipts,
         lastCommittedStorageRevision: Long? = this.lastCommittedStorageRevision,
         migration: GameplayMigrationProof? = this.migration,
-        events: GameplayEventLog? = this.events) =
-        GameplayJournal(revision, pending, receipts, lastCommittedStorageRevision, migration, events)
+        events: GameplayEventLog? = this.events,
+        lastAcquisitionStorageRevision: Long? = this.lastAcquisitionStorageRevision) =
+        GameplayJournal(revision, pending, receipts, lastCommittedStorageRevision, migration, events, lastAcquisitionStorageRevision)
     override fun equals(other: Any?): Boolean = other is GameplayJournal &&
         revision == other.revision && pending == other.pending && saved == other.saved &&
-        lastCommittedStorageRevision == other.lastCommittedStorageRevision && migration == other.migration && events == other.events
-    override fun hashCode(): Int = listOf(revision, pending, saved, lastCommittedStorageRevision, migration, events).hashCode()
+        lastCommittedStorageRevision == other.lastCommittedStorageRevision && migration == other.migration && events == other.events &&
+        lastAcquisitionStorageRevision == other.lastAcquisitionStorageRevision
+    override fun hashCode(): Int = listOf(revision, pending, saved, lastCommittedStorageRevision, migration, events, lastAcquisitionStorageRevision).hashCode()
 
     /** Re-execute each typed receipt, never trust a claimed cost or success marker. */
     fun validate(characterId: String) {
         require(revision >= 0 && characterId.isNotBlank())
         require(lastCommittedStorageRevision == null || lastCommittedStorageRevision >= 0)
+        require(lastAcquisitionStorageRevision == null || lastAcquisitionStorageRevision >= 0)
         migration?.let { proof ->
             require(proof.operationId.isNotBlank())
             val source = (com.furybook.dubl.acquisition.decodeEnvelope(proof.sourceRaw) as?

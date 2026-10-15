@@ -71,7 +71,7 @@ class AcquisitionService(private val store: AcquisitionStore, private val catalo
             val current = plan(command.request, state, catalog)
             if (command.expectedRevision != state.revision || command.previewToken != current.previewToken)
                 return ApplyResult.Stale(current)
-            val projection = encodeSyncEnvelope(state)
+            val projection = canonicalOperationProjection(state)
             if (originalProjection != null && originalProjection != projection) return ApplyResult.Stale(current)
             originalProjection = projection
             if (!current.executable) return ApplyResult.Blocked(current.issues.ifEmpty {
