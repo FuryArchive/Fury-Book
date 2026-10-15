@@ -1,0 +1,3288 @@
+{
+  "schemaVersion": 1,
+  "devOnly": true,
+  "sourceProvenance": {
+    "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+    "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+    "documentUrl": "https://docs.google.com/document/d/1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+    "retrieval": "authenticated Google Drive get_document_text",
+    "retrievedOn": "2026-10-15",
+    "revisionNote": "Native Docs revisionId from authenticated read."
+  },
+  "idPolicy": "New IDs authored from exact native document role/tab/start occurrence, never fuzzy names. Persist once assigned. Runology uses a stable semantic skill ID.",
+  "records": [
+    {
+      "id": "feat_430bb8e0abcdd492",
+      "kind": "DEVELOPMENT",
+      "name": "Кровавое ремесло",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 3,
+      "requirementsText": "Воля 4, Некромантия 2 или Магия крови 2",
+      "benefit": "Вы уменьшаете урон, наносимый себе при сотворении заклинаний магии крови, на 1 за каждый ранг (минимум 1 урон). Также вы можете использовать проверку Медицина+Интеллект для остановки кровотечения, вызванного вашей магией, с преимуществом.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "40",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "40"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "40"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:2739:e08e14f1af60",
+        "t.pc460xp23p5s:2576:84fe40675773"
+      ]
+    },
+    {
+      "id": "feat_0f2944736b20e934",
+      "kind": "DEVELOPMENT",
+      "name": "Жила",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "requirementsText": "Телосложение 3, Кровавое ремесло 1",
+      "benefit": "Вы получаете +1 к максимальному запасу кровавой маны. Можно брать несколько раз, но не более Телосложения/2.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "30",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "30"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "30"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Repeated",
+        "instanceCountLimit": {
+          "type": "AttributeDivisor",
+          "attributeId": "CON",
+          "divisor": 2,
+          "exactInequality": "count*2<=effectiveCON"
+        }
+      },
+      "evidence": [
+        "t.pc460xp23p5s:3069:9b824715909a",
+        "t.pc460xp23p5s:2576:84fe40675773"
+      ],
+      "sourceRepeatPermission": "Can buy repeatedly, at most Constitution/2; each copy rank1. The integer inequality requires no rounding convention."
+    },
+    {
+      "id": "feat_2bc0c0f6d2533f48",
+      "kind": "DEVELOPMENT",
+      "name": "Гемоглобиновая чувствительность",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "requirementsText": "Восприятие 4, Медицина 2",
+      "benefit": "Вы можете ощущать кровь живых существ в радиусе 10 метров, даже сквозь лёгкие преграды (дерево, ткань, штукатурка). Это действует как слепое зрение по отношению к кровеносным системам: вы знаете направление и примерное расстояние до существ с кровью.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "20",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "20"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "20"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:3252:e25603e74586",
+        "t.pc460xp23p5s:2576:84fe40675773"
+      ]
+    },
+    {
+      "id": "feat_5414a31b67464d86",
+      "kind": "DEVELOPMENT",
+      "name": "Кровопускание",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "requirementsText": "Холодное оружие 3 или Рукопашный бой 3",
+      "benefit": "Ваши атаки холодным оружием или рукопашные атаки могут быть объявлены «кровопускающими». Если вы наносите урон, вы можете дополнительно нанести 1 урон себе и получить 1 кровавую ману. Это можно делать не чаще одного раза в раунд.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "25",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "25"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "25"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:3594:1a82817af1fb",
+        "t.pc460xp23p5s:2576:84fe40675773"
+      ]
+    },
+    {
+      "id": "feat_a3ade88a3e1363f0",
+      "kind": "DEVELOPMENT",
+      "name": "Кровавый договор",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "requirementsText": "Харизма 4, Красноречие 3, Магия крови 3",
+      "benefit": "Вы можете заключить кровавый договор с добровольным существом. Оно наносит себе 1 урон (непоглощаемый) и даёт вам каплю своей крови. После этого вы можете использовать его кровь как свою для сотворения заклинаний магии крови (расходуя его здоровье, а не своё) на расстоянии до 10 метров без необходимости касания. Договор длится 24 часа. Существо может разорвать договор, нанеся себе ещё 1 урон.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "50",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "50"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "50"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:3930:d4f23dfbc79a",
+        "t.pc460xp23p5s:2576:84fe40675773"
+      ]
+    },
+    {
+      "id": "feat_ebf4f5172711cb45",
+      "kind": "DEVELOPMENT",
+      "name": "Геморрагический шок",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 2,
+      "requirementsText": "Запугивание 4, Медицина 3, Кровавое ремесло 2",
+      "benefit": "Когда вы наносите урон кровотечением (своим заклинанием или оружием), цель должна пройти проверку Стойкости против сложности (10 + ваш ранг навыка + Воля). При провале цель получает ошеломление на 1 раунд за ранг навыка. Является эффектом страха.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "40",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "40"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "40"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:4417:53d08bfbb383",
+        "t.pc460xp23p5s:2576:84fe40675773"
+      ]
+    },
+    {
+      "id": "feat_974035a0351dc15e",
+      "kind": "DEVELOPMENT",
+      "name": "Вампирическое восстановление",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "requirementsText": "Некромантия 4, Медицина 4",
+      "benefit": "Когда вы наносите урон магией крови, вы восстанавливаете здоровье в размере ½ нанесённого урона (округляется вниз). Не действует на урон, нанесённый себе. Эффект не суммируется с другими вампирическими эффектами.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "45",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "45"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "45"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:4764:04426d32928a",
+        "t.pc460xp23p5s:2576:84fe40675773"
+      ]
+    },
+    {
+      "id": "feat_a08f840bb3a709ed",
+      "kind": "DEVELOPMENT",
+      "name": "Мастер кровавых уз",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "requirementsText": "Кровные узы (заклинание), Воля 5, Медицина 5",
+      "benefit": "Заклинание «Кровные узы» может быть использовано без затрат маны, если вы наносите себе урон равный стоимости заклинания. Длительность увеличивается вдвое. Вы можете одновременно поддерживать количество связей, равное вашему Телосложению.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "60",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "60"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "60"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:5066:28a47303cc0d",
+        "t.pc460xp23p5s:2576:84fe40675773",
+        "t.p31luippa5oq:10192:438b2cfdc163",
+        "t.p31luippa5oq:10204:e45df3910f6c",
+        "t.p31luippa5oq:10237:5fa475aefb99"
+      ],
+      "exactRequirementBindings": [
+        {
+          "exactText": "Кровные узы (заклинание)",
+          "replacement": {
+            "type": "LearnedSpell",
+            "packId": "dubl-3.69",
+            "entryId": "spell_0f68b25bdd0697a9",
+            "operator": "EQ",
+            "operand": true
+          },
+          "evidence": [
+            "t.pc460xp23p5s:5066:28a47303cc0d",
+            "t.p31luippa5oq:10192:438b2cfdc163",
+            "t.p31luippa5oq:10204:e45df3910f6c",
+            "t.p31luippa5oq:10237:5fa475aefb99"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "feat_3717f841001954c9",
+      "kind": "DEVELOPMENT",
+      "name": "Кровавое неистовство",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 2,
+      "requirementsText": "Телосложение 4, Воля 4, Неистовство или Ярость",
+      "benefit": "В состоянии неистовства или ярости вы можете за каждый ранг навыка один раз в раунд активировать эффект: получив урон от атаки, вы можете нанести себе дополнительно 2 урона и получить +2 к урону следующей атаки в ближнем бою. Бонус накапливается, но сбрасывается, если вы не атаковали в раунде.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "50",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "50"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "50"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:5403:da26d900b7ff",
+        "t.pc460xp23p5s:2576:84fe40675773"
+      ]
+    },
+    {
+      "id": "feat_c4f3ccc4c64ffa58",
+      "kind": "DEVELOPMENT",
+      "name": "Кровавое перерождение",
+      "section": "Магические навыки",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "requirementsText": "Кровавое ремесло 3, Вампирическое восстановление, Телосложение 6, Воля 6",
+      "benefit": "Когда ваше здоровье опускается до 0 или ниже, вы можете мгновенно потратить все очки кровавой маны (минимум 5) и все пункты выносливости. Вы восстанавливаете количество здоровья, равное потраченной кровавой мане ×2, и сбрасываете все негативные эффекты (кроме смертельных ран). Это действие не требует ОД и может быть использовано один раз в день. После этого вы получаете состояние истощения на 1 час.",
+      "price": {
+        "type": "Unknown",
+        "reason": "UNIMPLEMENTED_CONFIRMED_CURRENCY_CHOICE",
+        "literalAmount": "100",
+        "literalCurrencies": [
+          "XP",
+          "AP"
+        ],
+        "sourceText": "The native introduction explicitly permits XP or AP and states each parenthesized amount is its cost. Preserve the player-selected payment currency; no conversion or automatic default is stated.",
+        "alternatives": [
+          {
+            "id": "xp",
+            "currency": "XP",
+            "amount": "100"
+          },
+          {
+            "id": "ap",
+            "currency": "AP",
+            "amount": "100"
+          }
+        ],
+        "sourceStatus": "ConfirmedPlayerChoice"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:5818:877633a88b63",
+        "t.pc460xp23p5s:2576:84fe40675773"
+      ]
+    },
+    {
+      "id": "spell_e968e25a8b0ddb39",
+      "kind": "SPELL",
+      "name": "Кровавая метка",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 0,
+      "castingCostRaw": "0 (или 1 урон себе)",
+      "schoolText": "Магия крови",
+      "fields": {
+        "Школа": "Магия крови",
+        "Стоимость": "0 (или 1 урон себе)",
+        "Время сотворения": "1 ОД",
+        "Дальность": "Касание",
+        "Длительность": "1 час",
+        "Описание": "Вы оставляете кровавый отпечаток пальца на существе или предмете. Пока метка активна, вы знаете направление до неё в пределах 1 км. Метку можно смыть только магически или сильным трением (2 раунда).",
+        "Усиление": "За 1 ману или 1 урон себе метка становится невидимой и неощутимой наощупь, её может обнаружить только магическое зрение."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "10",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 0"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:6620:e94f4443a571"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_535afebee58cf633",
+      "kind": "SPELL",
+      "name": "Малая гемостатическая нить",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 0,
+      "castingCostRaw": "0",
+      "schoolText": "Магия крови / Ограждение",
+      "fields": {
+        "Школа": "Магия крови / Ограждение",
+        "Стоимость": "0",
+        "Время сотворения": "Реакция",
+        "Дальность": "Касание",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы останавливаете кровотечение у себя или у другого существа. Останавливает кровотечение любой силы, но не восстанавливает потерянное здоровье. Может быть использовано как часть оказания первой помощи."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "10",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 0"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:7087:e39e7a1accdb"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_643389b2e12d80ae",
+      "kind": "SPELL",
+      "name": "Кровавый укол",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 1,
+      "castingCostRaw": "1 мана или 1 урон себе",
+      "schoolText": "Магия крови / Разрушение",
+      "fields": {
+        "Школа": "Магия крови / Разрушение",
+        "Стоимость": "1 мана или 1 урон себе",
+        "Время сотворения": "1 ОД",
+        "Дальность": "10 метров",
+        "Действие": "Воля+Восприятие против Защиты",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы формируете крошечный сгусток собственной крови и с силой выстреливаете им в противника. При попадании цель получает 1d4+1 колющего урона с бронебойностью 2 и начинает кровотечение/1 (1 урон в начале каждого хода, пока не остановит).",
+        "Усиление": "За дополнительные 1 ману или 1 урон себе урон увеличивается на 1d4."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "10",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 1"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:7452:1f1ad9dc84e0"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_8121f3c52f793331",
+      "kind": "SPELL",
+      "name": "Кровавое касание",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 1,
+      "castingCostRaw": "1 мана или 2 урона себе",
+      "schoolText": "Магия крови / Некромантия",
+      "fields": {
+        "Школа": "Магия крови / Некромантия",
+        "Стоимость": "1 мана или 2 урона себе",
+        "Время сотворения": "1 ОД",
+        "Дальность": "Касание",
+        "Действие": "Ловкость+Рукопашный бой против Защиты",
+        "Длительность": "Мгновенно",
+        "Описание": "Ваша рука покрывается чёрной кровяной коркой. При успешной атаке вы наносите 1d6+Воля некротического урона и вытягиваете из цели 1d4 здоровья, восстанавливая его себе. Это лечение не может превышать нанесённый урон.",
+        "Усиление": "За дополнительные 2 маны или 2 урона себе урон и лечение увеличиваются на 1d4."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "10",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 1"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:7964:9c7e54001f39"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_fc84813b9a745080",
+      "kind": "SPELL",
+      "name": "Кровавая завеса",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 2,
+      "castingCostRaw": "2 маны или 3 урона себе",
+      "schoolText": "Магия крови / Ограждение",
+      "fields": {
+        "Школа": "Магия крови / Ограждение",
+        "Стоимость": "2 маны или 3 урона себе",
+        "Время сотворения": "2 ОД",
+        "Дальность": "На себя",
+        "Длительность": "1 минута",
+        "Описание": "Вы выпускаете тонкую пелену собственной крови, которая парит вокруг вас. Вы получаете укрытие +2 против дальнобойных атак. Любой, кто атакует вас в ближнем бою, должен пройти проверку Стойкости против вашей Воли+Интеллект, иначе получит 1d4 урона от разъедания (кислотный) от брызг крови.",
+        "Усиление": "За дополнительные 1 ману урон увеличивается на 1, за дополнительные 2 маны укрытие увеличивается до +4."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "10",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 2"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:8490:08e59a94ae5a"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_179ad27fbc45044e",
+      "kind": "SPELL",
+      "name": "Кровавый жгут",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 2,
+      "castingCostRaw": "2 маны или 2 урона себе",
+      "schoolText": "Магия крови / Трансмутация",
+      "fields": {
+        "Школа": "Магия крови / Трансмутация",
+        "Стоимость": "2 маны или 2 урона себе",
+        "Время сотворения": "2 ОД",
+        "Дальность": "5 метров",
+        "Действие": "Воля+Интеллект против Реакции",
+        "Длительность": "Концентрация (1) до 1 минуты",
+        "Описание": "Из вашей ладони выстреливает тонкая нить загустевшей крови, которая обвивает конечность цели. Если цель проваливает встречную проверку (Реакция), она становится опутанной (не может использовать эту конечность для атак или заклинаний с жестами). Чтобы освободиться, нужно за 2 ОД пройти проверку Силы+Атлетика против сложности 12+Воля заклинателя, либо разорвать нить, нанеся ей 5 урона (урон от огня удваивается).",
+        "Усиление": "За дополнительные 1 ману нить получает +3 прочности."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "10",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 2"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:9051:6f1979451ba4"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_7909b6bb4b35000e",
+      "kind": "SPELL",
+      "name": "Кровавое кипение",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 3,
+      "castingCostRaw": "3 маны или 4 урона себе",
+      "schoolText": "Магия крови / Разрушение",
+      "fields": {
+        "Школа": "Магия крови / Разрушение",
+        "Стоимость": "3 маны или 4 урона себе",
+        "Время сотворения": "2 ОД",
+        "Дальность": "15 метров",
+        "Область": "Сфера радиусом 2 метра",
+        "Действие": "Воля+Интеллект против Стойкости",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы заставляете кровь в телах существ в области закипать. Все живые существа в зоне получают 2d4+4 урона (урон считается как огонь/кислота — двойной тип). Если урон превышает стойкость цели, она получает ошеломление на 1 раунд. Существа с иммунитетом к огню или кислоте получают половину урона.",
+        "Усиление": "За дополнительные 2 маны радиус увеличивается на 1 метр, урон на 1d4."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "10",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 3"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:9759:5891b644f3a1"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_40392e41df01ed4a",
+      "kind": "SPELL",
+      "name": "Переливание крови",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 3,
+      "castingCostRaw": "3 маны или 3 урона себе (добровольный донор может нанести себе урон вместо вас)",
+      "schoolText": "Магия крови / Молитва",
+      "fields": {
+        "Школа": "Магия крови / Молитва",
+        "Стоимость": "3 маны или 3 урона себе (добровольный донор может нанести себе урон вместо вас)",
+        "Время сотворения": "3 ОД",
+        "Дальность": "Касание",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы передаёте свою жизненную силу другому существу. Вы теряете до 6 здоровья (непоглощаемого), а цель восстанавливает в два раза больше потерянного (максимум 12). Можно использовать кровь добровольного донора, который наносит себе урон, а вы выступаете лишь каналом. Заклинание не работает на нежить и конструкции.",
+        "Усиление": "За дополнительные 2 маны максимальная передача увеличивается до 12 здоровья (восстановление 24)."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "10",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 3"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:10369:e902e4b244a6"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_196299759d9ed334",
+      "kind": "SPELL",
+      "name": "Кровавая острота",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 3,
+      "castingCostRaw": "3 маны или 2 урона себе",
+      "schoolText": "Магия крови / Боевая магия",
+      "fields": {
+        "Школа": "Магия крови / Боевая магия",
+        "Стоимость": "3 маны или 2 урона себе",
+        "Время сотворения": "1 ОД (реакцией можно перед атакой)",
+        "Дальность": "Касание (оружие)",
+        "Длительность": "1 минута",
+        "Описание": "Вы покрываете оружие тонким слоем своей крови, которая затвердевает и приобретает невероятную остроту. Оружие получает свойство *Острота +2* и *Кровотечение/1*. Если оружие уже имеет остроту, бонусы суммируются.",
+        "Усиление": "За дополнительные 2 маны острота увеличивается до +4 и кровотечение до /2."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "10",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 3"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:11004:d213eb4a91bc"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_e72796bc0f389198",
+      "kind": "SPELL",
+      "name": "Кровавое жертвоприношение",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 4,
+      "castingCostRaw": "4 маны или 5 урона себе",
+      "schoolText": "Магия крови / Некромантия",
+      "fields": {
+        "Школа": "Магия крови / Некромантия",
+        "Стоимость": "4 маны или 5 урона себе",
+        "Время сотворения": "1 полный раунд",
+        "Дальность": "Касание (согласное существо)",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы приносите в жертву кровь существа (в том числе себя) для получения кровавой маны. Вы наносите цели 2d6+Воля урона (непоглощаемого, если цель согласна). За каждые 2 нанесённых урона вы получаете 1 кровавую ману (максимум 10). Если цель — не вы, вы также получаете временное здоровье в размере половины нанесённого урона на 1 минуту.",
+        "Усиление": "За дополнительные 3 маны вы можете нанести урон сразу двум существам (каждому отдельно)."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 4"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:11513:648312dc8303"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_f494811d5d9800a0",
+      "kind": "SPELL",
+      "name": "Геморрагический взрыв",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 4,
+      "castingCostRaw": "4 маны или 5 урона себе",
+      "schoolText": "Магия крови / Разрушение",
+      "fields": {
+        "Школа": "Магия крови / Разрушение",
+        "Стоимость": "4 маны или 5 урона себе",
+        "Время сотворения": "3 ОД",
+        "Дальность": "20 метров",
+        "Область": "Сфера радиусом 3 метра",
+        "Действие": "Воля+Интеллект против Реакции",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы взрываете каплю собственной крови в выбранной точке. Все существа в зоне получают 3d4+4 урона (дробящий/кислотный) и начинают кровотечение/2. Если цель уже кровоточит, урон увеличивается на 1d4. Существа без крови получают только половину урона.",
+        "Усиление": "За дополнительные 2 маны радиус увеличивается на 1 метр, кровотечение до /3."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 4"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:12148:22f27bc94368"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_5709f3a697bfa7f3",
+      "kind": "SPELL",
+      "name": "Кровавый доспех",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 5,
+      "castingCostRaw": "5 маны или 6 урона себе",
+      "schoolText": "Магия крови / Ограждение",
+      "fields": {
+        "Школа": "Магия крови / Ограждение",
+        "Стоимость": "5 маны или 6 урона себе",
+        "Время сотворения": "2 ОД",
+        "Дальность": "На себя",
+        "Длительность": "1 час",
+        "Описание": "Ваша собственная кровь застывает на теле, формируя твёрдую корку. Вы получаете броню 5, которая не суммируется с другой бронёй (но можно носить поверх). Каждый раз, когда вас атакуют в ближнем бою, атакующий получает 1d4 урона от разъедания. Кроме того, вы можете реакцией активировать часть доспеха, чтобы получить сопротивление урону 5/физический до конца раунда, но при этом доспех теряет 2 брони (восстанавливается через 10 минут).",
+        "Усиление": "За дополнительные 3 маны броня увеличивается до 8, а урон атакующим до 1d6."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 5"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:12735:8cec538ced4a"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_5c6c82ebf2dac9b9",
+      "kind": "SPELL",
+      "name": "Кровавая марионетка",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 5,
+      "castingCostRaw": "5 маны или 7 урона себе",
+      "schoolText": "Магия крови / Разум",
+      "fields": {
+        "Школа": "Магия крови / Разум",
+        "Стоимость": "5 маны или 7 урона себе",
+        "Время сотворения": "3 ОД",
+        "Дальность": "10 метров",
+        "Действие": "Воля+Харизма против Стойкости",
+        "Длительность": "Концентрация (1) до 1 минуты",
+        "Описание": "Вы берёте под контроль кровь в теле существа, заставляя его двигаться против воли. Цель провалившая встречную проверку (Стойкость) становится подконтрольной. В свой ход вы можете действием заставить цель переместиться на расстояние до 5 метров или совершить одну простую атаку (без специальных приёмов). Цель может повторять проверку в конце каждого своего хода. Заклинание не действует на существ с иммунитетом к контролю разума или без крови.",
+        "Усиление": "За дополнительные 3 маны вы можете контролировать две цели одновременно."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 5"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:13412:120fedb5b386"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_13f41cd12316cdf1",
+      "kind": "SPELL",
+      "name": "Кровавая баня",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 6,
+      "castingCostRaw": "6 маны или 8 урона себе",
+      "schoolText": "Магия крови / Некромантия",
+      "fields": {
+        "Школа": "Магия крови / Некромантия",
+        "Стоимость": "6 маны или 8 урона себе",
+        "Время сотворения": "1 полный раунд",
+        "Дальность": "На себя (аура радиусом 5 метров)",
+        "Длительность": "Концентрация (Реакция) до 1 минуты",
+        "Описание": "Вы создаёте вокруг себя кровавую воронку, которая вытягивает жизненную силу из врагов. В начале вашего хода все существа в ауре (кроме вас) получают 1d6+Воля некротического урона и должны пройти проверку Стойкости, иначе получат одно состояние ослабления (штраф -1 к атаке и защите) до конца своего следующего хода. Вы восстанавливаете здоровье в размере суммарного урона, нанесённого всем целям (не более 10 за раунд).",
+        "Усиление": "За дополнительные 4 маны радиус увеличивается до 10 метров, урон до 2d6+Воля."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 6"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:14171:a2cb1a9e7143"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_22bea3ef05ea43fc",
+      "kind": "SPELL",
+      "name": "Чёрная кровь",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 7,
+      "castingCostRaw": "7 маны или 9 урона себе",
+      "schoolText": "Магия крови / Трансмутация",
+      "fields": {
+        "Школа": "Магия крови / Трансмутация",
+        "Стоимость": "7 маны или 9 урона себе",
+        "Время сотворения": "3 ОД",
+        "Дальность": "Касание",
+        "Длительность": "1 минута",
+        "Описание": "Вы превращаете кровь цели в чёрную, ядовитую субстанцию. Цель должна пройти проверку Стойкости против вашей Воли+Интеллект. При провале она получает отравление/3 (в начале каждого хода теряет 3 здоровья) и не может восстанавливать здоровье магией (только естественным отдыхом или антидотом). Каждый раз, когда цель получает урон от отравления, она теряет 1 ОД в следующем ходу.",
+        "Усиление": "За дополнительные 3 маны отравление увеличивается до /5, и цель не может использовать сверхусилие."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 7"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:14909:086d110f9519"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_27ebe68f0d4f4358",
+      "kind": "SPELL",
+      "name": "Кровавая баня (ритуал)",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 8,
+      "castingCostRaw": "8 маны или 10 урона себе, плюс 1 литр свежей крови (можно от нескольких существ)",
+      "schoolText": "Магия крови / Некромантия",
+      "fields": {
+        "Школа": "Магия крови / Некромантия",
+        "Стоимость": "8 маны или 10 урона себе, плюс 1 литр свежей крови (можно от нескольких существ)",
+        "Время сотворения": "10 минут",
+        "Дальность": "На себя",
+        "Длительность": "1 день",
+        "Описание": "Вы совершаете ритуальное омовение в крови, после чего ваша связь с магией крови усиливается. В течение дня вы получаете следующие преимущества:"
+      },
+      "continuations": [
+        "Все заклинания магии крови, наносящие вам урон, наносят на 2 урона меньше (минимум 1).",
+        "Максимальный запас кровавой маны увеличивается на 5.",
+        "Один раз в день вы можете использовать «Кровавое перерождение» без затрат выносливости.\u000bРитуал требует специальной подготовки и не может быть проведён в бою.\u000bУсиление: За дополнительные 5 маны длительность увеличивается до 3 дней."
+      ],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 8"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:15565:46799fa5f06e",
+        "t.pc460xp23p5s:15934:d42b48a125d2",
+        "t.pc460xp23p5s:16021:a54b301b9104",
+        "t.pc460xp23p5s:16074:cd195cb9de94"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_c924a0bfca070822",
+      "kind": "SPELL",
+      "name": "Кровавый смерч",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 9,
+      "castingCostRaw": "9 маны или 12 урона себе",
+      "schoolText": "Магия крови / Разрушение",
+      "fields": {
+        "Школа": "Магия крови / Разрушение",
+        "Стоимость": "9 маны или 12 урона себе",
+        "Время сотворения": "3 ОД",
+        "Дальность": "30 метров",
+        "Область": "Цилиндр высотой 6 метров, радиусом 3 метра",
+        "Действие": "Воля+Интеллект против Реакции",
+        "Длительность": "Концентрация (2 ОД) до 1 минуты",
+        "Описание": "Вы создаёте вихрь из острой как бритва крови, который кружится в указанной области. Любое существо, входящее в область или начинающее там ход, получает 2d8+6 рубящего/колющего урона и кровотечение/2. Если существо проваливает встречную проверку, оно также втягивается в центр смерча и считается опутанным на 1 раунд. В свой ход вы можете за 2 ОД переместить смерч на 5 метров.",
+        "Усиление": "За дополнительные 3 маны радиус увеличивается на 1 метр, урон на 1d8, кровотечение до /3."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "30",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 9"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:16317:5eeba0ab1615"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_d18f6312cbe61e39",
+      "kind": "SPELL",
+      "name": "Кровавое воскрешение",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 9,
+      "castingCostRaw": "9 маны или 10 урона себе + 10 урона донору (согласному)*",
+      "schoolText": "Магия крови / Некромантия",
+      "fields": {
+        "Школа": "Магия крови / Некромантия",
+        "Стоимость": "9 маны или 10 урона себе + 10 урона донору (согласному)*",
+        "Время сотворения": "1 минута (ритуал)",
+        "Дальность": "Касание",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы возвращаете к жизни недавно умершее существо (не более 1 минуты назад), вливая в него свою кровь и кровь добровольного донора. Цель воскресает с 1 здоровьем и стабильным состоянием, но получает одно повреждение характеристики (случайное) и состояние истощения на 24 часа. Без добровольного донора вы можете воскресить цель, нанеся себе 20 урона (непоглощаемого). Нежить и конструкции не поддаются.",
+        "Усиление": "За дополнительные 5 маны воскрешённое существо не получает повреждения характеристики."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "30",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 9"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:17069:09a2ef459b63"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_291f01c6a1423846",
+      "kind": "SPELL",
+      "name": "Кровавый двойник",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 9,
+      "castingCostRaw": "9 маны или 10 урона себе",
+      "schoolText": "Магия крови / Воплощение",
+      "fields": {
+        "Школа": "Магия крови / Воплощение",
+        "Стоимость": "9 маны или 10 урона себе",
+        "Время сотворения": "4 ОД",
+        "Дальность": "10 метров",
+        "Длительность": "Концентрация (1) до 10 минут",
+        "Описание": "Вы отделяете часть своей крови, которая формируется в вашу точную копию. Двойник имеет ваши физические характеристики (Сила, Ловкость, Телосложение, Скорость), но половину здоровья (не менее 10) и не имеет магии, навыков и способностей. Он действует в вашу инициативу, подчиняется вашим мысленным командам и может атаковать простым оружием (урон 1d6+Сила). Если двойник получает урон, вы сами не страдаете. Вы можете потратить 1 ОД, чтобы восстановить двойнику 5 здоровья, нанеся себе 2 урона.",
+        "Усиление": "За дополнительные 4 маны двойник получает одно ваше базовое умение (на выбор) и может использовать его."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "30",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 9"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:17779:2f61a87b7370"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_d142424b951b5d84",
+      "kind": "SPELL",
+      "name": "Кровавая чума",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 10,
+      "castingCostRaw": "10 маны или 12 урона себе",
+      "schoolText": "Магия крови / Некромантия",
+      "fields": {
+        "Школа": "Магия крови / Некромантия",
+        "Стоимость": "10 маны или 12 урона себе",
+        "Время сотворения": "3 ОД",
+        "Дальность": "20 метров",
+        "Область": "Сфера радиусом 5 метров",
+        "Действие": "Воля+Интеллект против Стойкости",
+        "Длительность": "1 минута",
+        "Описание": "Вы насылаете заразную порчу на кровь существ в области. Все живые существа, провалившие встречную проверку, заражаются кровавой чумой. В начале каждого своего хода они получают 1d8 некротического урона и теряют 1 ОД. Любое существо, начинающее ход в пределах 2 метров от заражённого, должно пройти проверку Стойкости (СЛ 15+Воля заклинателя), иначе тоже заражается. Заражённые существа выглядят бледными и кашляют кровью. Эффект можно снять заклинанием «Малое восстановление» или магией крови стоимостью 5.",
+        "Усиление": "За дополнительные 5 маны урон увеличивается до 2d8, а радиус заражения до 4 метров."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "30",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 10"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:18584:19729c084231"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_50b0396596d6d24b",
+      "kind": "SPELL",
+      "name": "Кровавый голем",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 10,
+      "castingCostRaw": "10 маны или 12 урона себе + 1 литр крови (можно собрать с раненых)*",
+      "schoolText": "Магия крови / Призыв",
+      "fields": {
+        "Школа": "Магия крови / Призыв",
+        "Стоимость": "10 маны или 12 урона себе + 1 литр крови (можно собрать с раненых)*",
+        "Время сотворения": "1 минута",
+        "Дальность": "10 метров",
+        "Длительность": "Концентрация (1) до 1 часа",
+        "Описание": "Вы создаёте из загустевшей крови прислужника — кровавого голема. Голем имеет характеристики: Размер 5, Сила 8, Ловкость 2, Телосложение 8, Скорость 4, Здоровье 40, Броня 5 (природная), Защита 12. Он атакует слэм-атакой (2d6+8 дробящего урона) и может один раз в 3 раунда выстрелить сгустком крови (дальность 10 метров, 2d6+4 урона, кровотечение/2). Голем не имеет интеллекта и выполняет простые команды («атакуй», «защищай», «стой»). Вы можете нанести себе 2 урона, чтобы восстановить голему 10 здоровья.",
+        "Усиление": "За дополнительные 6 маны голем получает +20 здоровья и +2 к броне."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "30",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 10"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:19421:2e7ff2115665"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_11f453f8580b894f",
+      "kind": "SPELL",
+      "name": "Кровавая буря",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 12,
+      "castingCostRaw": "12 маны или 15 урона себе",
+      "schoolText": "Магия крови / Разрушение",
+      "fields": {
+        "Школа": "Магия крови / Разрушение",
+        "Стоимость": "12 маны или 15 урона себе",
+        "Время сотворения": "4 ОД",
+        "Дальность": "50 метров",
+        "Область": "Цилиндр радиусом 8 метров, высотой 15 метров",
+        "Действие": "Воля+Интеллект против Реакции",
+        "Длительность": "Концентрация (2) до 1 минуты",
+        "Описание": "Вы вызываете настоящий ливень из острой как бритва крови. В начале каждого раунда все существа в области получают 3d6+8 урона (рубящий/колющий) и кровотечение/3. Область считается труднопроходимой местностью, а все источники света в ней тускнеют наполовину. Вы можете за 2 ОД сместить центр бури на 5 метров. Существа, начавшие ход в буре и провалившие встречную проверку, дополнительно теряют 2 ОД (из-за шока и боли).",
+        "Усиление": "За дополнительные 6 маны урон увеличивается до 4d6+12, кровотечение до /5."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "30",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 12"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:20240:90996c6ea0c1"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_7f58d44616aa4cb5",
+      "kind": "SPELL",
+      "name": "Обмен кровью",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 12,
+      "castingCostRaw": "12 маны или 8 урона себе",
+      "schoolText": "Магия крови / Трансмутация",
+      "fields": {
+        "Школа": "Магия крови / Трансмутация",
+        "Стоимость": "12 маны или 8 урона себе",
+        "Время сотворения": "3 ОД",
+        "Дальность": "5 метров",
+        "Действие": "Воля+Интеллект против Стойкости",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы связываете свою кровь с кровью цели, мгновенно меняя их состояние. Вы и цель обмениваетесь текущим запасом здоровья (но не максимальным). Если у цели больше здоровья, чем у вас, вы восстанавливаете разницу, а цель теряет столько же. Если у вас больше здоровья, вы теряете разницу, а цель восстанавливает. Цель может сопротивляться встречной проверкой Стойкости; при успехе обмен не происходит, но вы всё равно теряете 4 здоровья. Не действует на нежить и конструкции.",
+        "Усиление": "За дополнительные 4 маны вы можете выбрать две цели, обменивая здоровье между ними (без своего участия), при этом вы не теряете здоровье."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "30",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 12"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:21019:1d1083140625"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_e6bc50bfbd88146e",
+      "kind": "SPELL",
+      "name": "Кровавое бессмертие",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 12,
+      "castingCostRaw": "12 маны или 10 урона себе + 5 урона в минуту (поддержание)*",
+      "schoolText": "Магия крови / Ограждение",
+      "fields": {
+        "Школа": "Магия крови / Ограждение",
+        "Стоимость": "12 маны или 10 урона себе + 5 урона в минуту (поддержание)*",
+        "Время сотворения": "1 полный раунд",
+        "Дальность": "На себя",
+        "Длительность": "Концентрация (полная) до 1 минуты",
+        "Описание": "Ваша кровь начинает циркулировать с невероятной скоростью, заживляя любые раны почти мгновенно. На время действия заклинания вы получаете быстрое исцеление 10 (в начале каждого хода восстанавливаете 10 здоровья). Однако вы должны поддерживать концентрацию, тратя все ОД каждый раунд. Если вы получаете урон, равный или превышающий вашу стойкость, концентрация прерывается. Заклинание не может быть использовано более одного раза в день.",
+        "Усиление": "За дополнительные 8 маны вы можете двигаться со скоростью 2 метра в раунд, сохраняя концентрацию (но не атаковать)."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "30",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 12"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:21840:228db7f71eb4"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_82c463aa2c295dc7",
+      "kind": "SPELL",
+      "name": "Кровавый апокалипсис",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 14,
+      "castingCostRaw": "14 маны или 18 урона себе",
+      "schoolText": "Магия крови / Некромантия",
+      "fields": {
+        "Школа": "Магия крови / Некромантия",
+        "Стоимость": "14 маны или 18 урона себе",
+        "Время сотворения": "1 минута (ритуал)",
+        "Дальность": "100 метров",
+        "Область": "Сфера радиусом 20 метров",
+        "Действие": "Воля+Интеллект против Стойкости",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы призываете силу древнего кровного проклятия. Все живые существа в области должны пройти встречную проверку Стойкости. При провале они получают 6d8+12 некротического урона и кровотечение/6. Если урон убивает цель, её тело взрывается, нанося 3d6 урона (дробящий) всем в радиусе 2 метров. Даже при успешной проверке существа получают половину урона и кровотечение/2. Заклинание оставляет область, пропитанную кровью, которая становится труднопроходимой на 1 час. Любой, кто входит туда, должен пройти проверку Стойкости (СЛ 20) или получить отравление/2.",
+        "Усиление": "За дополнительные 8 маны урон увеличивается до 8d8+16, радиус до 30 метров."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "40",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 14"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:22652:b40a99956477"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_cc6fa39ea003c2b5",
+      "kind": "SPELL",
+      "name": "Кровавое перерождение (истинное)",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 14,
+      "castingCostRaw": "14 маны или 20 урона себе",
+      "schoolText": "Магия крови / Трансмутация",
+      "fields": {
+        "Школа": "Магия крови / Трансмутация",
+        "Стоимость": "14 маны или 20 урона себе",
+        "Время сотворения": "1 полный раунд",
+        "Дальность": "На себя",
+        "Длительность": "10 минут",
+        "Описание": "Вы полностью заменяете свою кровь на мистическую субстанцию, дающую нечеловеческие возможности. На время действия заклинания вы получаете:"
+      },
+      "continuations": [
+        "+4 к Силе, Ловкости, Телосложению.",
+        "Сопротивление физическому урону 10.",
+        "Быстрое исцеление 5.",
+        "Иммунитет к кровотечениям, отравлениям, эффектам крови.",
+        "Ваши рукопашные атаки наносят дополнительно 2d6 некротического урона.\u000bОднако в конце действия заклинания вы получаете 4d6 урона (непоглощаемого) и состояние истощения на 1 час. Это заклинание может быть использовано не чаще раза в день.\u000bУсиление: За дополнительные 6 маны бонусы увеличиваются до +6 и быстрое исцеление 8."
+      ],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "40",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 14"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:23552:ade71719315d",
+        "t.pc460xp23p5s:23880:9df0a5d648ee",
+        "t.pc460xp23p5s:23915:5594efa6b952",
+        "t.pc460xp23p5s:23951:9dd6adf11187",
+        "t.pc460xp23p5s:23972:ed83b6353a28",
+        "t.pc460xp23p5s:24028:52f444adc98d"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_efc87a2bba3537d9",
+      "kind": "SPELL",
+      "name": "Кровавый мост душ",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 15,
+      "castingCostRaw": "15 маны или 12 урона себе + 2 урона в минуту*",
+      "schoolText": "Магия крови / Прорицание",
+      "fields": {
+        "Школа": "Магия крови / Прорицание",
+        "Стоимость": "15 маны или 12 урона себе + 2 урона в минуту*",
+        "Время сотворения": "1 минута (ритуал)",
+        "Дальность": "Неограниченно (в пределах одного плана)",
+        "Длительность": "Концентрация (1) до 1 часа",
+        "Описание": "Вы устанавливаете кровавую связь между собой и существом, чью кровь вы имеете (достаточно капли). Вы можете видеть его глазами, слышать его ушами, а также передавать короткие телепатические сообщения (до 10 слов в минуту). Кроме того, вы можете один раз за время действия заклинания применить заклинание касания к этому существу, игнорируя расстояние. Если существо согласное, связь не требует проверки; если нет — оно может сопротивляться Воля+Интеллект против вашей Воля+Харизма.",
+        "Усиление": "За дополнительные 8 маны вы можете одновременно поддерживать связь с тремя существами."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "40",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 15"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:24365:1af5672b7c98"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_2e8dfba4338e5d4f",
+      "kind": "SPELL",
+      "name": "Кровавый шторм (истинный)",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 15,
+      "castingCostRaw": "15 маны или 20 урона себе",
+      "schoolText": "Магия крови / Разрушение",
+      "fields": {
+        "Школа": "Магия крови / Разрушение",
+        "Стоимость": "15 маны или 20 урона себе",
+        "Время сотворения": "5 ОД",
+        "Дальность": "100 метров",
+        "Область": "Сфера радиусом 15 метров",
+        "Действие": "Воля+Интеллект против Реакции",
+        "Длительность": "Концентрация (2) до 1 минуты",
+        "Описание": "Вы создаёте область, где кровь в телах существ начинает кипеть и разрывать сосуды изнутри. Каждый раунд все существа в области (кроме вас) получают 4d8+10 урона (некротический/кислотный) и должны пройти проверку Стойкости, иначе получают паралич одной конечности (случайной) на 1 раунд. В начале каждого своего хода вы можете за 3 ОД усилить шторм, нанеся дополнительно 2d8 урона всем, у кого уже есть кровотечение. Заклинание требует огромной концентрации; любое получение урона прерывает его.",
+        "Усиление": "За дополнительные 10 маны вы можете не концентрироваться: шторм бушует сам 1 минуту, но его нельзя усилить."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "40",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 15"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:25190:96f3e92057e5"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_f2ccfb746efecd5a",
+      "kind": "SPELL",
+      "name": "Кровавое завещание предков",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 17,
+      "castingCostRaw": "17 маны или 15 урона себе + 10 урона от добровольного потомка*",
+      "schoolText": "Магия крови / Прорицание",
+      "fields": {
+        "Школа": "Магия крови / Прорицание",
+        "Стоимость": "17 маны или 15 урона себе + 10 урона от добровольного потомка*",
+        "Время сотворения": "1 час (ритуал)",
+        "Дальность": "Касание (кровная реликвия или могила предка)",
+        "Длительность": "1 день",
+        "Описание": "Вы призываете силу крови ваших предков, чтобы получить их знания и мощь. Ритуал требует присутствия прямой крови (можно использовать свою, если вы потомок). Вы получаете следующие преимущества на 24 часа:"
+      },
+      "continuations": [
+        "+5 ко всем характеристикам (моральный бонус).",
+        "Вы владеете всеми навыками, которыми владел ваш предок (на выбор мастера, обычно 3-5 умений на уровне 6-8).",
+        "Вы можете один раз использовать заклинание «Кровавое перерождение (истинное)» бесплатно.",
+        "Вы не можете умереть от потери крови (ваше здоровье не может опуститься ниже -20, но вы всё равно теряете сознание при 0).\u000bПосле окончания эффекта вы получаете 4d10 урона и теряете 2 пункта Телосложения на неделю (восстанавливаются магией).\u000bУсиление: За дополнительные 10 маны вы можете выбрать конкретного предка (с определёнными навыками) и не получаете урон в конце."
+      ],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "50",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 17"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:26085:b46db2487699",
+        "t.pc460xp23p5s:26544:8d007541254c",
+        "t.pc460xp23p5s:26590:fada6ff87fb7",
+        "t.pc460xp23p5s:26698:374a67e355f2",
+        "t.pc460xp23p5s:26787:c3d5dc6fb3a2"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_d6ad8d35a9ff0e51",
+      "kind": "SPELL",
+      "name": "Кровавая армия",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 17,
+      "castingCostRaw": "17 маны или 20 урона себе + 1 литр крови на каждого голема*",
+      "schoolText": "Магия крови / Призыв",
+      "fields": {
+        "Школа": "Магия крови / Призыв",
+        "Стоимость": "17 маны или 20 урона себе + 1 литр крови на каждого голема*",
+        "Время сотворения": "10 минут",
+        "Дальность": "30 метров",
+        "Длительность": "1 час",
+        "Описание": "Вы создаёте отряд из 1d4+2 кровавых големов (как «Кровавый голем», но без необходимости концентрации, они действуют автономно по вашим приказам). Големы имеют здоровье 30, броню 4, атаку 1d8+6. Вы можете отдавать им групповые команды действием 1 ОД. Каждый голем может быть уничтожен, но вы можете восстановить одного уничтоженного голема, нанеся себе 10 урона и потратив 3 ОД. Если все големы уничтожены, вы получаете 2d10 урона от отката.",
+        "Усиление": "За дополнительные 10 маны количество големов увеличивается до 2d4+2, а их здоровье до 40."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "50",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 17"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:27157:0f7c62827378"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_b945799c9d97550c",
+      "kind": "SPELL",
+      "name": "Кровавый бог",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 20,
+      "castingCostRaw": "20 маны или 30 урона себе (можно распределить на несколько существ, включая добровольцев)",
+      "schoolText": "Магия крови / Трансмутация",
+      "fields": {
+        "Школа": "Магия крови / Трансмутация",
+        "Стоимость": "20 маны или 30 урона себе (можно распределить на несколько существ, включая добровольцев)",
+        "Время сотворения": "1 час (ритуал, требует алтаря и жертвенной крови)",
+        "Дальность": "На себя",
+        "Длительность": "1 час",
+        "Описание": "Вы становитесь временным воплощением кровного божества. Ваше тело преобразуется в полужидкую кровяную массу, сохраняющую разум. Вы получаете следующие божественные способности:"
+      },
+      "continuations": [
+        "+10 ко всем характеристикам, +50 укрепления, броня 20 (природная).",
+        "Вы неуязвимы к физическому урону, кроме магического и серебряного оружия ",
+        "Все ваши рукопашные атаки наносят 8d8 урона (некротический/кислотный) и накладывают кровотечение/10.",
+        "Вы можете за 2 ОД создавать кровавых големов (как «Кровавая армия») без затрат здоровья.",
+        "Вы можете летать со скоростью бега.",
+        "Вы не можете умереть, пока длится заклинание: ваше здоровье не может опуститься ниже 1.\u000bПосле окончания заклинания вы получаете 10d10 урона (непоглощаемого) и теряете все пункты выносливости, а также получаете повреждение всех характеристик на -4 на 1 неделю. Это заклинание может быть использовано раз в месяц. Многие маги считают его безумием.\u000bУсиление: За дополнительные 15 маны вы можете продлить действие до 3 часов, но урон после окончания увеличивается до 15d10."
+      ],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "50",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 20"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:27905:97a6f967e290",
+        "t.pc460xp23p5s:28347:eeefa22729c2",
+        "t.pc460xp23p5s:28414:bcb748b0e298",
+        "t.pc460xp23p5s:28488:42d561f3aa04",
+        "t.pc460xp23p5s:28589:7537159d99fe",
+        "t.pc460xp23p5s:28678:35516dbe133d",
+        "t.pc460xp23p5s:28714:13e102f9087b"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_88850f593f2aed1c",
+      "kind": "SPELL",
+      "name": "Кровавая клятва бессмертия",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 20,
+      "castingCostRaw": "20 маны + 5 маны в день (или 10 урона себе в день)*",
+      "schoolText": "Магия крови / Ограждение",
+      "fields": {
+        "Школа": "Магия крови / Ограждение",
+        "Стоимость": "20 маны + 5 маны в день (или 10 урона себе в день)*",
+        "Время сотворения": "1 день (ритуал, требует крови 10 разумных существ, не обязательно убитых)",
+        "Дальность": "На себя",
+        "Длительность": "Перманентно (пока поддерживается)",
+        "Описание": "Вы заключаете с собственной кровью вечный договор, останавливающий старение и дающий невероятную живучесть. Вы перестаёте стареть, не нуждаетесь в еде, воде и сне (но можете спать для восстановления). Вы получаете быстрое исцеление 2 постоянно. Однако вы должны ежедневно тратить 5 маны или наносить себе 10 урона (непоглощаемого) для поддержания клятвы. Если вы пропускаете день, вы получаете 6d10 урона и теряете способность использовать магию крови на неделю. Клятву можно разорвать только ритуалом «Кровавое отпущение» (стоимость 15 маны, 1 час), который наносит 10d10 урона.",
+        "Усиление": "За дополнительные 10 маны вы можете распространить эффект на одного согласного спутника (с такими же затратами)."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "50",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 20"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:29184:9b4030f778ea"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "spell_3ec6e637fcdf1865",
+      "kind": "SPELL",
+      "name": "Кровавый суд",
+      "section": "Заклинания",
+      "category": "Магия крови",
+      "maxRank": 1,
+      "castingMana": 20,
+      "castingCostRaw": "20 маны или 25 урона себе",
+      "schoolText": "Магия крови / Некромантия",
+      "fields": {
+        "Школа": "Магия крови / Некромантия",
+        "Стоимость": "20 маны или 25 урона себе",
+        "Время сотворения": "1 полный раунд",
+        "Дальность": "50 метров",
+        "Область": "Сфера радиусом 10 метров",
+        "Действие": "Воля+Интеллект против Стойкости",
+        "Длительность": "Мгновенно",
+        "Описание": "Вы вершите правосудие кровью над всеми врагами в области. Каждое существо, имеющее кровь, должно пройти встречную проверку Стойкости. При провале его кровь мгновенно закипает и вырывается наружу, нанося 10d10+20 урона (некротический/кислотный) и накладывая кровотечение/20. Цель также теряет все временные бонусы и положительные эффекты. Даже при успешной проверке цель получает 5d10+10 урона и кровотечение/10. Если урон убивает цель, её кровь вытекает и формирует кровавого стража (как «Кровавый голем», но с характеристиками убитого). Заклинание не действует на существ с иммунитетом к критическим ударам и некротическому урону.",
+        "Усиление": "За дополнительные 12 маны урон увеличивается до 12d10+30, и вы можете выбрать, чтобы кровь убитых не формировала стражей, а исцелила вас на половину нанесённого урона."
+      },
+      "continuations": [],
+      "requirementsPolicy": "Use the exact existing general spell-learning permission; this card states no additional acquisition prerequisites.",
+      "price": {
+        "type": "Fixed",
+        "xp": "50",
+        "ap": "0",
+        "basis": "Existing current Archmage spell-learning bands for literal castingmana 20"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.pc460xp23p5s:30179:7ecccf97aa8f"
+      ],
+      "learningBandEvidenceFile": "native_magic_rules.json#spellLearningBands"
+    },
+    {
+      "id": "feat_dc5abdfd21e897ae",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Феху (Fehu)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚠ",
+      "runeGrade": 1,
+      "keyword": "Богатство, скот",
+      "benefit": "Создаёт 1d4×10 золотых монет (раз в день) или даёт +2 к Бартеру на 10 минут",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:2594:39e59c545deb",
+        "t.lreol0hqcnc8:2597:f67109939c8d",
+        "t.lreol0hqcnc8:2610:6b86b273ff34",
+        "t.lreol0hqcnc8:2613:c2e3dcacddf1",
+        "t.lreol0hqcnc8:2630:676c25ca77e4"
+      ]
+    },
+    {
+      "id": "feat_2065179abdd85ddf",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Уруз (Uruz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚢ",
+      "runeGrade": 2,
+      "keyword": "Сила, здоровье",
+      "benefit": "Даёт +2 к Силе на 1 минуту или восстанавливает 1d6 здоровья",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:2708:a876c5913db0",
+        "t.lreol0hqcnc8:2711:a5732fae0fdb",
+        "t.lreol0hqcnc8:2724:d4735e3a265e",
+        "t.lreol0hqcnc8:2727:b2ed8bd4752e",
+        "t.lreol0hqcnc8:2743:36ea63c58039"
+      ]
+    },
+    {
+      "id": "feat_d2ca3b443b33d4ff",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Турисаз (Thurisaz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚦ",
+      "runeGrade": 2,
+      "keyword": "Защита, молот Тора",
+      "benefit": "Создаёт барьер поглощения 10 урона на 1 минуту или наносит 1d8 дробящего урона врагу",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:2805:e1bddc22faea",
+        "t.lreol0hqcnc8:2808:9049cabde351",
+        "t.lreol0hqcnc8:2828:d4735e3a265e",
+        "t.lreol0hqcnc8:2831:8c22fb68c995",
+        "t.lreol0hqcnc8:2851:b7f085afb7a0"
+      ]
+    },
+    {
+      "id": "feat_ca6aecbddfc01bd1",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Ансуз (Ansuz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚨ",
+      "runeGrade": 2,
+      "keyword": "Речь, мудрость",
+      "benefit": "Даёт преимущество на проверку Красноречия или Интеллекта на 10 минут",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:2938:f5bb4223499d",
+        "t.lreol0hqcnc8:2941:8a26236fc3e9",
+        "t.lreol0hqcnc8:2956:d4735e3a265e",
+        "t.lreol0hqcnc8:2959:f1bb4afb777d",
+        "t.lreol0hqcnc8:2975:808adc94cdc2"
+      ]
+    },
+    {
+      "id": "feat_fbc63002ae302fe6",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Райдо (Raido)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚱ",
+      "runeGrade": 1,
+      "keyword": "Путь, поездка",
+      "benefit": "Увеличивает бег на 2 на 1 час или даёт +2 к Верховая езда/Вождение",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:3046:f905f9445fc1",
+        "t.lreol0hqcnc8:3049:d629a9ccb416",
+        "t.lreol0hqcnc8:3064:6b86b273ff34",
+        "t.lreol0hqcnc8:3067:0cf380185154",
+        "t.lreol0hqcnc8:3082:4276ff1919cb"
+      ]
+    },
+    {
+      "id": "feat_7d2387cf4d3d73a7",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Кеназ (Kenaz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚲ",
+      "runeGrade": 2,
+      "keyword": "Факел, огонь",
+      "benefit": "Создаёт свет (как заклинание Свет) или наносит 1d6 огненного урона",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:3151:f0624ee649f3",
+        "t.lreol0hqcnc8:3154:ed4f35a882e8",
+        "t.lreol0hqcnc8:3169:d4735e3a265e",
+        "t.lreol0hqcnc8:3172:7d9ab3cdbf71",
+        "t.lreol0hqcnc8:3186:19740f44dc92"
+      ]
+    },
+    {
+      "id": "feat_70ac90444f76af66",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Гебо (Gebo)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚷ",
+      "runeGrade": 1,
+      "keyword": "Дар, партнёрство",
+      "benefit": "Позволяет передать 1d6 здоровья союзнику или даёт +2 к помощи в проверке",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:3255:6e7abb4d39fe",
+        "t.lreol0hqcnc8:3258:9ce22b0650e2",
+        "t.lreol0hqcnc8:3271:6b86b273ff34",
+        "t.lreol0hqcnc8:3274:a16ce667a467",
+        "t.lreol0hqcnc8:3292:55419dca59d1"
+      ]
+    },
+    {
+      "id": "feat_48cbc7073adc322a",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Вуньо (Wunjo)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚹ",
+      "runeGrade": 1,
+      "keyword": "Радость",
+      "benefit": "Снимает лёгкие ментальные эффекты (страх, уныние) или даёт +1 моральный бонус",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:3367:ac88635fccbc",
+        "t.lreol0hqcnc8:3370:5be66ca76190",
+        "t.lreol0hqcnc8:3385:6b86b273ff34",
+        "t.lreol0hqcnc8:3388:edaac4655b14",
+        "t.lreol0hqcnc8:3397:3838dcf6f91a"
+      ]
+    },
+    {
+      "id": "feat_c18bd89398bec5f9",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Хагалаз (Hagalaz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚺ",
+      "runeGrade": 3,
+      "keyword": "Град, разрушение",
+      "benefit": "Наносит 2d6 урона (дробящий/холод) в радиусе 2 метра или ломает предмет",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:3477:f254c407c044",
+        "t.lreol0hqcnc8:3480:981255540db6",
+        "t.lreol0hqcnc8:3499:4e07408562be",
+        "t.lreol0hqcnc8:3502:ff2d2a0f58fa",
+        "t.lreol0hqcnc8:3520:b11d2d8f5d32"
+      ]
+    },
+    {
+      "id": "feat_34e8855e2a9a1a6b",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Наутиз (Nauthiz)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᚾ",
+      "runeGrade": 2,
+      "keyword": "Нужда, ограничение",
+      "benefit": "Накладывает на цель штраф -2 к атаке на 1 минуту или даёт сопротивление холоду 5",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:3594:f4fa3e7ca7a2",
+        "t.lreol0hqcnc8:3597:a277ec8cc118",
+        "t.lreol0hqcnc8:3615:d4735e3a265e",
+        "t.lreol0hqcnc8:3618:552871ec9b9e",
+        "t.lreol0hqcnc8:3638:657e786754c3"
+      ]
+    },
+    {
+      "id": "feat_143b61549ddb5fc4",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Иса (Isa)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᛁ",
+      "runeGrade": 2,
+      "keyword": "Лёд",
+      "benefit": "Замораживает небольшую область (труднопроходимая местность) или парализует цель на 1 раунд (Стойкость)",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:3721:4f982228e5a3",
+        "t.lreol0hqcnc8:3724:af3d04dda6f9",
+        "t.lreol0hqcnc8:3735:d4735e3a265e",
+        "t.lreol0hqcnc8:3738:cbd153f1f3db",
+        "t.lreol0hqcnc8:3743:a87503f23a18"
+      ]
+    },
+    {
+      "id": "feat_d75bdef0c732f47c",
+      "kind": "DEVELOPMENT",
+      "name": "Руна: Йера (Jera)",
+      "section": "Руническая магия",
+      "category": "Руны",
+      "maxRank": 1,
+      "runeGlyph": "ᛃ",
+      "runeGrade": 3,
+      "keyword": "Цикл, урожай",
+      "benefit": "Ускоряет рост растений или позволяет перебросить одну проверку в течение часа",
+      "requirementsPolicy": "The source explicitly permits learning one rune for20XP; no additional learning prerequisite is stated. Rune grade is inherent castingpower, not an acquisition rank cap.",
+      "price": {
+        "type": "Fixed",
+        "xp": "20",
+        "ap": "0",
+        "basis": "Exact explicit learning price20XPperrune"
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:3848:a27cfa663097",
+        "t.lreol0hqcnc8:3851:8b01f72fcbf2",
+        "t.lreol0hqcnc8:3864:4e07408562be",
+        "t.lreol0hqcnc8:3867:bc5fa13c4748",
+        "t.lreol0hqcnc8:3881:bd9b7cbad0bc"
+      ]
+    },
+    {
+      "id": "runology",
+      "kind": "SKILL",
+      "name": "Рунология",
+      "section": "Умения",
+      "category": "KNOWLEDGE",
+      "maxRank": 10,
+      "defaultAttributeId": "INT",
+      "requirementsPolicy": "Source explicitly says Runology raises as an ordinary skill, using the skill price table; no extra entry requirement stated.",
+      "price": {
+        "type": "OrdinarySkillTransitionTable",
+        "sourceRuleset": "dubl-3.69",
+        "includeExistingSkillDiscountPolicy": true
+      },
+      "repeatPolicy": {
+        "type": "Single"
+      },
+      "evidence": [
+        "t.lreol0hqcnc8:1700:26eb99bb04fd",
+        "t.lreol0hqcnc8:7576:8c2458f669ca",
+        "t.lreol0hqcnc8:7594:b711287fb24b",
+        "t.lreol0hqcnc8:7624:82d63e471e0a",
+        "t.lreol0hqcnc8:7678:337acd1581fa",
+        "t.lreol0hqcnc8:7783:a9012b8962a1",
+        "t.lreol0hqcnc8:1487:0d070fe79bb1"
+      ]
+    }
+  ],
+  "evidence": {
+    "t.pc460xp23p5s:2576:84fe40675773": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/16",
+      "startIndex": 2576,
+      "text": "Эти навыки (перки) можно приобретать за опыт или очки способностей (стоимость указана в скобках). Требования и выгоды описаны по образцу документа.",
+      "textSha256": "84fe4067577315769db651b5fe25dedc99c28740ef6b8d3ae1ab40548e4e5b91"
+    },
+    "t.pc460xp23p5s:2739:e08e14f1af60": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/18",
+      "startIndex": 2739,
+      "text": "Кровавое ремесло (40)\u000bРанги: 3\u000bТребование: Воля 4, Некромантия 2 или Магия крови 2\u000bВыгода: Вы уменьшаете урон, наносимый себе при сотворении заклинаний магии крови, на 1 за каждый ранг (минимум 1 урон). Также вы можете использовать проверку Медицина+Интеллект для остановки кровотечения, вызванного вашей магией, с преимуществом.",
+      "textSha256": "e08e14f1af60685c34b1f4282969d1990ae4bda11b7cf0295cb96ffa77a813dc"
+    },
+    "t.pc460xp23p5s:3069:9b824715909a": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/19",
+      "startIndex": 3069,
+      "text": "Жила (30)\u000bРанги: 1\u000bТребование: Телосложение 3, Кровавое ремесло 1\u000bВыгода: Вы получаете +1 к максимальному запасу кровавой маны. Можно брать несколько раз, но не более Телосложения/2.",
+      "textSha256": "9b824715909a96bde921cd7d7f81c157582edd78fd462615980eb3fb4a3b9957"
+    },
+    "t.pc460xp23p5s:3252:e25603e74586": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/20",
+      "startIndex": 3252,
+      "text": "Гемоглобиновая чувствительность (20)\u000bРанги: 1\u000bТребование: Восприятие 4, Медицина 2\u000bВыгода: Вы можете ощущать кровь живых существ в радиусе 10 метров, даже сквозь лёгкие преграды (дерево, ткань, штукатурка). Это действует как слепое зрение по отношению к кровеносным системам: вы знаете направление и примерное расстояние до существ с кровью.",
+      "textSha256": "e25603e74586f4c8d0c6e9c7d93e4fb3854bea771fc8f5a73047a23f35af4b84"
+    },
+    "t.pc460xp23p5s:3594:1a82817af1fb": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/21",
+      "startIndex": 3594,
+      "text": "Кровопускание (25)\u000bРанги: 1\u000bТребование: Холодное оружие 3 или Рукопашный бой 3\u000bВыгода: Ваши атаки холодным оружием или рукопашные атаки могут быть объявлены «кровопускающими». Если вы наносите урон, вы можете дополнительно нанести 1 урон себе и получить 1 кровавую ману. Это можно делать не чаще одного раза в раунд.",
+      "textSha256": "1a82817af1fbee82d469a9b260c97e305156a9a224670428e39b0a590f1bae53"
+    },
+    "t.pc460xp23p5s:3930:d4f23dfbc79a": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/23",
+      "startIndex": 3930,
+      "text": "Кровавый договор (50)\u000bРанги: 1\u000bТребование: Харизма 4, Красноречие 3, Магия крови 3\u000bВыгода: Вы можете заключить кровавый договор с добровольным существом. Оно наносит себе 1 урон (непоглощаемый) и даёт вам каплю своей крови. После этого вы можете использовать его кровь как свою для сотворения заклинаний магии крови (расходуя его здоровье, а не своё) на расстоянии до 10 метров без необходимости касания. Договор длится 24 часа. Существо может разорвать договор, нанеся себе ещё 1 урон.",
+      "textSha256": "d4f23dfbc79aee61ba0415ca85216c6370dc563fc018125cf42902d29ebafa3e"
+    },
+    "t.pc460xp23p5s:4417:53d08bfbb383": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/24",
+      "startIndex": 4417,
+      "text": "Геморрагический шок (40)\u000bРанги: 2\u000bТребование: Запугивание 4, Медицина 3, Кровавое ремесло 2\u000bВыгода: Когда вы наносите урон кровотечением (своим заклинанием или оружием), цель должна пройти проверку Стойкости против сложности (10 + ваш ранг навыка + Воля). При провале цель получает ошеломление на 1 раунд за ранг навыка. Является эффектом страха.",
+      "textSha256": "53d08bfbb38374cf1f87db18d2849ae1071b8efec7e9f90d4ffc002338fadcf2"
+    },
+    "t.pc460xp23p5s:4764:04426d32928a": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/25",
+      "startIndex": 4764,
+      "text": "Вампирическое восстановление (45)\u000bРанги: 1\u000bТребование: Некромантия 4, Медицина 4\u000bВыгода: Когда вы наносите урон магией крови, вы восстанавливаете здоровье в размере ½ нанесённого урона (округляется вниз). Не действует на урон, нанесённый себе. Эффект не суммируется с другими вампирическими эффектами.",
+      "textSha256": "04426d32928abe67578dbea867e13a9b77350b7d969244203a62649729f89c69"
+    },
+    "t.pc460xp23p5s:5066:28a47303cc0d": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/26",
+      "startIndex": 5066,
+      "text": "Мастер кровавых уз (60)\u000bРанги: 1\u000bТребование: Кровные узы (заклинание), Воля 5, Медицина 5\u000bВыгода: Заклинание «Кровные узы» может быть использовано без затрат маны, если вы наносите себе урон равный стоимости заклинания. Длительность увеличивается вдвое. Вы можете одновременно поддерживать количество связей, равное вашему Телосложению.",
+      "textSha256": "28a47303cc0d74fcc77c35e5e48b4012283f3fa9b1a36f0a09a57316838a4a02"
+    },
+    "t.pc460xp23p5s:5403:da26d900b7ff": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/27",
+      "startIndex": 5403,
+      "text": "Кровавое неистовство (50)\u000bРанги: 2\u000bТребование: Телосложение 4, Воля 4, Неистовство или Ярость\u000bВыгода: В состоянии неистовства или ярости вы можете за каждый ранг навыка один раз в раунд активировать эффект: получив урон от атаки, вы можете нанести себе дополнительно 2 урона и получить +2 к урону следующей атаки в ближнем бою. Бонус накапливается, но сбрасывается, если вы не атаковали в раунде.",
+      "textSha256": "da26d900b7ff9c49261d9da73d59b2ed95232abdb877d0f777fe6ec7068f564c"
+    },
+    "t.pc460xp23p5s:5818:877633a88b63": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/29",
+      "startIndex": 5818,
+      "text": "Кровавое перерождение (100)\u000bРанги: 1\u000bТребование: Кровавое ремесло 3, Вампирическое восстановление, Телосложение 6, Воля 6\u000bВыгода: Когда ваше здоровье опускается до 0 или ниже, вы можете мгновенно потратить все очки кровавой маны (минимум 5) и все пункты выносливости. Вы восстанавливаете количество здоровья, равное потраченной кровавой мане ×2, и сбрасываете все негативные эффекты (кроме смертельных ран). Это действие не требует ОД и может быть использовано один раз в день. После этого вы получаете состояние истощения на 1 час.",
+      "textSha256": "877633a88b63323e2a9d663c84710798080dc4b2f61e25b2057f070487646f9c"
+    },
+    "t.pc460xp23p5s:6620:e94f4443a571": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/33",
+      "startIndex": 6620,
+      "text": "Кровавая метка\u000bШкола: Магия крови\u000bСтоимость: 0 (или 1 урон себе)\u000bВремя сотворения: 1 ОД\u000bДальность: Касание\u000bДлительность: 1 час\u000bОписание: Вы оставляете кровавый отпечаток пальца на существе или предмете. Пока метка активна, вы знаете направление до неё в пределах 1 км. Метку можно смыть только магически или сильным трением (2 раунда).\u000bУсиление: За 1 ману или 1 урон себе метка становится невидимой и неощутимой наощупь, её может обнаружить только магическое зрение.",
+      "textSha256": "e94f4443a571feff2783b63ba7a7e077021f722b6c4a544972ef68dd90c62165"
+    },
+    "t.pc460xp23p5s:7087:e39e7a1accdb": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/34",
+      "startIndex": 7087,
+      "text": "Малая гемостатическая нить\u000bШкола: Магия крови / Ограждение\u000bСтоимость: 0\u000bВремя сотворения: Реакция\u000bДальность: Касание\u000bДлительность: Мгновенно\u000bОписание: Вы останавливаете кровотечение у себя или у другого существа. Останавливает кровотечение любой силы, но не восстанавливает потерянное здоровье. Может быть использовано как часть оказания первой помощи.",
+      "textSha256": "e39e7a1accdb1b80769f64de90e683b032d245d010da469911d03613db7da8b9"
+    },
+    "t.pc460xp23p5s:7452:1f1ad9dc84e0": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/36",
+      "startIndex": 7452,
+      "text": "Кровавый укол\u000bШкола: Магия крови / Разрушение\u000bСтоимость: 1 мана или 1 урон себе\u000bВремя сотворения: 1 ОД\u000bДальность: 10 метров\u000bДействие: Воля+Восприятие против Защиты\u000bДлительность: Мгновенно\u000bОписание: Вы формируете крошечный сгусток собственной крови и с силой выстреливаете им в противника. При попадании цель получает 1d4+1 колющего урона с бронебойностью 2 и начинает кровотечение/1 (1 урон в начале каждого хода, пока не остановит).\u000bУсиление: За дополнительные 1 ману или 1 урон себе урон увеличивается на 1d4.",
+      "textSha256": "1f1ad9dc84e0e373ccd8a5c42b92964d39780802c704e165cc7dc4d48a0aaa1b"
+    },
+    "t.pc460xp23p5s:7964:9c7e54001f39": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/37",
+      "startIndex": 7964,
+      "text": "Кровавое касание\u000bШкола: Магия крови / Некромантия\u000bСтоимость: 1 мана или 2 урона себе\u000bВремя сотворения: 1 ОД\u000bДальность: Касание\u000bДействие: Ловкость+Рукопашный бой против Защиты\u000bДлительность: Мгновенно\u000bОписание: Ваша рука покрывается чёрной кровяной коркой. При успешной атаке вы наносите 1d6+Воля некротического урона и вытягиваете из цели 1d4 здоровья, восстанавливая его себе. Это лечение не может превышать нанесённый урон.\u000bУсиление: За дополнительные 2 маны или 2 урона себе урон и лечение увеличиваются на 1d4.",
+      "textSha256": "9c7e54001f39a8007f9c9e303c1331b39f1f375871d242d57d1c5e56f52ce1b8"
+    },
+    "t.pc460xp23p5s:8490:08e59a94ae5a": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/39",
+      "startIndex": 8490,
+      "text": "Кровавая завеса\u000bШкола: Магия крови / Ограждение\u000bСтоимость: 2 маны или 3 урона себе\u000bВремя сотворения: 2 ОД\u000bДальность: На себя\u000bДлительность: 1 минута\u000bОписание: Вы выпускаете тонкую пелену собственной крови, которая парит вокруг вас. Вы получаете укрытие +2 против дальнобойных атак. Любой, кто атакует вас в ближнем бою, должен пройти проверку Стойкости против вашей Воли+Интеллект, иначе получит 1d4 урона от разъедания (кислотный) от брызг крови.\u000bУсиление: За дополнительные 1 ману урон увеличивается на 1, за дополнительные 2 маны укрытие увеличивается до +4.",
+      "textSha256": "08e59a94ae5a5f84cfb0a90d8fb1cade6964d94a52d8eef1ee349df04533808d"
+    },
+    "t.pc460xp23p5s:9051:6f1979451ba4": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/40",
+      "startIndex": 9051,
+      "text": "Кровавый жгут\u000bШкола: Магия крови / Трансмутация\u000bСтоимость: 2 маны или 2 урона себе\u000bВремя сотворения: 2 ОД\u000bДальность: 5 метров\u000bДействие: Воля+Интеллект против Реакции\u000bДлительность: Концентрация (1) до 1 минуты\u000bОписание: Из вашей ладони выстреливает тонкая нить загустевшей крови, которая обвивает конечность цели. Если цель проваливает встречную проверку (Реакция), она становится опутанной (не может использовать эту конечность для атак или заклинаний с жестами). Чтобы освободиться, нужно за 2 ОД пройти проверку Силы+Атлетика против сложности 12+Воля заклинателя, либо разорвать нить, нанеся ей 5 урона (урон от огня удваивается).\u000bУсиление: За дополнительные 1 ману нить получает +3 прочности.",
+      "textSha256": "6f1979451ba4467c244030a19334f1d69ac386d542ea80a16ec03fea34b3af21"
+    },
+    "t.pc460xp23p5s:9759:5891b644f3a1": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/42",
+      "startIndex": 9759,
+      "text": "Кровавое кипение\u000bШкола: Магия крови / Разрушение\u000bСтоимость: 3 маны или 4 урона себе\u000bВремя сотворения: 2 ОД\u000bДальность: 15 метров\u000bОбласть: Сфера радиусом 2 метра\u000bДействие: Воля+Интеллект против Стойкости\u000bДлительность: Мгновенно\u000bОписание: Вы заставляете кровь в телах существ в области закипать. Все живые существа в зоне получают 2d4+4 урона (урон считается как огонь/кислота — двойной тип). Если урон превышает стойкость цели, она получает ошеломление на 1 раунд. Существа с иммунитетом к огню или кислоте получают половину урона.\u000bУсиление: За дополнительные 2 маны радиус увеличивается на 1 метр, урон на 1d4.",
+      "textSha256": "5891b644f3a139f339b5e13fa132d3f80d53e01763a96f18aa33731b71106c1c"
+    },
+    "t.pc460xp23p5s:10369:e902e4b244a6": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/43",
+      "startIndex": 10369,
+      "text": "Переливание крови\u000bШкола: Магия крови / Молитва\u000bСтоимость: 3 маны или 3 урона себе (добровольный донор может нанести себе урон вместо вас)\u000bВремя сотворения: 3 ОД\u000bДальность: Касание\u000bДлительность: Мгновенно\u000bОписание: Вы передаёте свою жизненную силу другому существу. Вы теряете до 6 здоровья (непоглощаемого), а цель восстанавливает в два раза больше потерянного (максимум 12). Можно использовать кровь добровольного донора, который наносит себе урон, а вы выступаете лишь каналом. Заклинание не работает на нежить и конструкции.\u000bУсиление: За дополнительные 2 маны максимальная передача увеличивается до 12 здоровья (восстановление 24).",
+      "textSha256": "e902e4b244a65822073ae8bfa044e26c68221edb1689371c69f830dc91ead835"
+    },
+    "t.pc460xp23p5s:11004:d213eb4a91bc": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/44",
+      "startIndex": 11004,
+      "text": "Кровавая острота\u000bШкола: Магия крови / Боевая магия\u000bСтоимость: 3 маны или 2 урона себе\u000bВремя сотворения: 1 ОД (реакцией можно перед атакой)\u000bДальность: Касание (оружие)\u000bДлительность: 1 минута\u000bОписание: Вы покрываете оружие тонким слоем своей крови, которая затвердевает и приобретает невероятную остроту. Оружие получает свойство *Острота +2* и *Кровотечение/1*. Если оружие уже имеет остроту, бонусы суммируются.\u000bУсиление: За дополнительные 2 маны острота увеличивается до +4 и кровотечение до /2.",
+      "textSha256": "d213eb4a91bc0b152aa27b982159d5f0717f20000bd394dc6ac8367ee1acb441"
+    },
+    "t.pc460xp23p5s:11513:648312dc8303": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/46",
+      "startIndex": 11513,
+      "text": "Кровавое жертвоприношение\u000bШкола: Магия крови / Некромантия\u000bСтоимость: 4 маны или 5 урона себе\u000bВремя сотворения: 1 полный раунд\u000bДальность: Касание (согласное существо)\u000bДлительность: Мгновенно\u000bОписание: Вы приносите в жертву кровь существа (в том числе себя) для получения кровавой маны. Вы наносите цели 2d6+Воля урона (непоглощаемого, если цель согласна). За каждые 2 нанесённых урона вы получаете 1 кровавую ману (максимум 10). Если цель — не вы, вы также получаете временное здоровье в размере половины нанесённого урона на 1 минуту.\u000bУсиление: За дополнительные 3 маны вы можете нанести урон сразу двум существам (каждому отдельно).",
+      "textSha256": "648312dc8303f7da0d8d8a7e25a56424ab59c23d23347711b8ac23c19feb413a"
+    },
+    "t.pc460xp23p5s:12148:22f27bc94368": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/47",
+      "startIndex": 12148,
+      "text": "Геморрагический взрыв\u000bШкола: Магия крови / Разрушение\u000bСтоимость: 4 маны или 5 урона себе\u000bВремя сотворения: 3 ОД\u000bДальность: 20 метров\u000bОбласть: Сфера радиусом 3 метра\u000bДействие: Воля+Интеллект против Реакции\u000bДлительность: Мгновенно\u000bОписание: Вы взрываете каплю собственной крови в выбранной точке. Все существа в зоне получают 3d4+4 урона (дробящий/кислотный) и начинают кровотечение/2. Если цель уже кровоточит, урон увеличивается на 1d4. Существа без крови получают только половину урона.\u000bУсиление: За дополнительные 2 маны радиус увеличивается на 1 метр, кровотечение до /3.",
+      "textSha256": "22f27bc943683b48f16198c0fea97ce6d8245cb4ab734dbce7a9fcf9476d0a50"
+    },
+    "t.pc460xp23p5s:12735:8cec538ced4a": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/49",
+      "startIndex": 12735,
+      "text": "Кровавый доспех\u000bШкола: Магия крови / Ограждение\u000bСтоимость: 5 маны или 6 урона себе\u000bВремя сотворения: 2 ОД\u000bДальность: На себя\u000bДлительность: 1 час\u000bОписание: Ваша собственная кровь застывает на теле, формируя твёрдую корку. Вы получаете броню 5, которая не суммируется с другой бронёй (но можно носить поверх). Каждый раз, когда вас атакуют в ближнем бою, атакующий получает 1d4 урона от разъедания. Кроме того, вы можете реакцией активировать часть доспеха, чтобы получить сопротивление урону 5/физический до конца раунда, но при этом доспех теряет 2 брони (восстанавливается через 10 минут).\u000bУсиление: За дополнительные 3 маны броня увеличивается до 8, а урон атакующим до 1d6.",
+      "textSha256": "8cec538ced4ab8dd69d2c2ad431d53e2e3f19a7c8de9d7ae10bf453eaa58692f"
+    },
+    "t.pc460xp23p5s:13412:120fedb5b386": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/50",
+      "startIndex": 13412,
+      "text": "Кровавая марионетка\u000bШкола: Магия крови / Разум\u000bСтоимость: 5 маны или 7 урона себе\u000bВремя сотворения: 3 ОД\u000bДальность: 10 метров\u000bДействие: Воля+Харизма против Стойкости\u000bДлительность: Концентрация (1) до 1 минуты\u000bОписание: Вы берёте под контроль кровь в теле существа, заставляя его двигаться против воли. Цель провалившая встречную проверку (Стойкость) становится подконтрольной. В свой ход вы можете действием заставить цель переместиться на расстояние до 5 метров или совершить одну простую атаку (без специальных приёмов). Цель может повторять проверку в конце каждого своего хода. Заклинание не действует на существ с иммунитетом к контролю разума или без крови.\u000bУсиление: За дополнительные 3 маны вы можете контролировать две цели одновременно.",
+      "textSha256": "120fedb5b386e5f0b6fbbddb74cfc71f8fb54d1fde0161fc9574e207d2bbf9bf"
+    },
+    "t.pc460xp23p5s:14171:a2cb1a9e7143": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/52",
+      "startIndex": 14171,
+      "text": "Кровавая баня\u000bШкола: Магия крови / Некромантия\u000bСтоимость: 6 маны или 8 урона себе\u000bВремя сотворения: 1 полный раунд\u000bДальность: На себя (аура радиусом 5 метров)\u000bДлительность: Концентрация (Реакция) до 1 минуты\u000bОписание: Вы создаёте вокруг себя кровавую воронку, которая вытягивает жизненную силу из врагов. В начале вашего хода все существа в ауре (кроме вас) получают 1d6+Воля некротического урона и должны пройти проверку Стойкости, иначе получат одно состояние ослабления (штраф -1 к атаке и защите) до конца своего следующего хода. Вы восстанавливаете здоровье в размере суммарного урона, нанесённого всем целям (не более 10 за раунд).\u000bУсиление: За дополнительные 4 маны радиус увеличивается до 10 метров, урон до 2d6+Воля.",
+      "textSha256": "a2cb1a9e7143f7f9b44512adf7d9d347d91bf22a0291c07d3ae33239d60179fc"
+    },
+    "t.pc460xp23p5s:14909:086d110f9519": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/54",
+      "startIndex": 14909,
+      "text": "Чёрная кровь\u000bШкола: Магия крови / Трансмутация\u000bСтоимость: 7 маны или 9 урона себе\u000bВремя сотворения: 3 ОД\u000bДальность: Касание\u000bДлительность: 1 минута\u000bОписание: Вы превращаете кровь цели в чёрную, ядовитую субстанцию. Цель должна пройти проверку Стойкости против вашей Воли+Интеллект. При провале она получает отравление/3 (в начале каждого хода теряет 3 здоровья) и не может восстанавливать здоровье магией (только естественным отдыхом или антидотом). Каждый раз, когда цель получает урон от отравления, она теряет 1 ОД в следующем ходу.\u000bУсиление: За дополнительные 3 маны отравление увеличивается до /5, и цель не может использовать сверхусилие.",
+      "textSha256": "086d110f951961c8023f4fd995bec0a24fdddcf11b3233744b7d4ed07b0b20ec"
+    },
+    "t.pc460xp23p5s:15565:46799fa5f06e": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/56",
+      "startIndex": 15565,
+      "text": "Кровавая баня (ритуал)\u000bШкола: Магия крови / Некромантия\u000bСтоимость: 8 маны или 10 урона себе, плюс 1 литр свежей крови (можно от нескольких существ)\u000bВремя сотворения: 10 минут\u000bДальность: На себя\u000bДлительность: 1 день\u000bОписание: Вы совершаете ритуальное омовение в крови, после чего ваша связь с магией крови усиливается. В течение дня вы получаете следующие преимущества:",
+      "textSha256": "46799fa5f06e41f66673c195f921fb0077a26946dafbf4eee5a28aaa1573ec5f"
+    },
+    "t.pc460xp23p5s:15934:d42b48a125d2": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/57",
+      "startIndex": 15934,
+      "text": "Все заклинания магии крови, наносящие вам урон, наносят на 2 урона меньше (минимум 1).",
+      "textSha256": "d42b48a125d2e96a6cdc345bfc30f52bb382c01dc24867c0705e1e2369208ea2"
+    },
+    "t.pc460xp23p5s:16021:a54b301b9104": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/58",
+      "startIndex": 16021,
+      "text": "Максимальный запас кровавой маны увеличивается на 5.",
+      "textSha256": "a54b301b91049621068be57be049619bf1f96ba6733c3b2228eacd2643aa0a3d"
+    },
+    "t.pc460xp23p5s:16074:cd195cb9de94": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/59",
+      "startIndex": 16074,
+      "text": "Один раз в день вы можете использовать «Кровавое перерождение» без затрат выносливости.\u000bРитуал требует специальной подготовки и не может быть проведён в бою.\u000bУсиление: За дополнительные 5 маны длительность увеличивается до 3 дней.",
+      "textSha256": "cd195cb9de946613fe5fcb8762cfbcfc2457c5e61a6f16177c55b1f146358758"
+    },
+    "t.pc460xp23p5s:16317:5eeba0ab1615": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/61",
+      "startIndex": 16317,
+      "text": "Кровавый смерч\u000bШкола: Магия крови / Разрушение\u000bСтоимость: 9 маны или 12 урона себе\u000bВремя сотворения: 3 ОД\u000bДальность: 30 метров\u000bОбласть: Цилиндр высотой 6 метров, радиусом 3 метра\u000bДействие: Воля+Интеллект против Реакции\u000bДлительность: Концентрация (2 ОД) до 1 минуты\u000bОписание: Вы создаёте вихрь из острой как бритва крови, который кружится в указанной области. Любое существо, входящее в область или начинающее там ход, получает 2d8+6 рубящего/колющего урона и кровотечение/2. Если существо проваливает встречную проверку, оно также втягивается в центр смерча и считается опутанным на 1 раунд. В свой ход вы можете за 2 ОД переместить смерч на 5 метров.\u000bУсиление: За дополнительные 3 маны радиус увеличивается на 1 метр, урон на 1d8, кровотечение до /3.",
+      "textSha256": "5eeba0ab1615900e63b16df3e257705b677abad75df72ad83eea314e9cf467dd"
+    },
+    "t.pc460xp23p5s:17069:09a2ef459b63": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/62",
+      "startIndex": 17069,
+      "text": "Кровавое воскрешение\u000bШкола: Магия крови / Некромантия\u000b*Стоимость: 9 маны или 10 урона себе + 10 урона донору (согласному)*\u000bВремя сотворения: 1 минута (ритуал)\u000bДальность: Касание\u000bДлительность: Мгновенно\u000bОписание: Вы возвращаете к жизни недавно умершее существо (не более 1 минуты назад), вливая в него свою кровь и кровь добровольного донора. Цель воскресает с 1 здоровьем и стабильным состоянием, но получает одно повреждение характеристики (случайное) и состояние истощения на 24 часа. Без добровольного донора вы можете воскресить цель, нанеся себе 20 урона (непоглощаемого). Нежить и конструкции не поддаются.\u000bУсиление: За дополнительные 5 маны воскрешённое существо не получает повреждения характеристики.",
+      "textSha256": "09a2ef459b630eede3e14ecf0613582bef064779011d71dd470ff2c532ae4e93"
+    },
+    "t.pc460xp23p5s:17779:2f61a87b7370": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/63",
+      "startIndex": 17779,
+      "text": "Кровавый двойник\u000bШкола: Магия крови / Воплощение\u000bСтоимость: 9 маны или 10 урона себе\u000bВремя сотворения: 4 ОД\u000bДальность: 10 метров\u000bДлительность: Концентрация (1) до 10 минут\u000bОписание: Вы отделяете часть своей крови, которая формируется в вашу точную копию. Двойник имеет ваши физические характеристики (Сила, Ловкость, Телосложение, Скорость), но половину здоровья (не менее 10) и не имеет магии, навыков и способностей. Он действует в вашу инициативу, подчиняется вашим мысленным командам и может атаковать простым оружием (урон 1d6+Сила). Если двойник получает урон, вы сами не страдаете. Вы можете потратить 1 ОД, чтобы восстановить двойнику 5 здоровья, нанеся себе 2 урона.\u000bУсиление: За дополнительные 4 маны двойник получает одно ваше базовое умение (на выбор) и может использовать его.",
+      "textSha256": "2f61a87b737019da18237c460a1c800b26623c3dfd19f61a08f6cae29d2c665b"
+    },
+    "t.pc460xp23p5s:18584:19729c084231": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/65",
+      "startIndex": 18584,
+      "text": "Кровавая чума\u000bШкола: Магия крови / Некромантия\u000bСтоимость: 10 маны или 12 урона себе\u000bВремя сотворения: 3 ОД\u000bДальность: 20 метров\u000bОбласть: Сфера радиусом 5 метров\u000bДействие: Воля+Интеллект против Стойкости\u000bДлительность: 1 минута\u000bОписание: Вы насылаете заразную порчу на кровь существ в области. Все живые существа, провалившие встречную проверку, заражаются кровавой чумой. В начале каждого своего хода они получают 1d8 некротического урона и теряют 1 ОД. Любое существо, начинающее ход в пределах 2 метров от заражённого, должно пройти проверку Стойкости (СЛ 15+Воля заклинателя), иначе тоже заражается. Заражённые существа выглядят бледными и кашляют кровью. Эффект можно снять заклинанием «Малое восстановление» или магией крови стоимостью 5.\u000bУсиление: За дополнительные 5 маны урон увеличивается до 2d8, а радиус заражения до 4 метров.",
+      "textSha256": "19729c084231bafe3d0e05a0a44852923d8eedd8fcb8c4614fb87f9d7d63e1f3"
+    },
+    "t.pc460xp23p5s:19421:2e7ff2115665": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/66",
+      "startIndex": 19421,
+      "text": "Кровавый голем\u000bШкола: Магия крови / Призыв\u000b*Стоимость: 10 маны или 12 урона себе + 1 литр крови (можно собрать с раненых)*\u000bВремя сотворения: 1 минута\u000bДальность: 10 метров\u000bДлительность: Концентрация (1) до 1 часа\u000bОписание: Вы создаёте из загустевшей крови прислужника — кровавого голема. Голем имеет характеристики: Размер 5, Сила 8, Ловкость 2, Телосложение 8, Скорость 4, Здоровье 40, Броня 5 (природная), Защита 12. Он атакует слэм-атакой (2d6+8 дробящего урона) и может один раз в 3 раунда выстрелить сгустком крови (дальность 10 метров, 2d6+4 урона, кровотечение/2). Голем не имеет интеллекта и выполняет простые команды («атакуй», «защищай», «стой»). Вы можете нанести себе 2 урона, чтобы восстановить голему 10 здоровья.\u000bУсиление: За дополнительные 6 маны голем получает +20 здоровья и +2 к броне.",
+      "textSha256": "2e7ff2115665957de221110f78d84d5e42df6682ba3116617f368eea3f8807cc"
+    },
+    "t.pc460xp23p5s:20240:90996c6ea0c1": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/68",
+      "startIndex": 20240,
+      "text": "Кровавая буря\u000bШкола: Магия крови / Разрушение\u000bСтоимость: 12 маны или 15 урона себе\u000bВремя сотворения: 4 ОД\u000bДальность: 50 метров\u000bОбласть: Цилиндр радиусом 8 метров, высотой 15 метров\u000bДействие: Воля+Интеллект против Реакции\u000bДлительность: Концентрация (2) до 1 минуты\u000bОписание: Вы вызываете настоящий ливень из острой как бритва крови. В начале каждого раунда все существа в области получают 3d6+8 урона (рубящий/колющий) и кровотечение/3. Область считается труднопроходимой местностью, а все источники света в ней тускнеют наполовину. Вы можете за 2 ОД сместить центр бури на 5 метров. Существа, начавшие ход в буре и провалившие встречную проверку, дополнительно теряют 2 ОД (из-за шока и боли).\u000bУсиление: За дополнительные 6 маны урон увеличивается до 4d6+12, кровотечение до /5.",
+      "textSha256": "90996c6ea0c17eb2cde9821c660beadeba22518a6b811a30016d71e876c2cb38"
+    },
+    "t.pc460xp23p5s:21019:1d1083140625": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/69",
+      "startIndex": 21019,
+      "text": "Обмен кровью\u000bШкола: Магия крови / Трансмутация\u000bСтоимость: 12 маны или 8 урона себе\u000bВремя сотворения: 3 ОД\u000bДальность: 5 метров\u000bДействие: Воля+Интеллект против Стойкости\u000bДлительность: Мгновенно\u000bОписание: Вы связываете свою кровь с кровью цели, мгновенно меняя их состояние. Вы и цель обмениваетесь текущим запасом здоровья (но не максимальным). Если у цели больше здоровья, чем у вас, вы восстанавливаете разницу, а цель теряет столько же. Если у вас больше здоровья, вы теряете разницу, а цель восстанавливает. Цель может сопротивляться встречной проверкой Стойкости; при успехе обмен не происходит, но вы всё равно теряете 4 здоровья. Не действует на нежить и конструкции.\u000bУсиление: За дополнительные 4 маны вы можете выбрать две цели, обменивая здоровье между ними (без своего участия), при этом вы не теряете здоровье.",
+      "textSha256": "1d1083140625bf8baddf8df77ebcd51b0696a132499c426a4bfdbde28159316e"
+    },
+    "t.pc460xp23p5s:21840:228db7f71eb4": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/70",
+      "startIndex": 21840,
+      "text": "Кровавое бессмертие\u000bШкола: Магия крови / Ограждение\u000b*Стоимость: 12 маны или 10 урона себе + 5 урона в минуту (поддержание)*\u000bВремя сотворения: 1 полный раунд\u000bДальность: На себя\u000bДлительность: Концентрация (полная) до 1 минуты\u000bОписание: Ваша кровь начинает циркулировать с невероятной скоростью, заживляя любые раны почти мгновенно. На время действия заклинания вы получаете быстрое исцеление 10 (в начале каждого хода восстанавливаете 10 здоровья). Однако вы должны поддерживать концентрацию, тратя все ОД каждый раунд. Если вы получаете урон, равный или превышающий вашу стойкость, концентрация прерывается. Заклинание не может быть использовано более одного раза в день.\u000bУсиление: За дополнительные 8 маны вы можете двигаться со скоростью 2 метра в раунд, сохраняя концентрацию (но не атаковать).",
+      "textSha256": "228db7f71eb491affe2f6efa04ba2cd7b94040ef4d501fcafe4b8c59cf22ab83"
+    },
+    "t.pc460xp23p5s:22652:b40a99956477": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/72",
+      "startIndex": 22652,
+      "text": "Кровавый апокалипсис\u000bШкола: Магия крови / Некромантия\u000bСтоимость: 14 маны или 18 урона себе\u000bВремя сотворения: 1 минута (ритуал)\u000bДальность: 100 метров\u000bОбласть: Сфера радиусом 20 метров\u000bДействие: Воля+Интеллект против Стойкости\u000bДлительность: Мгновенно\u000bОписание: Вы призываете силу древнего кровного проклятия. Все живые существа в области должны пройти встречную проверку Стойкости. При провале они получают 6d8+12 некротического урона и кровотечение/6. Если урон убивает цель, её тело взрывается, нанося 3d6 урона (дробящий) всем в радиусе 2 метров. Даже при успешной проверке существа получают половину урона и кровотечение/2. Заклинание оставляет область, пропитанную кровью, которая становится труднопроходимой на 1 час. Любой, кто входит туда, должен пройти проверку Стойкости (СЛ 20) или получить отравление/2.\u000bУсиление: За дополнительные 8 маны урон увеличивается до 8d8+16, радиус до 30 метров.",
+      "textSha256": "b40a99956477cd0c00812e2c41430e24cacced75d06959df2fcdc0b2e1fc04f8"
+    },
+    "t.pc460xp23p5s:23552:ade71719315d": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/73",
+      "startIndex": 23552,
+      "text": "Кровавое перерождение (истинное)\u000bШкола: Магия крови / Трансмутация\u000bСтоимость: 14 маны или 20 урона себе\u000bВремя сотворения: 1 полный раунд\u000bДальность: На себя\u000bДлительность: 10 минут\u000bОписание: Вы полностью заменяете свою кровь на мистическую субстанцию, дающую нечеловеческие возможности. На время действия заклинания вы получаете:",
+      "textSha256": "ade71719315d69510d5ad716e001716ce98470e8951b3aa33b7a715a57e3476e"
+    },
+    "t.pc460xp23p5s:23880:9df0a5d648ee": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/74",
+      "startIndex": 23880,
+      "text": "+4 к Силе, Ловкости, Телосложению.",
+      "textSha256": "9df0a5d648ee89afc10e96311c7180c6f70c3a2c7e5c2fc8d10a2578cb163897"
+    },
+    "t.pc460xp23p5s:23915:5594efa6b952": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/75",
+      "startIndex": 23915,
+      "text": "Сопротивление физическому урону 10.",
+      "textSha256": "5594efa6b952dd51596bd0c94063eeeb236036ccaae3bd3129abf501ef859174"
+    },
+    "t.pc460xp23p5s:23951:9dd6adf11187": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/76",
+      "startIndex": 23951,
+      "text": "Быстрое исцеление 5.",
+      "textSha256": "9dd6adf11187031e080b38180bbe5a556e6967fea444c6e8a714666fde43bed5"
+    },
+    "t.pc460xp23p5s:23972:ed83b6353a28": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/77",
+      "startIndex": 23972,
+      "text": "Иммунитет к кровотечениям, отравлениям, эффектам крови.",
+      "textSha256": "ed83b6353a28f74fb97d1b5bc3d641777c9bfb35a86055be420b43f1b0ddda97"
+    },
+    "t.pc460xp23p5s:24028:52f444adc98d": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/78",
+      "startIndex": 24028,
+      "text": "Ваши рукопашные атаки наносят дополнительно 2d6 некротического урона.\u000bОднако в конце действия заклинания вы получаете 4d6 урона (непоглощаемого) и состояние истощения на 1 час. Это заклинание может быть использовано не чаще раза в день.\u000bУсиление: За дополнительные 6 маны бонусы увеличиваются до +6 и быстрое исцеление 8.",
+      "textSha256": "52f444adc98d9e5d676ee8c3606ab1e35254eeee49c863558f3db36c19c1a56a"
+    },
+    "t.pc460xp23p5s:24365:1af5672b7c98": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/80",
+      "startIndex": 24365,
+      "text": "Кровавый мост душ\u000bШкола: Магия крови / Прорицание\u000b*Стоимость: 15 маны или 12 урона себе + 2 урона в минуту*\u000bВремя сотворения: 1 минута (ритуал)\u000bДальность: Неограниченно (в пределах одного плана)\u000bДлительность: Концентрация (1) до 1 часа\u000bОписание: Вы устанавливаете кровавую связь между собой и существом, чью кровь вы имеете (достаточно капли). Вы можете видеть его глазами, слышать его ушами, а также передавать короткие телепатические сообщения (до 10 слов в минуту). Кроме того, вы можете один раз за время действия заклинания применить заклинание касания к этому существу, игнорируя расстояние. Если существо согласное, связь не требует проверки; если нет — оно может сопротивляться Воля+Интеллект против вашей Воля+Харизма.\u000bУсиление: За дополнительные 8 маны вы можете одновременно поддерживать связь с тремя существами.",
+      "textSha256": "1af5672b7c985326a5460b7bfa86d0e461a4b4afb7a8ca8cf808a3e5c95a48d2"
+    },
+    "t.pc460xp23p5s:25190:96f3e92057e5": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/81",
+      "startIndex": 25190,
+      "text": "Кровавый шторм (истинный)\u000bШкола: Магия крови / Разрушение\u000bСтоимость: 15 маны или 20 урона себе\u000bВремя сотворения: 5 ОД\u000bДальность: 100 метров\u000bОбласть: Сфера радиусом 15 метров\u000bДействие: Воля+Интеллект против Реакции\u000bДлительность: Концентрация (2) до 1 минуты\u000bОписание: Вы создаёте область, где кровь в телах существ начинает кипеть и разрывать сосуды изнутри. Каждый раунд все существа в области (кроме вас) получают 4d8+10 урона (некротический/кислотный) и должны пройти проверку Стойкости, иначе получают паралич одной конечности (случайной) на 1 раунд. В начале каждого своего хода вы можете за 3 ОД усилить шторм, нанеся дополнительно 2d8 урона всем, у кого уже есть кровотечение. Заклинание требует огромной концентрации; любое получение урона прерывает его.\u000bУсиление: За дополнительные 10 маны вы можете не концентрироваться: шторм бушует сам 1 минуту, но его нельзя усилить.",
+      "textSha256": "96f3e92057e5ee68054789b839ab870c2ae6d3b20fd53d18940bdba66cc9236a"
+    },
+    "t.pc460xp23p5s:26085:b46db2487699": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/83",
+      "startIndex": 26085,
+      "text": "Кровавое завещание предков\u000bШкола: Магия крови / Прорицание\u000b*Стоимость: 17 маны или 15 урона себе + 10 урона от добровольного потомка*\u000bВремя сотворения: 1 час (ритуал)\u000bДальность: Касание (кровная реликвия или могила предка)\u000bДлительность: 1 день\u000bОписание: Вы призываете силу крови ваших предков, чтобы получить их знания и мощь. Ритуал требует присутствия прямой крови (можно использовать свою, если вы потомок). Вы получаете следующие преимущества на 24 часа:",
+      "textSha256": "b46db2487699ef8d84f2d8b849d72b459bf48b39856ea502fadcebcfa2251b57"
+    },
+    "t.pc460xp23p5s:26544:8d007541254c": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/84",
+      "startIndex": 26544,
+      "text": "+5 ко всем характеристикам (моральный бонус).",
+      "textSha256": "8d007541254c8a076af6d10cac5a53c7dc6f8158705490031f3b15f1efe9f1d9"
+    },
+    "t.pc460xp23p5s:26590:fada6ff87fb7": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/85",
+      "startIndex": 26590,
+      "text": "Вы владеете всеми навыками, которыми владел ваш предок (на выбор мастера, обычно 3-5 умений на уровне 6-8).",
+      "textSha256": "fada6ff87fb7903a9277b793cb1650ab474df826569da3c0dceb1d71529c1200"
+    },
+    "t.pc460xp23p5s:26698:374a67e355f2": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/86",
+      "startIndex": 26698,
+      "text": "Вы можете один раз использовать заклинание «Кровавое перерождение (истинное)» бесплатно.",
+      "textSha256": "374a67e355f2b997b9ba75f66fd6a119fa25374b68cd8584bab264702d7c33c9"
+    },
+    "t.pc460xp23p5s:26787:c3d5dc6fb3a2": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/87",
+      "startIndex": 26787,
+      "text": "Вы не можете умереть от потери крови (ваше здоровье не может опуститься ниже -20, но вы всё равно теряете сознание при 0).\u000bПосле окончания эффекта вы получаете 4d10 урона и теряете 2 пункта Телосложения на неделю (восстанавливаются магией).\u000bУсиление: За дополнительные 10 маны вы можете выбрать конкретного предка (с определёнными навыками) и не получаете урон в конце.",
+      "textSha256": "c3d5dc6fb3a294708e33070f01b43b192e9675fd528d12e240647215957b64f1"
+    },
+    "t.pc460xp23p5s:27157:0f7c62827378": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/88",
+      "startIndex": 27157,
+      "text": "Кровавая армия\u000bШкола: Магия крови / Призыв\u000b*Стоимость: 17 маны или 20 урона себе + 1 литр крови на каждого голема*\u000bВремя сотворения: 10 минут\u000bДальность: 30 метров\u000bДлительность: 1 час\u000bОписание: Вы создаёте отряд из 1d4+2 кровавых големов (как «Кровавый голем», но без необходимости концентрации, они действуют автономно по вашим приказам). Големы имеют здоровье 30, броню 4, атаку 1d8+6. Вы можете отдавать им групповые команды действием 1 ОД. Каждый голем может быть уничтожен, но вы можете восстановить одного уничтоженного голема, нанеся себе 10 урона и потратив 3 ОД. Если все големы уничтожены, вы получаете 2d10 урона от отката.\u000bУсиление: За дополнительные 10 маны количество големов увеличивается до 2d4+2, а их здоровье до 40.",
+      "textSha256": "0f7c628273788739b74cdc3d45d162bb13f98d38683b369bb1937ca07ed39e3e"
+    },
+    "t.pc460xp23p5s:27905:97a6f967e290": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/90",
+      "startIndex": 27905,
+      "text": "Кровавый бог\u000bШкола: Магия крови / Трансмутация\u000bСтоимость: 20 маны или 30 урона себе (можно распределить на несколько существ, включая добровольцев)\u000bВремя сотворения: 1 час (ритуал, требует алтаря и жертвенной крови)\u000bДальность: На себя\u000bДлительность: 1 час\u000bОписание: Вы становитесь временным воплощением кровного божества. Ваше тело преобразуется в полужидкую кровяную массу, сохраняющую разум. Вы получаете следующие божественные способности:",
+      "textSha256": "97a6f967e29035e561fe9b72ae5ddf7f002258b74b0cafcddcf3886d1110fa4c"
+    },
+    "t.pc460xp23p5s:28347:eeefa22729c2": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/91",
+      "startIndex": 28347,
+      "text": "+10 ко всем характеристикам, +50 укрепления, броня 20 (природная).",
+      "textSha256": "eeefa22729c2f7de9ccffd33d8b459a268d4cb548206a876dee1e07c17a7e681"
+    },
+    "t.pc460xp23p5s:28414:bcb748b0e298": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/92",
+      "startIndex": 28414,
+      "text": "Вы неуязвимы к физическому урону, кроме магического и серебряного оружия ",
+      "textSha256": "bcb748b0e2988ee7fc887ee8e62519e492297a70ef64664443d5b95cd344baa9"
+    },
+    "t.pc460xp23p5s:28488:42d561f3aa04": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/93",
+      "startIndex": 28488,
+      "text": "Все ваши рукопашные атаки наносят 8d8 урона (некротический/кислотный) и накладывают кровотечение/10.",
+      "textSha256": "42d561f3aa0493de1945be6f7fcb09080b0bf43dcfdf0170e0cb9a95f6a154b8"
+    },
+    "t.pc460xp23p5s:28589:7537159d99fe": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/94",
+      "startIndex": 28589,
+      "text": "Вы можете за 2 ОД создавать кровавых големов (как «Кровавая армия») без затрат здоровья.",
+      "textSha256": "7537159d99fe6a8c7524617a00226f1f92c86ece232baff1b4e06053add19119"
+    },
+    "t.pc460xp23p5s:28678:35516dbe133d": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/95",
+      "startIndex": 28678,
+      "text": "Вы можете летать со скоростью бега.",
+      "textSha256": "35516dbe133df2c3a800759c22599ebf81ec7c0ebec4b164239a347e05b96f30"
+    },
+    "t.pc460xp23p5s:28714:13e102f9087b": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/96",
+      "startIndex": 28714,
+      "text": "Вы не можете умереть, пока длится заклинание: ваше здоровье не может опуститься ниже 1.\u000bПосле окончания заклинания вы получаете 10d10 урона (непоглощаемого) и теряете все пункты выносливости, а также получаете повреждение всех характеристик на -4 на 1 неделю. Это заклинание может быть использовано раз в месяц. Многие маги считают его безумием.\u000bУсиление: За дополнительные 15 маны вы можете продлить действие до 3 часов, но урон после окончания увеличивается до 15d10.",
+      "textSha256": "13e102f9087bbd9b7e879d3dd7592275aba794a186ba6b47967a73c6acac7c36"
+    },
+    "t.pc460xp23p5s:29184:9b4030f778ea": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/97",
+      "startIndex": 29184,
+      "text": "Кровавая клятва бессмертия\u000bШкола: Магия крови / Ограждение\u000b*Стоимость: 20 маны + 5 маны в день (или 10 урона себе в день)*\u000bВремя сотворения: 1 день (ритуал, требует крови 10 разумных существ, не обязательно убитых)\u000bДальность: На себя\u000bДлительность: Перманентно (пока поддерживается)\u000bОписание: Вы заключаете с собственной кровью вечный договор, останавливающий старение и дающий невероятную живучесть. Вы перестаёте стареть, не нуждаетесь в еде, воде и сне (но можете спать для восстановления). Вы получаете быстрое исцеление 2 постоянно. Однако вы должны ежедневно тратить 5 маны или наносить себе 10 урона (непоглощаемого) для поддержания клятвы. Если вы пропускаете день, вы получаете 6d10 урона и теряете способность использовать магию крови на неделю. Клятву можно разорвать только ритуалом «Кровавое отпущение» (стоимость 15 маны, 1 час), который наносит 10d10 урона.\u000bУсиление: За дополнительные 10 маны вы можете распространить эффект на одного согласного спутника (с такими же затратами).",
+      "textSha256": "9b4030f778ea29daa27c3fad0ce2f15232800b0beb1b7ad1f0647bbcafbce319"
+    },
+    "t.pc460xp23p5s:30179:7ecccf97aa8f": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.pc460xp23p5s",
+      "path": "paragraphs/98",
+      "startIndex": 30179,
+      "text": "Кровавый суд\u000bШкола: Магия крови / Некромантия\u000bСтоимость: 20 маны или 25 урона себе\u000bВремя сотворения: 1 полный раунд\u000bДальность: 50 метров\u000bОбласть: Сфера радиусом 10 метров\u000bДействие: Воля+Интеллект против Стойкости\u000bДлительность: Мгновенно\u000bОписание: Вы вершите правосудие кровью над всеми врагами в области. Каждое существо, имеющее кровь, должно пройти встречную проверку Стойкости. При провале его кровь мгновенно закипает и вырывается наружу, нанося 10d10+20 урона (некротический/кислотный) и накладывая кровотечение/20. Цель также теряет все временные бонусы и положительные эффекты. Даже при успешной проверке цель получает 5d10+10 урона и кровотечение/10. Если урон убивает цель, её кровь вытекает и формирует кровавого стража (как «Кровавый голем», но с характеристиками убитого). Заклинание не действует на существ с иммунитетом к критическим ударам и некротическому урону.\u000bУсиление: За дополнительные 12 маны урон увеличивается до 12d10+30, и вы можете выбрать, чтобы кровь убитых не формировала стражей, а исцелила вас на половину нанесённого урона.",
+      "textSha256": "7ecccf97aa8fa4069a8ae8795e731ac67ddc4bd4c914931211242f95abdd7f50"
+    },
+    "t.lreol0hqcnc8:1700:26eb99bb04fd": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/13",
+      "startIndex": 1700,
+      "text": "Изучение рун: Персонаж может выучить руны, потратив опыт. Стоимость изучения одной руны — 20 опыта. Для создания вязей нужно знать все входящие в неё руны. Навык Рунология можно повышать как обычное умение (стоимость по таблице умений). Максимальное количество рун в одной вязи не может превышать ранг Рунологии (минимум 2, максимум 5).",
+      "textSha256": "26eb99bb04fdaa266bb7b4b737550c132942970729dceda9b378e48a4bbf61f8"
+    },
+    "t.lreol0hqcnc8:2594:39e59c545deb": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/22",
+      "startIndex": 2594,
+      "text": "ᚠ",
+      "textSha256": "39e59c545deb6bd121bbfb296add23b4ab5e56a7e98d09125902eb86d7ed5968"
+    },
+    "t.lreol0hqcnc8:2597:f67109939c8d": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/23",
+      "startIndex": 2597,
+      "text": "Феху (Fehu)",
+      "textSha256": "f67109939c8db82cc7019c4ab53a784fa398be1990f5a93648084a54b27dda52"
+    },
+    "t.lreol0hqcnc8:2610:6b86b273ff34": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/24",
+      "startIndex": 2610,
+      "text": "1",
+      "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+    },
+    "t.lreol0hqcnc8:2613:c2e3dcacddf1": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/25",
+      "startIndex": 2613,
+      "text": "Богатство, скот",
+      "textSha256": "c2e3dcacddf16a1503291581b53ba26ad6eb8c62daa1b6be7b8eb053acdb896c"
+    },
+    "t.lreol0hqcnc8:2630:676c25ca77e4": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/26",
+      "startIndex": 2630,
+      "text": "Создаёт 1d4×10 золотых монет (раз в день) или даёт +2 к Бартеру на 10 минут",
+      "textSha256": "676c25ca77e4503682effbde9e596e104b9cd6e53c0e026d4b41244f4c8873a1"
+    },
+    "t.lreol0hqcnc8:2708:a876c5913db0": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/27",
+      "startIndex": 2708,
+      "text": "ᚢ",
+      "textSha256": "a876c5913db0b0b2f52a468e4ae7d041bbd2134a30b2fb686daa816c51672a11"
+    },
+    "t.lreol0hqcnc8:2711:a5732fae0fdb": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/28",
+      "startIndex": 2711,
+      "text": "Уруз (Uruz)",
+      "textSha256": "a5732fae0fdb3c60e13ff96c82b8d5329480499d642f8d6c9b10881070aa2d07"
+    },
+    "t.lreol0hqcnc8:2724:d4735e3a265e": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/29",
+      "startIndex": 2724,
+      "text": "2",
+      "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    "t.lreol0hqcnc8:2727:b2ed8bd4752e": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/30",
+      "startIndex": 2727,
+      "text": "Сила, здоровье",
+      "textSha256": "b2ed8bd4752e4d375bf05bb7693cb0bb831e5d92dea8c497ddf52db90f26e759"
+    },
+    "t.lreol0hqcnc8:2743:36ea63c58039": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/31",
+      "startIndex": 2743,
+      "text": "Даёт +2 к Силе на 1 минуту или восстанавливает 1d6 здоровья",
+      "textSha256": "36ea63c58039179ffa3528f99e9d3fcc79823d4d9d2941b1c8b9746b45b484da"
+    },
+    "t.lreol0hqcnc8:2805:e1bddc22faea": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/32",
+      "startIndex": 2805,
+      "text": "ᚦ",
+      "textSha256": "e1bddc22faeaf6577f71de689828afee71ed85190c431c70a59f93f43e575d05"
+    },
+    "t.lreol0hqcnc8:2808:9049cabde351": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/33",
+      "startIndex": 2808,
+      "text": "Турисаз (Thurisaz)",
+      "textSha256": "9049cabde3519b669bd231d3e4b44557e3cf6cd3303b5ced2308619c64ecdb92"
+    },
+    "t.lreol0hqcnc8:2828:d4735e3a265e": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/34",
+      "startIndex": 2828,
+      "text": "2",
+      "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    "t.lreol0hqcnc8:2831:8c22fb68c995": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/35",
+      "startIndex": 2831,
+      "text": "Защита, молот Тора",
+      "textSha256": "8c22fb68c995554b35364583c1019ae6038b8f07264b45a2d3a079563e33886a"
+    },
+    "t.lreol0hqcnc8:2851:b7f085afb7a0": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/36",
+      "startIndex": 2851,
+      "text": "Создаёт барьер поглощения 10 урона на 1 минуту или наносит 1d8 дробящего урона врагу",
+      "textSha256": "b7f085afb7a01fb3bb27278848799e78a99c3794d4faf5666e61ab350472080e"
+    },
+    "t.lreol0hqcnc8:2938:f5bb4223499d": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/37",
+      "startIndex": 2938,
+      "text": "ᚨ",
+      "textSha256": "f5bb4223499d82eae2277670cf979cbce6e815086acd4ea3254815fe338d305a"
+    },
+    "t.lreol0hqcnc8:2941:8a26236fc3e9": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/38",
+      "startIndex": 2941,
+      "text": "Ансуз (Ansuz)",
+      "textSha256": "8a26236fc3e98a892d0196a4ee00d53fb848b6ff676bdb6597b8428e49eb1894"
+    },
+    "t.lreol0hqcnc8:2956:d4735e3a265e": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/39",
+      "startIndex": 2956,
+      "text": "2",
+      "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    "t.lreol0hqcnc8:2959:f1bb4afb777d": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/40",
+      "startIndex": 2959,
+      "text": "Речь, мудрость",
+      "textSha256": "f1bb4afb777db0560257baf58a713af166f16491b78561c8cedc0d29100a469e"
+    },
+    "t.lreol0hqcnc8:2975:808adc94cdc2": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/41",
+      "startIndex": 2975,
+      "text": "Даёт преимущество на проверку Красноречия или Интеллекта на 10 минут",
+      "textSha256": "808adc94cdc2009d0818c30f00f4f1bea6d55c7b06cbe88485b7d335cabee1e8"
+    },
+    "t.lreol0hqcnc8:3046:f905f9445fc1": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/42",
+      "startIndex": 3046,
+      "text": "ᚱ",
+      "textSha256": "f905f9445fc1d1d5423552926e23d4dc8075932b7396fcf0dd5f9e2e1db25acc"
+    },
+    "t.lreol0hqcnc8:3049:d629a9ccb416": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/43",
+      "startIndex": 3049,
+      "text": "Райдо (Raido)",
+      "textSha256": "d629a9ccb4169be30795e903bf9ae206511e7cfbae1059c57bd57f8c39bc578e"
+    },
+    "t.lreol0hqcnc8:3064:6b86b273ff34": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/44",
+      "startIndex": 3064,
+      "text": "1",
+      "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+    },
+    "t.lreol0hqcnc8:3067:0cf380185154": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/45",
+      "startIndex": 3067,
+      "text": "Путь, поездка",
+      "textSha256": "0cf380185154824b81e2fee0d3391ad8c9340f0688b4b7370d4b874a5f10cfe3"
+    },
+    "t.lreol0hqcnc8:3082:4276ff1919cb": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/46",
+      "startIndex": 3082,
+      "text": "Увеличивает бег на 2 на 1 час или даёт +2 к Верховая езда/Вождение",
+      "textSha256": "4276ff1919cbf5237a811b3440acc6aba44d6f636729f4ffadaa2af5a5817baa"
+    },
+    "t.lreol0hqcnc8:3151:f0624ee649f3": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/47",
+      "startIndex": 3151,
+      "text": "ᚲ",
+      "textSha256": "f0624ee649f36464f97e08ebf1bd761cd80649f3af2f9c9380c9d8c43a6f0d13"
+    },
+    "t.lreol0hqcnc8:3154:ed4f35a882e8": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/48",
+      "startIndex": 3154,
+      "text": "Кеназ (Kenaz)",
+      "textSha256": "ed4f35a882e814799ec26185d21e9de62034369de0b1d278895be355f420864b"
+    },
+    "t.lreol0hqcnc8:3169:d4735e3a265e": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/49",
+      "startIndex": 3169,
+      "text": "2",
+      "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    "t.lreol0hqcnc8:3172:7d9ab3cdbf71": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/50",
+      "startIndex": 3172,
+      "text": "Факел, огонь",
+      "textSha256": "7d9ab3cdbf71c934a83dc8912aa5ab8943c2b05d90e8445cf5327029ef8596f8"
+    },
+    "t.lreol0hqcnc8:3186:19740f44dc92": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/51",
+      "startIndex": 3186,
+      "text": "Создаёт свет (как заклинание Свет) или наносит 1d6 огненного урона",
+      "textSha256": "19740f44dc922c656420bd652662f73d5571a46a5afd48a9371db104e083b499"
+    },
+    "t.lreol0hqcnc8:3255:6e7abb4d39fe": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/52",
+      "startIndex": 3255,
+      "text": "ᚷ",
+      "textSha256": "6e7abb4d39fee237ee4015ab87b02c0de96de9cb007fc25621d293fbdbcbd0c8"
+    },
+    "t.lreol0hqcnc8:3258:9ce22b0650e2": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/53",
+      "startIndex": 3258,
+      "text": "Гебо (Gebo)",
+      "textSha256": "9ce22b0650e23b3f7129fb04e4d926dd9d179d28629bbd888602e123c8b5eeee"
+    },
+    "t.lreol0hqcnc8:3271:6b86b273ff34": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/54",
+      "startIndex": 3271,
+      "text": "1",
+      "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+    },
+    "t.lreol0hqcnc8:3274:a16ce667a467": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/55",
+      "startIndex": 3274,
+      "text": "Дар, партнёрство",
+      "textSha256": "a16ce667a467e2e563ca8e13e14adce19d72e4bd72d96298a8319ad6d834c4d7"
+    },
+    "t.lreol0hqcnc8:3292:55419dca59d1": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/56",
+      "startIndex": 3292,
+      "text": "Позволяет передать 1d6 здоровья союзнику или даёт +2 к помощи в проверке",
+      "textSha256": "55419dca59d14a6cdb002e4ba8e6c7a6317afdc0868fbb130298b1ec3d39d48c"
+    },
+    "t.lreol0hqcnc8:3367:ac88635fccbc": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/57",
+      "startIndex": 3367,
+      "text": "ᚹ",
+      "textSha256": "ac88635fccbc2f4f185b81925ea9773ce32ab345c03d95f1e20043e120fd908a"
+    },
+    "t.lreol0hqcnc8:3370:5be66ca76190": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/58",
+      "startIndex": 3370,
+      "text": "Вуньо (Wunjo)",
+      "textSha256": "5be66ca76190d4965542e36e424f2736fbbbd9e46a7e0ce782132cf3e7966c12"
+    },
+    "t.lreol0hqcnc8:3385:6b86b273ff34": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/59",
+      "startIndex": 3385,
+      "text": "1",
+      "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+    },
+    "t.lreol0hqcnc8:3388:edaac4655b14": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/60",
+      "startIndex": 3388,
+      "text": "Радость",
+      "textSha256": "edaac4655b1440588f8f33e281a7d0b7f2003f733d1534855f37c8bb5eb1895b"
+    },
+    "t.lreol0hqcnc8:3397:3838dcf6f91a": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/61",
+      "startIndex": 3397,
+      "text": "Снимает лёгкие ментальные эффекты (страх, уныние) или даёт +1 моральный бонус",
+      "textSha256": "3838dcf6f91a6638777c7414d528c0ac0c4912bc8c58f9c91b39bdb42601979b"
+    },
+    "t.lreol0hqcnc8:3477:f254c407c044": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/62",
+      "startIndex": 3477,
+      "text": "ᚺ",
+      "textSha256": "f254c407c0440fbafb80c872900764939e85f957756a4332453e5087db75c816"
+    },
+    "t.lreol0hqcnc8:3480:981255540db6": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/63",
+      "startIndex": 3480,
+      "text": "Хагалаз (Hagalaz)",
+      "textSha256": "981255540db6fa7f6303ff27839bf8c8bdddc8c36306c95be228c9ac980f3491"
+    },
+    "t.lreol0hqcnc8:3499:4e07408562be": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/64",
+      "startIndex": 3499,
+      "text": "3",
+      "textSha256": "4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce"
+    },
+    "t.lreol0hqcnc8:3502:ff2d2a0f58fa": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/65",
+      "startIndex": 3502,
+      "text": "Град, разрушение",
+      "textSha256": "ff2d2a0f58faf3ac3410892aa78338dd1f9274c84adf7fc1616d048e042a184f"
+    },
+    "t.lreol0hqcnc8:3520:b11d2d8f5d32": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/66",
+      "startIndex": 3520,
+      "text": "Наносит 2d6 урона (дробящий/холод) в радиусе 2 метра или ломает предмет",
+      "textSha256": "b11d2d8f5d32cc2f89d7a8050ba045131348aebab93cbc412573ec718ea2a235"
+    },
+    "t.lreol0hqcnc8:3594:f4fa3e7ca7a2": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/67",
+      "startIndex": 3594,
+      "text": "ᚾ",
+      "textSha256": "f4fa3e7ca7a2424a1d956aa5c54db0ca969ba04e4959c8bbbf89d4d8b99d6096"
+    },
+    "t.lreol0hqcnc8:3597:a277ec8cc118": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/68",
+      "startIndex": 3597,
+      "text": "Наутиз (Nauthiz)",
+      "textSha256": "a277ec8cc118bf063b277ca077d45a5a99f17a195aa5b8c5a25905844da7cb81"
+    },
+    "t.lreol0hqcnc8:3615:d4735e3a265e": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/69",
+      "startIndex": 3615,
+      "text": "2",
+      "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    "t.lreol0hqcnc8:3618:552871ec9b9e": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/70",
+      "startIndex": 3618,
+      "text": "Нужда, ограничение",
+      "textSha256": "552871ec9b9e0d6981abfb8aec085cbb2d8b725629abd40fea8e7aea56b0e707"
+    },
+    "t.lreol0hqcnc8:3638:657e786754c3": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/71",
+      "startIndex": 3638,
+      "text": "Накладывает на цель штраф -2 к атаке на 1 минуту или даёт сопротивление холоду 5",
+      "textSha256": "657e786754c36f0486e17df4bdc6c30d41cf1814f2631a62e3a3178303ff03fe"
+    },
+    "t.lreol0hqcnc8:3721:4f982228e5a3": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/72",
+      "startIndex": 3721,
+      "text": "ᛁ",
+      "textSha256": "4f982228e5a386ed00817a938d67c6597fb92565348da130ef6e46019b2f9eb1"
+    },
+    "t.lreol0hqcnc8:3724:af3d04dda6f9": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/73",
+      "startIndex": 3724,
+      "text": "Иса (Isa)",
+      "textSha256": "af3d04dda6f947ace4c947482fcdc1fe133d036b16dc707148968acacda5bc1e"
+    },
+    "t.lreol0hqcnc8:3735:d4735e3a265e": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/74",
+      "startIndex": 3735,
+      "text": "2",
+      "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+    },
+    "t.lreol0hqcnc8:3738:cbd153f1f3db": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/75",
+      "startIndex": 3738,
+      "text": "Лёд",
+      "textSha256": "cbd153f1f3db814d5a7584e26e137bf114cb6bcefb2d6b2628ad25c191841a98"
+    },
+    "t.lreol0hqcnc8:3743:a87503f23a18": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/76",
+      "startIndex": 3743,
+      "text": "Замораживает небольшую область (труднопроходимая местность) или парализует цель на 1 раунд (Стойкость)",
+      "textSha256": "a87503f23a185e10a5b128d552578d016ea05df36ba5f49523791338358420e4"
+    },
+    "t.lreol0hqcnc8:3848:a27cfa663097": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/77",
+      "startIndex": 3848,
+      "text": "ᛃ",
+      "textSha256": "a27cfa66309781a69f5ee5f43188a92e6452d5291744cd4df5b2137780f6e218"
+    },
+    "t.lreol0hqcnc8:3851:8b01f72fcbf2": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/78",
+      "startIndex": 3851,
+      "text": "Йера (Jera)",
+      "textSha256": "8b01f72fcbf236de09ef76c147ce8d08a7395d57e654241a08108413708c3a1d"
+    },
+    "t.lreol0hqcnc8:3864:4e07408562be": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/79",
+      "startIndex": 3864,
+      "text": "3",
+      "textSha256": "4e07408562bedb8b60ce05c1decfe3ad16b72230967de01f640b7e4729b49fce"
+    },
+    "t.lreol0hqcnc8:3867:bc5fa13c4748": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/80",
+      "startIndex": 3867,
+      "text": "Цикл, урожай",
+      "textSha256": "bc5fa13c4748dcfdac84509dbd4a5c7099d495cefc39697454d4b3a5f760e6aa"
+    },
+    "t.lreol0hqcnc8:3881:bd9b7cbad0bc": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/81",
+      "startIndex": 3881,
+      "text": "Ускоряет рост растений или позволяет перебросить одну проверку в течение часа",
+      "textSha256": "bd9b7cbad0bc48aa2595051dd29a6b1595fca4fa56449688babd30bdf2d0a4b4"
+    },
+    "t.lreol0hqcnc8:7576:8c2458f669ca": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/129",
+      "startIndex": 7576,
+      "text": "Навык «Рунология»",
+      "textSha256": "8c2458f669caee992f42f30bc6a23f78a8f828bd1bd64e47e10e1978a08b7a25"
+    },
+    "t.lreol0hqcnc8:7594:b711287fb24b": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/130",
+      "startIndex": 7594,
+      "text": "Ранг — как у обычного умения.",
+      "textSha256": "b711287fb24bda977cdea29798413bec93133ee7241729d91e68869d108b911e"
+    },
+    "t.lreol0hqcnc8:7624:82d63e471e0a": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/131",
+      "startIndex": 7624,
+      "text": "Стоимость — по таблице умений (первый ранг 10 опыта).",
+      "textSha256": "82d63e471e0a5b49707699306bc6f6d7ebd10429c857869a36cf8f2c6568a86d"
+    },
+    "t.lreol0hqcnc8:7678:337acd1581fa": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/132",
+      "startIndex": 7678,
+      "text": "Используется для активации вязей, а также для идентификации незнакомых рун (Сложность = 10 + ранг руны).",
+      "textSha256": "337acd1581faf99957e4c34615de003457dfefe66fb108824c1554b8395da45b"
+    },
+    "t.lreol0hqcnc8:7783:a9012b8962a1": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/133",
+      "startIndex": 7783,
+      "text": "Синергия: с умением «Знание (Магия)» можно получать бонус +2 к проверке при создании сложных вязей.",
+      "textSha256": "a9012b8962a173ba48f5fbe5e3314ac102a2ba4e8b68f32f72b2fd4a62687b5f"
+    },
+    "t.mccjeb82dazc:1:8b372d626faa": {
+      "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+      "revisionId": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+      "tabId": "t.mccjeb82dazc",
+      "path": "paragraphs/0",
+      "startIndex": 1,
+      "text": "Здесь располагаются заклинания и рецепты ожидающие фильтрацию.",
+      "textSha256": "8b372d626faa9d7654b8cc2f089b44950b389c6ec4c2e1e63786a5e9cdf54cef"
+    },
+    "t.lreol0hqcnc8:1487:0d070fe79bb1": {
+      "tabId": "t.lreol0hqcnc8",
+      "path": "paragraphs/12",
+      "startIndex": 1487,
+      "text": "Проверка: Интеллект + Рунология (навык). Сложность = 10 + уровень вязи × 2. При провале вязь не активируется, а при критическом провале (дубль 1) происходит откат — заклинатель получает 1d6 урона за уровень вязи.",
+      "textSha256": "0d070fe79bb11f413a99c09ba1d4ce76daa05e9a34794cd5634bafde03444a4c"
+    },
+    "t.p31luippa5oq:10192:438b2cfdc163": {
+      "tabId": "t.p31luippa5oq",
+      "path": "paragraphs/205",
+      "startIndex": 10192,
+      "text": "Кровные узы",
+      "textSha256": "438b2cfdc1638c8f81b11fa64d25c83802137fc0e5ab74a4ccba8f3627998b3a"
+    },
+    "t.p31luippa5oq:10204:e45df3910f6c": {
+      "tabId": "t.p31luippa5oq",
+      "path": "paragraphs/206",
+      "startIndex": 10204,
+      "text": "Школа: Некромантия (Магия крови)",
+      "textSha256": "e45df3910f6ce76b23f9a421b777912f63a935475a65f857923d6021bb2f471f"
+    },
+    "t.p31luippa5oq:10237:5fa475aefb99": {
+      "tabId": "t.p31luippa5oq",
+      "path": "paragraphs/207",
+      "startIndex": 10237,
+      "text": "Стоимость: 7",
+      "textSha256": "5fa475aefb99e6d6767081c4181a56ee12c484191ca3c1865f241fe48c2d008f"
+    }
+  },
+  "internalNameBindings": [
+    {
+      "sourceName": "Кровавое ремесло",
+      "targetId": "feat_430bb8e0abcdd492"
+    },
+    {
+      "sourceName": "Жила",
+      "targetId": "feat_0f2944736b20e934"
+    },
+    {
+      "sourceName": "Гемоглобиновая чувствительность",
+      "targetId": "feat_2bc0c0f6d2533f48"
+    },
+    {
+      "sourceName": "Кровопускание",
+      "targetId": "feat_5414a31b67464d86"
+    },
+    {
+      "sourceName": "Кровавый договор",
+      "targetId": "feat_a3ade88a3e1363f0"
+    },
+    {
+      "sourceName": "Геморрагический шок",
+      "targetId": "feat_ebf4f5172711cb45"
+    },
+    {
+      "sourceName": "Вампирическое восстановление",
+      "targetId": "feat_974035a0351dc15e"
+    },
+    {
+      "sourceName": "Мастер кровавых уз",
+      "targetId": "feat_a08f840bb3a709ed"
+    },
+    {
+      "sourceName": "Кровавое неистовство",
+      "targetId": "feat_3717f841001954c9"
+    },
+    {
+      "sourceName": "Кровавое перерождение",
+      "targetId": "feat_c4f3ccc4c64ffa58"
+    }
+  ],
+  "currencyQuestion": {
+    "classification": "TechnicalMissingPriceChoiceModel",
+    "sourceFact": "The ten Blood perk cards inherit explicit XP OR AP payment permission from their introduction; the parenthesized literal amount applies. Each quote must persist the player-selected currency and atomically debit that pool.",
+    "noAuthorDecisionRequired": true,
+    "forbiddenInference": "No conversion between pools, automatic XP default, mixed split payment, or stage restriction is stated by this paragraph."
+  },
+  "draftExcluded": {
+    "tabId": "t.mccjeb82dazc",
+    "paragraphs": 420,
+    "evidence": [
+      "t.mccjeb82dazc:1:8b372d626faa"
+    ],
+    "reason": "SOURCE_MARKS_SECTION_AS_WAITING_FOR_FILTERING; keep explicitly draft until approved, rather than silently promoting draft entries to normal acquisitions."
+  }
+}

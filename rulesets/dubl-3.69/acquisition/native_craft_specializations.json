@@ -1,0 +1,260 @@
+{
+  "schemaVersion": 1,
+  "devOnly": true,
+  "sourceProvenance": {
+    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+    "title": "Dубль All Stars 3.69 REWORK",
+    "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+    "document_url": "https://docs.google.com/document/d/1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco"
+  },
+  "baseVocationDefinitionId": "feat_a06e094956b0c61e",
+  "baseVocationName": "Призвание ремесленника",
+  "branchAccessId": "access_fa467b4e9d83447b",
+  "baseGrants": {
+    "count": 1,
+    "chooseFromSpecializationIds": [
+      "craft-specialization:smith",
+      "craft-specialization:leatherworker",
+      "craft-specialization:carpenter",
+      "craft-specialization:cook",
+      "craft-specialization:alchemist"
+    ],
+    "trigger": "Successful first acquisition of base vocation",
+    "currencyCharge": "No separate50XP specialization charge for this one included choice",
+    "prerequisitePolicy": "Source does not waive the selected anchor card eligibility. Do not invent waivers; preserve explicit anchor requirements.",
+    "evidence": [
+      {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1042",
+        "startIndex": 43790,
+        "text": "Вы получаете одну ремесленную специализацию (см. ниже)",
+        "textSha256": "98dedc7f7e49281aaaf9216eb4ba8024902667bc6a47b71f0792c72e086acf20"
+      }
+    ]
+  },
+  "additionalSpecializations": {
+    "costXP": "50",
+    "requireBase": true,
+    "requireCorrespondingSkillMinimum": 5,
+    "repeat": "Different specialization choices may be independently purchased",
+    "evidence": [
+      {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1032/r3c0/1",
+        "startIndex": 43011,
+        "text": "Персонаж может изучать несколько специализаций, но каждая требует отдельной покупки (50 опыта). При этом базовый навык «Призвание ремесленника» уже должен быть взят. Если персонаж осваивает новую специализацию (например, был кузнецом, а хочет стать ювелиром), он должен иметь соответствующее ремесло не ниже 5 ранга.",
+        "textSha256": "65bdec4a705c4bbc3b1c486febb6309ddefecade83d834a2eb9b3b93fd6f2828"
+      },
+      {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1073",
+        "startIndex": 45035,
+        "text": "Каждая специализация открывает доступ к уникальным навыкам, связанным с конкретным ремеслом. Выберите одно ремесло в момент приобретения специализации. Можно брать несколько специализаций (каждая стоит отдельно).",
+        "textSha256": "2c9cdaf3afcb9980cd73620aba4f4c9600574690c74b88ec95415b940a093892"
+      }
+    ]
+  },
+  "specializations": [
+    {
+      "specializationId": "craft-specialization:smith",
+      "label": "Кузнец",
+      "anchorDefinitionId": "feat_396c18da9410a823",
+      "anchorName": "Оружейник",
+      "purchaseCostXP": "50",
+      "purchasePrerequisites": {
+        "baseVocationDefinitionId": "feat_a06e094956b0c61e",
+        "skillDefinitionId": "craft_template",
+        "skillQualifier": {
+          "key": "specialization",
+          "valueId": "smith"
+        },
+        "skillMinimum": 5,
+        "attributeId": "STR",
+        "attributeMinimum": 4
+      },
+      "descendantDefinitionIds": [
+        "feat_1fc8a228447e1916",
+        "feat_51ef96ff892ba12c",
+        "feat_be8ff81aff2e4b4d"
+      ],
+      "evidence": [
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1075",
+          "startIndex": 45249,
+          "text": "🔩 Кузнец",
+          "textSha256": "e0e0a88452e2a0c14bd9fd302b3f37de28cadf0a37037df066ba5828fe38e897"
+        },
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1079",
+          "startIndex": 45292,
+          "text": "Требование: Призвание ремесленника, Ремесло (Кузнец) 5, Сила 4",
+          "textSha256": "9fbdf4f8fdfe1bf57ea0fd82a4b426f06a617deeb69d32b5966e413064b026fd"
+        }
+      ]
+    },
+    {
+      "specializationId": "craft-specialization:leatherworker",
+      "label": "Кожевник",
+      "anchorDefinitionId": "feat_834a9fdca2efe82c",
+      "anchorName": "Мастер дубильщик",
+      "purchaseCostXP": "50",
+      "purchasePrerequisites": {
+        "baseVocationDefinitionId": "feat_a06e094956b0c61e",
+        "skillDefinitionId": "craft_template",
+        "skillQualifier": {
+          "key": "specialization",
+          "valueId": "leatherworker"
+        },
+        "skillMinimum": 5,
+        "attributeId": "DEX",
+        "attributeMinimum": 4
+      },
+      "descendantDefinitionIds": [
+        "feat_8ad9a2e3fa3ad25b",
+        "feat_fbbc019dfe96dbf5",
+        "feat_71a6d3461154cdde"
+      ],
+      "evidence": [
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1099",
+          "startIndex": 46295,
+          "text": "🧵 Кожевник (Ремесло: Кожевенное дело)",
+          "textSha256": "1ba6bd4713791a05acbec490a1adeb5ea2aa2b66acf9c2beb28a0eb88c54517e"
+        },
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1103",
+          "startIndex": 46374,
+          "text": "Требование: Призвание ремесленника, Ремесло (Кожевник) 5, Ловкость 4",
+          "textSha256": "98c6a8f1da3d060436b7c710a77a7c2e2d36fd3422d5172a700a8fb32480e068"
+        }
+      ]
+    },
+    {
+      "specializationId": "craft-specialization:carpenter",
+      "label": "Плотник",
+      "anchorDefinitionId": "feat_253522fa4d04dba5",
+      "anchorName": "Зодчий",
+      "purchaseCostXP": "50",
+      "purchasePrerequisites": {
+        "baseVocationDefinitionId": "feat_a06e094956b0c61e",
+        "skillDefinitionId": "craft_template",
+        "skillQualifier": {
+          "key": "specialization",
+          "valueId": "carpenter"
+        },
+        "skillMinimum": 5,
+        "attributeId": "PER",
+        "attributeMinimum": 3
+      },
+      "descendantDefinitionIds": [
+        "feat_28ad9701e25f2a0e",
+        "feat_d91980d08153d6c8",
+        "feat_c4f198a722bc93b7"
+      ],
+      "evidence": [
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1123",
+          "startIndex": 47465,
+          "text": "Плотник (Ремесло: Плотницкое дело)",
+          "textSha256": "28b9c6532efa19fbdd9aaade51e4df4e47342f8f8dd74428adfa7379e2d8195c"
+        },
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1127",
+          "startIndex": 47530,
+          "text": "Требование: Призвание ремесленника, Ремесло (Плотник) 5, Восприятие 3",
+          "textSha256": "f4b05732b99353cbe49674760b9f0755935ffcfc66c10d7d82833ea41ea53509"
+        }
+      ]
+    },
+    {
+      "specializationId": "craft-specialization:cook",
+      "label": "Повар",
+      "anchorDefinitionId": "feat_5bb9b7c6c6694812",
+      "anchorName": "Шеф-повар",
+      "purchaseCostXP": "50",
+      "purchasePrerequisites": {
+        "baseVocationDefinitionId": "feat_a06e094956b0c61e",
+        "skillDefinitionId": "profession_template",
+        "skillQualifier": {
+          "key": "specialization",
+          "valueId": "cook"
+        },
+        "skillMinimum": 5,
+        "attributeId": "PER",
+        "attributeMinimum": 4
+      },
+      "descendantDefinitionIds": [
+        "feat_9ef8c9a50d4f6e28",
+        "feat_8eb6bfc7b8b5a074",
+        "feat_8a7eff97954e63db"
+      ],
+      "evidence": [
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1145",
+          "startIndex": 48691,
+          "text": "🍲 Повар (Профессия: Повар, Кулинария)",
+          "textSha256": "625f94032085f77da818bd62183d741afa3b9ef3abcc2eb25d51febbabfd2188"
+        },
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1149",
+          "startIndex": 48763,
+          "text": "Требование: Призвание ремесленника, Профессия (Повар) 5, Восприятие 4",
+          "textSha256": "3fade2adbe3084dcb79a30d2389c1f56fbb1298673b98b7ff14ec96bc82856a0"
+        }
+      ]
+    },
+    {
+      "specializationId": "craft-specialization:alchemist",
+      "label": "Алхимик",
+      "anchorDefinitionId": "feat_906f8131263d3eb9",
+      "anchorName": "Зельевар",
+      "purchaseCostXP": "50",
+      "purchasePrerequisites": {
+        "baseVocationDefinitionId": "feat_a06e094956b0c61e",
+        "skillDefinitionId": "craft_template",
+        "skillQualifier": {
+          "key": "specialization",
+          "valueId": "alchemist"
+        },
+        "skillMinimum": 5,
+        "attributeId": "INT",
+        "attributeMinimum": 5
+      },
+      "descendantDefinitionIds": [
+        "feat_575d1fae7950346b",
+        "feat_b8591cfd7b812248",
+        "feat_165e749b6f396cb8"
+      ],
+      "evidence": [
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1168",
+          "startIndex": 49903,
+          "text": "🧪 Алхимик (Ремесло: Алхимия)",
+          "textSha256": "a9bf56624a60b5ae1ef9790052bab92c506c6cb504d5a574d9d42ef81f5ac516"
+        },
+        {
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "p/1172",
+          "startIndex": 49965,
+          "text": "Требование: Призвание ремесленника, Ремесло (Алхимик) 5, Интеллект 5",
+          "textSha256": "c9abcca248b570489ef647485eafdb75eccf8c23c9c7a1e8efd91b122cae6827"
+        }
+      ]
+    }
+  ],
+  "modelNotes": [
+    "Existing50XP anchor card IDs represent ownership of their specialization; preserve IDs and ordinary paid purchase path.",
+    "One included anchor choice is a source grant attached to the base vocation; it requires a real quote/grant mechanism to avoid charging50XP twice.",
+    "The fifteen descendant cards inherit specialization access by their source grouping. They have their own source-stated prices; they are not all free.",
+    "Specialization eligibility is not an instruction to retroactively erase an acquired choice when skill/attribute changes."
+  ]
+}

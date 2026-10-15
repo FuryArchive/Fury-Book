@@ -1,0 +1,1486 @@
+{
+  "schemaVersion": 1,
+  "devOnly": true,
+  "sourceProvenance": {
+    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+    "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA"
+  },
+  "scope": "Exact current native core acquisition prices, creation admission, stage restrictions, independent/general skill identities, resistance choices and one legacy duplicate. No finalized access price, missing higher-rank price or historical ledger repricing is inferred.",
+  "accessPricePermission": [
+    {
+      "tabId": "t.z1o9nhkkrzeb",
+      "path": "p/3",
+      "startIndex": 121,
+      "text": "Способности имеют разную силу, поэтому стоимость способностей рознится. При создании персонажа способности можно приобрести за очки способностей. (см. создание персонажа).  ",
+      "textSha256": "466db1aba48e17fad8a13d8946ea26e252f4d9161cb178ce9cf6031937e675b1"
+    },
+    {
+      "tabId": "t.z1o9nhkkrzeb",
+      "path": "p/9",
+      "startIndex": 576,
+      "text": "Определяет сколько очков способностей надо потратить для получения доступа к покупке способностей при создании персонажа.",
+      "textSha256": "1f4b24f34a2078a3a7142cd956ac0ef9ff0058e2e6b6a64a6dda45528e53c2c4"
+    }
+  ],
+  "accessPrices": [
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_0ae1b0eb999784a7"
+      },
+      "name": "Чемпион",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1674",
+        "startIndex": 70084,
+        "text": "Чемпион",
+        "textSha256": "0105aa115a3e13f6b541a2ff9bacd9f97c34b00514f52add41b458c354dfe76a"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1675/r1c0/0",
+            "startIndex": 70123,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1675/r1c1/0",
+            "startIndex": 70135,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_0cda2f98e9ea984c"
+      },
+      "name": "Удача",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1624",
+        "startIndex": 68657,
+        "text": "Удача ",
+        "textSha256": "417f0c9f1269839df49dd82cde3524cd5595d3bb2f597ff14795adeb563fd688"
+      },
+      "options": [
+        {
+          "id": "mystical-force",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1625/r1c0/0",
+            "startIndex": 68695,
+            "text": "Мистическая сила",
+            "textSha256": "43dc84199c82e179375588ee7df078ac040123aade43ec45ab951ba32e7a5a7c"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1625/r1c1/0",
+            "startIndex": 68713,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_11f3a49ee9802ad0"
+      },
+      "name": "Авангард",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/45",
+        "startIndex": 2269,
+        "text": "Авангард",
+        "textSha256": "61058d371e88fc00bb35f02dff187384d344672c6f5893ba79799cd7eb7c9ed4"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/46/r1c0/0",
+            "startIndex": 2308,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/46/r1c1/0",
+            "startIndex": 2320,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_19955388f7d405f5"
+      },
+      "name": "Хакер",
+      "nameSource": {
+        "tabId": "t.vmds8cn0bln5",
+        "path": "p/1",
+        "startIndex": 1,
+        "text": "Хакер",
+        "textSha256": "146e3421a02ba07d881eb2c0c09799a9bf6c6da66531518c854c6dbdf535745e"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.vmds8cn0bln5",
+            "path": "p/2/r1c0/0",
+            "startIndex": 38,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.vmds8cn0bln5",
+            "path": "p/2/r1c1/0",
+            "startIndex": 50,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_1b7b5d63bbfe5999"
+      },
+      "name": "Мастер-лучник",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/842",
+        "startIndex": 36389,
+        "text": "Мастер-лучник ",
+        "textSha256": "edba086e726e2f723d079ad80effcbfc1387825301ead923aa2da98deb0e7ca0"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/843/r1c0/0",
+            "startIndex": 36435,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/843/r1c1/0",
+            "startIndex": 36447,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_224a2229ad335a33"
+      },
+      "name": "Боевая фокусировка",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/396",
+        "startIndex": 15781,
+        "text": "Боевая фокусировка ",
+        "textSha256": "03d9469168ca40912ef3440a4c2914bdc54d65126419e41e3937231d49a09700"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/398/r1c0/0",
+            "startIndex": 15833,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/398/r1c1/0",
+            "startIndex": 15845,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        },
+        {
+          "id": "chi",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/398/r2c0/0",
+            "startIndex": 15849,
+            "text": "Ци",
+            "textSha256": "86efc2df3f02a0553f7ecb0d9719e540577175811e3ed315a6f5d149ab9eca77"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/398/r2c1/0",
+            "startIndex": 15853,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_3080526640119bbc"
+      },
+      "name": "Мастер оружия",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/926",
+        "startIndex": 38846,
+        "text": "Мастер оружия ",
+        "textSha256": "d71e565745b2550eea45b72b4669315ca5ea688ff09fe2f83cba613a57260652"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/928/r1c0/0",
+            "startIndex": 38893,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/928/r1c1/0",
+            "startIndex": 38905,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_3fa2fc858d18365b"
+      },
+      "name": "Совершенная точность",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1550",
+        "startIndex": 65849,
+        "text": "Совершенная точность",
+        "textSha256": "b517d2b748eb1adc5470e395f111fe111d4b7dbe3eb16b60b274c8e4b355a307"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1551/r1c0/0",
+            "startIndex": 65901,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1551/r1c1/0",
+            "startIndex": 65913,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_40c3d6bcbdac132a"
+      },
+      "name": "Боевой азарт",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/442",
+        "startIndex": 17981,
+        "text": "Боевой азарт ",
+        "textSha256": "4425eb56fe2a6a60b90db3da054a58311cf10bbf074531031d6ab275820f66c7"
+      },
+      "options": [
+        {
+          "id": "morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/444/r1c0/0",
+            "startIndex": 18027,
+            "text": "Мораль",
+            "textSha256": "3146e38d6b5112675a77d391b51865bba06afe0b5965e145f402be9aad481989"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/444/r1c1/0",
+            "startIndex": 18035,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        },
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/444/r2c0/0",
+            "startIndex": 18039,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/444/r2c1/0",
+            "startIndex": 18051,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_45edee695a349bf7"
+      },
+      "name": "Акробатика",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/104",
+        "startIndex": 3818,
+        "text": "Акробатика",
+        "textSha256": "9ef898bedb88ea1ae099addb641b122459021d5fd43e9f79b519bd52f782e0dd"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/105/r1c0/0",
+            "startIndex": 3860,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/105/r1c1/0",
+            "startIndex": 3872,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_471c1aa054fcf62f"
+      },
+      "name": "Неистовство",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1245",
+        "startIndex": 53418,
+        "text": "Неистовство ",
+        "textSha256": "9af6f2723f0c056f3b098f551df13115e07190719596403f72ef4288d1b0ce5a"
+      },
+      "options": [
+        {
+          "id": "morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1246/r1c0/0",
+            "startIndex": 53461,
+            "text": "Мораль",
+            "textSha256": "3146e38d6b5112675a77d391b51865bba06afe0b5965e145f402be9aad481989"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1246/r1c1/0",
+            "startIndex": 53469,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        },
+        {
+          "id": "mastery-morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1246/r2c0/0",
+            "startIndex": 53473,
+            "text": "Мастерство и Мораль",
+            "textSha256": "404cda89862f949ec167144988ff6d88a25e632f6a138b0ffb429a932df7952f"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1246/r2c1/0",
+            "startIndex": 53494,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_597f3218972b15b7"
+      },
+      "name": "Охотник за головами",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1291",
+        "startIndex": 55377,
+        "text": "Охотник за головами",
+        "textSha256": "747f5cef29cf3d46f8562474c73924cc1475caff330294f63b3c29e4fe614edc"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1293/r1c0/0",
+            "startIndex": 55429,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1293/r1c1/0",
+            "startIndex": 55441,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_5b50c9c8ead88fd5"
+      },
+      "name": "Берсерк",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/336",
+        "startIndex": 13593,
+        "text": " Берсерк",
+        "textSha256": "9d1b5bd09bd0b4b5dde93e1ec5e3f3ec99ae5b976fbb3a4b152439dae3d6bf05"
+      },
+      "options": [
+        {
+          "id": "morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/337/r1c0/0",
+            "startIndex": 13632,
+            "text": "Мораль",
+            "textSha256": "3146e38d6b5112675a77d391b51865bba06afe0b5965e145f402be9aad481989"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/337/r1c1/0",
+            "startIndex": 13640,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        },
+        {
+          "id": "mastery-morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/337/r2c0/0",
+            "startIndex": 13644,
+            "text": "Мастерство и Мораль",
+            "textSha256": "404cda89862f949ec167144988ff6d88a25e632f6a138b0ffb429a932df7952f"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/337/r2c1/0",
+            "startIndex": 13665,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_60f7faada295fcfc"
+      },
+      "name": "Броненосец",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/482",
+        "startIndex": 19514,
+        "text": "Броненосец",
+        "textSha256": "9dc12e342cc52f1df518e39c608091397dfa85cb58be749f75b306800c928398"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/483/r1c0/0",
+            "startIndex": 19556,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/483/r1c1/0",
+            "startIndex": 19568,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_72ff998a42c1b5fa"
+      },
+      "name": "Мастер щитов",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1193",
+        "startIndex": 51118,
+        "text": "Мастер щитов",
+        "textSha256": "55044904662360dee9ef081b46eaf7162b97ff28c13c1fa6f4fcfa229b78d455"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1194/r1c0/0",
+            "startIndex": 51161,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1194/r1c1/0",
+            "startIndex": 51173,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_7a53a3d465dd1c00"
+      },
+      "name": "Телохранитель",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1588",
+        "startIndex": 67309,
+        "text": "Телохранитель",
+        "textSha256": "8f927196758b9ef54cadb8e8f9cc9f6445a2f3a844d8526b6e76a64620b7c821"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1590/r1c0/0",
+            "startIndex": 67355,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1590/r1c1/0",
+            "startIndex": 67367,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_7e908586113358b3"
+      },
+      "name": "Сверхчеловеческие рефлексы",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1481",
+        "startIndex": 63156,
+        "text": "Сверхчеловеческие рефлексы ",
+        "textSha256": "c75295e1b35be4620316e83745f436f0b083a035c1422eadb255a5a2e84744b5"
+      },
+      "options": [
+        {
+          "id": "augmentation",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1482/r1c0/0",
+            "startIndex": 63215,
+            "text": "Импланты/Аугментация",
+            "textSha256": "ff012c6055b432ca8a4b5dfabda5a0fca551f0cdbf584a40108dd24261367aca"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1482/r1c1/0",
+            "startIndex": 63237,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        },
+        {
+          "id": "chi",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1482/r2c0/0",
+            "startIndex": 63241,
+            "text": "Ци",
+            "textSha256": "86efc2df3f02a0553f7ecb0d9719e540577175811e3ed315a6f5d149ab9eca77"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1482/r2c1/0",
+            "startIndex": 63245,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_99adfccc91b11167"
+      },
+      "name": "Громила",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/622",
+        "startIndex": 23790,
+        "text": "Громила ",
+        "textSha256": "a928ef7f7932d96d756d652542d08a2dc227eef455984a843ff9e3929b0121e9"
+      },
+      "options": [
+        {
+          "id": "extraordinary",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/623/r1c0/0",
+            "startIndex": 23830,
+            "text": "Экстраординарное",
+            "textSha256": "238a1491d56890b757e1a022d2d2ffae876d29090def69bf2d4724f9a76dd838"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/623/r1c1/0",
+            "startIndex": 23848,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        },
+        {
+          "id": "augmentation",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/623/r2c0/0",
+            "startIndex": 23852,
+            "text": "Аугментация / Импланты",
+            "textSha256": "04aaeb052c8dfbc2121c0cd1ab024e95dd22fd3d119c42231be60f6f58df7ca7"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/623/r2c1/0",
+            "startIndex": 23876,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_a1ba386fab363965"
+      },
+      "name": "Киберпанк",
+      "nameSource": {
+        "tabId": "t.5hl95vfbhb1p",
+        "path": "p/15",
+        "startIndex": 351,
+        "text": "Киберпанк",
+        "textSha256": "4fe8050ab0311c9b7f90c79c2ec33bf261cb2985d07a1fe3c7a03c758f63c512"
+      },
+      "options": [
+        {
+          "id": "mastery-technique",
+          "source": {
+            "tabId": "t.5hl95vfbhb1p",
+            "path": "p/16/r1c0/0",
+            "startIndex": 382,
+            "text": "Мастерство / Техника",
+            "textSha256": "f40b1c86da5b1149e51acdcbf050053203ca1faf080c860aa5228f3ff68e94ab"
+          },
+          "price": {
+            "tabId": "t.5hl95vfbhb1p",
+            "path": "p/16/r1c1/0",
+            "startIndex": 404,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_a80140e55e6b3033"
+      },
+      "name": "Штурмовик",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1778",
+        "startIndex": 73438,
+        "text": "Штурмовик",
+        "textSha256": "319ddd9a4facb4127ccc8f34e0618daf001310f6bbcb65569dbfed78e34191af"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1779/r1c0/0",
+            "startIndex": 73478,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1779/r1c1/0",
+            "startIndex": 73490,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_a8bdafdea2ef268e"
+      },
+      "name": "Пироманьяк",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1330",
+        "startIndex": 57247,
+        "text": "Пироманьяк",
+        "textSha256": "da0c9a2b7424bf17425aee2f80d646611f20dadd3aa689825d94450fe18e44fa"
+      },
+      "options": [
+        {
+          "id": "morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1331/r1c0/0",
+            "startIndex": 57288,
+            "text": "Мораль",
+            "textSha256": "3146e38d6b5112675a77d391b51865bba06afe0b5965e145f402be9aad481989"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1331/r1c1/0",
+            "startIndex": 57296,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_b7ab9ab06b30dd98"
+      },
+      "name": "Дуэлянт",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/661",
+        "startIndex": 25377,
+        "text": "Дуэлянт",
+        "textSha256": "8458f6f2be82425e70babe3cbba371af2582b916f655aa875428eeeee13330ab"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/662/r1c0/0",
+            "startIndex": 25416,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/662/r1c1/0",
+            "startIndex": 25428,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_b832538f3a803048"
+      },
+      "name": "Связи",
+      "nameSource": {
+        "tabId": "t.by8u0ux816a7",
+        "path": "p/1",
+        "startIndex": 1,
+        "text": "Связи",
+        "textSha256": "7840c9a54c7bc6a31b725216290173faa75d56b7d50ee911620847b1f4122a49"
+      },
+      "options": [
+        {
+          "id": "social",
+          "source": {
+            "tabId": "t.by8u0ux816a7",
+            "path": "p/4/r1c0/0",
+            "startIndex": 125,
+            "text": "Социальное",
+            "textSha256": "de3b3e40b328372251ce26f7680fe12e22e36a484c223973d3603cd86ea1ee0d"
+          },
+          "price": {
+            "tabId": "t.by8u0ux816a7",
+            "path": "p/4/r1c1/0",
+            "startIndex": 137,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_bb18db3acee8d8c0"
+      },
+      "name": "Гнев",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/575",
+        "startIndex": 22375,
+        "text": "Гнев ",
+        "textSha256": "affbdf61dc09dd6b0877a45b88b1d02a10041e6878f84e518eabcdc782740350"
+      },
+      "options": [
+        {
+          "id": "morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/576/r1c0/0",
+            "startIndex": 22411,
+            "text": "Мораль",
+            "textSha256": "3146e38d6b5112675a77d391b51865bba06afe0b5965e145f402be9aad481989"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/576/r1c1/0",
+            "startIndex": 22419,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        },
+        {
+          "id": "mastery-morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/576/r2c0/0",
+            "startIndex": 22423,
+            "text": "Мастерство и Мораль",
+            "textSha256": "404cda89862f949ec167144988ff6d88a25e632f6a138b0ffb429a932df7952f"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/576/r2c1/0",
+            "startIndex": 22444,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_bd7119a29fbad30f"
+      },
+      "name": "Скаут",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1507",
+        "startIndex": 64507,
+        "text": "Скаут",
+        "textSha256": "30fcfc943aa4de3a7a7c63d63f0a18d3495ead11e70217bf577a048c71fdda0d"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1508/r1c0/0",
+            "startIndex": 64543,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1508/r1c1/0",
+            "startIndex": 64555,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_c4bae7903fbe31be"
+      },
+      "name": "Подлая атака",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1383",
+        "startIndex": 59692,
+        "text": "Подлая атака",
+        "textSha256": "bceff5084f040f44130d59abe80a68fae02f89165e039f12dcb3dd98078410c8"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1384/r1c0/0",
+            "startIndex": 59735,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1384/r1c1/0",
+            "startIndex": 59747,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_d0703df3ea56baab"
+      },
+      "name": "Мастер-метатель",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/874",
+        "startIndex": 37177,
+        "text": "Мастер-метатель",
+        "textSha256": "861f7102414c0766a4cff1675ede4b582aedb7462b2e5b44b913f853ce3ce98c"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/875/r1c0/0",
+            "startIndex": 37224,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/875/r1c1/0",
+            "startIndex": 37236,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_d0fdba646d5da299"
+      },
+      "name": "Капканщик / Мастер ловушек",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/772",
+        "startIndex": 29962,
+        "text": "Капканщик / Мастер ловушек",
+        "textSha256": "ad0ec3933bccbaf89116088077b394f9786b5d806192bc84a472cb5e357378cd"
+      },
+      "options": [
+        {
+          "id": "mastery-tactics",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/773/r1c0/0",
+            "startIndex": 30019,
+            "text": "Мастерство и Тактика",
+            "textSha256": "c0fb3fbca36a3cef0b0703242dd97b092bc61da301c9f038d1b24a6a1ec537df"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/773/r1c1/0",
+            "startIndex": 30041,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_e8245289051beebc"
+      },
+      "name": "Второе дыхание",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/529",
+        "startIndex": 20843,
+        "text": "Второе дыхание",
+        "textSha256": "ea466898e62b6e3dc4b73990fbaacf4dba91c334844d1e409ef21992566c89ed"
+      },
+      "options": [
+        {
+          "id": "morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/530/r1c0/0",
+            "startIndex": 20889,
+            "text": "Мораль",
+            "textSha256": "3146e38d6b5112675a77d391b51865bba06afe0b5965e145f402be9aad481989"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/530/r1c1/0",
+            "startIndex": 20897,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_e9d24a11c1717b4b"
+      },
+      "name": "Изувер",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/725",
+        "startIndex": 28275,
+        "text": "Изувер ",
+        "textSha256": "2d6cc41f43db1d98300bee24dc657d0c7f5d6c394b51e44bbca5de77f5d63968"
+      },
+      "options": [
+        {
+          "id": "morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/726/r1c0/0",
+            "startIndex": 28313,
+            "text": "Мораль",
+            "textSha256": "3146e38d6b5112675a77d391b51865bba06afe0b5965e145f402be9aad481989"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/726/r1c1/0",
+            "startIndex": 28321,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_f9a25e27a88a7d61"
+      },
+      "name": "Шестое чувство",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1735",
+        "startIndex": 71938,
+        "text": "Шестое чувство",
+        "textSha256": "5b15d37ced855d2d8ece364d8ead03ce51f67866f3a81d65fe310d26e6e4cce1"
+      },
+      "options": [
+        {
+          "id": "extraordinary",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1736/r1c0/0",
+            "startIndex": 71984,
+            "text": "Экстраординарные",
+            "textSha256": "fe59e133fbb5a238eab902ed9b060a10f7f27becc87fa0967648134e375a4e6a"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1736/r1c1/0",
+            "startIndex": 72002,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_fa467b4e9d83447b"
+      },
+      "name": "Мастер-ремесленник",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1031",
+        "startIndex": 42883,
+        "text": "Мастер-ремесленник",
+        "textSha256": "8c77680202c514a2d2c56f0e7c4818a99870d42c989e0b8fdb1505e831b57e1b"
+      },
+      "options": [
+        {
+          "id": "mastery",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1032/r1c0/0",
+            "startIndex": 42932,
+            "text": "Мастерство",
+            "textSha256": "736f7f46adeecbc5b68e8220ed8b770067a07e89064c78a5d639a06b583ff704"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1032/r1c1/0",
+            "startIndex": 42944,
+            "text": "1",
+            "textSha256": "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
+          }
+        }
+      ]
+    },
+    {
+      "definitionRef": {
+        "packId": "dubl-3.69",
+        "entryId": "access_fc1a6c172730bb9d"
+      },
+      "name": "Последний выживший",
+      "nameSource": {
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "p/1442",
+        "startIndex": 61721,
+        "text": "Последний выживший",
+        "textSha256": "71ac75d5cb562e4c9e9bfd27a23f9040415b5a24ebeef68b934c3046e24e6084"
+      },
+      "options": [
+        {
+          "id": "mastery-morale",
+          "source": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1443/r1c0/0",
+            "startIndex": 61770,
+            "text": "Мастерство и Мораль",
+            "textSha256": "404cda89862f949ec167144988ff6d88a25e632f6a138b0ffb429a932df7952f"
+          },
+          "price": {
+            "tabId": "t.z1o9nhkkrzeb",
+            "path": "p/1443/r1c1/0",
+            "startIndex": 61791,
+            "text": "2",
+            "textSha256": "d4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35"
+          }
+        }
+      ]
+    }
+  ],
+  "skillSpecializations": [
+    {
+      "entryId": "knowledge_template",
+      "evidence": {
+        "tabId": "t.wj0tkh5wk4h0",
+        "path": "p/6",
+        "startIndex": 1027,
+        "text": "Знание — это не одно умение, а семейство умений. Каждое Знание (Академическое, Военное дело, Инженерия, Политология) покупается отдельно и имеет свой ранг.",
+        "textSha256": "0e9b3e3da7d1299ebed7ccf047b190cdeee8607ebc21472852d3968f0b6aae66"
+      },
+      "excludedLabels": [
+        {
+          "label": "Академическое",
+          "evidence": {
+            "tabId": "t.wfj2dohj8fc5",
+            "path": "p/23/r10c0/0",
+            "startIndex": 2657,
+            "text": "Знание (Академическое)",
+            "textSha256": "70e44db5fb3ffa1de3946e8e094db7c2a82b264bdc1ff2a7e38e02437bd667ec"
+          }
+        }
+      ]
+    },
+    {
+      "entryId": "performance_template",
+      "evidence": {
+        "tabId": "t.mb2z7as2dtno",
+        "path": "p/4",
+        "startIndex": 452,
+        "text": "Каждый вид Исполнения — это отдельное умение. Вы можете быть виртуозом-гитаристом, но совершенно не уметь петь. Или быть блестящим оратором, но не уметь танцевать. Каждый вид прокачивается отдельно, со своими рангами и своей историей. Персонаж с высоким Исполнением — это не просто артист. Это маг, который творит чудеса без магии. Это воин, который сражается не оружием, а эмоциями. Это тот, кто может изменить ход истории одной песней.",
+        "textSha256": "5229bc3f4d78aa2445674221bdb89f70788a22f669948edfb435e9aac739b77f"
+      },
+      "excludedLabels": [
+        {
+          "label": "Вокал",
+          "evidence": {
+            "tabId": "t.wfj2dohj8fc5",
+            "path": "p/23/r13c0/0",
+            "startIndex": 2780,
+            "text": "Исполнение (Вокал)",
+            "textSha256": "6430f71e595496017ad9b88d1503fc38cfbd37f12fbabefbd683836e55da0f8d"
+          }
+        }
+      ]
+    },
+    {
+      "entryId": "profession_template",
+      "evidence": {
+        "tabId": "t.7tsw7tk8jlux",
+        "path": "p/4",
+        "startIndex": 650,
+        "text": "Каждая профессия — это отдельное умение, которое прокачивается independently. Вы можете быть гениальным плотником, но совершенно не уметь готовить. Или быть алхимиком-виртуозом, но не уметь построить даже табурет. Профессии — это путь специализации, который делает персонажа уникальным.",
+        "textSha256": "f77dc40c2a89d932db71cad49a1b2aaaa23a6c014a4cc033daa6af9edbf2cf02"
+      }
+    }
+  ],
+  "resistanceParameters": {
+    "entryId": "feat_7fc6fc6e63da9688",
+    "parameterKey": "resistanceType",
+    "permission": {
+      "tabId": "t.9xkxyxwswfn9",
+      "path": "p/1582",
+      "startIndex": 55407,
+      "text": "Выгода: Вы получаете сопротивление /1 за каждый ранг против выбранного стихийного урона или яда. Можно брать несколько раз, каждый раз выбирая новый тип сопротивления.",
+      "textSha256": "c804373d526a0e2d912cdba33805c72ea66a2e946585953d2983db29d53fb35d"
+    },
+    "categorySource": {
+      "tabId": "t.sb8vo7vvy7e7",
+      "path": "p/443",
+      "startIndex": 37597,
+      "text": "Стихийный урон",
+      "textSha256": "6904efb1c194f9e245772afa7bd0a08e093a155d4fc5397aa7b8c6fc181f977c"
+    },
+    "choices": [
+      {
+        "id": "fire",
+        "label": "Огонь",
+        "evidence": {
+          "tabId": "t.sb8vo7vvy7e7",
+          "path": "p/444",
+          "startIndex": 37612,
+          "text": "Урон огнем",
+          "textSha256": "406ef5dcd1368c573e8b3ed75b28ed499b3fcdce51cd1ead6b75f021d2b6b5b4"
+        }
+      },
+      {
+        "id": "cold",
+        "label": "Холод",
+        "evidence": {
+          "tabId": "t.sb8vo7vvy7e7",
+          "path": "p/447",
+          "startIndex": 37740,
+          "text": "Урон холодом",
+          "textSha256": "ea83e9c3f1ee0c8ee82f656db4e90ff44fa2cb6c59b260a3932a6ad8a64a65e0"
+        }
+      },
+      {
+        "id": "acid",
+        "label": "Кислота",
+        "evidence": {
+          "tabId": "t.sb8vo7vvy7e7",
+          "path": "p/450",
+          "startIndex": 37862,
+          "text": "Кислотный урон ",
+          "textSha256": "0f46a4fa91c1712a2df5d613c2d92ea2add725eb7d1cc6d47ef8d98cddd83d6f"
+        }
+      },
+      {
+        "id": "electricity",
+        "label": "Электричество",
+        "evidence": {
+          "tabId": "t.sb8vo7vvy7e7",
+          "path": "p/453",
+          "startIndex": 38001,
+          "text": "Электрический урон",
+          "textSha256": "f2888fa2139b3fd77ac5b33280f44608afaac108e9ca85590cc258da6a4e967a"
+        }
+      },
+      {
+        "id": "poison",
+        "label": "Яд",
+        "evidence": {
+          "tabId": "t.sb8vo7vvy7e7",
+          "path": "p/456",
+          "startIndex": 38149,
+          "text": "Урон ядом",
+          "textSha256": "36020d074465bb7831c22ee36934060db3c91cb861439b174d52433c77414836"
+        }
+      },
+      {
+        "id": "sonic",
+        "label": "Звук",
+        "evidence": {
+          "tabId": "t.sb8vo7vvy7e7",
+          "path": "p/459",
+          "startIndex": 38274,
+          "text": "Урон звуком ",
+          "textSha256": "3f47382bfdf72138c09c4662a2d13db0d362c50a6c884c79dda552bdbb83fafe"
+        }
+      }
+    ]
+  },
+  "coreCards": [
+    {
+      "entryId": "feat_3acde4a62c69d01d",
+      "name": "Связи",
+      "title": {
+        "tabId": "t.by8u0ux816a7",
+        "path": "p/14",
+        "startIndex": 1143,
+        "text": "Связи",
+        "textSha256": "7840c9a54c7bc6a31b725216290173faa75d56b7d50ee911620847b1f4122a49"
+      },
+      "price": {
+        "tabId": "t.by8u0ux816a7",
+        "path": "p/16",
+        "startIndex": 1157,
+        "text": "Стоимость: 50",
+        "textSha256": "de7dc813960864daab1e6ab4cfef59bee2639897695b47704565e4c3a7e53ea3"
+      },
+      "ranks": {
+        "tabId": "t.by8u0ux816a7",
+        "path": "p/17",
+        "startIndex": 1171,
+        "text": "Ранги: 5",
+        "textSha256": "3769b669b4bbeaab5f7079411f9e37a875fbe79c4b9e4f1116f9f6dedd2627e7"
+      },
+      "requirement": {
+        "tabId": "t.by8u0ux816a7",
+        "path": "p/18",
+        "startIndex": 1180,
+        "text": "Требование: -",
+        "textSha256": "8aa5c1129d42814560c8343c15f8b4d6066bacdac1c50c8ab4efa635e340050f"
+      },
+      "repeatEvidence": {
+        "tabId": "t.by8u0ux816a7",
+        "path": "p/20",
+        "startIndex": 1308,
+        "text": "Вы можете брать Связи несколько раз с разными организациями и фракциями. Каждая покупка отдельна и прокачивается индивидуально.",
+        "textSha256": "f03f90165dbdc3805a3afec0d506368ca61234d1980e71841e5cc13257e484ff"
+      },
+      "stagePermission": {
+        "tabId": "t.by8u0ux816a7",
+        "path": "p/35",
+        "startIndex": 3055,
+        "text": "Связи можно купить за опыт при создании персонажа или во время игры (с разрешения Мастера).",
+        "textSha256": "c4ea39a0851d35de24ad17c82868fddd603025328e8e4375743ba3087bd98b34"
+      }
+    }
+  ],
+  "generalSkills": [
+    {
+      "entryId": "craft_template",
+      "evidence": {
+        "tabId": "t.7tsw7tk8jlux",
+        "path": "p/134",
+        "startIndex": 14256,
+        "text": "Ремесло — это общее умение, позволяющее создавать предметы из сырья. Без рабочего места или верстака максимальная сложность создания предметов равна 14. Качество рабочего места определяет максимальную сложность изготовления предметов на нём.",
+        "textSha256": "594976005ea31be145d077150d510416f53a99e42ed05efc13456ee09168237f"
+      }
+    }
+  ],
+  "legacyDuplicates": [
+    {
+      "legacyEntryId": "feat_1a9f2f0b9135c3d8",
+      "canonicalEntryId": "feat_b8989e97e58accba",
+      "canonicalName": "Монстровед",
+      "title": {
+        "tabId": "t.9xkxyxwswfn9",
+        "path": "p/328",
+        "startIndex": 10320,
+        "text": "Монстровед",
+        "textSha256": "5dc1ee1707e179f662e22f726d6f9e104dcd804fd472f7dbfa70d5bcc2d95f9e"
+      },
+      "legacyTitle": {
+        "tabId": "t.9xkxyxwswfn9",
+        "path": "p/329",
+        "startIndex": 10331,
+        "text": "“Вы слышали столько историй о легендарных монстрах, что помните всевозможные кровавые подробности.”",
+        "textSha256": "d8eecb41c8f33c0236a9cbc2bb538b2a3415fb03034681a6080c52be221a34d6"
+      },
+      "price": {
+        "tabId": "t.9xkxyxwswfn9",
+        "path": "p/330",
+        "startIndex": 10431,
+        "text": "Стоимость: 30",
+        "textSha256": "6ae54a0a12dd7ff03fee94c1dd16f0ded704375e892015957b1211b8621c9413"
+      },
+      "ranks": {
+        "tabId": "t.9xkxyxwswfn9",
+        "path": "p/331",
+        "startIndex": 10445,
+        "text": "Ранги: 1",
+        "textSha256": "d1bbce163459ad7ba1dabdc5c30c56c94a004869d19dd87223e1450880cbe888"
+      },
+      "requirement": {
+        "tabId": "t.9xkxyxwswfn9",
+        "path": "p/332",
+        "startIndex": 10454,
+        "text": "Требование: Знания (Любое) 5 рангов",
+        "textSha256": "10a330c683ff2e65900a30bb10e174269381558dd89427ae51980eb34f451e03"
+      },
+      "benefit": {
+        "tabId": "t.9xkxyxwswfn9",
+        "path": "p/333",
+        "startIndex": 10490,
+        "text": "Выгода: Когда вы проходите проверку знаний, в которой у вас есть 5 рангов, чтобы идентифицировать существо, вспомнить его особые способности или уязвимости, вы получаете +2 бонус при проверке.",
+        "textSha256": "bd3de3a79c4a30abfc1252a03c03c766be56b3a11df501046b0bdbd3cc0944e8"
+      }
+    }
+  ]
+}

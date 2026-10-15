@@ -1,0 +1,756 @@
+{
+  "schemaVersion": 1,
+  "devOnly": true,
+  "sourceProvenance": {
+    "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+    "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA"
+  },
+  "scope": "Explicit native matches for the 12 originally unmatched occurrences. Immutable source_questions.json is overlaid in memory only. Omitted rank metadata stays unknown.",
+  "bindings": [
+    {
+      "sourceId": "ordinary:t.9xkxyxwswfn9:14380",
+      "entryId": "feat_ae89314bf1944366",
+      "name": "Софтверный анализ",
+      "newDefinition": false,
+      "sourceRefs": [
+        "core:P10612",
+        "core:P10613",
+        "core:P10614",
+        "core:P10615",
+        "core:P10616",
+        "core:P10617",
+        "core:P10618"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P10612",
+          "tabId": "t.9xkxyxwswfn9",
+          "nativeParagraphPath": "p/423",
+          "startIndex": 14380,
+          "endIndex": 14381,
+          "exactTextSha256": "eead37caf818d0fae6de8adfc9645ca50de4a3be6ff9756bbab0d0a139a801af"
+        },
+        {
+          "sourceEvidenceRef": "core:P10613",
+          "tabId": "t.9xkxyxwswfn9",
+          "nativeParagraphPath": "p/424",
+          "startIndex": 14382,
+          "endIndex": 14395,
+          "exactTextSha256": "de7dc813960864daab1e6ab4cfef59bee2639897695b47704565e4c3a7e53ea3"
+        },
+        {
+          "sourceEvidenceRef": "core:P10614",
+          "tabId": "t.9xkxyxwswfn9",
+          "nativeParagraphPath": "p/425",
+          "startIndex": 14396,
+          "endIndex": 14404,
+          "exactTextSha256": "555c2cece303343b441da35237b29d1eb90209bbdc29a34332f71edc2c7f331e"
+        },
+        {
+          "sourceEvidenceRef": "core:P10615",
+          "tabId": "t.9xkxyxwswfn9",
+          "nativeParagraphPath": "p/426",
+          "startIndex": 14405,
+          "endIndex": 14436,
+          "exactTextSha256": "25e75f876bc6f4291adb8af1f56bb941c2dda654fece3c72586cbbdda818b3f1"
+        },
+        {
+          "sourceEvidenceRef": "core:P10616",
+          "tabId": "t.9xkxyxwswfn9",
+          "nativeParagraphPath": "p/427",
+          "startIndex": 14437,
+          "endIndex": 14623,
+          "exactTextSha256": "422a8e6561406fdddfd62bd9c845f5bae518fee2cafb9aa3223ce966dabb7f0a"
+        },
+        {
+          "sourceEvidenceRef": "core:P10617",
+          "tabId": "t.9xkxyxwswfn9",
+          "nativeParagraphPath": "p/428",
+          "startIndex": 14624,
+          "endIndex": 14785,
+          "exactTextSha256": "48b989c79627d877cda984d6a4809729f4362a0848687df3393d10d501a6991d"
+        },
+        {
+          "sourceEvidenceRef": "core:P10618",
+          "tabId": "t.9xkxyxwswfn9",
+          "nativeParagraphPath": "p/429",
+          "startIndex": 14786,
+          "endIndex": 14978,
+          "exactTextSha256": "3e9ec3d466a712bbb44e50245769519ba2004e2b6b5a77a551d1ecf7300deb03"
+        }
+      ]
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:6002",
+      "entryId": "feat_7eece523ffdc8431",
+      "name": "Акробатическое уклонение",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12045",
+        "core:P12046",
+        "core:P12047",
+        "core:P12048",
+        "core:P12049",
+        "core:P12050",
+        "core:P12051"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12045",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/173",
+          "startIndex": 6002,
+          "endIndex": 6026,
+          "exactTextSha256": "7d988dbb6cb6fe3fe710654f52087e91a21face8c5b0af06cdf9b6b3613e27e7"
+        },
+        {
+          "sourceEvidenceRef": "core:P12046",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/174",
+          "startIndex": 6027,
+          "endIndex": 6039,
+          "exactTextSha256": "e7fdd1ef3e24c7eefda03b54e6bb184029c77a614c5a53042d047fa18d18ee1f"
+        },
+        {
+          "sourceEvidenceRef": "core:P12047",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/175",
+          "startIndex": 6040,
+          "endIndex": 6053,
+          "exactTextSha256": "6ae54a0a12dd7ff03fee94c1dd16f0ded704375e892015957b1211b8621c9413"
+        },
+        {
+          "sourceEvidenceRef": "core:P12048",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/176",
+          "startIndex": 6054,
+          "endIndex": 6076,
+          "exactTextSha256": "a90de07607d957612687dd9c897fc5841c9695991db1ccb6b19bcc969ab53580"
+        },
+        {
+          "sourceEvidenceRef": "core:P12049",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/177",
+          "startIndex": 6077,
+          "endIndex": 6225,
+          "exactTextSha256": "92af855d69ec94af7b3e1c45315782af21d05965003cd35a20af0af731c37e66"
+        },
+        {
+          "sourceEvidenceRef": "core:P12050",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/178",
+          "startIndex": 6226,
+          "endIndex": 6284,
+          "exactTextSha256": "e05a8b662837c16deb04dbb59d8e6115e8f11efc1ae60532cf730526182a774a"
+        },
+        {
+          "sourceEvidenceRef": "core:P12051",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/179",
+          "startIndex": 6285,
+          "endIndex": 6320,
+          "exactTextSha256": "b5522d651697b3f72645e7ceb2b7205165239135fe59b3cd83c838f513731257"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:6322",
+      "entryId": "feat_09f9775a6c2feee1",
+      "name": "Бег по стенам",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12052",
+        "core:P12053",
+        "core:P12054",
+        "core:P12055",
+        "core:P12056",
+        "core:P12057",
+        "core:P12058"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12052",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/181",
+          "startIndex": 6322,
+          "endIndex": 6335,
+          "exactTextSha256": "7ecfee019fef2b299a4427c55a20fb97d9fcc3884e91bcbf748cb9feee91e080"
+        },
+        {
+          "sourceEvidenceRef": "core:P12053",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/182",
+          "startIndex": 6336,
+          "endIndex": 6348,
+          "exactTextSha256": "e7fdd1ef3e24c7eefda03b54e6bb184029c77a614c5a53042d047fa18d18ee1f"
+        },
+        {
+          "sourceEvidenceRef": "core:P12054",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/183",
+          "startIndex": 6349,
+          "endIndex": 6362,
+          "exactTextSha256": "6ae54a0a12dd7ff03fee94c1dd16f0ded704375e892015957b1211b8621c9413"
+        },
+        {
+          "sourceEvidenceRef": "core:P12055",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/184",
+          "startIndex": 6363,
+          "endIndex": 6398,
+          "exactTextSha256": "7eed2d815fb44a21316f51b2a6a31af7e6ee72f2b693f3c701ef4699c4de029c"
+        },
+        {
+          "sourceEvidenceRef": "core:P12056",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/185",
+          "startIndex": 6399,
+          "endIndex": 6466,
+          "exactTextSha256": "d3cc09b881ec2b2a2f9c64e237ad7a0ed4a0ff416e9be145acda918ae816eefe"
+        },
+        {
+          "sourceEvidenceRef": "core:P12057",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/186",
+          "startIndex": 6467,
+          "endIndex": 6556,
+          "exactTextSha256": "9e12b5d3cf160fc290e7e620d744f116a14130f7826f0ea4cefdb38fbbfac554"
+        },
+        {
+          "sourceEvidenceRef": "core:P12058",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/187",
+          "startIndex": 6557,
+          "endIndex": 6668,
+          "exactTextSha256": "c530035c02e4c67ae7b54665c4dae566e2f471dc65a2cd6174599f9ce0f3a85a"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:6670",
+      "entryId": "feat_0ef834f631b34bd6",
+      "name": "Ласточкин хвост",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12059",
+        "core:P12060",
+        "core:P12061",
+        "core:P12062",
+        "core:P12063"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12059",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/189",
+          "startIndex": 6670,
+          "endIndex": 6685,
+          "exactTextSha256": "74eead16c92cd9a68722d12f40172ddfb931fbf9fc46fa8ef97416e5f93c7c49"
+        },
+        {
+          "sourceEvidenceRef": "core:P12060",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/190",
+          "startIndex": 6686,
+          "endIndex": 6759,
+          "exactTextSha256": "6b76f030625a60b692eb7745f97975cf0fa6ff21d5f88b7787b621e6e0b6520b"
+        },
+        {
+          "sourceEvidenceRef": "core:P12061",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/191",
+          "startIndex": 6760,
+          "endIndex": 6854,
+          "exactTextSha256": "11a618b7226436395dde6b348d2e9d4068e8b8712d4a60e0bda4b634e59caea7"
+        },
+        {
+          "sourceEvidenceRef": "core:P12062",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/192",
+          "startIndex": 6855,
+          "endIndex": 6923,
+          "exactTextSha256": "3aa157263eb226f20a167066dfccac96a9c9ae19cf5d84847af70d77b19d7a62"
+        },
+        {
+          "sourceEvidenceRef": "core:P12063",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/193",
+          "startIndex": 6924,
+          "endIndex": 7069,
+          "exactTextSha256": "1abaa4bc7f4d8daf1def30cc4f9029ddbcf0a281832a7fa7b33264860dd6196a"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:7071",
+      "entryId": "feat_e8bda6bbcde463dc",
+      "name": "Отскок",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12064",
+        "core:P12065",
+        "core:P12066",
+        "core:P12067",
+        "core:P12068"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12064",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/195",
+          "startIndex": 7071,
+          "endIndex": 7077,
+          "exactTextSha256": "34a44830da3ef7501a6a6bc78ae5ccce2c3247eb19c9a9277fa752b00ed09c91"
+        },
+        {
+          "sourceEvidenceRef": "core:P12065",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/196",
+          "startIndex": 7078,
+          "endIndex": 7090,
+          "exactTextSha256": "e7fdd1ef3e24c7eefda03b54e6bb184029c77a614c5a53042d047fa18d18ee1f"
+        },
+        {
+          "sourceEvidenceRef": "core:P12066",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/197",
+          "startIndex": 7091,
+          "endIndex": 7104,
+          "exactTextSha256": "6ae54a0a12dd7ff03fee94c1dd16f0ded704375e892015957b1211b8621c9413"
+        },
+        {
+          "sourceEvidenceRef": "core:P12067",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/198",
+          "startIndex": 7105,
+          "endIndex": 7127,
+          "exactTextSha256": "a90de07607d957612687dd9c897fc5841c9695991db1ccb6b19bcc969ab53580"
+        },
+        {
+          "sourceEvidenceRef": "core:P12068",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/199",
+          "startIndex": 7128,
+          "endIndex": 7320,
+          "exactTextSha256": "796a4088faccf98b675359a2915d11d81517ed64d129a976170b280871ec9f00"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:7322",
+      "entryId": "feat_b196f0df5a5f4f97",
+      "name": "Прыжок мангуста",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12069",
+        "core:P12070",
+        "core:P12071",
+        "core:P12072",
+        "core:P12073"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12069",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/201",
+          "startIndex": 7322,
+          "endIndex": 7337,
+          "exactTextSha256": "a00c1f6421869bac450b0189137ee08d18413ede965766381487cebeb5ee2eb4"
+        },
+        {
+          "sourceEvidenceRef": "core:P12070",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/202",
+          "startIndex": 7338,
+          "endIndex": 7350,
+          "exactTextSha256": "e7fdd1ef3e24c7eefda03b54e6bb184029c77a614c5a53042d047fa18d18ee1f"
+        },
+        {
+          "sourceEvidenceRef": "core:P12071",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/203",
+          "startIndex": 7351,
+          "endIndex": 7364,
+          "exactTextSha256": "6ae54a0a12dd7ff03fee94c1dd16f0ded704375e892015957b1211b8621c9413"
+        },
+        {
+          "sourceEvidenceRef": "core:P12072",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/204",
+          "startIndex": 7365,
+          "endIndex": 7387,
+          "exactTextSha256": "a90de07607d957612687dd9c897fc5841c9695991db1ccb6b19bcc969ab53580"
+        },
+        {
+          "sourceEvidenceRef": "core:P12073",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/205",
+          "startIndex": 7388,
+          "endIndex": 7509,
+          "exactTextSha256": "14ce046cd4d231240a7fd28a7a638cd86bcb926a77cd45f14ef91d71db38cf7c"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:7511",
+      "entryId": "feat_6e9661053ca5aeac",
+      "name": "Бросок кобры",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12074",
+        "core:P12075",
+        "core:P12076",
+        "core:P12077",
+        "core:P12078"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12074",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/207",
+          "startIndex": 7511,
+          "endIndex": 7523,
+          "exactTextSha256": "9faad29f8abd1bf6287a9171ceb579282d58160e33d18ad750edffb9c5a5d2fd"
+        },
+        {
+          "sourceEvidenceRef": "core:P12075",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/208",
+          "startIndex": 7524,
+          "endIndex": 7536,
+          "exactTextSha256": "e7fdd1ef3e24c7eefda03b54e6bb184029c77a614c5a53042d047fa18d18ee1f"
+        },
+        {
+          "sourceEvidenceRef": "core:P12076",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/209",
+          "startIndex": 7537,
+          "endIndex": 7550,
+          "exactTextSha256": "6ae54a0a12dd7ff03fee94c1dd16f0ded704375e892015957b1211b8621c9413"
+        },
+        {
+          "sourceEvidenceRef": "core:P12077",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/210",
+          "startIndex": 7551,
+          "endIndex": 7573,
+          "exactTextSha256": "a90de07607d957612687dd9c897fc5841c9695991db1ccb6b19bcc969ab53580"
+        },
+        {
+          "sourceEvidenceRef": "core:P12078",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/211",
+          "startIndex": 7574,
+          "endIndex": 7666,
+          "exactTextSha256": "6c09faf5e18410a81800762fc25b21bfdb3494f8bba23d4464265065f7cd6299"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:7668",
+      "entryId": "feat_ed75c3cad687fd4f",
+      "name": "Удар падающей звезды",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12079",
+        "core:P12080",
+        "core:P12081",
+        "core:P12082",
+        "core:P12083",
+        "core:P12084"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12079",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/213",
+          "startIndex": 7668,
+          "endIndex": 7688,
+          "exactTextSha256": "55bebaf6c4fa1cd76023b44786ae897b8d5dde1259f070de4aa264d78ed1461d"
+        },
+        {
+          "sourceEvidenceRef": "core:P12080",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/214",
+          "startIndex": 7689,
+          "endIndex": 7761,
+          "exactTextSha256": "3b3007657197496cd89338b447d22609800f73ecae3435f363fa8f54c281c64d"
+        },
+        {
+          "sourceEvidenceRef": "core:P12081",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/215",
+          "startIndex": 7762,
+          "endIndex": 7849,
+          "exactTextSha256": "cd5ab02e66080c0f45ad9dbe9dd6de570b81e0678e58b213b39536d55671df76"
+        },
+        {
+          "sourceEvidenceRef": "core:P12082",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/216",
+          "startIndex": 7850,
+          "endIndex": 7967,
+          "exactTextSha256": "50350d14dc784648ed59c3bc7dc1a16b59e467646fce527519229d3a86de5d29"
+        },
+        {
+          "sourceEvidenceRef": "core:P12083",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/217",
+          "startIndex": 7968,
+          "endIndex": 8077,
+          "exactTextSha256": "6fd090fddb401b2073164266bcbe34d3c511ad383f29607a4bf024726cf351d7"
+        },
+        {
+          "sourceEvidenceRef": "core:P12084",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/218",
+          "startIndex": 8078,
+          "endIndex": 8208,
+          "exactTextSha256": "84aff107975c5edcd7edbca2089c5dc923e710fbbdc33d3903d3f5e0505e89ac"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:8210",
+      "entryId": "feat_6f1e44966e0faf18",
+      "name": "Хлесткая подсечка",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12085",
+        "core:P12086",
+        "core:P12087",
+        "core:P12088",
+        "core:P12089"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12085",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/220",
+          "startIndex": 8210,
+          "endIndex": 8227,
+          "exactTextSha256": "beaa132bee523fbe23d1be4294860249d78a81f3461645b270ca935e530e9db6"
+        },
+        {
+          "sourceEvidenceRef": "core:P12086",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/221",
+          "startIndex": 8228,
+          "endIndex": 8240,
+          "exactTextSha256": "e7fdd1ef3e24c7eefda03b54e6bb184029c77a614c5a53042d047fa18d18ee1f"
+        },
+        {
+          "sourceEvidenceRef": "core:P12087",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/222",
+          "startIndex": 8241,
+          "endIndex": 8254,
+          "exactTextSha256": "7fb3824308513490032b94b1fa01cd961aff7c8013305ff45ba6c14be9358d75"
+        },
+        {
+          "sourceEvidenceRef": "core:P12088",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/223",
+          "startIndex": 8255,
+          "endIndex": 8277,
+          "exactTextSha256": "a90de07607d957612687dd9c897fc5841c9695991db1ccb6b19bcc969ab53580"
+        },
+        {
+          "sourceEvidenceRef": "core:P12089",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/224",
+          "startIndex": 8278,
+          "endIndex": 8346,
+          "exactTextSha256": "93189d6c2469d2ce5754a8a8578a135c97e46d0b19b9c753dd7839ebba6d2098"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:8348",
+      "entryId": "feat_e008a111407e9ccd",
+      "name": "Ударное скольжение",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12090",
+        "core:P12091",
+        "core:P12092",
+        "core:P12093",
+        "core:P12094"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12090",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/226",
+          "startIndex": 8348,
+          "endIndex": 8366,
+          "exactTextSha256": "f499259de4f30919cc0a94f2279752d0a4c70b40cde4f84eeb824f8924f96bb7"
+        },
+        {
+          "sourceEvidenceRef": "core:P12091",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/227",
+          "startIndex": 8367,
+          "endIndex": 8379,
+          "exactTextSha256": "e7fdd1ef3e24c7eefda03b54e6bb184029c77a614c5a53042d047fa18d18ee1f"
+        },
+        {
+          "sourceEvidenceRef": "core:P12092",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/228",
+          "startIndex": 8380,
+          "endIndex": 8393,
+          "exactTextSha256": "7fb3824308513490032b94b1fa01cd961aff7c8013305ff45ba6c14be9358d75"
+        },
+        {
+          "sourceEvidenceRef": "core:P12093",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/229",
+          "startIndex": 8394,
+          "endIndex": 8416,
+          "exactTextSha256": "a90de07607d957612687dd9c897fc5841c9695991db1ccb6b19bcc969ab53580"
+        },
+        {
+          "sourceEvidenceRef": "core:P12094",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/230",
+          "startIndex": 8417,
+          "endIndex": 8598,
+          "exactTextSha256": "3e272fc44a6508e62cc0a37cd3ad200ee31453aab3db20e1ffc17846d35b7e02"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:8600",
+      "entryId": "feat_91a36213ead60ec0",
+      "name": "Сальто-атака",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12095",
+        "core:P12096",
+        "core:P12097",
+        "core:P12098",
+        "core:P12099"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12095",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/232",
+          "startIndex": 8600,
+          "endIndex": 8612,
+          "exactTextSha256": "7a3a0f749ff195648457e39b4dd144eb8494cb86f49063a9761194df9ae7f910"
+        },
+        {
+          "sourceEvidenceRef": "core:P12096",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/233",
+          "startIndex": 8613,
+          "endIndex": 8711,
+          "exactTextSha256": "6e07a07d9ceb196b970ae7f28bb86116d6e046aa89088154670e7e8495bac67d"
+        },
+        {
+          "sourceEvidenceRef": "core:P12097",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/234",
+          "startIndex": 8712,
+          "endIndex": 8799,
+          "exactTextSha256": "af756b5b2154bbcc7de1efe314e9b4a288401b1b1c477def2abb00e98b4b8578"
+        },
+        {
+          "sourceEvidenceRef": "core:P12098",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/235",
+          "startIndex": 8800,
+          "endIndex": 8924,
+          "exactTextSha256": "5e893b8f86502087f1bbf1776d25b1e288261969cafde697d5fe6b8b9acd9cd9"
+        },
+        {
+          "sourceEvidenceRef": "core:P12099",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/236",
+          "startIndex": 8925,
+          "endIndex": 9010,
+          "exactTextSha256": "0cef550b9fa9be4e08bd0d22b8cde503e4b81064f3b40fafc6058d31bc7a9a8c"
+        }
+      ],
+      "category": "Акробатика",
+      "accessId": "access_45edee695a349bf7"
+    },
+    {
+      "sourceId": "special:t.z1o9nhkkrzeb:18056",
+      "entryId": "feat_8786ba2fa2651690",
+      "name": "Боевой азарт",
+      "newDefinition": true,
+      "sourceRefs": [
+        "core:P12301",
+        "core:P12302",
+        "core:P12303",
+        "core:P12304",
+        "core:P12305"
+      ],
+      "nativeLocators": [
+        {
+          "sourceEvidenceRef": "core:P12301",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/447",
+          "startIndex": 18056,
+          "endIndex": 18068,
+          "exactTextSha256": "05b08c3acf187f4512ab9895657c9a0034ca38dfd5509fd5f4fdbaec3dc63ecb"
+        },
+        {
+          "sourceEvidenceRef": "core:P12302",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/448",
+          "startIndex": 18069,
+          "endIndex": 18083,
+          "exactTextSha256": "d618dd3262aab46181082e65a547bab46b38a82bce8976bc06848784443656cf"
+        },
+        {
+          "sourceEvidenceRef": "core:P12303",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/449",
+          "startIndex": 18084,
+          "endIndex": 18097,
+          "exactTextSha256": "de7dc813960864daab1e6ab4cfef59bee2639897695b47704565e4c3a7e53ea3"
+        },
+        {
+          "sourceEvidenceRef": "core:P12304",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/450",
+          "startIndex": 18098,
+          "endIndex": 18183,
+          "exactTextSha256": "ca4b8a89e1b5b6ddd937c42ff92189c0fd319206c089a42c68de508c15cafe4a"
+        },
+        {
+          "sourceEvidenceRef": "core:P12305",
+          "tabId": "t.z1o9nhkkrzeb",
+          "nativeParagraphPath": "p/451",
+          "startIndex": 18184,
+          "endIndex": 18489,
+          "exactTextSha256": "be2c9b5b7ba350cce5732b300ec808e13329a0289b50fa89ab6d6cf7fa63092d"
+        }
+      ],
+      "category": "Боевой азарт",
+      "accessId": "access_40c3d6bcbdac132a"
+    }
+  ]
+}
