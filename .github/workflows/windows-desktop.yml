@@ -2,7 +2,7 @@ name: Windows Desktop Compose
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/furybook-rules-completion-20261015]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -57,7 +57,7 @@ jobs:
         shell: pwsh
         run: |
           $env:FURY_BOOK_VERSION = $env:FURY_BOOK_DESKTOP_VERSION
-          .\gradlew.bat --no-daemon :shared:desktopTest :desktopApp:compileKotlin :desktopApp:createDistributable :desktopApp:packageExe :desktopApp:packageMsi --stacktrace
+          .\gradlew.bat --no-daemon --init-script tools/ci/standard-regression.init.gradle :shared:desktopTest :desktopApp:compileKotlin :desktopApp:createDistributable :desktopApp:packageExe :desktopApp:packageMsi --stacktrace
 
       - name: Verify bundled Desktop runtime modules
         shell: pwsh

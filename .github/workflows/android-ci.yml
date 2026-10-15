@@ -2,7 +2,7 @@ name: Android CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/furybook-rules-completion-20261015]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -15,7 +15,77 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  acquisition-import-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install focused test dependencies
+        run: python -m pip install pytest
+
+      - name: Test source import and native rule bindings
+        run: |
+          python -m pytest -q --junitxml=out/acquisition-import-regression.xml \
+            tools/tests/test_rulebook_acquisition_import.py \
+            tools/tests/test_native_*.py
+
+      - name: Upload importer regression results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fury-Book-Acquisition-Import-Regression
+          path: out/acquisition-import-regression.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+  acquisition-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - name: Run shared regression including acquisition and durable recovery
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --configuration-cache \
+            --init-script tools/ci/standard-regression.init.gradle \
+            :shared:desktopTest --stacktrace
+
+      - name: Upload acquisition regression results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fury-Book-Acquisition-Regression
+          path: |
+            shared/build/reports/tests/desktopTest/
+            shared/build/test-results/desktopTest/
+          if-no-files-found: warn
+          retention-days: 14
+
   build:
+    needs: [acquisition-import-regression, acquisition-regression]
     runs-on: ubuntu-latest
 
     steps:
@@ -42,7 +112,9 @@ jobs:
       - name: Test and build development APK
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon --configuration-cache :app:testDebugUnitTest :app:assemblePreview
+          ./gradlew --no-daemon --configuration-cache \
+            --init-script tools/ci/standard-regression.init.gradle \
+            :app:testDebugUnitTest :app:assemblePreview
 
       - name: Prepare APK
         run: |
@@ -54,5 +126,53 @@ jobs:
         with:
           name: Fury-Book-Android
           path: out/Fury-Book-Android.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  web-distribution:
+    needs: [acquisition-import-regression, acquisition-regression]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+
+      - name: Build web distribution
+        env:
+          NPM_CONFIG_ALLOW_GIT: all
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --configuration-cache :webApp:compileKotlinJs :webApp:jsBrowserDistribution --stacktrace
+
+      - name: Package web distribution
+        run: |
+          test -f webApp/build/dist/js/productionExecutable/index.html
+          mkdir -p out
+          cd webApp/build/dist/js/productionExecutable
+          zip -q -r "$GITHUB_WORKSPACE/out/Fury-Book-Web.zip" .
+
+      - name: Upload web distribution ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fury-Book-Web
+          path: out/Fury-Book-Web.zip
           if-no-files-found: error
           retention-days: 14

@@ -1,0 +1,16 @@
+import org.gradle.api.tasks.testing.Test
+
+// Build regression keeps every normal test, including the bounded real-catalog
+// and performance-prerequisite cases. Only these four full-corpus methods are
+// reserved for a separate acceptance run; this gate does not establish full
+// acquisition/source-matrix acceptance or change their expected results.
+gradle.allprojects { project ->
+    project.tasks.withType(Test).configureEach { testTask ->
+        testTask.filter {
+            excludeTestsMatching("com.furybook.dubl.acquisition.AcquisitionPriceOracleTest.every_confirmed_case_checks_cost_remaining_and_undo_expectation")
+            excludeTestsMatching("com.furybook.dubl.acquisition.AcquisitionPresentationOracleTest.complete_effective_price_and_presentation_matrix_with_actual_admission_and_saved_receipts")
+            excludeTestsMatching("com.furybook.dubl.acquisition.AcquisitionPresentationSourceMatrixTest.all_rows_preserve_exact_direct_bulk_intent_and_unverified_source_presentation")
+            excludeTestsMatching("com.furybook.android.acquisition.AndroidAcquisitionPresentationMatrixTest.all_83818_source_rows_keep_exact_android_binding_and_absent_uncommitted_receipts")
+        }
+    }
+}

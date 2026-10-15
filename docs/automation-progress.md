@@ -1,5 +1,9 @@
 # Rule automation: current implementation boundary
 
+## 2026-10-15: paused current-book acquisition implementation
+
+The user paused work after substantive source-backed acquisition and UI changes. Authenticated Drive access succeeded in this session; the earlier 401-only inventory is historical. Current implementation, evidence, exact remaining source limits, the pending Beast Nature test, browser verification and build continuation are recorded in [the pause checkpoint](verification/2026-10-15-current-book-purchases.md). This checkpoint is not full catalog acceptance or a new downloadable build. Preserve existing financial history and keep cloud format 2 writes off.
+
 ## Проверенный срез — 15 октября 2026
 
 Код `1ccd639`, ветка `codex/furybook-rules-completion-20261015`: работающие локальные покупки вместе с журналом действий, собственные ОД/реакция, конкретная временная защита P14265, складывание Слабости/Истощения и интерфейс включения/миграции на всех трёх платформах. Новые исходники действительно собраны; AppImage, Android Preview APK и Web ZIP доступны в отдельной [ветке сборок](https://github.com/FuryArchive/Fury-Book/tree/codex/furybook-builds-20261015).
