@@ -30,7 +30,9 @@ class AcquisitionUiTest {
         emptyList(),emptyList(),SyncMetadata(0),0,0,RequirementNode.CreationPhase.Phase.Creating)
     private fun test(body:suspend CoroutineScope.()->Unit):Promise<Unit> = MainScope().promise { withTimeout(8000) { body() } }
     private suspend fun settled(state:DesktopAppState,phase:AcquisitionUiPhase) = withTimeout(8000) {
-        while(state.acquisitionUiModel?.phase!=phase) delay(1)
+        while(state.acquisitionUiModel?.phase!=phase ||
+            (phase==AcquisitionUiPhase.Committed && state.acquisitionUiModel?.funding==null &&
+                state.acquisitionUiModel?.receipt?.currentBalance==null && state.acquisitionUiModel?.viewRefreshError==null)) delay(1)
         checkNotNull(state.acquisitionUiModel)
     }
     private suspend fun fixture(writable:Boolean=true,chi:Boolean=false):Pair<BrowserAcquisitionStore,DesktopAppState> {
@@ -149,7 +151,8 @@ class AcquisitionUiTest {
             actions.reviewFunding(2500,"New")
             val ready=settled(state,AcquisitionUiPhase.Ready)
             assertEquals(2L,ready.funding?.initialAP);assertNull(state.acquisition.retainedOperationId)
-            actions.confirm(ready.key);settled(state,AcquisitionUiPhase.Committed)
+            actions.confirm(ready.key)
+            withTimeout(8000) { while(actions.notice==null) delay(1) }
             assertEquals(before,store.rawForExport("hero"))
             val newId=store.characterIds().single { it!="hero" }
             val created=assertIs<LoadResult.Loaded>(store.load(newId)).state

@@ -8,7 +8,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /** Captured exact values, not a callback retained across retries. Null collections mean preserve. */
-class CharacterPatch private constructor(internal val canonical:String,internal val replacesInstances:Boolean,internal val replacesExtras:Boolean) {
+class CharacterPatch private constructor(internal val canonical:String,internal val replacesInstances:Boolean,internal val replacesExtras:Boolean,
+    private val expectedStorageRevision:Long?=null) {
     constructor(character:DublCharacter,instances:List<AcquisitionInstance>?=null,extras:CharacterSheetExtras?=null):this(
         mutationProjectionCanonical(projectionContainer(character,instances.orEmpty(),extras ?: CharacterSheetExtras())),instances!=null,extras!=null)
     companion object {
@@ -18,10 +19,17 @@ class CharacterPatch private constructor(internal val canonical:String,internal 
             encodeEnvelope(state)
             require(character.id==state.character.id) { "Patch character scope differs" }
             val staged=state.copy(character=character,instances=instances ?: state.instances,extras=extras ?: state.extras,outbox=emptyList())
-            return CharacterPatch(mutationProjectionCanonical(staged),instances!=null,extras!=null)
+            return CharacterPatch(mutationProjectionCanonical(staged),instances!=null,extras!=null,
+                state.storageRevision.takeIf { state.formatVersion==2 })
+        }
+    }
+    internal fun validateBase(state:StoredCharacter) {
+        require(state.formatVersion!=2 || expectedStorageRevision==state.storageRevision) {
+            "Лист изменился после подготовки правки; подготовьте её заново"
         }
     }
     internal fun apply(state: StoredCharacter): StoredCharacter {
+        validateBase(state)
         val decoded = decodeMutationProjection(state, canonical)
         require(decoded.character.id == state.character.id) { "Patch character scope differs" }
         return state.copy(character=decoded.character, instances=if(replacesInstances) decoded.instances else state.instances,
@@ -29,7 +37,9 @@ class CharacterPatch private constructor(internal val canonical:String,internal 
             creationPhase=decoded.creationPhase)
     }
     internal fun json() = jsonObject("projection" to JsonReader(canonical).read(),
-        "replacesInstances" to jsonBoolean(replacesInstances), "replacesExtras" to jsonBoolean(replacesExtras))
+        "replacesInstances" to jsonBoolean(replacesInstances), "replacesExtras" to jsonBoolean(replacesExtras)).let { root ->
+        expectedStorageRevision?.let { JsonValue.Obj(root.values+("expectedStorageRevision" to jsonString(it.toString()))) } ?: root
+    }
 }
 
 sealed interface MutationPayload {
@@ -92,7 +102,7 @@ class CharacterMutationCoordinator(private val store: AcquisitionStore, private 
         detached.edit()
         require(detached.snapshot.characters.size == 1 && detached.active.id == characterId) { "Staging cannot create/delete/select a character" }
         return CanonicalMutation(operationId,characterId,expectedRevision,
-            MutationPayload.NonFinancial(CharacterPatch(detached.active,extras=detached.activeExtras)))
+            MutationPayload.NonFinancial(CharacterPatch.fromCanonicalState(state,detached.active,extras=detached.activeExtras)))
     }
     /** One-shot convenience. For uncertain commits/retries use prepareNonFinancial + mutate and
      * retain that command; rerunning a callback is a new stage, not a durable identity mechanism.

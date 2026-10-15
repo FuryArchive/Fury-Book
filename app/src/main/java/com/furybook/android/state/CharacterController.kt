@@ -201,6 +201,7 @@ class CharacterController internal constructor(
     val isCanonicalProtected: Boolean get() = capabilities.localDurable || canonicalStates.isNotEmpty() || legacyGate?.readOnly == true
     val hasCanonicalActive: Boolean get() = snapshot.activeCharacterId in canonicalStates
     val activeStoredFormat: Int? get() = canonicalStates[snapshot.activeCharacterId]?.formatVersion
+    val activeStorageRevision: Long? get() = canonicalStates[snapshot.activeCharacterId]?.storageRevision
     /** Installed by the root renderer; detached Shared staging still validates every field. */
     var onCanonicalNonFinancialReview: ((DublApplication.() -> Unit) -> Unit)? = null
     private fun descriptive(edit: DublApplication.() -> Unit) {

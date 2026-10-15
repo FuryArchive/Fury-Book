@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.CircularProgressIndicator
@@ -107,10 +110,10 @@ private class AndroidStorageBootstrap private constructor(
         override fun delete(characterId:String) { extras.delete(characterId) }
     }
     companion object {
-        fun roots(context:android.content.Context, localRulesEnabled: Boolean = false):Pair<AndroidLegacyAcquisitionSource,AndroidAcquisitionStore> {
+        fun roots(context:android.content.Context, allowGameplayReads: Boolean = false):Pair<AndroidLegacyAcquisitionSource,AndroidAcquisitionStore> {
             val root=context.applicationContext.dataDir.toPath()
             val source=AndroidLegacyAcquisitionSource(root.resolve("shared_prefs"),AndroidLegacyWriteGate())
-            return source to AndroidAcquisitionStore(root,source,gameplayFormatEnabled = localRulesEnabled)
+            return source to AndroidAcquisitionStore(root,source,gameplayFormatEnabled = allowGameplayReads)
         }
         suspend fun open(context:android.content.Context,source:AndroidLegacyAcquisitionSource,store:AndroidAcquisitionStore):AndroidStorageBootstrap {
             // Original XML/.bak capture must precede either framework SharedPreferences instance.
@@ -139,7 +142,7 @@ fun DublApp() {
     val preferences = remember(context) { context.getSharedPreferences("furybook_runtime", android.content.Context.MODE_PRIVATE) }
     val localRulesEnabled = remember(context) { preferences.getBoolean("local_rules", false) }
     var pendingLocalRules by remember { mutableStateOf<Boolean?>(null) }
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
         com.furybook.ui.components.LocalRulesModeControl(localRulesEnabled, pendingLocalRules) { enabled ->
             check(preferences.edit().putBoolean("local_rules", enabled).commit()) { "Настройка не сохранена" }
             pendingLocalRules = enabled
@@ -150,7 +153,7 @@ fun DublApp() {
 
 @Composable
 private fun DublStorageApp(context: android.content.Context, localRulesEnabled: Boolean) {
-    val roots=remember(context) { AndroidStorageBootstrap.roots(context, localRulesEnabled) }
+    val roots=remember(context) { AndroidStorageBootstrap.roots(context, allowGameplayReads = true) }
     var bootstrap by remember(context) { mutableStateOf<AndroidStorageBootstrap?>(null) }
     var recoveryReason by remember(context) { mutableStateOf<String?>(null) }
     LaunchedEffect(context) {

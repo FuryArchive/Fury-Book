@@ -1,5 +1,7 @@
 package com.furybook.desktop.screens
 
+import com.furybook.dubl.acquisition.LoadResult
+
 import com.furybook.ui.components.GameplayActionPanel
 import com.furybook.dubl.model.passiveAwareness
 import com.furybook.dubl.model.naturalArmorDevelopmentBonus
@@ -247,7 +249,7 @@ fun CharacterSheetScreen(
                 state.gameplay?.let { controller ->
                     item {
                         val captured = state.gameplayScope()
-                        GameplayActionPanel(controller, captured, migration = state.gameplayMigration, events = state.gameplayEvents, onCommitted = { state.refreshAfterGameplay(captured) })
+                        GameplayActionPanel(controller, captured, migration = state.gameplayMigration, events = state.gameplayEvents, storageRevision = (state.localStoredCharacter() as? LoadResult.Loaded)?.state?.storageRevision, onCommitted = { state.refreshAfterGameplay(captured) })
                     }
                 }
             item {
@@ -1063,7 +1065,7 @@ private fun SheetSkillsPanel(
         )
     }
     LaunchedEffect(groups, extras.skillGroups) {
-        if (groups != extras.skillGroups) state.setSkillGroups(groups)
+        if (!state.canonicalMode && groups != extras.skillGroups) state.setSkillGroups(groups)
     }
     val visibleById = remember(visibleSkills) { visibleSkills.associateBy { it.id } }
     val visibleGroups = remember(groups, visibleById) {
@@ -1333,7 +1335,7 @@ private fun SheetDevelopmentPanel(
         "development:ungrouped",
     )
     LaunchedEffect(developmentGroups, extras.developmentGroups) {
-        if (developmentGroups != extras.developmentGroups) state.setDevelopmentGroups(developmentGroups)
+        if (!state.canonicalMode && developmentGroups != extras.developmentGroups) state.setDevelopmentGroups(developmentGroups)
     }
     val developmentById = developmentItems.associateBy { it.entry.id }
     val parentById = developmentItems.associate { it.entry.id to it.parentId }

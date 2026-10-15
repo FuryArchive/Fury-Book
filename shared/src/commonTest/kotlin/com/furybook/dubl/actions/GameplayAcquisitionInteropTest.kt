@@ -95,4 +95,37 @@ class GameplayAcquisitionInteropTest {
         assertIs<GameplayCommitResult.Blocked>(actions.apply(UndoGameplay("undo-effort", "hero", 1, "effort"), saved.storageRevision))
         assertEquals(saved, store.state())
     }
+    @Test fun descriptive_edit_captured_before_paid_action_cannot_restore_its_resource() = run {
+        val store = LocalStore()
+        val coordinator = CharacterMutationCoordinator(store, { catalog }, { "unused" })
+        val command = coordinator.prepareNonFinancial("rename", "hero", 0) { character.setName("New name") }
+        assertIs<GameplayCommitResult.Applied>(GameplayService(store) { GameplayCapabilities(true, true) }
+            .apply(StartOverexertion("effort", "hero", 0, PhysicalAttribute.STRENGTH), 0))
+        val before = store.raw
+        val result = coordinator.mutate(command)
+        assertTrue(result is MutationResult.Blocked || result is MutationResult.Stale, result.toString())
+        assertEquals(before, store.raw)
+        assertEquals(2, store.state().character.enduranceCurrent)
+        assertEquals("effort", store.state().gameplay!!.pending?.startOperationId)
+    }
+    @Test fun manual_correction_is_pinned_and_fresh_correction_keeps_pending_action() = run {
+        val store = LocalStore()
+        val coordinator = CharacterMutationCoordinator(store, { catalog }, { "unused" })
+        val old = store.state()
+        val stale = CanonicalMutation("stale-manual", "hero", 0,
+            MutationPayload.ManualCorrection(CharacterPatch.fromCanonicalState(old, old.character.copy(name="Stale name")), Amount.ZERO), "Known correction")
+        assertIs<GameplayCommitResult.Applied>(GameplayService(store) { GameplayCapabilities(true, true) }
+            .apply(StartOverexertion("effort", "hero", 0, PhysicalAttribute.STRENGTH), 0))
+        val before = store.raw
+        assertIs<MutationResult.Blocked>(coordinator.mutate(stale))
+        assertEquals(before, store.raw)
+        val current = store.state()
+        val fresh = CanonicalMutation("fresh-manual", "hero", 0,
+            MutationPayload.ManualCorrection(CharacterPatch.fromCanonicalState(current, current.character.copy(name="Fresh name")), Amount.ZERO), "Known correction")
+        assertIs<MutationResult.Applied>(coordinator.mutate(fresh))
+        assertEquals("Fresh name", store.state().character.name)
+        assertEquals(2, store.state().character.enduranceCurrent)
+        assertEquals("effort", store.state().gameplay!!.pending?.startOperationId)
+        assertTrue(store.state().outbox.isEmpty())
+    }
 }

@@ -21,9 +21,16 @@ class GameplayUiTest {
         waitUntil(timeoutMillis=30_000) { state.gameplayMigration?.review != null }
         onNodeWithText("Создать копию и перейти / повторить").performClick()
         waitUntil(timeoutMillis=30_000) { fixture.saved().formatVersion == 2 }
+        onNodeWithTag("character.sheet").performScrollToNode(hasText("Навыки и развитие"))
+        waitForIdle()
+        assertNull(state.acquisitionUiModel, "Viewing default groups must not open a mutation confirmation")
+        onNodeWithTag("acquisition.preview").assertDoesNotExist()
         onNodeWithTag("character.sheet").performScrollToNode(hasText("Ходы и действия"))
         onNodeWithText("Ходы и действия").performClick()
-        fun press(text: String) { onNodeWithText(text).performScrollTo().performClick() }
+        fun press(text: String) {
+            waitUntil(timeoutMillis=30_000) { onAllNodes(hasText(text) and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
+            onNodeWithText(text).performScrollTo().performClick()
+        }
         fun confirm() {
             waitUntil(timeoutMillis=30_000) { state.gameplayEvents?.review != null }
             val expected = fixture.saved().gameplay?.events?.timeline?.revision?.plus(1) ?: 1

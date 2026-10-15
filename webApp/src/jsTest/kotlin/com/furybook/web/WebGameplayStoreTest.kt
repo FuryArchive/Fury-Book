@@ -3,6 +3,7 @@ package com.furybook.web
 import com.furybook.dubl.acquisition.*
 import com.furybook.dubl.actions.*
 import com.furybook.dubl.model.*
+import com.furybook.dubl.data.SnapshotCodec
 import kotlinx.browser.window
 import kotlinx.coroutines.*
 import kotlin.js.Promise
@@ -75,6 +76,38 @@ class WebGameplayStoreTest {
                 assertEquals(encodeEnvelope(source()), store.gameplayMigrationBackupForExport("hero", "migration"))
             } finally { store.close() }
         }
+    }
+    @Test fun mode_off_bootstrap_reads_supported_local_format_without_write_capability() = test {
+        val name = "furybook-gameplay-readonly-" + webUuid()
+        val writable = open(name)
+        seed(writable)
+        val expected = writable.rawForExport("hero")
+        writable.close()
+        val session = WebAuthSession("gameplay-fixture", "fixture.invalid")
+        val readonly = BrowserAcquisitionSession.open(session, { session.userId }, name, verifyOwner = { it })
+        try {
+            assertEquals(2, readonly.states.getValue("hero").formatVersion)
+            assertFalse(readonly.store.capabilities.localDurable)
+            val state = saved(readonly.store)
+            assertIs<CommitResult.StorageFailure>(readonly.store.compareAndSet("hero", state.storageRevision,
+                state.copy(storageRevision = state.storageRevision + 1)))
+            assertEquals(expected, readonly.store.rawForExport("hero"))
+        } finally { readonly.store.close() }
+    }
+    @Test fun session_store_keeps_typed_changed_legacy_source_fence() = test {
+        clearBrowserSessionData()
+        val snapshot = AppSnapshot(listOf(DublCharacter("hero",name="Original")), "hero")
+        val raw = SnapshotCodec.encode(snapshot)
+        receiveBrowserLegacySource("gameplay-fixture", BrowserLegacySource(raw, "{\"version\":1,\"characters\":{}}"))
+        val session = WebAuthSession("gameplay-fixture", "fixture.invalid")
+        val opened = BrowserAcquisitionSession.open(session, { session.userId }, "furybook-source-fence-"+webUuid(),
+            localRulesEnabled=true, verifyOwner={it})
+        try {
+            assertIs<LoadResult.MigrationRequired>(opened.store.load("hero"))
+            BrowserCharacterStore().save(snapshot.copy(characters=listOf(snapshot.characters.single().copy(name="Changed"))))
+            assertIs<LoadResult.LegacyImportConflict>(opened.store.load("hero"))
+            assertNull(opened.store.rawForExport("hero"))
+        } finally { opened.store.close(); clearBrowserSessionData() }
     }
     @Test fun separate_browser_process_reopens_gameplay_budget_and_pending_physical_check() = test {
         val phase = window.asDynamic().__karma__.config.furybookIdbPhase as? String ?: "normal"

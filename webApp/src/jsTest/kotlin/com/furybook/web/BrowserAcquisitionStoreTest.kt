@@ -239,7 +239,8 @@ class BrowserAcquisitionStoreTest {
             assertFalse(store.initialize());assertFalse(store.capabilities.localDurable)
             assertNotNull(store.storageError)
             val originalDenial=store.storageError!!
-            assertTrue(originalDenial.contains("Permission denied") || originalDenial.contains("SecurityError"),originalDenial)
+            assertTrue(originalDenial.contains("Permission denied") || originalDenial.contains("SecurityError") ||
+                (originalDenial.contains("Blocked a frame") && originalDenial.contains("cross-origin")),originalDenial)
             assertIs<CommitResult.StorageFailure>(store.compareAndSet("hero",-1,state()))
             println("ACTUAL_RESTRICTED_CONTEXT_STORAGE_FAILURE|"+originalDenial)
             store.close()

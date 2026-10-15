@@ -1,5 +1,7 @@
 package com.furybook.desktop.screens
 
+import com.furybook.dubl.acquisition.LoadResult
+
 import com.furybook.ui.components.GameplayActionPanel
 
 import com.furybook.dubl.model.passiveAwareness
@@ -246,7 +248,7 @@ fun CharacterSheetScreen(
                 state.gameplay?.let { controller ->
                     item {
                         val captured = state.gameplayScope()
-                        GameplayActionPanel(controller, captured, migration = state.gameplayMigration, events = state.gameplayEvents, onCommitted = { state.refreshAfterGameplay(captured) })
+                        GameplayActionPanel(controller, captured, migration = state.gameplayMigration, events = state.gameplayEvents, storageRevision = (state.canonicalLoadOutcome as? LoadResult.Loaded)?.state?.storageRevision, onCommitted = { state.refreshAfterGameplay(captured) })
                     }
                 }
             item {

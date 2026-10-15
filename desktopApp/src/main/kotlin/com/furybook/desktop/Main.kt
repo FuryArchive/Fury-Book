@@ -148,7 +148,7 @@ private fun DesktopApp() {
     val baseExtras = remember { DesktopCharacterExtrasStore() }
     val observedCharacters = remember(baseCharacters) { ObservingCharacterStore(baseCharacters) }
     val observedExtras = remember(baseExtras) { ObservingCharacterExtrasStore(baseExtras) }
-    val acquisitionStore = remember { DesktopAcquisitionStore(gameplayFormatEnabled = localRulesEnabled) }
+    val acquisitionStore = remember { DesktopAcquisitionStore(gameplayFormatEnabled = true) }
     val legacyCloudController = remember(baseCharacters, baseExtras, localAcquisitionEnabled, acquisitionStore) {
         legacyCloudForStorage(acquisitionStore, localAcquisitionEnabled) {
             DesktopCloudController(baseCharacters, baseExtras).also { it.bind(observedCharacters, observedExtras) }

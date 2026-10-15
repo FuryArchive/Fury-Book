@@ -199,6 +199,10 @@ class AcquisitionPresentationSession(private val port:AcquisitionCommandPort,pri
             if(model?.key!=key) return checkNotNull(model)
             if(expectedBaseRevision!=null && state.revision!=expectedBaseRevision)
                 return blocked("Исходный лист изменился; подготовьте ручную правку заново",AcquisitionUiPhase.Stale)
+            if(payload is MutationPayload.ManualCorrection) {
+                try { payload.characterPatch.validateBase(state) }
+                catch (_:IllegalArgumentException) { return blocked("Исходный лист изменился; подготовьте ручную правку заново",AcquisitionUiPhase.Stale) }
+            }
             reviewCatalog=port.catalog;revision=state.revision;reviewPayload=payload;this.reason=reason
             if(!current()) return blocked("Выбор изменился",AcquisitionUiPhase.Stale)
             if(!canWrite()) return blocked("Надёжное локальное сохранение недоступно")

@@ -574,7 +574,12 @@ private fun recordedCopiedHoldingMutation(state:StoredCharacter,entry:LedgerEntr
     val afterProjection=proof.objectRequired("after").also { it.keys("characterSnapshot","instances","extras","creationPhase") }
     if(entry.type==LedgerEntryType.ManualCorrection) {
         payload.keys("kind","patch","delta")
-        val patch=payload.objectRequired("patch").also { it.keys("projection","replacesInstances","replacesExtras") }
+        val patch=payload.objectRequired("patch").also {
+            if ("expectedStorageRevision" in it.values) {
+                it.keys("projection","replacesInstances","replacesExtras","expectedStorageRevision")
+                require(state.formatVersion==2 && it.long("expectedStorageRevision") in 0..state.storageRevision)
+            } else it.keys("projection","replacesInstances","replacesExtras")
+        }
         val projection=patch.objectRequired("projection").also { it.keys("characterSnapshot","instances","extras","creationPhase") }
         fun replacing(key:String)=(patch.values[key] as? JsonValue.Bool)?.value ?: error("Expected patch replacement flag")
         require(afterProjection.values["characterSnapshot"]==projection.values["characterSnapshot"] &&

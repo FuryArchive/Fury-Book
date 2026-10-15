@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 /** Opt-in host component. The host must supply the current scope and a gated controller. */
 @Composable
 fun GameplayActionPanel(controller: GameplayController, scope: GameplayScope,
-    migration: GameplayMigrationController? = null, events: GameplayEventController? = null, modifier: Modifier = Modifier, onCommitted: suspend () -> Unit = {}) {
+    migration: GameplayMigrationController? = null, events: GameplayEventController? = null, modifier: Modifier = Modifier, storageRevision: Long? = null, onCommitted: suspend () -> Unit = {}) {
     var sheet by remember(controller, scope) { mutableStateOf<GameplaySheet?>(null) }
     var review by remember(controller, scope) { mutableStateOf<GameplayReview?>(null) }
     var busy by remember(controller, scope) { mutableStateOf(false) }
@@ -31,7 +31,7 @@ fun GameplayActionPanel(controller: GameplayController, scope: GameplayScope,
     var showEffort by remember(controller, scope) { mutableStateOf(false) }
     val jobs = rememberCoroutineScope()
     // Changing the presentation scope only reloads. It never submits a game event or restores resources.
-    LaunchedEffect(controller, scope) {
+    LaunchedEffect(controller, scope, storageRevision) {
         try { sheet = controller.readSheet().takeIf { it.scope == scope }; review = controller.review }
         catch (cancelled: CancellationException) { throw cancelled }
         catch (failure: Exception) { message = failure.message ?: "Лист недоступен" }

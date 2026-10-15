@@ -34,7 +34,7 @@ internal class BrowserAcquisitionSession private constructor(
             val owner=BrowserOwnerScope.fromVerifiedSession(verified,currentOwner)
             owner.requireCurrent()
             val store=BrowserAcquisitionStore(owner,databaseName,localWritesEnabled=localRulesEnabled,
-                legacySource={captureBrowserLegacySource(owner.id)},indexedDb=indexedDb,gameplayFormatEnabled=localRulesEnabled)
+                indexedDb=indexedDb,gameplayFormatEnabled=true)
             try {
                 check(store.initialize()) { store.storageError ?: "Browser durable storage unavailable" }
                 val loaded=linkedMapOf<String,StoredCharacter>()
