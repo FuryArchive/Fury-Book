@@ -57,7 +57,7 @@ class CharacterController internal constructor(
         writePolicy = if(canonical) CanonicalWritePolicy.Protected else CanonicalWritePolicy.LegacyIsolated,
     )
 
-    private var application = createApplication(initialCanonicalStates.isNotEmpty() || legacyGate?.readOnly == true)
+    private var application = createApplication(capabilities.localDurable || initialCanonicalStates.isNotEmpty() || legacyGate?.readOnly == true)
     private val commandApplication by lazy { createApplication(true) }
     var acquisitionUiModel: AcquisitionUiModel? by mutableStateOf(null)
         private set
@@ -101,6 +101,7 @@ class CharacterController internal constructor(
             { UUID.randomUUID().toString() })
     }
     val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && isCanonicalProtected) retainedGameplay else null
+    val activeCombat: CombatResources? get() = canonicalStates[snapshot.activeCharacterId]?.gameplay?.events?.timeline?.combat
     private val retainedGameplayEvents by lazy {
         val native = checkNotNull(acquisitionStore)
         val serialized = object : AcquisitionStore {
@@ -189,7 +190,7 @@ class CharacterController internal constructor(
     }
 
     private fun <T> sync(block: () -> T): T {
-        check(!disposed && canonicalStates.isEmpty() && legacyGate?.readOnly!=true) { "Canonical acquisition/recovery is read-only; legacy mutation is blocked" }
+        check(!disposed && !isCanonicalProtected) { "Canonical acquisition/recovery is read-only; legacy mutation is blocked" }
         val result = if(legacyGate!=null) legacyGate.legacyWrite { block() } else block()
         snapshot = application.snapshot
         extras = application.activeExtras
@@ -197,7 +198,9 @@ class CharacterController internal constructor(
     }
 
     val acquisitionCapabilities: AcquisitionCapabilities get() = capabilities
-    val isCanonicalProtected: Boolean get() = canonicalStates.isNotEmpty() || legacyGate?.readOnly == true
+    val isCanonicalProtected: Boolean get() = capabilities.localDurable || canonicalStates.isNotEmpty() || legacyGate?.readOnly == true
+    val hasCanonicalActive: Boolean get() = snapshot.activeCharacterId in canonicalStates
+    val activeStoredFormat: Int? get() = canonicalStates[snapshot.activeCharacterId]?.formatVersion
     /** Installed by the root renderer; detached Shared staging still validates every field. */
     var onCanonicalNonFinancialReview: ((DublApplication.() -> Unit) -> Unit)? = null
     private fun descriptive(edit: DublApplication.() -> Unit) {
@@ -330,7 +333,7 @@ class CharacterController internal constructor(
     }
     fun deleteActive() = sync { application.character.deleteActive() }
     fun undoLast(): Boolean = sync { application.undoLast() }
-    private var canonicalStates = initialCanonicalStates.toMap()
+    private var canonicalStates by mutableStateOf(initialCanonicalStates.toMap())
     private var controllerGeneration=0L
     private var selectionGeneration=0L
     private var disposed=false

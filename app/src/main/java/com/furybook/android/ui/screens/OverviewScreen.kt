@@ -385,12 +385,6 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 28.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            controller.gameplay?.let { actions ->
-                item {
-                    val captured = controller.gameplayScope()
-                    GameplayActionPanel(actions, captured, migration = controller.gameplayMigration, events = controller.gameplayEvents, onCommitted = { controller.refreshAfterGameplay(captured) })
-                }
-            }
             item {
                 CharacterHero(
                     character = character,
@@ -403,7 +397,6 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 )
             }
 
-            if (acquisition?.canonical == true) item { AcquisitionBalanceCard() }
             item {
                 SectionTitle(
                     title = "Ресурсы",
@@ -449,6 +442,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 Spacer(Modifier.height(8.dp))
                 KeyStats(
                     character = character,
+                    temporaryDefenseBonus = controller.activeCombat?.defenseBonus ?: 0,
                     activeConditions = sheetExtras.activeConditions,
                     onStatClick = { selectedStat = it },
                     onFortitudeRoll = { showFortitudeRoll = true },
@@ -456,6 +450,14 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                     onInitiativeRoll = { selectedRollContext = RollContext.INITIATIVE },
                 )
             }
+
+            controller.gameplay?.let { actions ->
+                item {
+                    val captured = controller.gameplayScope()
+                    GameplayActionPanel(actions, captured, migration = controller.gameplayMigration, events = controller.gameplayEvents, onCommitted = { controller.refreshAfterGameplay(captured) })
+                }
+            }
+            if (acquisition?.canonical == true) item { AcquisitionBalanceCard() }
 
             item {
                 QuickChecksSection(onRoll = { selectedRollContext = it })
@@ -972,7 +974,7 @@ fun OverviewScreen(controller: CharacterController, chiPackEnabled: Boolean) {
 
     selectedStat?.let { statId ->
         StatInfoSheet(
-            info = statInfo(statId, character, sheetExtras.activeConditions),
+            info = statInfo(statId, character, sheetExtras.activeConditions, controller.activeCombat?.defenseBonus ?: 0),
             character = character,
             onRollFortitude = {
                 selectedStat = null
@@ -1789,6 +1791,7 @@ private fun ContextRollSheet(
 private fun KeyStats(
     character: DublCharacter,
     activeConditions: Set<CharacterConditionId> = emptySet(),
+    temporaryDefenseBonus: Int = 0,
     onStatClick: (StatId) -> Unit,
     onFortitudeRoll: () -> Unit,
     onReflexesRoll: () -> Unit,
@@ -1801,7 +1804,7 @@ private fun KeyStats(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 rowStats.forEach { stat ->
-                    val info = statInfo(stat, character, activeConditions)
+                    val info = statInfo(stat, character, activeConditions, temporaryDefenseBonus)
                     StatTile(
                         stat = stat,
                         value = info.value,
@@ -1902,9 +1905,9 @@ private fun StatTile(
     }
 }
 
-private fun statInfo(id: StatId, character: DublCharacter, active: Set<CharacterConditionId> = emptySet()): StatInfo {
+private fun statInfo(id: StatId, character: DublCharacter, active: Set<CharacterConditionId> = emptySet(), temporaryDefenseBonus: Int = 0): StatInfo {
     val base = rawStatInfo(id, character)
-    val values = character.conditionDerivedValues(active)
+    val values = character.conditionDerivedValues(active, temporaryDefenseBonus)
     val value = when (id) {
         StatId.DEFENSE -> values.defense?.toString() ?: "?"
         StatId.REFLEXES -> values.reflexes?.let(::signed) ?: "?"
@@ -1921,12 +1924,16 @@ private fun statInfo(id: StatId, character: DublCharacter, active: Set<Character
     }
     val lines = context?.let { character.conditionRollModifiers(it, active = active).contributions
         .map { contribution -> "${contribution.label}: ${signed(contribution.value)}" } }
-        ?: listOf("Поправка состояния: ${values.defense?.let { signed(it - character.defense) } ?: "?"}")
-    return base.copy(value = value, formula = base.formula + " + поправки состояний",
+        ?: buildList {
+            val conditionDelta = character.conditionDerivedValues(active).defense?.minus(character.defense) ?: 0
+            if (conditionDelta != 0) add("Состояния: ${signed(conditionDelta)}")
+            if (temporaryDefenseBonus != 0) add("Защитное откладывание (P14265): ${signed(temporaryDefenseBonus)}")
+        }
+    return base.copy(value = value, formula = base.formula + " + состояния + временные эффекты",
         breakdown = base.breakdown.filterNot { it.startsWith("Итог:") } +
             lines + "Итог: $value",
         note = if (value == "?") context?.let { character.conditionRollModifiers(it, active = active).unavailableReason }
-            ?: "Сочетание Истощения и Слабости требует уточнения; автоматический результат недоступен." else base.note)
+            ?: "Для этого состояния автоматический результат недоступен." else base.note)
 }
 
 private fun rawStatInfo(id: StatId, character: DublCharacter): StatInfo = when (id) {

@@ -1,8 +1,22 @@
 package com.furybook.dubl.actions
 
 import kotlin.test.*
+import com.furybook.dubl.model.*
 
 class GameplayCombatTest {
+    @Test fun reserved_defense_is_added_to_the_character_total_and_disappears_after_expiry() {
+        val character = DublCharacter("hero", enduranceCurrent = 0)
+        val conditions = setOf(CharacterConditionId.EXHAUSTION)
+        var state = apply(GameplayTimeline("hero"), GameBoundary.TurnStarted("own-1", "hero"))
+        state = apply(state, GameBoundary.DefenseReserved("reserve", 2))
+        assertEquals(character.defense - 3, character.conditionDerivedValues(conditions,
+            temporaryDefenseBonus = state.combat.defenseBonus).defense)
+        state = apply(state, GameBoundary.TurnEnded("end-own", "hero", "own-1"))
+        state = apply(state, GameBoundary.TurnStarted("own-2", "hero"))
+        assertEquals(character.defense - 5, character.conditionDerivedValues(conditions,
+            temporaryDefenseBonus = state.combat.defenseBonus).defense)
+    }
+
     private fun apply(state: GameplayTimeline, event: GameBoundary): GameplayTimeline {
         val result = GameplayEvents.apply(state, RecordGameBoundary("op-${event.boundaryId}", state.characterId, state.revision, event))
         assertIs<BoundaryTransition.Applied>(result)

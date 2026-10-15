@@ -1,6 +1,7 @@
 package com.furybook.ui.theme
 
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -30,6 +31,8 @@ fun DublTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = DublColors,
         typography = DublTypography,
-        content = content,
-    )
+    ) {
+        Surface(color = MaterialTheme.colorScheme.background, contentColor = MaterialTheme.colorScheme.onBackground,
+            content = content)
+    }
 }

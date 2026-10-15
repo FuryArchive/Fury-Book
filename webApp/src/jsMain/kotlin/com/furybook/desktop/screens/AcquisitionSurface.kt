@@ -544,7 +544,13 @@ fun WebAcquisitionRoot(state: DesktopAppState, content: @Composable () -> Unit) 
         onDispose { state.onCanonicalNonFinancialReview = null; state.dispose() }
     }
     CompositionLocalProvider(LocalWebAcquisition provides actions) {
-        if (state.canonicalReadState.navigationAvailable) content()
+        if (state.canonicalReadState.navigationAvailable) {
+            if (state.experimentalGameplayEnabled && (canonicalLoad as? LoadResult.Loaded)?.state?.formatVersion == 1) {
+                val captured = state.gameplayScope()
+                com.furybook.ui.components.LocalRulesPreparationPanel(checkNotNull(state.gameplay), captured,
+                    checkNotNull(state.gameplayMigration), state.exportActiveCharacter()) { state.refreshAfterGameplay(captured) }
+            } else content()
+        }
         else Column(Modifier.fillMaxSize().padding(24.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
             Text(state.canonicalReadState.error ?: "Загрузка защищённого канонического хранилища")
             if(state.canonicalReadState.error!=null) TextButton(onClick={ actions.action { state.initializeCanonicalView() } }) { Text("Повторить чтение") }

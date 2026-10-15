@@ -49,7 +49,7 @@ class DesktopAppState(
 ) {
     private val characterStore = BrowserCharacterStore()
     private val extrasStore = BrowserCharacterExtrasStore()
-    private var canonicalStates = initialCanonicalStates.toMap()
+    private var canonicalStates by mutableStateOf(initialCanonicalStates.toMap())
     private var readOnlySelection:String? = null
     var canonicalReadState by mutableStateOf(WebCanonicalReadState.initial(acquisitionStore != null, initialCanonicalStates.isNotEmpty()))
         private set
@@ -134,6 +134,7 @@ class DesktopAppState(
             { GameplayCapabilities(experimentalGameplayEnabled && localCapabilities().localDurable, true) }, ::webUuid)
     }
     val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && canonicalMode) retainedGameplay else null
+    val activeCombat: CombatResources? get() = canonicalStates[snapshot.activeCharacterId]?.gameplay?.events?.timeline?.combat
     private val retainedGameplayEvents by lazy {
         val native = checkNotNull(acquisitionStore)
         val serialized = object : AcquisitionStore {

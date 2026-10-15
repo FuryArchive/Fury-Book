@@ -2,6 +2,18 @@ from pathlib import Path
 import tempfile
 
 
+def test_combat_budget_and_reserved_defense_survive_fresh_processes():
+    from tools.tests.kotlin_harness_support import run_harness
+    root = Path(__file__).resolve().parents[2]
+    sources = [root / "shared/src/desktopMain/kotlin/com/furybook/dubl/data" / name for name in (
+        "DesktopCharacterStore.kt", "DesktopCharacterExtrasStore.kt", "DesktopAcquisitionStore.kt")]
+    with tempfile.TemporaryDirectory(prefix="furybook-combat-") as directory:
+        for phase in ("start", "reopen", "verify"):
+            result = run_harness(Path(__file__).parent / "kotlin/GameplayCombatDesktopHarness.kt",
+                                 extra_sources=sources, args=(directory, phase))
+            assert f"GAMEPLAY_COMBAT_DESKTOP_OK:{phase}" in result.stdout
+
+
 def test_overexertion_transitions_execute_shared_code():
     from tools.tests.kotlin_harness_support import run_harness
 

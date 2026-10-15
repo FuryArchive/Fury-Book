@@ -107,10 +107,10 @@ private class AndroidStorageBootstrap private constructor(
         override fun delete(characterId:String) { extras.delete(characterId) }
     }
     companion object {
-        fun roots(context:android.content.Context):Pair<AndroidLegacyAcquisitionSource,AndroidAcquisitionStore> {
+        fun roots(context:android.content.Context, localRulesEnabled: Boolean = false):Pair<AndroidLegacyAcquisitionSource,AndroidAcquisitionStore> {
             val root=context.applicationContext.dataDir.toPath()
             val source=AndroidLegacyAcquisitionSource(root.resolve("shared_prefs"),AndroidLegacyWriteGate())
-            return source to AndroidAcquisitionStore(root,source)
+            return source to AndroidAcquisitionStore(root,source,gameplayFormatEnabled = localRulesEnabled)
         }
         suspend fun open(context:android.content.Context,source:AndroidLegacyAcquisitionSource,store:AndroidAcquisitionStore):AndroidStorageBootstrap {
             // Original XML/.bak capture must precede either framework SharedPreferences instance.
@@ -136,7 +136,21 @@ private class AndroidStorageBootstrap private constructor(
 @Composable
 fun DublApp() {
     val context=androidx.compose.ui.platform.LocalContext.current.applicationContext
-    val roots=remember(context) { AndroidStorageBootstrap.roots(context) }
+    val preferences = remember(context) { context.getSharedPreferences("furybook_runtime", android.content.Context.MODE_PRIVATE) }
+    val localRulesEnabled = remember(context) { preferences.getBoolean("local_rules", false) }
+    var pendingLocalRules by remember { mutableStateOf<Boolean?>(null) }
+    Column(Modifier.fillMaxSize()) {
+        com.furybook.ui.components.LocalRulesModeControl(localRulesEnabled, pendingLocalRules) { enabled ->
+            check(preferences.edit().putBoolean("local_rules", enabled).commit()) { "Настройка не сохранена" }
+            pendingLocalRules = enabled
+        }
+        Box(Modifier.weight(1f).fillMaxWidth()) { DublStorageApp(context, localRulesEnabled) }
+    }
+}
+
+@Composable
+private fun DublStorageApp(context: android.content.Context, localRulesEnabled: Boolean) {
+    val roots=remember(context) { AndroidStorageBootstrap.roots(context, localRulesEnabled) }
     var bootstrap by remember(context) { mutableStateOf<AndroidStorageBootstrap?>(null) }
     var recoveryReason by remember(context) { mutableStateOf<String?>(null) }
     LaunchedEffect(context) {
@@ -153,11 +167,11 @@ fun DublApp() {
     }
     val ready=bootstrap
     if(ready==null) { Box(Modifier.fillMaxSize(),contentAlignment=Alignment.Center) { CircularProgressIndicator() };return }
-    DublReadyApp(ready)
+    DublReadyApp(ready, localRulesEnabled)
 }
 
 @Composable
-private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
+private fun DublReadyApp(bootstrap:AndroidStorageBootstrap, localRulesEnabled: Boolean) {
     val appContext=bootstrap.context
     val characterRepository=bootstrap.characters
     val extrasRepository=bootstrap.extras
@@ -189,6 +203,8 @@ private fun DublReadyApp(bootstrap:AndroidStorageBootstrap) {
     val controller = remember(bootstrap, reloadToken) {
         CharacterController(observingCharacters, observingExtras, bootstrap.store, bootstrap.states, bootstrap.source.gate,
             catalogProvider = { currentContent.acquisition },
+            capabilities = if (localRulesEnabled) AcquisitionCapabilities(true, false, true) else com.furybook.android.state.AndroidAcquisitionRuntimeGate.production,
+            experimentalGameplayEnabled = localRulesEnabled,
             ownerScope = { cloudController.session?.userId to cloudController.accountGeneration })
     }
     DisposableEffect(controller) { onDispose { controller.dispose() } }

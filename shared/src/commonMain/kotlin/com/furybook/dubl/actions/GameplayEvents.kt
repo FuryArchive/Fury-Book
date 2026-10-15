@@ -1,6 +1,6 @@
 package com.furybook.dubl.actions
 
-/** Explicit boundaries only. View modes and wall-clock passage are not game events. */
+/** Explicit game events. View modes and wall-clock passage never spend or refresh resources. */
 sealed interface GameBoundary {
     val boundaryId: String
     data class TurnStarted(override val boundaryId: String, val actorId: String) : GameBoundary
@@ -32,7 +32,7 @@ data class OpenGameTurn(val actorId: String, val startedBoundaryId: String)
 data class GameBoundaryReceipt(val request: RecordGameBoundary, val expiredEffectIds: List<String>,
     val blockedEffectIds: List<String>, val afterRevision: Long)
 
-/** Pure lifecycle state, not an independently persisted sidecar or an AP/HP/endurance account. */
+/** Replayed lifecycle and combat budget, never an independently persisted mutable sidecar. */
 class GameplayTimeline(val characterId: String, val revision: Long = 0, val ownTurnOrdinal: Long = 0,
     val roundOrdinal: Long = 0, val openTurn: OpenGameTurn? = null,
     effects: List<TimedEffectInstance> = emptyList(), receipts: List<GameBoundaryReceipt> = emptyList()) {

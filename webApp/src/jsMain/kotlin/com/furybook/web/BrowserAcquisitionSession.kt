@@ -25,14 +25,16 @@ internal class BrowserAcquisitionSession private constructor(
     }
     companion object {
         suspend fun open(session:WebAuthSession,currentOwner:()->String?,databaseName:String="furybook-acquisitions-v1",
-            indexedDb:()->dynamic={window.asDynamic().indexedDB},verifyOwner:suspend (WebAuthSession)->WebAuthSession?):BrowserAcquisitionSession {
+            indexedDb:()->dynamic={window.asDynamic().indexedDB},localRulesEnabled:Boolean=false,
+            verifyOwner:suspend (WebAuthSession)->WebAuthSession?):BrowserAcquisitionSession {
             require(session.userId.isNotBlank() && currentOwner()==session.userId) { "Verified browser account changed" }
             // No owner-selected native access can occur until authentic principal verification succeeds.
             val verified=checkNotNull(verifyOwner(session)) { "Authenticated browser owner unavailable" }
             require(verified.userId.isNotBlank() && verified.userId==session.userId && currentOwner()==session.userId) { "Verified browser account changed" }
             val owner=BrowserOwnerScope.fromVerifiedSession(verified,currentOwner)
             owner.requireCurrent()
-            val store=BrowserAcquisitionStore(owner,databaseName,indexedDb=indexedDb) // Production local rollout stays default-off.
+            val store=BrowserAcquisitionStore(owner,databaseName,localWritesEnabled=localRulesEnabled,
+                legacySource={captureBrowserLegacySource(owner.id)},indexedDb=indexedDb,gameplayFormatEnabled=localRulesEnabled)
             try {
                 check(store.initialize()) { store.storageError ?: "Browser durable storage unavailable" }
                 val loaded=linkedMapOf<String,StoredCharacter>()

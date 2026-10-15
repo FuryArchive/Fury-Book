@@ -141,6 +141,7 @@ class DesktopAppState(
             { UUID.randomUUID().toString() })
     }
     val gameplay: GameplayController? get() = if (experimentalGameplayEnabled && canonicalMode) retainedGameplay else null
+    val activeCombat: CombatResources? get() = (localStoredCharacter() as? LoadResult.Loaded)?.state?.gameplay?.events?.timeline?.combat
     private val retainedGameplayEvents by lazy {
         val native = checkNotNull(acquisitionStore)
         val serialized = object : AcquisitionStore {

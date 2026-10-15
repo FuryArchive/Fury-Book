@@ -154,6 +154,9 @@ val prepareAndroidAcquisitionOracle by tasks.registering {
                         .openStream().bufferedReader().useLines { lines -> lines.forEach(consume) }
                 })""")
             .replace(entry, "fun forEachPresentation(observe: (String, AcquisitionUiModel) -> Unit)")
+            .replace("= runMatrix(false)", "= runMatrix(false, observe)")
+            .replace("@Test ", "")
+            .replace("private fun runMatrix(performanceOnly: Boolean)", "private fun runMatrix(performanceOnly: Boolean, observe: (String, AcquisitionUiModel) -> Unit = { _, _ -> })")
             .replace(Regex("(?m)^    private val (root|folder)=.*\\n"), "")
             .replace("javaClass.classLoader.getResource(it)?.readText()", "readText(it)")
             .replace("File(folder,\"author_expected_price_updates.json\").readText()", "checkNotNull(readText(\"acquisition-oracle/author_expected_price_updates.json\"))")

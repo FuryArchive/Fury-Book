@@ -1,6 +1,6 @@
 package com.furybook.dubl.actions
 
-/** Canonical event-only history. Effects cannot be injected without an implemented activation ledger. */
+/** Canonical typed history. Only implemented source-specific commands can activate an effect. */
 class GameplayEventLog(val characterId: String, commands: List<RecordGameBoundary> = emptyList()) {
     private val saved = commands.toList()
     val commands get() = saved.toList()

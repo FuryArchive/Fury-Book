@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -139,12 +140,15 @@ internal fun DesktopVisualTheme(content: @Composable () -> Unit) {
 
 @Composable
 private fun DesktopApp() {
-    val localAcquisitionEnabled = remember { java.lang.Boolean.getBoolean("furybook.acquisition.local") }
+    val preferences = remember { java.util.prefs.Preferences.userRoot().node("com/furybook/runtime") }
+    val localRulesEnabled = remember { preferences.getBoolean("localRules", java.lang.Boolean.getBoolean("furybook.gameplay.local")) }
+    var pendingLocalRules by remember { mutableStateOf<Boolean?>(null) }
+    val localAcquisitionEnabled = remember { localRulesEnabled || java.lang.Boolean.getBoolean("furybook.acquisition.local") }
     val baseCharacters = remember { DesktopCharacterStore() }
     val baseExtras = remember { DesktopCharacterExtrasStore() }
     val observedCharacters = remember(baseCharacters) { ObservingCharacterStore(baseCharacters) }
     val observedExtras = remember(baseExtras) { ObservingCharacterExtrasStore(baseExtras) }
-    val acquisitionStore = remember { DesktopAcquisitionStore() }
+    val acquisitionStore = remember { DesktopAcquisitionStore(gameplayFormatEnabled = localRulesEnabled) }
     val legacyCloudController = remember(baseCharacters, baseExtras, localAcquisitionEnabled, acquisitionStore) {
         legacyCloudForStorage(acquisitionStore, localAcquisitionEnabled) {
             DesktopCloudController(baseCharacters, baseExtras).also { it.bind(observedCharacters, observedExtras) }
@@ -153,18 +157,25 @@ private fun DesktopApp() {
     val reloadToken = legacyCloudController?.reloadToken ?: 0
     val startup = remember(reloadToken, localAcquisitionEnabled) {
         runCatching { DesktopAppState(observedCharacters, observedExtras,
-            localAcquisitionEnabled = localAcquisitionEnabled, acquisitionStore = acquisitionStore) }
+            localAcquisitionEnabled = localAcquisitionEnabled, acquisitionStore = acquisitionStore,
+            experimentalGameplayEnabled = localRulesEnabled) }
     }
     val state = startup.getOrNull()
+    DisposableEffect(state) { onDispose { state?.dispose() } }
+    Column(Modifier.fillMaxSize()) {
+    com.furybook.ui.components.LocalRulesModeControl(localRulesEnabled, pendingLocalRules) { enabled ->
+        preferences.putBoolean("localRules", enabled); preferences.flush(); pendingLocalRules = enabled
+    }
+    Box(Modifier.weight(1f).fillMaxWidth()) {
     if (state == null) {
         Column(Modifier.fillMaxSize().padding(24.dp)) {
             Text("Не удалось открыть данные", style = MaterialTheme.typography.headlineSmall)
             Text(startup.exceptionOrNull()?.message ?: "Хранилище недоступно")
             Text("Исходные файлы сохранены. Запись заблокирована; проверьте резервную копию и формат.")
         }
-        return
+    } else DesktopAppContent(state, legacyCloudController)
     }
-    DesktopAppContent(state, legacyCloudController)
+    }
 }
 
 /** Exact production content shared by the native Window and the supported offscreen host. */
@@ -174,7 +185,13 @@ internal fun DesktopAppContent(state: DesktopAppState, legacyCloudController: De
         LaunchedEffect(state) { if (!state.canonicalViewReady) runCatching { state.initializeCanonicalView() } }
         LaunchedEffect(state, state.contentRevision) { runCatching { state.refreshCanonicalContent() } }
         if (!state.canonicalViewReady) { LocalAcquisitionStoragePanel(state); return }
-        DesktopAcquisitionRoot(state) { DesktopNavigationContent(state, null) }
+        DesktopAcquisitionRoot(state) {
+            if (state.experimentalGameplayEnabled && (state.localStoredCharacter() as? LoadResult.Loaded)?.state?.formatVersion == 1) {
+                val captured = state.gameplayScope()
+                com.furybook.ui.components.LocalRulesPreparationPanel(checkNotNull(state.gameplay), captured,
+                    checkNotNull(state.gameplayMigration), state.exportActiveCharacter()) { state.refreshAfterGameplay(captured) }
+            } else DesktopNavigationContent(state, null)
+        }
         return // Protected heads, including default-false read-only, never bind a legacy cloud writer.
     }
     val cloudController = requireNotNull(legacyCloudController)

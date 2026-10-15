@@ -208,14 +208,7 @@ fun CharacterSheetScreen(
         val compactSheet = maxWidth < 880.dp
         val wideSheet = maxWidth >= 1320.dp
         Box(Modifier.fillMaxSize()) {
-            LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (state.canonicalMode) item { AcquisitionBalanceCard() }
-                state.gameplay?.let { controller ->
-                    item {
-                        val captured = state.gameplayScope()
-                        GameplayActionPanel(controller, captured, migration = state.gameplayMigration, events = state.gameplayEvents, onCommitted = { state.refreshAfterGameplay(captured) })
-                    }
-                }
+            LazyColumn(Modifier.fillMaxSize().testTag("character.sheet"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item {
                 CharacterHero(
                     state = state,
@@ -250,6 +243,13 @@ fun CharacterSheetScreen(
                 )
             }
 
+                if (state.canonicalMode) item { AcquisitionBalanceCard() }
+                state.gameplay?.let { controller ->
+                    item {
+                        val captured = state.gameplayScope()
+                        GameplayActionPanel(controller, captured, migration = state.gameplayMigration, events = state.gameplayEvents, onCommitted = { state.refreshAfterGameplay(captured) })
+                    }
+                }
             item {
                 CombatActionsPanel(onRoll = { context -> rollRequest = ContextRollRequest(context) })
             }
@@ -553,6 +553,7 @@ private fun CharacterHero(
 
             HeroTelemetry(
                 character = character,
+                temporaryDefenseBonus = state.activeCombat?.defenseBonus ?: 0,
                 activeConditions = effectiveConditions,
                 compact = compact,
                 wide = wide,
@@ -798,6 +799,7 @@ private fun HeroResources(
 private fun HeroTelemetry(
     character: DublCharacter,
     activeConditions: Set<CharacterConditionId>,
+    temporaryDefenseBonus: Int = 0,
     compact: Boolean,
     wide: Boolean,
     onAttributeDelta: (AttributeId, Int) -> Unit,
@@ -823,6 +825,7 @@ private fun HeroTelemetry(
                 HeroMetricsStrip(
                     character = character,
                     activeConditions = activeConditions,
+                    temporaryDefenseBonus = temporaryDefenseBonus,
                     compact = false,
                     wide = false,
                     embedded = true,
@@ -845,6 +848,7 @@ private fun HeroTelemetry(
                 HeroMetricsStrip(
                     character = character,
                     activeConditions = activeConditions,
+                    temporaryDefenseBonus = temporaryDefenseBonus,
                     compact = compact,
                     wide = wide,
                     onRoll = onRoll,
@@ -922,6 +926,7 @@ private fun attributeIcon(id: AttributeId): DesktopIconKind = when (id) {
 private fun HeroMetricsStrip(
     character: DublCharacter,
     activeConditions: Set<CharacterConditionId>,
+    temporaryDefenseBonus: Int = 0,
     compact: Boolean,
     wide: Boolean,
     embedded: Boolean = false,
@@ -933,7 +938,7 @@ private fun HeroMetricsStrip(
         val value: String,
         val context: RollContext?,
     )
-    val conditionValues = character.conditionDerivedValues(activeConditions)
+    val conditionValues = character.conditionDerivedValues(activeConditions, temporaryDefenseBonus)
     val metrics = listOf(
         Metric(DesktopIconKind.DEFENSE, "Защита", (conditionValues.defense?.toString() ?: "?"), null),
         Metric(DesktopIconKind.REFLEXES, "Рефлексы", (conditionValues.reflexes?.toString() ?: "?"), RollContext.REFLEXES),
@@ -976,7 +981,7 @@ private fun HeroMetricsStrip(
                         value = metric.value,
                         tint = tint,
                         onRoll = metric.context?.let { context -> { onRoll(context, null) } },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).testTag("sheet.metric.${metric.title}"),
                     )
                 }
                 repeat(columns - rowMetrics.size) { Spacer(Modifier.weight(1f)) }

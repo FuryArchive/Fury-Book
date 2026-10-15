@@ -55,6 +55,7 @@ private fun WebRoot() {
     val scope = rememberCoroutineScope()
     var resources by remember { mutableStateOf<Map<String, String>?>(null) }
     var session by remember { mutableStateOf<WebAuthSession?>(null) }
+    var localRulesEnabled by remember { mutableStateOf(false) }
     var durableSession by remember { mutableStateOf<BrowserAcquisitionSession?>(null) }
     val cloud = remember { WebCloudSync(object:AcquisitionStore {
         override suspend fun load(characterId:String):LoadResult =
@@ -70,8 +71,9 @@ private fun WebRoot() {
 
     suspend fun hydrateRemote(): CloudBootstrap {
         val authenticated=checkNotNull(session) { "Verified account is required before durable storage" }
+        localRulesEnabled = kotlinx.browser.window.localStorage.getItem("furybook.local-rules.${authenticated.userId}") == "true"
         durableSession?.store?.close();durableSession=null
-        val initialized=BrowserAcquisitionSession.open(authenticated,{session?.userId},verifyOwner=cloud::verifyOwner)
+        val initialized=BrowserAcquisitionSession.open(authenticated,{session?.userId},localRulesEnabled=localRulesEnabled,verifyOwner=cloud::verifyOwner)
         try {
             check(session?.userId==authenticated.userId) { "Verified browser account changed" }
             bindBrowserSessionOwner(authenticated.userId)
@@ -149,7 +151,8 @@ private fun WebRoot() {
             val activeSession = session!!
             key(activeSession.userId, appEpoch) {
                 val state = remember(resources, activeSession.userId, appEpoch) {
-                    DesktopAppState(resources!!,cloud,checkNotNull(durableSession).store,checkNotNull(durableSession).states)
+                    DesktopAppState(resources!!,if (localRulesEnabled) null else cloud,checkNotNull(durableSession).store,checkNotNull(durableSession).states,
+                        localAcquisitionEnabled=localRulesEnabled,experimentalGameplayEnabled=localRulesEnabled)
                 }
 
                 LaunchedEffect(state,state.canonicalReadState.phase,state.canonicalReadState.classifiedProtected) {
@@ -160,7 +163,12 @@ private fun WebRoot() {
                     )
                 }
 
-                Box(Modifier.fillMaxSize()) {
+                Column(Modifier.fillMaxSize()) {
+                com.furybook.ui.components.LocalRulesModeControl(localRulesEnabled) { enabled ->
+                    kotlinx.browser.window.localStorage.setItem("furybook.local-rules.${activeSession.userId}", enabled.toString())
+                    kotlinx.browser.window.location.reload()
+                }
+                Box(Modifier.weight(1f).fillMaxWidth()) {
                 FuryWebApp(
                     state = state,
                     cloud = cloud,
@@ -177,10 +185,11 @@ private fun WebRoot() {
                         }
                     },
                 )
+                }
 
-                val storageMessage=state.storageError ?: if(checkNotNull(durableSession).states.isNotEmpty())
+                val storageMessage=state.storageError ?: if(state.readOnlyCanonicalMode && checkNotNull(durableSession).states.isNotEmpty())
                     "Локальный журнал сохранён. Лист доступен для чтения; выпуск покупок пока выключен." else null
-                storageMessage?.let { Text(it,modifier=Modifier.align(Alignment.BottomCenter).background(DesktopSurface).padding(12.dp),color=DesktopMuted) }
+                storageMessage?.let { Text(it,modifier=Modifier.fillMaxWidth().background(DesktopSurface).padding(12.dp),color=DesktopMuted) }
                 }
 
                 cloud.conflict?.let { conflict ->

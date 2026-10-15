@@ -17,9 +17,9 @@ sealed interface GameBoundaryChoice {
 }
 data class GameplayEventView(val scope: GameplayScope, val storageRevision: Long, val timeline: GameplayTimeline)
 class GameplayEventReview internal constructor(val scope: GameplayScope, val expectedStorageRevision: Long,
-    val request: RecordGameBoundary)
+    val request: RecordGameBoundary, val beforeCombat: CombatResources, val afterCombat: CombatResources)
 
-/** Captured review and same-ID retry; no resource-refresh or effect-activation policy is inferred. */
+/** Captured review and same-ID retry for the explicitly implemented event rules. */
 class GameplayEventController(private val store: AcquisitionStore, private val scope: () -> GameplayScope,
     private val isCurrent: (GameplayScope) -> Boolean, private val capabilities: () -> GameplayCapabilities,
     private val idFactory: () -> String) {
@@ -72,7 +72,8 @@ class GameplayEventController(private val store: AcquisitionStore, private val s
         val transition = GameplayEvents.apply(timeline, command)
         check(transition is BoundaryTransition.Applied) { (transition as? BoundaryTransition.Blocked)?.reason ?: "Событие уже записано" }
         current(captured)
-        GameplayEventReview(captured, state.storageRevision, command).also { retained = it; attempted = false; uncertain = false; outcome = null }
+        GameplayEventReview(captured, state.storageRevision, command, timeline.combat, transition.timeline.combat)
+            .also { retained = it; attempted = false; uncertain = false; outcome = null }
     }
     suspend fun confirm(operationId: String): GameplayEventCommitResult = mutex.withLock {
         val selected = checkNotNull(retained) { "Нет подготовленного события" }

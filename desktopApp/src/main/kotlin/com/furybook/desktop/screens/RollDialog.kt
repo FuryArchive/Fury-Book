@@ -102,7 +102,7 @@ fun SkillAttributeChoiceDialog(
         },
         confirmButton = {
             TextButton(
-                enabled = calculation.total != null && !mixedFactors,
+                enabled = calculation.total != null,
                 onClick = { onConfirm(selectedAttribute) },
             ) { Text("Бросить ${calculation.total?.let(::signed) ?: "—"}") }
         },

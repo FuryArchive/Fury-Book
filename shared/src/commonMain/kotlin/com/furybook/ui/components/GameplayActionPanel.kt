@@ -28,6 +28,7 @@ fun GameplayActionPanel(controller: GameplayController, scope: GameplayScope,
     var busy by remember(controller, scope) { mutableStateOf(false) }
     var message by remember(controller, scope) { mutableStateOf<String?>(null) }
     var dice by remember(controller, scope, sheet?.storageRevision) { mutableStateOf<RollResult?>(null) }
+    var showEffort by remember(controller, scope) { mutableStateOf(false) }
     val jobs = rememberCoroutineScope()
     // Changing the presentation scope only reloads. It never submits a game event or restores resources.
     LaunchedEffect(controller, scope) {
@@ -69,6 +70,8 @@ fun GameplayActionPanel(controller: GameplayController, scope: GameplayScope,
                     review = controller.review?.takeIf { it.scope == scope }
                 }
             }
+            if (sheet != null) TextButton(onClick = { showEffort = !showEffort }) { Text(if (showEffort) "Свернуть Сверхусилие" else "Сверхусилие · физические кубы") }
+            if (showEffort || review != null || sheet?.pending != null) {
             val shown = review
             if (shown != null) {
                 Text(when (val command = shown.request) {
@@ -124,6 +127,7 @@ fun GameplayActionPanel(controller: GameplayController, scope: GameplayScope,
                 if (sheet?.lastReceipt != null) {
                     TextButton(enabled = !busy, onClick = { run { controller.prepareUndo() } }) { Text("Просмотреть отмену последнего действия") }
                 }
+            }
             }
         }
     }

@@ -12,9 +12,9 @@ import java.nio.file.Path
 /** Isolated synthetic UI arithmetic. Real Block remains unchanged and separately source-blocked. */
 internal class AcquisitionUiFixtures(val directory: Path = Files.createTempDirectory("t18b-ui-"), val writable: Boolean = true,
     val fault: (DesktopAcquisitionWriteStage) -> Unit = {}, val allDefinitions:Boolean=false,
-    val seed:(StoredCharacter)->StoredCharacter={it}) {
+    val seed:(StoredCharacter)->StoredCharacter={it}, val gameplay:Boolean=false) {
     companion object { const val SYNTHETIC_ID = "ui-synthetic-20"; const val REAL_BLOCK_ID = "feat_fcdd74622d21435d" }
-    val store = DesktopAcquisitionStore(directory, fault)
+    val store = DesktopAcquisitionStore(directory, fault, gameplayFormatEnabled=gameplay)
     private val source = FcpTextSource { javaClass.classLoader.getResource(it)?.readText() }
     private val core = DublFcp.open(source)
     private val evidence = RuleSourceRef("SYNTHETIC_RULE", "t18b", "Synthetic fixed20 UI fixture, not DUBL source acceptance")
@@ -49,7 +49,7 @@ internal class AcquisitionUiFixtures(val directory: Path = Files.createTempDirec
             override fun load(characterId: String) = states.getValue(characterId).extras
             override fun save(characterId: String, extras: CharacterSheetExtras) = error("No legacy extras")
         }
-        return DesktopAppState(characters, extras, writable, store, catalogReader, development)
+        return DesktopAppState(characters, extras, writable, store, catalogReader, development, experimentalGameplayEnabled=gameplay)
     }
     fun appFromOriginal(original:StoredCharacter):DesktopAppState {
         val characters=object:CharacterStore {

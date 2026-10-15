@@ -117,12 +117,12 @@ fun DublCharacter.conditionRollModifiers(
 
 data class ConditionDerivedValues(val defense: Int?, val reflexes: Int?, val initiative: Int?, val run: Double?)
 
-fun DublCharacter.conditionDerivedValues(active: Set<CharacterConditionId> = emptySet()): ConditionDerivedValues {
+fun DublCharacter.conditionDerivedValues(active: Set<CharacterConditionId> = emptySet(), temporaryDefenseBonus: Int = 0): ConditionDerivedValues {
     val conditions = effectiveRollConditions(active)
     val exhausted = CharacterConditionId.EXHAUSTION in conditions
     val weak = CharacterConditionId.WEAKNESS in conditions
     return ConditionDerivedValues(
-        defense - (if (exhausted) 3 else 0) - (if (weak) 2 else 0) -
+        defense + temporaryDefenseBonus - (if (exhausted) 3 else 0) - (if (weak) 2 else 0) -
             (if (CharacterConditionId.PRONE in conditions) 2 else 0) -
             (if (CharacterConditionId.STUNNED in conditions) 2 else 0),
         conditionRollModifiers(RollContext.REFLEXES, active = active).apply(reflexes),

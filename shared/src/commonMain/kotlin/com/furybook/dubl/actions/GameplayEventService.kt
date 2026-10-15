@@ -10,7 +10,7 @@ sealed interface GameplayEventCommitResult {
     data class StorageFailure(val reason: String) : GameplayEventCommitResult
 }
 
-/** Persist explicit boundaries in the same whole-character CAS, without refreshing any resource. */
+/** Persist typed events and derived combat resources in the same whole-character CAS. */
 class GameplayEventService(private val store: AcquisitionStore,
     private val capabilities: () -> GameplayCapabilities = { GameplayCapabilities() }) {
     suspend fun apply(request: RecordGameBoundary, expectedStorageRevision: Long): GameplayEventCommitResult = try {

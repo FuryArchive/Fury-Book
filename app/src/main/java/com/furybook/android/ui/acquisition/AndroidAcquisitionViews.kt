@@ -238,15 +238,24 @@ fun AndroidAcquisitionRoot(controller: CharacterController, content: @Composable
     val actions = remember(controller) { AndroidAcquisitionActions(controller, scope) }
     val character = controller.snapshot.activeCharacterId
     val model = controller.acquisitionUiModel
-    LaunchedEffect(controller, character) { actions.hideForSelection(); actions.reload() }
-    LaunchedEffect(controller.snapshot, LocalAndroidAcquisitionContent.current) { actions.reload() }
+    LaunchedEffect(controller, character, controller.hasCanonicalActive) {
+        actions.hideForSelection()
+        if (controller.hasCanonicalActive) actions.reload()
+    }
+    LaunchedEffect(controller.snapshot, LocalAndroidAcquisitionContent.current) { if (controller.hasCanonicalActive) actions.reload() }
     LaunchedEffect(model?.key, model?.phase) { if (model != null) actions.loadDetails(model) }
     DisposableEffect(actions) {
         controller.onCanonicalNonFinancialReview = actions::nonFinancial
         onDispose { controller.onCanonicalNonFinancialReview = null }
     }
     CompositionLocalProvider(LocalAndroidAcquisition provides actions) {
-        content()
+        if (controller.acquisitionCapabilities.localDurable && !controller.hasCanonicalActive)
+            AndroidLegacyMigrationPanel(controller, actions::newCharacter)
+        else if (controller.gameplay != null && controller.activeStoredFormat == 1) {
+            val captured = controller.gameplayScope()
+            com.furybook.ui.components.LocalRulesPreparationPanel(checkNotNull(controller.gameplay), captured,
+                checkNotNull(controller.gameplayMigration), controller.exportActiveCharacter()) { controller.refreshAfterGameplay(captured) }
+        } else content()
         if (actions.visible && model != null) AcquisitionPurchaseSurface(model, actions)
         actions.manual?.let { AcquisitionManualEditor(it, actions) }
         actions.error?.let { message -> AlertDialog(onDismissRequest = actions::clearError, title = { Text("Операция не выполнена") },
