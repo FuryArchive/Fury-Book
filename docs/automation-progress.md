@@ -1,5 +1,12 @@
 # Rule automation: current implementation boundary
 
+## Проверенный срез — 15 октября 2026
+
+Код `1ccd639`, ветка `codex/furybook-rules-completion-20261015`: работающие локальные покупки вместе с журналом действий, собственные ОД/реакция, конкретная временная защита P14265, складывание Слабости/Истощения и интерфейс включения/миграции на всех трёх платформах. Новые исходники действительно собраны; AppImage, Android Preview APK и Web ZIP доступны в отдельной [ветке сборок](https://github.com/FuryArchive/Fury-Book/tree/codex/furybook-builds-20261015).
+
+[Что закончено, как проверено и что осталось](verification/2026-10-15-local-rules.md). Этот отчёт уточняет старые записи ниже: формулы и граница хода больше не считаются нерешёнными, но автоматизация всего каталога и полная UI-приёмка не заявляются.
+
+
 This is functional work in progress, not a complete ruleset acceptance or a released build.
 
 ## Current additional functionality
