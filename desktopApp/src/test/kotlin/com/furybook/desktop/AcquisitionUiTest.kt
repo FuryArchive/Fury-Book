@@ -67,6 +67,7 @@ class AcquisitionUiTest {
         val fixture=AcquisitionUiFixtures(writable=false); val state=fixture.app(); val before=fixture.raw()
         setContent { DublTheme { DesktopVisualTheme { DesktopAppContent(state) } } }
         waitUntil(timeoutMillis=30_000) { state.canonicalViewReady }
+        onNodeWithTag("character.sheet").performScrollToNode(hasTestTag("acquisition.balance"))
         waitUntil(timeoutMillis=30_000) { onAllNodes(hasTestTag("acquisition.balance") and hasText("100 XP / 2 ОСп")).fetchSemanticsNodes().isNotEmpty() }
         onNodeWithTag("acquisition.balance").assertTextEquals("100 XP / 2 ОСп")
         onNodeWithTag("navigation.CHARACTERS").performClick()

@@ -58,7 +58,7 @@ internal fun GameplayEventPanel(controller: GameplayEventController, scope: Game
             Text("ОД: ${timeline.combat.actionPoints} / 3 · Реакция: ${timeline.combat.reactions} / 1", style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
             if (timeline.combat.defenseBonus > 0) Text("Защита +${timeline.combat.defenseBonus} до следующего своего хода (P14265)")
         }
-        TextButton(onClick = { expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (expanded) "Свернуть действия" else "Ходы и действия") }
+        TextButton(enabled = view != null, onClick = { expanded = !expanded }, modifier = Modifier.heightIn(min = 48.dp)) { Text(if (expanded) "Свернуть действия" else "Ходы и действия") }
         if (expanded) {
         Text("В начале своего хода: 3 ОД, 1 реакция. Здоровье и выносливость автоматически не восстанавливаются.")
         message?.let { Text(it) }

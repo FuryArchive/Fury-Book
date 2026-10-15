@@ -12,7 +12,7 @@ import com.furybook.dubl.actions.*
 
 /** Purchases must not create a format-1 cloud queue before explicit local-format migration. */
 @Composable
-fun LocalRulesPreparationPanel(controller: GameplayController, scope: GameplayScope,
+fun LocalRulesPreparationPanel(scope: GameplayScope,
     migration: GameplayMigrationController, exportedCharacter: String, onCommitted: suspend () -> Unit) {
     var showExport by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
@@ -20,7 +20,7 @@ fun LocalRulesPreparationPanel(controller: GameplayController, scope: GameplaySc
         Text("Подготовка локальных правил", style = MaterialTheme.typography.headlineSmall)
         Text("Перед покупками и действиями подготовьте локальный формат с резервной копией. Баланс и сам персонаж сохранятся.")
         Text("Если у персонажа есть облачная очередь или история синхронизации, переход будет заблокирован: эти данные нельзя сбрасывать.")
-        GameplayActionPanel(controller, scope, migration = migration, onCommitted = onCommitted)
+        DublCard { GameplayMigrationPanel(migration, scope, onCommitted) }
         TextButton(onClick = { showExport = true }) { Text("Показать экспорт персонажа") }
     }
     if (showExport) AlertDialog(onDismissRequest = { showExport = false }, title = { Text("Экспорт персонажа") },

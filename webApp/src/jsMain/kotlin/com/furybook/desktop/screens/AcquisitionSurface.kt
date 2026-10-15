@@ -547,7 +547,7 @@ fun WebAcquisitionRoot(state: DesktopAppState, content: @Composable () -> Unit) 
         if (state.canonicalReadState.navigationAvailable) {
             if (state.experimentalGameplayEnabled && (canonicalLoad as? LoadResult.Loaded)?.state?.formatVersion == 1) {
                 val captured = state.gameplayScope()
-                com.furybook.ui.components.LocalRulesPreparationPanel(checkNotNull(state.gameplay), captured,
+                com.furybook.ui.components.LocalRulesPreparationPanel(captured,
                     checkNotNull(state.gameplayMigration), state.exportActiveCharacter()) { state.refreshAfterGameplay(captured) }
             } else content()
         }

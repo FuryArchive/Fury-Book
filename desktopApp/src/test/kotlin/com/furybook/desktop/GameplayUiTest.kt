@@ -17,8 +17,13 @@ class GameplayUiTest {
         setContent { DublTheme { DesktopVisualTheme { DesktopAppContent(state) } } }
         waitUntil(timeoutMillis=30_000) { state.canonicalViewReady }
         onNodeWithText("Подготовка локальных правил").assertExists()
-        onNodeWithText("Подготовить локальные действия").performClick()
-        waitUntil(timeoutMillis=30_000) { state.gameplayMigration?.review != null }
+        onNodeWithText("Подготовить локальные действия").performMouseInput { click(center) }
+        try { waitUntil(timeoutMillis=10_000) { state.gameplayMigration?.review != null } }
+        catch (failure: Throwable) {
+            println(onRoot().printToString())
+            AcquisitionUiEvidence.screenshot("gameplay-migration-failure", captureToImage())
+            throw failure
+        }
         onNodeWithText("Создать копию и перейти / повторить").performClick()
         waitUntil(timeoutMillis=30_000) { fixture.saved().formatVersion == 2 }
         onNodeWithTag("character.sheet").performScrollToNode(hasText("Навыки и развитие"))
@@ -26,11 +31,11 @@ class GameplayUiTest {
         assertNull(state.acquisitionUiModel, "Viewing default groups must not open a mutation confirmation")
         onNodeWithTag("acquisition.preview").assertDoesNotExist()
         onNodeWithTag("character.sheet").performScrollToNode(hasText("Ходы и действия"))
-        onNodeWithText("Ходы и действия").performClick()
         fun press(text: String) {
             waitUntil(timeoutMillis=30_000) { onAllNodes(hasText(text) and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
             onNodeWithText(text).performScrollTo().performClick()
         }
+        press("Ходы и действия")
         fun confirm() {
             waitUntil(timeoutMillis=30_000) { state.gameplayEvents?.review != null }
             val expected = fixture.saved().gameplay?.events?.timeline?.revision?.plus(1) ?: 1

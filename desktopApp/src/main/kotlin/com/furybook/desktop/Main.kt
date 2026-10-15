@@ -188,7 +188,7 @@ internal fun DesktopAppContent(state: DesktopAppState, legacyCloudController: De
         DesktopAcquisitionRoot(state) {
             if (state.experimentalGameplayEnabled && (state.localStoredCharacter() as? LoadResult.Loaded)?.state?.formatVersion == 1) {
                 val captured = state.gameplayScope()
-                com.furybook.ui.components.LocalRulesPreparationPanel(checkNotNull(state.gameplay), captured,
+                com.furybook.ui.components.LocalRulesPreparationPanel(captured,
                     checkNotNull(state.gameplayMigration), state.exportActiveCharacter()) { state.refreshAfterGameplay(captured) }
             } else DesktopNavigationContent(state, null)
         }

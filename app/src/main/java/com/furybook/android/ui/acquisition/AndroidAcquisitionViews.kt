@@ -253,7 +253,7 @@ fun AndroidAcquisitionRoot(controller: CharacterController, content: @Composable
             AndroidLegacyMigrationPanel(controller, actions::newCharacter)
         else if (controller.gameplay != null && controller.activeStoredFormat == 1) {
             val captured = controller.gameplayScope()
-            com.furybook.ui.components.LocalRulesPreparationPanel(checkNotNull(controller.gameplay), captured,
+            com.furybook.ui.components.LocalRulesPreparationPanel(captured,
                 checkNotNull(controller.gameplayMigration), controller.exportActiveCharacter()) { controller.refreshAfterGameplay(captured) }
         } else content()
         if (actions.visible && model != null) AcquisitionPurchaseSurface(model, actions)
