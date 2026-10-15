@@ -51,16 +51,21 @@ class ConditionRollRulesTest {
         assertEquals(-7, empty.conditionRollModifiers(RollContext.INITIATIVE, active = active).numericBonus)
     }
 
-    @Test fun unresolved_exhaustion_does_not_silently_add_weakness_or_publish_a_total() {
+    @Test fun exhaustion_and_weakness_stack_without_counting_zero_endurance_twice() {
         val active = setOf(CharacterConditionId.EXHAUSTION)
         val modifier = empty.conditionRollModifiers(RollContext.ATTRIBUTE, AttributeId.STRENGTH, active)
-        assertNotNull(modifier.unavailableReason)
-        assertNull(modifier.apply(10))
-        assertEquals(0, modifier.hindranceDice)
-        assertNull(empty.conditionDerivedValues(active).defense)
-        assertNull(empty.conditionDerivedValues(active).reflexes)
-        assertNull(empty.conditionDerivedValues(active).run)
-        assertTrue(modifier.notice.contains("Истощения"))
+        assertNull(modifier.unavailableReason)
+        assertEquals(8, modifier.apply(10))
+        assertEquals(4, modifier.hindranceDice)
+        val values = empty.conditionDerivedValues(active)
+        assertEquals(empty.defense - 5, values.defense)
+        assertEquals(empty.reflexes - 5, values.reflexes)
+        assertEquals(empty.initiative - 5, values.initiative)
+        assertEquals(kotlin.math.ceil(empty.runFull / 2) - 2, values.run)
+        val explicit = active + CharacterConditionId.WEAKNESS
+        assertEquals(modifier, empty.conditionRollModifiers(RollContext.ATTRIBUTE, AttributeId.STRENGTH, explicit))
+        assertEquals(values, empty.conditionDerivedValues(explicit))
+        assertEquals(values, healthy.conditionDerivedValues(explicit))
     }
 
     @Test fun unsupported_condition_is_visible_not_claimed_as_implemented() {

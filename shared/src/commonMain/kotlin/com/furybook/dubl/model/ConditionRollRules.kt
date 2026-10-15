@@ -61,13 +61,14 @@ fun DublCharacter.conditionRollModifiers(
     val derivedWeak = context in setOf(RollContext.REFLEXES, RollContext.DODGE, RollContext.INITIATIVE, RollContext.RUN)
     val exhausted = CharacterConditionId.EXHAUSTION in conditions
     val weakPresent = CharacterConditionId.WEAKNESS in conditions
-    val exhaustionUnresolved = exhausted && weakPresent && (physical || derivedWeak)
     val contributions = mutableListOf<RollContribution>()
     val factors = mutableListOf<Pair<String, Int>>()
-    val weak = weakPresent && !exhaustionUnresolved
+    // Owner decision 2026-10-15: Exhaustion and Weakness stack. The set above
+    // already deduplicates explicit Weakness and the zero-endurance projection.
+    val weak = weakPresent
     if (weak && derivedWeak) contributions += RollContribution("Слабость", -2)
     if (weak && physical) factors += "Слабость" to 2
-    if (exhausted && !exhaustionUnresolved) {
+    if (exhausted) {
         if (physical) {
             contributions += RollContribution("Истощение", -2)
             factors += "Истощение" to 2
@@ -107,7 +108,6 @@ fun DublCharacter.conditionRollModifiers(
             requiresVision == null && requiresVisionDeclaration(context, effectiveAttribute, conditions) -> "Укажите, требует ли проверка зрения."
             visionOverlap -> "Совместное действие Слепоты и Ослепления требует отдельного решения; штрафы не складываются автоматически."
             entangled && context == RollContext.RUN -> "Опутанный персонаж не может бежать (P14774)."
-            exhaustionUnresolved -> "Сочетание Истощения со Слабостью требует уточнения правила."
             else -> null
         },
         conditions - setOf(CharacterConditionId.WEAKNESS, CharacterConditionId.SHOCK, CharacterConditionId.DEAFNESS,
@@ -122,12 +122,12 @@ fun DublCharacter.conditionDerivedValues(active: Set<CharacterConditionId> = emp
     val exhausted = CharacterConditionId.EXHAUSTION in conditions
     val weak = CharacterConditionId.WEAKNESS in conditions
     return ConditionDerivedValues(
-        if (exhausted && weak) null else defense - (if (exhausted) 3 else if (weak) 2 else 0) -
+        defense - (if (exhausted) 3 else 0) - (if (weak) 2 else 0) -
             (if (CharacterConditionId.PRONE in conditions) 2 else 0) -
             (if (CharacterConditionId.STUNNED in conditions) 2 else 0),
         conditionRollModifiers(RollContext.REFLEXES, active = active).apply(reflexes),
         conditionRollModifiers(RollContext.INITIATIVE, active = active).apply(initiative),
-        if (conditionRollModifiers(RollContext.RUN, active = active).unavailableReason != null) null else if (exhausted) ceil(runFull / 2)
+        if (conditionRollModifiers(RollContext.RUN, active = active).unavailableReason != null) null else if (exhausted) ceil(runFull / 2) - (if (weak) 2 else 0)
         else runFull + conditionRollModifiers(RollContext.RUN, active = active).numericBonus,
     )
 }
