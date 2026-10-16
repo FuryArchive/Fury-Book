@@ -183982,6 +183982,13 @@
           "sheet": "t.rix9p5yahh6o",
           "paragraph": null,
           "originalText": "Пенчак Силат"
+        },
+        "effect:conflicting-martial-descriptions": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.m3zjob3johi8",
+          "paragraph": null,
+          "originalText": "Питон"
         }
       },
       "parameterDefinitions": [],
@@ -184012,51 +184019,15 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
-        "nodeId": "martial_style_7463d6872d62b6b5/native/requirements",
-        "sourceRef": {
-          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-          "sheet": "t.m3zjob3johi8",
-          "paragraph": null,
-          "originalText": "Требование: Кунг-фу/Пенчак Силат"
-        },
+        "type": "AnyOf",
         "children": [
           {
-            "type": "AnyOf",
-            "children": [
-              {
-                "type": "OwnedRank",
-                "packId": "dubl-3.69",
-                "entryId": "martial_style_f28b021c9c630558",
-                "operator": "GE",
-                "operand": 1,
-                "nodeId": "martial_style_7463d6872d62b6b5/requirements/0",
-                "sourceRef": {
-                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                  "sheet": "t.m3zjob3johi8",
-                  "paragraph": null,
-                  "originalText": "Кунг-фу/Пенчак Силат"
-                }
-              },
-              {
-                "type": "OwnedRank",
-                "packId": "dubl-3.69",
-                "entryId": "martial_style_3b600d4526eb11e1",
-                "operator": "GE",
-                "operand": 1,
-                "nodeId": "martial_style_7463d6872d62b6b5/requirements/1",
-                "sourceRef": {
-                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                  "sheet": "t.m3zjob3johi8",
-                  "paragraph": null,
-                  "originalText": "Кунг-фу/Пенчак Силат"
-                }
-              }
-            ],
-            "nodeId": "martial_style_7463d6872d62b6b5/requirements",
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_f28b021c9c630558",
+            "operator": "GE",
+            "operand": 1,
+            "nodeId": "martial_style_7463d6872d62b6b5/requirements/0",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -184066,18 +184037,29 @@
             }
           },
           {
-            "type": "Unresolved",
-            "nodeId": "martial_style_7463d6872d62b6b5/native/sourceConflict",
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_3b600d4526eb11e1",
+            "operator": "GE",
+            "operand": 1,
+            "nodeId": "martial_style_7463d6872d62b6b5/requirements/1",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
               "sheet": "t.m3zjob3johi8",
               "paragraph": null,
-              "originalText": "Питон"
-            },
-            "reason": "conflicting-current-native-martial-variants"
+              "originalText": "Кунг-фу/Пенчак Силат"
+            }
           }
-        ]
+        ],
+        "nodeId": "martial_style_7463d6872d62b6b5/requirements",
+        "sourceRef": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.m3zjob3johi8",
+          "paragraph": null,
+          "originalText": "Требование: Кунг-фу/Пенчак Силат"
+        }
       }
     },
     {
@@ -185382,6 +185364,13 @@
           "sheet": "t.rix9p5yahh6o",
           "paragraph": null,
           "originalText": "Пенчак Силат"
+        },
+        "effect:conflicting-martial-descriptions": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.9x0xximmsu49",
+          "paragraph": null,
+          "originalText": "Тигр"
         }
       },
       "parameterDefinitions": [],
@@ -185413,7 +185402,7 @@
       },
       "requirements": {
         "type": "AllOf",
-        "nodeId": "martial_style_af9107782fa1c8ae/native/requirements",
+        "nodeId": "martial_style_af9107782fa1c8ae/requirements",
         "sourceRef": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -185423,51 +185412,15 @@
         },
         "children": [
           {
-            "type": "AllOf",
-            "nodeId": "martial_style_af9107782fa1c8ae/requirements",
-            "sourceRef": {
-              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-              "sheet": "t.9x0xximmsu49",
-              "paragraph": null,
-              "originalText": "Кунг-Фу/Пенчак Силат, Атлетика 6, Скрытность 5"
-            },
+            "type": "AnyOf",
             "children": [
               {
-                "type": "AnyOf",
-                "children": [
-                  {
-                    "type": "OwnedRank",
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_f28b021c9c630558",
-                    "operator": "GE",
-                    "operand": 1,
-                    "nodeId": "martial_style_af9107782fa1c8ae/requirements/0/0",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.9x0xximmsu49",
-                      "paragraph": null,
-                      "originalText": "Кунг-Фу/Пенчак Силат"
-                    }
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_3b600d4526eb11e1",
-                    "operator": "GE",
-                    "operand": 1,
-                    "nodeId": "martial_style_af9107782fa1c8ae/requirements/0/1",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.9x0xximmsu49",
-                      "paragraph": null,
-                      "originalText": "Кунг-Фу/Пенчак Силат"
-                    }
-                  }
-                ],
-                "nodeId": "martial_style_af9107782fa1c8ae/requirements/0",
+                "type": "OwnedRank",
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_f28b021c9c630558",
+                "operator": "GE",
+                "operand": 1,
+                "nodeId": "martial_style_af9107782fa1c8ae/requirements/0/0",
                 "sourceRef": {
                   "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
                   "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -185477,48 +185430,59 @@
                 }
               },
               {
-                "type": "SkillFamily",
-                "nodeId": "martial_style_af9107782fa1c8ae/requirements/1",
+                "type": "OwnedRank",
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_3b600d4526eb11e1",
+                "operator": "GE",
+                "operand": 1,
+                "nodeId": "martial_style_af9107782fa1c8ae/requirements/0/1",
                 "sourceRef": {
                   "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
                   "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
                   "sheet": "t.9x0xximmsu49",
                   "paragraph": null,
-                  "originalText": "Атлетика 6"
-                },
-                "packId": "dubl-3.69",
-                "familyId": "athletics",
-                "operator": "GE",
-                "operand": 6
-              },
-              {
-                "type": "SkillFamily",
-                "nodeId": "martial_style_af9107782fa1c8ae/requirements/2",
-                "sourceRef": {
-                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                  "sheet": "t.9x0xximmsu49",
-                  "paragraph": null,
-                  "originalText": "Скрытность 5"
-                },
-                "packId": "dubl-3.69",
-                "familyId": "stealth",
-                "operator": "GE",
-                "operand": 5
+                  "originalText": "Кунг-Фу/Пенчак Силат"
+                }
               }
-            ]
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "martial_style_af9107782fa1c8ae/native/sourceConflict",
+            ],
+            "nodeId": "martial_style_af9107782fa1c8ae/requirements/0",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
               "sheet": "t.9x0xximmsu49",
               "paragraph": null,
-              "originalText": "Тигр"
+              "originalText": "Кунг-Фу/Пенчак Силат"
+            }
+          },
+          {
+            "type": "SkillFamily",
+            "nodeId": "martial_style_af9107782fa1c8ae/requirements/1",
+            "sourceRef": {
+              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+              "sheet": "t.9x0xximmsu49",
+              "paragraph": null,
+              "originalText": "Атлетика 6"
             },
-            "reason": "conflicting-current-native-martial-variants"
+            "packId": "dubl-3.69",
+            "familyId": "athletics",
+            "operator": "GE",
+            "operand": 6
+          },
+          {
+            "type": "SkillFamily",
+            "nodeId": "martial_style_af9107782fa1c8ae/requirements/2",
+            "sourceRef": {
+              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+              "sheet": "t.9x0xximmsu49",
+              "paragraph": null,
+              "originalText": "Скрытность 5"
+            },
+            "packId": "dubl-3.69",
+            "familyId": "stealth",
+            "operator": "GE",
+            "operand": 5
           }
         ]
       }
@@ -185794,6 +185758,13 @@
           "sheet": "t.rix9p5yahh6o",
           "paragraph": null,
           "originalText": "Пенчак Силат"
+        },
+        "effect:conflicting-martial-descriptions": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.9isnj1jpeafu",
+          "paragraph": null,
+          "originalText": "Обезьяна"
         }
       },
       "parameterDefinitions": [],
@@ -185824,51 +185795,15 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
-        "nodeId": "martial_style_c4db6f4388886f3e/native/requirements",
-        "sourceRef": {
-          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-          "sheet": "t.9isnj1jpeafu",
-          "paragraph": null,
-          "originalText": "Требование: Кунг-фу/Пенчак Силат"
-        },
+        "type": "AnyOf",
         "children": [
           {
-            "type": "AnyOf",
-            "children": [
-              {
-                "type": "OwnedRank",
-                "packId": "dubl-3.69",
-                "entryId": "martial_style_f28b021c9c630558",
-                "operator": "GE",
-                "operand": 1,
-                "nodeId": "martial_style_c4db6f4388886f3e/requirements/0",
-                "sourceRef": {
-                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                  "sheet": "t.9isnj1jpeafu",
-                  "paragraph": null,
-                  "originalText": "Кунг-фу/Пенчак Силат"
-                }
-              },
-              {
-                "type": "OwnedRank",
-                "packId": "dubl-3.69",
-                "entryId": "martial_style_3b600d4526eb11e1",
-                "operator": "GE",
-                "operand": 1,
-                "nodeId": "martial_style_c4db6f4388886f3e/requirements/1",
-                "sourceRef": {
-                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                  "sheet": "t.9isnj1jpeafu",
-                  "paragraph": null,
-                  "originalText": "Кунг-фу/Пенчак Силат"
-                }
-              }
-            ],
-            "nodeId": "martial_style_c4db6f4388886f3e/requirements",
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_f28b021c9c630558",
+            "operator": "GE",
+            "operand": 1,
+            "nodeId": "martial_style_c4db6f4388886f3e/requirements/0",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -185878,18 +185813,29 @@
             }
           },
           {
-            "type": "Unresolved",
-            "nodeId": "martial_style_c4db6f4388886f3e/native/sourceConflict",
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_3b600d4526eb11e1",
+            "operator": "GE",
+            "operand": 1,
+            "nodeId": "martial_style_c4db6f4388886f3e/requirements/1",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
               "sheet": "t.9isnj1jpeafu",
               "paragraph": null,
-              "originalText": "Обезьяна"
-            },
-            "reason": "conflicting-current-native-martial-variants"
+              "originalText": "Кунг-фу/Пенчак Силат"
+            }
           }
-        ]
+        ],
+        "nodeId": "martial_style_c4db6f4388886f3e/requirements",
+        "sourceRef": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.9isnj1jpeafu",
+          "paragraph": null,
+          "originalText": "Требование: Кунг-фу/Пенчак Силат"
+        }
       }
     },
     {
@@ -185971,6 +185917,13 @@
           "sheet": "t.rix9p5yahh6o",
           "paragraph": null,
           "originalText": "Пенчак Силат"
+        },
+        "effect:conflicting-martial-descriptions": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.hdpol0yu7cdl",
+          "paragraph": null,
+          "originalText": "Пантера"
         }
       },
       "parameterDefinitions": [],
@@ -186002,7 +185955,7 @@
       },
       "requirements": {
         "type": "AllOf",
-        "nodeId": "martial_style_c829e9a6ec656e7b/native/requirements",
+        "nodeId": "martial_style_c829e9a6ec656e7b/requirements",
         "sourceRef": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -186012,51 +185965,15 @@
         },
         "children": [
           {
-            "type": "AllOf",
-            "nodeId": "martial_style_c829e9a6ec656e7b/requirements",
-            "sourceRef": {
-              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-              "sheet": "t.hdpol0yu7cdl",
-              "paragraph": null,
-              "originalText": "Кунг-фу/Пенчак Силат, Скрытность 4"
-            },
+            "type": "AnyOf",
             "children": [
               {
-                "type": "AnyOf",
-                "children": [
-                  {
-                    "type": "OwnedRank",
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_f28b021c9c630558",
-                    "operator": "GE",
-                    "operand": 1,
-                    "nodeId": "martial_style_c829e9a6ec656e7b/requirements/0/0",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.hdpol0yu7cdl",
-                      "paragraph": null,
-                      "originalText": "Кунг-фу/Пенчак Силат"
-                    }
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_3b600d4526eb11e1",
-                    "operator": "GE",
-                    "operand": 1,
-                    "nodeId": "martial_style_c829e9a6ec656e7b/requirements/0/1",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.hdpol0yu7cdl",
-                      "paragraph": null,
-                      "originalText": "Кунг-фу/Пенчак Силат"
-                    }
-                  }
-                ],
-                "nodeId": "martial_style_c829e9a6ec656e7b/requirements/0",
+                "type": "OwnedRank",
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_f28b021c9c630558",
+                "operator": "GE",
+                "operand": 1,
+                "nodeId": "martial_style_c829e9a6ec656e7b/requirements/0/0",
                 "sourceRef": {
                   "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
                   "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -186066,33 +185983,44 @@
                 }
               },
               {
-                "type": "SkillFamily",
-                "nodeId": "martial_style_c829e9a6ec656e7b/requirements/1",
+                "type": "OwnedRank",
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_3b600d4526eb11e1",
+                "operator": "GE",
+                "operand": 1,
+                "nodeId": "martial_style_c829e9a6ec656e7b/requirements/0/1",
                 "sourceRef": {
                   "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
                   "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
                   "sheet": "t.hdpol0yu7cdl",
                   "paragraph": null,
-                  "originalText": "Скрытность 4"
-                },
-                "packId": "dubl-3.69",
-                "familyId": "stealth",
-                "operator": "GE",
-                "operand": 4
+                  "originalText": "Кунг-фу/Пенчак Силат"
+                }
               }
-            ]
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "martial_style_c829e9a6ec656e7b/native/sourceConflict",
+            ],
+            "nodeId": "martial_style_c829e9a6ec656e7b/requirements/0",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
               "sheet": "t.hdpol0yu7cdl",
               "paragraph": null,
-              "originalText": "Пантера"
+              "originalText": "Кунг-фу/Пенчак Силат"
+            }
+          },
+          {
+            "type": "SkillFamily",
+            "nodeId": "martial_style_c829e9a6ec656e7b/requirements/1",
+            "sourceRef": {
+              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+              "sheet": "t.hdpol0yu7cdl",
+              "paragraph": null,
+              "originalText": "Скрытность 4"
             },
-            "reason": "conflicting-current-native-martial-variants"
+            "packId": "dubl-3.69",
+            "familyId": "stealth",
+            "operator": "GE",
+            "operand": 4
           }
         ]
       }
@@ -186301,6 +186229,13 @@
           "sheet": "t.rix9p5yahh6o",
           "paragraph": null,
           "originalText": "Пенчак Силат"
+        },
+        "effect:conflicting-martial-descriptions": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.xdm95v5cmexc",
+          "paragraph": null,
+          "originalText": "Орёл"
         }
       },
       "parameterDefinitions": [],
@@ -186331,51 +186266,15 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
-        "nodeId": "martial_style_e5eeb39d20a88c54/native/requirements",
-        "sourceRef": {
-          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-          "sheet": "t.xdm95v5cmexc",
-          "paragraph": null,
-          "originalText": "Требование: Кунг-фу/Пенчак Силат"
-        },
+        "type": "AnyOf",
         "children": [
           {
-            "type": "AnyOf",
-            "children": [
-              {
-                "type": "OwnedRank",
-                "packId": "dubl-3.69",
-                "entryId": "martial_style_f28b021c9c630558",
-                "operator": "GE",
-                "operand": 1,
-                "nodeId": "martial_style_e5eeb39d20a88c54/requirements/0",
-                "sourceRef": {
-                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                  "sheet": "t.xdm95v5cmexc",
-                  "paragraph": null,
-                  "originalText": "Кунг-фу/Пенчак Силат"
-                }
-              },
-              {
-                "type": "OwnedRank",
-                "packId": "dubl-3.69",
-                "entryId": "martial_style_3b600d4526eb11e1",
-                "operator": "GE",
-                "operand": 1,
-                "nodeId": "martial_style_e5eeb39d20a88c54/requirements/1",
-                "sourceRef": {
-                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                  "sheet": "t.xdm95v5cmexc",
-                  "paragraph": null,
-                  "originalText": "Кунг-фу/Пенчак Силат"
-                }
-              }
-            ],
-            "nodeId": "martial_style_e5eeb39d20a88c54/requirements",
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_f28b021c9c630558",
+            "operator": "GE",
+            "operand": 1,
+            "nodeId": "martial_style_e5eeb39d20a88c54/requirements/0",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -186385,18 +186284,29 @@
             }
           },
           {
-            "type": "Unresolved",
-            "nodeId": "martial_style_e5eeb39d20a88c54/native/sourceConflict",
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_3b600d4526eb11e1",
+            "operator": "GE",
+            "operand": 1,
+            "nodeId": "martial_style_e5eeb39d20a88c54/requirements/1",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
               "sheet": "t.xdm95v5cmexc",
               "paragraph": null,
-              "originalText": "Орёл"
-            },
-            "reason": "conflicting-current-native-martial-variants"
+              "originalText": "Кунг-фу/Пенчак Силат"
+            }
           }
-        ]
+        ],
+        "nodeId": "martial_style_e5eeb39d20a88c54/requirements",
+        "sourceRef": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.xdm95v5cmexc",
+          "paragraph": null,
+          "originalText": "Требование: Кунг-фу/Пенчак Силат"
+        }
       }
     },
     {
@@ -257356,76 +257266,6 @@
       }
     },
     {
-      "kind": "conflicting-current-native-martial-variants",
-      "definitionId": "martial_style_7463d6872d62b6b5",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_style_7463d6872d62b6b5/native/sourceConflict",
-      "message": "conflicting-current-native-martial-variants",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.m3zjob3johi8",
-        "paragraph": null,
-        "originalText": "Питон"
-      }
-    },
-    {
-      "kind": "conflicting-current-native-martial-variants",
-      "definitionId": "martial_style_af9107782fa1c8ae",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_style_af9107782fa1c8ae/native/sourceConflict",
-      "message": "conflicting-current-native-martial-variants",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.9x0xximmsu49",
-        "paragraph": null,
-        "originalText": "Тигр"
-      }
-    },
-    {
-      "kind": "conflicting-current-native-martial-variants",
-      "definitionId": "martial_style_c4db6f4388886f3e",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_style_c4db6f4388886f3e/native/sourceConflict",
-      "message": "conflicting-current-native-martial-variants",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.9isnj1jpeafu",
-        "paragraph": null,
-        "originalText": "Обезьяна"
-      }
-    },
-    {
-      "kind": "conflicting-current-native-martial-variants",
-      "definitionId": "martial_style_c829e9a6ec656e7b",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_style_c829e9a6ec656e7b/native/sourceConflict",
-      "message": "conflicting-current-native-martial-variants",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.hdpol0yu7cdl",
-        "paragraph": null,
-        "originalText": "Пантера"
-      }
-    },
-    {
-      "kind": "conflicting-current-native-martial-variants",
-      "definitionId": "martial_style_e5eeb39d20a88c54",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_style_e5eeb39d20a88c54/native/sourceConflict",
-      "message": "conflicting-current-native-martial-variants",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.xdm95v5cmexc",
-        "paragraph": null,
-        "originalText": "Орёл"
-      }
-    },
-    {
       "kind": "missing-reference",
       "definitionId": "martial_technique_7e13f11d5bda532b",
       "packId": "dubl-3.69",
@@ -257739,5 +257579,5 @@
       "resolutionRevision": "cff687788481ae6a282a7b49ca6c608aeb2d1546f91df3aa7d1e77de26a276f0"
     }
   },
-  "catalogRevision": "de5346503a5d6f13ce7ee5564dceaa94519825bc46f675842a37c97f7997cd70"
+  "catalogRevision": "152a3f5edcba6021d4f4e8a81b6db704c93db33f34e9af270f0edf0e02940bb4"
 }

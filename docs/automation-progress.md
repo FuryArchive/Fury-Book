@@ -2,7 +2,7 @@
 
 ## 2026-10-16: current-book purchase implementation
 
-The next implementation batch fixes trap access, named Knowledge admission, explicit skill-specific synergy, elemental spell-count admission, existing school-rank witnesses and martial purchase/effect conflict separation. Source gaps remain explicit; no historical purchase is repriced. See [concrete changes and remaining limits](verification/2026-10-16-acquisition-fixes.md). Verification follows the implementation batch.
+Implemented trap access, named Knowledge admission, explicit skill-specific synergy, elemental spell-count admission, existing school-rank witnesses, martial purchase/effect conflict separation and the five animal-style alternatives. Also fixed Web pack loading from manifests and Windows durable purchase publication; the Android oracle task no longer captures build-script state in the configuration cache. Source gaps remain explicit; no historical purchase is repriced. See [concrete changes and remaining limits](verification/2026-10-16-acquisition-fixes.md). Verification and packaging follow the implementation batch.
 
 ## 2026-10-16: resumed purchase verification
 

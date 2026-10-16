@@ -167,7 +167,9 @@ def validate_native_martial_rules(data):
         if key in bindings or binding['ownerId'] not in records:
             raise ValueError('Duplicate or missing native martial requirement binding owner')
         bindings.add(key)
-        if binding['exactText'] not in records[binding['ownerId']]['requirementsText']:
+        owner = records[binding['ownerId']]
+        wordings = [owner['requirementsText'], *[v['requirementsText'] for v in owner.get('nativeVariants', [])]]
+        if not any(binding['exactText'] in text for text in wordings):
             raise ValueError('Native martial binding differs from literal owner requirement')
         if not binding['evidence'] or any(ref not in evidence for ref in binding['evidence']):
             raise ValueError('Native martial requirement binding lacks exact evidence')

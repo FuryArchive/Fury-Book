@@ -66224,6 +66224,141 @@
         "t.sli6s4yydghi:3427"
       ],
       "basis": "CLOSED_EXPLICIT_NATIVE_PRICED_TECHNIQUE_SECTION_MEMBERSHIP"
+    },
+    {
+      "ownerId": "martial_style_7463d6872d62b6b5",
+      "exactText": "Кунг-фу или Пенчак Силат",
+      "tree": {
+        "type": "AnyOf",
+        "children": [
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_f28b021c9c630558",
+            "operator": "GE",
+            "operand": 1
+          },
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_3b600d4526eb11e1",
+            "operator": "GE",
+            "operand": 1
+          }
+        ]
+      },
+      "evidence": [
+        "t.m3zjob3johi8:2087"
+      ],
+      "basis": "The same owner has the source-spelled OR form in a detailed native variant; stable targets are the already-reviewed slash binding."
+    },
+    {
+      "ownerId": "martial_style_af9107782fa1c8ae",
+      "exactText": "Кунг-фу или Пенчак Силат",
+      "tree": {
+        "type": "AnyOf",
+        "children": [
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_f28b021c9c630558",
+            "operator": "GE",
+            "operand": 1
+          },
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_3b600d4526eb11e1",
+            "operator": "GE",
+            "operand": 1
+          }
+        ]
+      },
+      "evidence": [
+        "t.9x0xximmsu49:3935"
+      ],
+      "basis": "The same owner has the source-spelled OR form in a detailed native variant; stable targets are the already-reviewed slash binding."
+    },
+    {
+      "ownerId": "martial_style_c4db6f4388886f3e",
+      "exactText": "Кунг-фу или Пенчак Силат",
+      "tree": {
+        "type": "AnyOf",
+        "children": [
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_f28b021c9c630558",
+            "operator": "GE",
+            "operand": 1
+          },
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_3b600d4526eb11e1",
+            "operator": "GE",
+            "operand": 1
+          }
+        ]
+      },
+      "evidence": [
+        "t.9isnj1jpeafu:5582"
+      ],
+      "basis": "The same owner has the source-spelled OR form in a detailed native variant; stable targets are the already-reviewed slash binding."
+    },
+    {
+      "ownerId": "martial_style_c829e9a6ec656e7b",
+      "exactText": "Кунг-фу или Пенчак Силат",
+      "tree": {
+        "type": "AnyOf",
+        "children": [
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_f28b021c9c630558",
+            "operator": "GE",
+            "operand": 1
+          },
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_3b600d4526eb11e1",
+            "operator": "GE",
+            "operand": 1
+          }
+        ]
+      },
+      "evidence": [
+        "t.hdpol0yu7cdl:6756"
+      ],
+      "basis": "The same owner has the source-spelled OR form in a detailed native variant; stable targets are the already-reviewed slash binding."
+    },
+    {
+      "ownerId": "martial_style_e5eeb39d20a88c54",
+      "exactText": "Кунг-фу или Пенчак Силат",
+      "tree": {
+        "type": "AnyOf",
+        "children": [
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_f28b021c9c630558",
+            "operator": "GE",
+            "operand": 1
+          },
+          {
+            "type": "OwnedRank",
+            "packId": "dubl-3.69",
+            "entryId": "martial_style_3b600d4526eb11e1",
+            "operator": "GE",
+            "operand": 1
+          }
+        ]
+      },
+      "evidence": [
+        "t.xdm95v5cmexc:5517"
+      ],
+      "basis": "The same owner has the source-spelled OR form in a detailed native variant; stable targets are the already-reviewed slash binding."
     }
   ]
 }

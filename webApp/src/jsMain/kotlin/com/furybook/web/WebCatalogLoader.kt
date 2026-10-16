@@ -2,6 +2,7 @@ package com.furybook.web
 
 import com.furybook.content.FcpComposition
 import com.furybook.content.FcpTextSource
+import com.furybook.content.parseFcpManifest
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.dubl.content.DublChiFcpCatalogLoader
 import com.furybook.dubl.content.DublFcp
@@ -41,31 +42,24 @@ class WebCatalogLoader(resourceTexts: Map<String, String>) {
     fun verifyChiPack() = chiFcp.verifyContent()
 }
 
-private val bundledPaths = listOf(
-    "fcp/dubl-3.69/manifest.json",
-    "fcp/dubl-3.69/content/acquisition_catalog.json",
-    "fcp/dubl-3.69/content/conditions_catalog.json",
-    "fcp/dubl-3.69/content/development_ability_roots_catalog.json",
-    "fcp/dubl-3.69/content/development_catalog.json",
-    "fcp/dubl-3.69/content/development_magic_catalog.json",
-    "fcp/dubl-3.69/content/development_martial_catalog.json",
-    "fcp/dubl-3.69/content/development_regular_catalog.json",
-    "fcp/dubl-3.69/content/development_special_catalog.json",
-    "fcp/dubl-3.69/content/magic_equipment_catalog.json",
-    "fcp/dubl-3.69/content/skill_effects_catalog.json",
-    "fcp/dubl-3.69/content/skills_catalog.json",
-    "fcp/dubl-chi-3.69/manifest.json",
-    "fcp/dubl-chi-3.69/content/acquisition_catalog.json",
-    "fcp/dubl-chi-3.69/content/chi_catalog.json",
-    "fcp/dubl-chi-3.69/content/development_chi_catalog.json",
-)
+private val bundledPackRoots = listOf("fcp/dubl-3.69", "fcp/dubl-chi-3.69")
 
 suspend fun loadBundledFcpTexts(): Map<String, String> {
     val result = linkedMapOf<String, String>()
-    for (path in bundledPaths) {
+    suspend fun fetch(path: String): String {
         val response = (window.asDynamic().fetch("./$path") as kotlin.js.Promise<dynamic>).await()
         check(response.ok as Boolean) { "Failed to load $path: HTTP ${response.status}" }
-        result[path] = (response.text() as kotlin.js.Promise<String>).await()
+        return (response.text() as kotlin.js.Promise<String>).await()
+    }
+    for (root in bundledPackRoots) {
+        val manifestPath = "$root/manifest.json"
+        val raw = fetch(manifestPath)
+        val manifest = parseFcpManifest(raw) // Validates relative paths before any content request.
+        result[manifestPath] = raw
+        for (entry in manifest.entries.sortedWith(compareBy({ it.order }, { it.path }))) {
+            val path = "$root/${entry.path}"
+            if (path !in result) result[path] = fetch(path)
+        }
     }
     return result
 }

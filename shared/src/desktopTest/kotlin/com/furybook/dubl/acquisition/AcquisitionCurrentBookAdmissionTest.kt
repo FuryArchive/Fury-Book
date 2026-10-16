@@ -121,6 +121,21 @@ class AcquisitionCurrentBookAdmissionTest {
         assertTrue(present(preview,before).effectNotices.any { it.contains("описание игрового эффекта не заполнено") })
     }
 
+    @Test fun five_animal_styles_accept_the_same_source_bound_alternative_in_both_wordings() {
+        val seeded=state(listOf(owned("martial_style_3b600d4526eb11e1"),owned("feat_555de96ef1d0ca7c"),
+            owned("feat_4c85aa747f319702"),owned("access_45edee695a349bf7"),owned("unarmed",5),owned("athletics",6),owned("stealth",5)))
+        val before=seeded.copy(character=seeded.character.copy(attributes=seeded.character.attributes+
+            (AttributeId.STRENGTH to AttributeValue(3))))
+        for(id in listOf("martial_style_7463d6872d62b6b5","martial_style_af9107782fa1c8ae",
+            "martial_style_c4db6f4388886f3e","martial_style_c829e9a6ec656e7b","martial_style_e5eeb39d20a88c54")) {
+            val request=AcquisitionRequest("book",listOf(AcquisitionTarget(ref(id),targetRank=1)))
+            val preview=plan(request,before,catalog)
+            assertTrue(preview.executable,"${catalog.definitions.getValue(ref(id)).name}: ${preview.issues}")
+            assertEquals(Amount(50,0),preview.cost)
+            assertEquals(listOf(ref(id)),preview.changes.map { it.definition },"The already-owned alternative must not be bought again")
+        }
+    }
+
     @Test fun elemental_admission_counts_three_distinct_learned_spells_and_retains_scoped_confirmations() = runBlocking {
         for((ability,key,spells) in listOf(
             Triple("feat_ca778ede19771422","spell-descriptor:огонь",listOf("spell_ff0f2470d3958645","spell_0dd92d6f7100cee1","spell_a7d134030c3d6036")),
