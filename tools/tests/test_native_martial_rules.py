@@ -158,9 +158,21 @@ class NativeMartialRulesTest(unittest.TestCase):
                              'missing-current-native-martial-rank-maximum' for n in nodes))
         jump = by_id['martial_technique_eca5dd325af3332b']
         self.assertNotIn('purchase:initial-rank-confirmed', jump['classificationSources'])
-        self.assertTrue(any(n['type'] == 'Unresolved' and n['reason'] ==
-                            'conflicting-current-native-martial-variants'
-                            for n in walk(jump['nativeRequirements'])))
+        self.assertEqual(1, jump['maxRank'])
+        self.assertEqual('Fixed', jump['priceRule']['type'])
+        self.assertEqual('30', jump['priceRule']['xp'])
+        self.assertIn('Ранг: 1', jump['classificationSources']['native-martial:t.79hjb3vv5hux:6962']['originalText'])
+        self.assertFalse(any(n['type'] == 'Unresolved' for n in walk(jump['nativeRequirements'])))
+        for ident, price in [('martial_technique_880f59e730436e3f', '50'),
+                             ('martial_technique_fcbf7ab842c6741f', '30')]:
+            first = by_id[ident]
+            self.assertIsNone(first['maxRank'])
+            self.assertEqual('NeedsResolution', first['sourceStatus'])
+            self.assertEqual([(0, 1, price)], [(t['fromRank'], t['toRank'], t['xp'])
+                             for t in first['priceRule']['transitions']])
+            self.assertFalse(any(n['type'] == 'Unresolved' and n['reason'] in (
+                'conflicting-current-native-martial-variants', 'missing-current-native-martial-rank-maximum')
+                for n in walk(first['nativeRequirements'])))
 
 
 if __name__ == '__main__':

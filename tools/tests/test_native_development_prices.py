@@ -105,7 +105,9 @@ def test_missing_native_cards_are_generated_once_without_inventing_rank_maxima()
             assert definition['repeatPolicy'] == {'type': 'Single'}
             assert definition['priceRule']['xp'] == '40'
     assert {d['ref']['entryId'] for d in definitions.values() if 'purchase:initial-rank-confirmed' in d['classificationSources']} == {
-        record['id'] for record in supplemental['entries'] if record['ranks'] is None} | {'martial_technique_6e7e3bdb291edb76'}
+        record['id'] for record in supplemental['entries'] if record['ranks'] is None} | {
+            'martial_technique_6e7e3bdb291edb76', 'martial_technique_880f59e730436e3f',
+            'martial_technique_fcbf7ab842c6741f'}
 
 
 def test_finite_source_rank_tracks_are_scalar_without_enabling_parameterized_variants():

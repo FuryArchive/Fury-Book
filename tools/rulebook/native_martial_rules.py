@@ -39,9 +39,18 @@ def _requirement_shape(tree):
     return json.dumps(result, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
 
 
-def _purchase_variants_agree(record, data, definitions, aliases, references, specializations, bindings):
+def _purchase_variants_agree(record, data, definitions, aliases, references, specializations, bindings,
+                             initial_rank_dispute=False):
     variants = record.get('nativeVariants', [])
-    if not variants or any((v['xp'], v['maxRank']) != (record['xp'], record['maxRank']) for v in variants):
+    if not variants or any(v['xp'] != record['xp'] or
+                           (not initial_rank_dispute and v['maxRank'] is not None and v['maxRank'] != record['maxRank'])
+                           for v in variants):
+        return False
+    # An omitted rank is not a competing maximum. A known maximum must still
+    # point to an actual variant that states it; never supply a default rank.
+    if record['maxRank'] is not None and not any(
+            v['maxRank'] == record['maxRank'] and v['rankEvidence'] == record['rankEvidence']
+            for v in variants):
         return False
     # A table containing a technique under its style is an index, not a new
     # declaration that the detailed card's additional prerequisites disappear.
@@ -113,14 +122,21 @@ def validate_native_martial_rules(data):
                 raise ValueError('Native martial runtime fields differ from acquisition facts')
         if r.get('initialRankPurchaseConfirmed'):
             marker = r['initialRankPurchaseConfirmed']
-            if (identity[1] != 'martial_technique_6e7e3bdb291edb76' or r['xp'] != 100 or
-                    r['priceEvidence'] != 't.vojedk94bfa5:4608' or r['maxRank'] is not None or
-                    r['rankEvidence'] is not None or not r.get('missingRankSource') or
-                    marker['priceEvidence'] != r['priceEvidence'] or
+            gan = (identity[1] == 'martial_technique_6e7e3bdb291edb76' and r['xp'] == 100 and
+                   r['priceEvidence'] == 't.vojedk94bfa5:4608' and r['maxRank'] is None and
+                   r['rankEvidence'] is None and r.get('missingRankSource') and not r.get('sourceConflict'))
+            reviewed = {'martial_technique_880f59e730436e3f': (50, 't.p8avbjiaw2o1:2425'),
+                        'martial_technique_fcbf7ab842c6741f': (30, 't.sqbsdmitezpy:7056')}
+            disputed = (identity[1] in reviewed and (r['xp'], r['priceEvidence']) == reviewed[identity[1]] and
+                        r['maxRank'] == 1 and r['rankEvidence'] is not None and r.get('sourceConflict') and
+                        not r.get('conflictingPrice') and not r.get('missingRankSource') and
+                        {v['maxRank'] for v in r.get('nativeVariants', [])} == {1, 3} and
+                        all(v['xp'] == r['xp'] for v in r.get('nativeVariants', [])))
+            if (not (gan or disputed) or marker['priceEvidence'] != r['priceEvidence'] or
                     (marker['fromRank'], marker['toRank']) != (0, 1) or
                     r.get('repeatPolicy', {'type': 'Single'}) != {'type': 'Single'} or
                     r.get('parameterDefinitions') or any(r.get(key) for key in (
-                        'sourceConflict', 'sourceDraft', 'missingBenefitSource', 'technicalMissingContract'))):
+                        'sourceDraft', 'missingBenefitSource', 'technicalMissingContract'))):
                 raise ValueError('Unreviewed native martial initial-rank purchase marker')
         for variant in r.get('nativeVariants', []):
             text = _plain(evidence[variant['priceEvidence']]['text'])
@@ -400,14 +416,17 @@ def apply_native_martial_rules(definitions, repo_root, resolution_revision):
             item['classificationSources']['native-martial:' + ref] = _source(data, ref)
         literal = {'xp': str(record['xp']), 'ap': '0', 'sourceRef': price_src}
         if record.get('initialRankPurchaseConfirmed'):
-            if item['repeatPolicy'] != {'type': 'Single'} or item['parameterDefinitions']:
+            if item['repeatPolicy'] != {'type': 'Single'} or item.get('parameterDefinitions', []):
                 raise ValueError('Native martial initial rank cannot infer a persistent/repeat identity')
             item['classificationSources']['purchase:initial-rank-confirmed'] = price_src
+            if record.get('sourceConflict'):
+                item['maxRank'] = None
+                item['sourceStatus'] = 'NeedsResolution'
         # A card price establishes the first rank. No retained native excerpt
         # states that the price repeats for every rank of these martial cards.
         item['priceRule'] = ({'type': 'Unknown', 'reason': 'conflicting-current-native-martial-prices',
                               'sourceRef': price_src} if record.get('conflictingPrice') else
-                             {'type': 'Fixed', **literal} if record['maxRank'] == 1 else
+                             {'type': 'Fixed', **literal} if record['maxRank'] == 1 and not record.get('initialRankPurchaseConfirmed') else
                              {'type': 'TransitionTable', 'transitions': [
                                  {'fromRank': 0, 'toRank': 1, **literal}], 'sourceRef': price_src})
     aliases = {a['exactText']: a['entryId'] for a in data['styleAliases']}
@@ -452,7 +471,8 @@ def apply_native_martial_rules(definitions, repo_root, resolution_revision):
             tree = {'type': 'AnyOf', 'nodeId': item['ref']['entryId'] + '/requirements',
                     'sourceRef': item['requirementSource'], 'children': from_types}
         purchase_agrees = _purchase_variants_agree(record, data, definitions, aliases, context_references,
-            named_specializations, authored_bindings.get(record['ref']['entryId'], {})) if record.get('sourceConflict') else True
+            named_specializations, authored_bindings.get(record['ref']['entryId'], {}),
+            initial_rank_dispute=bool(record.get('initialRankPurchaseConfirmed'))) if record.get('sourceConflict') else True
         full_effects = {v.get('benefitSha256') for v in record.get('nativeVariants', []) if not v.get('parentStyleRequirement')}
         if record.get('sourceConflict') and purchase_agrees and len(full_effects) > 1:
             item['classificationSources']['effect:conflicting-martial-descriptions'] = item['sourceRef']

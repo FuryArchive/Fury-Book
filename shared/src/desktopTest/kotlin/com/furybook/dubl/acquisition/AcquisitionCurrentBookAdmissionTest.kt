@@ -136,6 +136,53 @@ class AcquisitionCurrentBookAdmissionTest {
         }
     }
 
+    @Test fun jump_behind_uses_the_explicit_rank_card_and_keeps_purchase_history() = runBlocking {
+        val before=state(listOf(owned("feat_4c85aa747f319702"),owned("access_45edee695a349bf7"),owned("athletics",4)))
+        val target=AcquisitionTarget(ref("martial_technique_eca5dd325af3332b"),targetRank=1)
+        val request=AcquisitionRequest("book",listOf(target))
+        val fullChain=plan(request,state(),catalog)
+        assertTrue(fullChain.executable,fullChain.issues.toString())
+        assertEquals(Amount(180,1),fullChain.cost) // Athletics 1..4, Acrobatics, access and the technique.
+        val store=InMemoryAcquisitionStore(mapOf("book" to encodeEnvelope(before)))
+        val service=AcquisitionService(store,{catalog},{"id"})
+        val preview=service.preview(request)
+        assertTrue(preview.executable,preview.issues.toString())
+        assertEquals(Amount(30,0),preview.cost)
+        assertEquals(listOf(target.definition),preview.changes.map { it.definition })
+        assertIs<ApplyResult.Applied>(service.apply(ConfirmAcquisition("jump-behind","book",request,preview.baseRevision,preview.previewToken)))
+        val after=assertIs<LoadResult.Loaded>(decodeEnvelope(encodeEnvelope(assertIs<LoadResult.Loaded>(store.load("book")).state))).state
+        assertEquals(Amount(1970,10),balance(after.ledger))
+        assertEquals(1,after.instances.single { it.definition==target.definition }.rank)
+        assertFalse(plan(AcquisitionRequest("book",listOf(target.copy(targetRank=2))),after,catalog).executable)
+        assertIs<ApplyResult.Applied>(AcquisitionUndo(store).undo("book","undo-jump",after.revision))
+        assertEquals(acquisitionProjectionCanonical(before),acquisitionProjectionCanonical(assertIs<LoadResult.Loaded>(store.load("book")).state))
+    }
+
+    @Test fun agreed_first_hook_and_headbutt_ranks_work_despite_a_disputed_maximum() = runBlocking {
+        val before=state(listOf(owned("martial_style_871e095c5a18d7e0"),owned("feat_9a0dbfed2efa56b7"),
+            owned("feat_555de96ef1d0ca7c"),owned("unarmed",5)))
+        val targets=listOf("martial_technique_880f59e730436e3f","martial_technique_fcbf7ab842c6741f")
+            .map { AcquisitionTarget(ref(it),targetRank=1) }
+        assertTrue(targets.all { catalog.definitions.getValue(it.definition).sourceStatus==SourceStatus.NeedsResolution })
+        val request=AcquisitionRequest("book",targets)
+        val store=InMemoryAcquisitionStore(mapOf("book" to encodeEnvelope(before)))
+        val service=AcquisitionService(store,{catalog},{"id"})
+        val preview=service.preview(request)
+        assertTrue(preview.executable,preview.issues.toString())
+        assertEquals(Amount(80,0),preview.cost)
+        assertIs<ApplyResult.Applied>(service.apply(ConfirmAcquisition("agreed-first-ranks","book",request,preview.baseRevision,preview.previewToken)))
+        val saved=assertIs<LoadResult.Loaded>(store.load("book")).state
+        val after=assertIs<LoadResult.Loaded>(decodeEnvelope(encodeEnvelope(saved))).state
+        assertEquals(Amount(1920,10),balance(after.ledger))
+        for(target in targets) {
+            assertNull(catalog.definitions.getValue(target.definition).maxRank)
+            assertEquals(1,after.instances.single { it.definition==target.definition }.rank)
+            assertFalse(plan(AcquisitionRequest("book",listOf(target.copy(targetRank=2))),after,catalog).executable)
+        }
+        assertIs<ApplyResult.Applied>(AcquisitionUndo(store).undo("book","undo-first-ranks",after.revision))
+        assertEquals(acquisitionProjectionCanonical(before),acquisitionProjectionCanonical(assertIs<LoadResult.Loaded>(store.load("book")).state))
+    }
+
     @Test fun elemental_admission_counts_three_distinct_learned_spells_and_retains_scoped_confirmations() = runBlocking {
         for((ability,key,spells) in listOf(
             Triple("feat_ca778ede19771422","spell-descriptor:огонь",listOf("spell_ff0f2470d3958645","spell_0dd92d6f7100cee1","spell_a7d134030c3d6036")),

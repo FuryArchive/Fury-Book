@@ -28349,7 +28349,13 @@
         }
       ],
       "sourceConflict": "Current native occurrences disagree on price, rank maximum, or requirements. No variant was silently preferred.",
-      "conflictingPrice": false
+      "conflictingPrice": false,
+      "initialRankPurchaseConfirmed": {
+        "fromRank": 0,
+        "toRank": 1,
+        "priceEvidence": "t.p8avbjiaw2o1:2425",
+        "scope": "Only the first rank: current variants agree on price and full admission; rank maxima 1 and 3 conflict."
+      }
     },
     {
       "ref": {
@@ -33532,7 +33538,13 @@
         }
       ],
       "sourceConflict": "Current native occurrences disagree on price, rank maximum, or requirements. No variant was silently preferred.",
-      "conflictingPrice": false
+      "conflictingPrice": false,
+      "initialRankPurchaseConfirmed": {
+        "fromRank": 0,
+        "toRank": 1,
+        "priceEvidence": "t.sqbsdmitezpy:7056",
+        "scope": "Only the first rank: current variants agree on price and full admission; rank maxima 1 and 3 conflict."
+      }
     },
     {
       "ref": {
@@ -54574,11 +54586,11 @@
       "name": "Прыжок за спину",
       "kind": "TECHNIQUE",
       "xp": 30,
-      "maxRank": null,
+      "maxRank": 1,
       "requirementsText": "Акробатика",
       "titleEvidence": "t.79hjb3vv5hux:1550",
       "priceEvidence": "t.79hjb3vv5hux:1567",
-      "rankEvidence": null,
+      "rankEvidence": "t.79hjb3vv5hux:6962",
       "requirementEvidence": [
         "t.79hjb3vv5hux:1581"
       ],
@@ -54651,8 +54663,7 @@
         }
       ],
       "sourceConflict": "Current native occurrences disagree on price, rank maximum, or requirements. No variant was silently preferred.",
-      "conflictingPrice": false,
-      "missingRankSource": true
+      "conflictingPrice": false
     },
     {
       "ref": {

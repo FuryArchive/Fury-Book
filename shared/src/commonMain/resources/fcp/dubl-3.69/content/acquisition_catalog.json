@@ -122458,7 +122458,7 @@
       },
       "name": "Хук",
       "kind": "DEVELOPMENT",
-      "maxRank": 1,
+      "maxRank": null,
       "repeatPolicy": {
         "type": "Single"
       },
@@ -122954,6 +122954,13 @@
           "sheet": "t.9x0xximmsu49",
           "paragraph": null,
           "originalText": "🐅 Школа Тигра (Tiger)"
+        },
+        "purchase:initial-rank-confirmed": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.p8avbjiaw2o1",
+          "paragraph": null,
+          "originalText": "Стоимость: 50"
         }
       },
       "parameterDefinitions": [],
@@ -122968,9 +122975,22 @@
       },
       "requirementsText": "Боевые искусства: Арнис, Бокс, Кобра, Орел, Кобудзюцу, Леопард, Обезьяна, Пантера, РОСС, Уличный бой, Борьба сумо, Тайский кикбоксинг, Джит Кун-До или Тигр, Мощный удар",
       "priceRule": {
-        "type": "Fixed",
-        "xp": "50",
-        "ap": "0",
+        "type": "TransitionTable",
+        "transitions": [
+          {
+            "fromRank": 0,
+            "toRank": 1,
+            "xp": "50",
+            "ap": "0",
+            "sourceRef": {
+              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+              "sheet": "t.p8avbjiaw2o1",
+              "paragraph": null,
+              "originalText": "Стоимость: 50"
+            }
+          }
+        ],
         "sourceRef": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -122981,7 +123001,7 @@
       },
       "requirements": {
         "type": "AllOf",
-        "nodeId": "martial_technique_880f59e730436e3f/native/requirements",
+        "nodeId": "martial_technique_880f59e730436e3f/requirements",
         "sourceRef": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -122991,8 +123011,8 @@
         },
         "children": [
           {
-            "type": "AllOf",
-            "nodeId": "martial_technique_880f59e730436e3f/requirements",
+            "type": "AnyOf",
+            "nodeId": "martial_technique_880f59e730436e3f/requirements/styles",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -123002,256 +123022,231 @@
             },
             "children": [
               {
-                "type": "AnyOf",
-                "nodeId": "martial_technique_880f59e730436e3f/requirements/styles",
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/0",
                 "sourceRef": {
                   "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
                   "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
                   "sheet": "t.p8avbjiaw2o1",
                   "paragraph": null,
-                  "originalText": "Боевые искусства: Арнис, Бокс, Кобра, Орел, Кобудзюцу, Леопард, Обезьяна, Пантера, РОСС, Уличный бой, Борьба сумо, Тайский кикбоксинг, Джит Кун-До или Тигр, Мощный удар"
+                  "originalText": "Арнис"
                 },
-                "children": [
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/0",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Арнис"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_1e2486b0d8817834",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/1",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Бокс"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_9a22edda27cdbf1d",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/2",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Кобра"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_52accf777c74393f",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/3",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Орел"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_e5eeb39d20a88c54",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/4",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Кобудзюцу"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_40f8859eef79b27f",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/5",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Леопард"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_0f7a8795708e9364",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/6",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Обезьяна"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_c4db6f4388886f3e",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/7",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Пантера"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_c829e9a6ec656e7b",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/8",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "РОСС"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_bda806b6dd43209b",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/9",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Уличный бой"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_5f6164d50caa7242",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/10",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Борьба сумо"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_1d08a4430ffda5d7",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/11",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Тайский кикбоксинг"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_871e095c5a18d7e0",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/12",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Джит Кун-До"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_ef279d5dcb34e6e9",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_880f59e730436e3f/requirements/style/13",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.p8avbjiaw2o1",
-                      "paragraph": null,
-                      "originalText": "Тигр"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_af9107782fa1c8ae",
-                    "operator": "GE",
-                    "operand": 1
-                  }
-                ]
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_1e2486b0d8817834",
+                "operator": "GE",
+                "operand": 1
               },
               {
                 "type": "OwnedRank",
-                "nodeId": "martial_technique_880f59e730436e3f/requirements/tail/0",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/1",
                 "sourceRef": {
                   "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
                   "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
                   "sheet": "t.p8avbjiaw2o1",
                   "paragraph": null,
-                  "originalText": "Мощный удар"
+                  "originalText": "Бокс"
                 },
                 "packId": "dubl-3.69",
-                "entryId": "feat_9a0dbfed2efa56b7",
+                "entryId": "martial_style_9a22edda27cdbf1d",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/2",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Кобра"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_52accf777c74393f",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/3",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Орел"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_e5eeb39d20a88c54",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/4",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Кобудзюцу"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_40f8859eef79b27f",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/5",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Леопард"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_0f7a8795708e9364",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/6",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Обезьяна"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_c4db6f4388886f3e",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/7",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Пантера"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_c829e9a6ec656e7b",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/8",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "РОСС"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_bda806b6dd43209b",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/9",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Уличный бой"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_5f6164d50caa7242",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/10",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Борьба сумо"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_1d08a4430ffda5d7",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/11",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Тайский кикбоксинг"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_871e095c5a18d7e0",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/12",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Джит Кун-До"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_ef279d5dcb34e6e9",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_880f59e730436e3f/requirements/style/13",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.p8avbjiaw2o1",
+                  "paragraph": null,
+                  "originalText": "Тигр"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_af9107782fa1c8ae",
                 "operator": "GE",
                 "operand": 1
               }
             ]
           },
           {
-            "type": "Unresolved",
-            "nodeId": "martial_technique_880f59e730436e3f/native/sourceConflict",
+            "type": "OwnedRank",
+            "nodeId": "martial_technique_880f59e730436e3f/requirements/tail/0",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
               "sheet": "t.p8avbjiaw2o1",
               "paragraph": null,
-              "originalText": "Хук"
+              "originalText": "Мощный удар"
             },
-            "reason": "conflicting-current-native-martial-variants"
+            "packId": "dubl-3.69",
+            "entryId": "feat_9a0dbfed2efa56b7",
+            "operator": "GE",
+            "operand": 1
           }
         ]
       }
@@ -129648,7 +129643,7 @@
       },
       "name": "Удар головой",
       "kind": "DEVELOPMENT",
-      "maxRank": 1,
+      "maxRank": null,
       "repeatPolicy": {
         "type": "Single"
       },
@@ -129829,6 +129824,13 @@
           "sheet": "t.gy2xv8fx8u77",
           "paragraph": null,
           "originalText": "🍶 Школа Пьяного Мастера (Drunken Master)"
+        },
+        "purchase:initial-rank-confirmed": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.sqbsdmitezpy",
+          "paragraph": null,
+          "originalText": "Стоимость: 30"
         }
       },
       "parameterDefinitions": [],
@@ -129843,9 +129845,22 @@
       },
       "requirementsText": "Боевые искусства: Кабан, Пьяный Мастер, Уличный бой, Тайский кикбоксинг",
       "priceRule": {
-        "type": "Fixed",
-        "xp": "30",
-        "ap": "0",
+        "type": "TransitionTable",
+        "transitions": [
+          {
+            "fromRank": 0,
+            "toRank": 1,
+            "xp": "30",
+            "ap": "0",
+            "sourceRef": {
+              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+              "sheet": "t.sqbsdmitezpy",
+              "paragraph": null,
+              "originalText": "Стоимость: 30"
+            }
+          }
+        ],
         "sourceRef": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -129856,7 +129871,7 @@
       },
       "requirements": {
         "type": "AllOf",
-        "nodeId": "martial_technique_fcbf7ab842c6741f/native/requirements",
+        "nodeId": "martial_technique_fcbf7ab842c6741f/requirements",
         "sourceRef": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -129866,8 +129881,8 @@
         },
         "children": [
           {
-            "type": "AllOf",
-            "nodeId": "martial_technique_fcbf7ab842c6741f/requirements",
+            "type": "AnyOf",
+            "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/styles",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
               "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -129877,91 +129892,66 @@
             },
             "children": [
               {
-                "type": "AnyOf",
-                "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/styles",
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/style/0",
                 "sourceRef": {
                   "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
                   "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
                   "sheet": "t.sqbsdmitezpy",
                   "paragraph": null,
-                  "originalText": "Боевые искусства: Кабан, Пьяный Мастер, Уличный бой, Тайский кикбоксинг"
+                  "originalText": "Кабан"
                 },
-                "children": [
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/style/0",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.sqbsdmitezpy",
-                      "paragraph": null,
-                      "originalText": "Кабан"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_af83a80358958a92",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/style/1",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.sqbsdmitezpy",
-                      "paragraph": null,
-                      "originalText": "Пьяный Мастер"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_578264fbe93ee721",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/style/2",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.sqbsdmitezpy",
-                      "paragraph": null,
-                      "originalText": "Уличный бой"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_5f6164d50caa7242",
-                    "operator": "GE",
-                    "operand": 1
-                  },
-                  {
-                    "type": "OwnedRank",
-                    "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/style/3",
-                    "sourceRef": {
-                      "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-                      "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-                      "sheet": "t.sqbsdmitezpy",
-                      "paragraph": null,
-                      "originalText": "Тайский кикбоксинг"
-                    },
-                    "packId": "dubl-3.69",
-                    "entryId": "martial_style_871e095c5a18d7e0",
-                    "operator": "GE",
-                    "operand": 1
-                  }
-                ]
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_af83a80358958a92",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/style/1",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.sqbsdmitezpy",
+                  "paragraph": null,
+                  "originalText": "Пьяный Мастер"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_578264fbe93ee721",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/style/2",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.sqbsdmitezpy",
+                  "paragraph": null,
+                  "originalText": "Уличный бой"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_5f6164d50caa7242",
+                "operator": "GE",
+                "operand": 1
+              },
+              {
+                "type": "OwnedRank",
+                "nodeId": "martial_technique_fcbf7ab842c6741f/requirements/style/3",
+                "sourceRef": {
+                  "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+                  "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+                  "sheet": "t.sqbsdmitezpy",
+                  "paragraph": null,
+                  "originalText": "Тайский кикбоксинг"
+                },
+                "packId": "dubl-3.69",
+                "entryId": "martial_style_871e095c5a18d7e0",
+                "operator": "GE",
+                "operand": 1
               }
             ]
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "martial_technique_fcbf7ab842c6741f/native/sourceConflict",
-            "sourceRef": {
-              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-              "sheet": "t.sqbsdmitezpy",
-              "paragraph": null,
-              "originalText": "Удар головой "
-            },
-            "reason": "conflicting-current-native-martial-variants"
           }
         ]
       }
@@ -203227,7 +203217,7 @@
         },
         "children": [
           {
-            "type": "Unresolved",
+            "type": "OwnedRank",
             "nodeId": "martial_technique_6387bad222a82289/requirements/0",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
@@ -203236,7 +203226,10 @@
               "paragraph": null,
               "originalText": "Прыжок за спину"
             },
-            "reason": "unresolved-reference-rank:dubl-3.69:martial_technique_eca5dd325af3332b"
+            "packId": "dubl-3.69",
+            "entryId": "martial_technique_eca5dd325af3332b",
+            "operator": "GE",
+            "operand": 1
           },
           {
             "type": "SkillFamily",
@@ -234351,7 +234344,7 @@
             "operand": 1
           },
           {
-            "type": "Unresolved",
+            "type": "OwnedRank",
             "nodeId": "martial_technique_ca95796fd40840f7/requirements/2",
             "sourceRef": {
               "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
@@ -234360,7 +234353,10 @@
               "paragraph": null,
               "originalText": "Прыжок за спину"
             },
-            "reason": "unresolved-reference-rank:dubl-3.69:martial_technique_eca5dd325af3332b"
+            "packId": "dubl-3.69",
+            "entryId": "martial_technique_eca5dd325af3332b",
+            "operator": "GE",
+            "operand": 1
           },
           {
             "type": "OwnedRank",
@@ -237241,6 +237237,13 @@
           "paragraph": null,
           "originalText": "Стоимость: 30"
         },
+        "native-martial:t.79hjb3vv5hux:6962": {
+          "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
+          "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
+          "sheet": "t.79hjb3vv5hux",
+          "paragraph": null,
+          "originalText": "Прыжок за спину\u000bСтоимость: 30\u000bРанг: 1\u000bТребование: Акробатика."
+        },
         "native-martial:t.79hjb3vv5hux:1581": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -237248,12 +237251,12 @@
           "paragraph": null,
           "originalText": "Требование: Акробатика"
         },
-        "native-martial:t.79hjb3vv5hux:6962": {
+        "effect:conflicting-martial-descriptions": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
           "sheet": "t.79hjb3vv5hux",
           "paragraph": null,
-          "originalText": "Прыжок за спину\u000bСтоимость: 30\u000bРанг: 1\u000bТребование: Акробатика."
+          "originalText": "Прыжок за спину "
         }
       },
       "parameterDefinitions": [],
@@ -237266,28 +237269,15 @@
         "paragraph": null,
         "originalText": "Прыжок за спину "
       },
-      "maxRank": null,
+      "maxRank": 1,
       "repeatPolicy": {
         "type": "Single"
       },
       "requirementsText": "Акробатика",
       "priceRule": {
-        "type": "TransitionTable",
-        "transitions": [
-          {
-            "fromRank": 0,
-            "toRank": 1,
-            "xp": "30",
-            "ap": "0",
-            "sourceRef": {
-              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-              "sheet": "t.79hjb3vv5hux",
-              "paragraph": null,
-              "originalText": "Стоимость: 30"
-            }
-          }
-        ],
+        "type": "Fixed",
+        "xp": "30",
+        "ap": "0",
         "sourceRef": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -237297,8 +237287,8 @@
         }
       },
       "requirements": {
-        "type": "AllOf",
-        "nodeId": "martial_technique_eca5dd325af3332b/native/requirements",
+        "type": "OwnedRank",
+        "nodeId": "martial_technique_eca5dd325af3332b/requirements",
         "sourceRef": {
           "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
           "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
@@ -237306,47 +237296,10 @@
           "paragraph": null,
           "originalText": "Требование: Акробатика"
         },
-        "children": [
-          {
-            "type": "OwnedRank",
-            "nodeId": "martial_technique_eca5dd325af3332b/requirements",
-            "sourceRef": {
-              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-              "sheet": "t.79hjb3vv5hux",
-              "paragraph": null,
-              "originalText": "Акробатика"
-            },
-            "packId": "dubl-3.69",
-            "entryId": "feat_4c85aa747f319702",
-            "operator": "GE",
-            "operand": 1
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "martial_technique_eca5dd325af3332b/native/sourceConflict",
-            "sourceRef": {
-              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-              "sheet": "t.79hjb3vv5hux",
-              "paragraph": null,
-              "originalText": "Прыжок за спину "
-            },
-            "reason": "conflicting-current-native-martial-variants"
-          },
-          {
-            "type": "Unresolved",
-            "nodeId": "martial_technique_eca5dd325af3332b/native/missingRankSource",
-            "sourceRef": {
-              "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-              "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-              "sheet": "t.79hjb3vv5hux",
-              "paragraph": null,
-              "originalText": "Прыжок за спину "
-            },
-            "reason": "missing-current-native-martial-rank-maximum"
-          }
-        ]
+        "packId": "dubl-3.69",
+        "entryId": "feat_4c85aa747f319702",
+        "operator": "GE",
+        "operand": 1
       }
     },
     {
@@ -256454,34 +256407,6 @@
       }
     },
     {
-      "kind": "conflicting-current-native-martial-variants",
-      "definitionId": "martial_technique_880f59e730436e3f",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_technique_880f59e730436e3f/native/sourceConflict",
-      "message": "conflicting-current-native-martial-variants",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.p8avbjiaw2o1",
-        "paragraph": null,
-        "originalText": "Хук"
-      }
-    },
-    {
-      "kind": "conflicting-current-native-martial-variants",
-      "definitionId": "martial_technique_fcbf7ab842c6741f",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_technique_fcbf7ab842c6741f/native/sourceConflict",
-      "message": "conflicting-current-native-martial-variants",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.sqbsdmitezpy",
-        "paragraph": null,
-        "originalText": "Удар головой "
-      }
-    },
-    {
       "kind": "native-source-draft-no-definition",
       "definitionId": "martial_technique_f0a8514894df0fe9",
       "packId": "dubl-3.69",
@@ -257350,20 +257275,6 @@
       }
     },
     {
-      "kind": "unresolved-reference-rank",
-      "definitionId": "martial_technique_6387bad222a82289",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_technique_6387bad222a82289/requirements/0",
-      "message": "dubl-3.69:martial_technique_eca5dd325af3332b",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.79hjb3vv5hux",
-        "paragraph": null,
-        "originalText": "Прыжок за спину"
-      }
-    },
-    {
       "kind": "conflicting-current-native-martial-variants",
       "definitionId": "martial_technique_746160960cfe8ee0",
       "packId": "dubl-3.69",
@@ -257448,20 +257359,6 @@
       }
     },
     {
-      "kind": "unresolved-reference-rank",
-      "definitionId": "martial_technique_ca95796fd40840f7",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_technique_ca95796fd40840f7/requirements/2",
-      "message": "dubl-3.69:martial_technique_eca5dd325af3332b",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.79hjb3vv5hux",
-        "paragraph": null,
-        "originalText": "Прыжок за спину"
-      }
-    },
-    {
       "kind": "conflicting-current-native-martial-variants",
       "definitionId": "martial_technique_d91aeb2420359902",
       "packId": "dubl-3.69",
@@ -257473,34 +257370,6 @@
         "sheet": "t.tckgkge6x2vp",
         "paragraph": null,
         "originalText": "Открытые врата"
-      }
-    },
-    {
-      "kind": "conflicting-current-native-martial-variants",
-      "definitionId": "martial_technique_eca5dd325af3332b",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_technique_eca5dd325af3332b/native/sourceConflict",
-      "message": "conflicting-current-native-martial-variants",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.79hjb3vv5hux",
-        "paragraph": null,
-        "originalText": "Прыжок за спину "
-      }
-    },
-    {
-      "kind": "missing-current-native-martial-rank-maximum",
-      "definitionId": "martial_technique_eca5dd325af3332b",
-      "packId": "dubl-3.69",
-      "nodeId": "martial_technique_eca5dd325af3332b/native/missingRankSource",
-      "message": "missing-current-native-martial-rank-maximum",
-      "sourceRef": {
-        "documentId": "1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0",
-        "documentVersion": "native-text-sha256:2e581f96b3ee8506f8d41f937ec254601106a00767c62c9b226964bd30ce2869",
-        "sheet": "t.79hjb3vv5hux",
-        "paragraph": null,
-        "originalText": "Прыжок за спину "
       }
     },
     {
@@ -257579,5 +257448,5 @@
       "resolutionRevision": "cff687788481ae6a282a7b49ca6c608aeb2d1546f91df3aa7d1e77de26a276f0"
     }
   },
-  "catalogRevision": "152a3f5edcba6021d4f4e8a81b6db704c93db33f34e9af270f0edf0e02940bb4"
+  "catalogRevision": "565713a17199df1eabb1133cd346bce443f11429d050178aa7a5f8bc966a3891"
 }
