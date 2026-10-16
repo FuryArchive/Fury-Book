@@ -1,0 +1,61 @@
+{
+  "sourceSha": "7d271e92adfd49e23da4a374fdae8dd6a995f16b",
+  "branch": "codex/furybook-rules-completion-20261015",
+  "catalogRevision": "565713a17199df1eabb1133cd346bce443f11429d050178aa7a5f8bc966a3891",
+  "builds": [
+    {
+      "kind": "Android",
+      "sourceSha": "7d271e92adfd49e23da4a374fdae8dd6a995f16b",
+      "workflowRun": 38949987430,
+      "artifactId": 12068797831,
+      "artifactDigest": "sha256:172f3f88c8e7863a6b55065740d16089d358c89c6801f9304931a49c12f8067f",
+      "fileName": "Fury-Book-7d271e9-Android.apk",
+      "bytes": 4056272,
+      "sha256": "1474269c35cc1ee740c3618be25bb26f2a8b1b60ed6307a285761aca63e30318",
+      "archiveEntries": [
+        "Fury-Book-Android.apk"
+      ]
+    },
+    {
+      "kind": "Linux",
+      "sourceSha": "7d271e92adfd49e23da4a374fdae8dd6a995f16b",
+      "workflowRun": 38949987415,
+      "artifactId": 12069206129,
+      "artifactDigest": "sha256:5ece3c98d1c80788bafd3cb6f7ea29405976ea1fcf6fc642bc500eda3b468f1f",
+      "fileName": "Fury-Book-7d271e9-Linux.AppImage",
+      "bytes": 71227896,
+      "sha256": "33931185ce54812ed7d68eaf3d44333ce4e1f31563aa77e419734b346c5834ad",
+      "archiveEntries": [
+        "Fury-Book-0.5.0-linux-x86_64.AppImage",
+        "Fury-Book-0.5.0-linux-x86_64.AppImage.sha256"
+      ]
+    },
+    {
+      "kind": "Windows",
+      "sourceSha": "7d271e92adfd49e23da4a374fdae8dd6a995f16b",
+      "workflowRun": 38949987427,
+      "artifactId": 12069190900,
+      "artifactDigest": "sha256:4dd276ae4d261349562ff08d0f28050b1e07d9a36e3cdf9532f066088afe63cc",
+      "fileName": "Fury-Book-7d271e9-Windows.zip",
+      "bytes": 137190016,
+      "sha256": "4dd276ae4d261349562ff08d0f28050b1e07d9a36e3cdf9532f066088afe63cc",
+      "archiveEntries": [
+        "exe/FuryBook-0.5.0.exe",
+        "msi/FuryBook-0.5.0.msi"
+      ]
+    },
+    {
+      "kind": "Web",
+      "sourceSha": "7d271e92adfd49e23da4a374fdae8dd6a995f16b",
+      "workflowRun": 38949987430,
+      "artifactId": 12069370814,
+      "artifactDigest": "sha256:96b264c284c3d15b49a30192311c7902ce9e4589aee64d61582e46dcd7626be5",
+      "fileName": "Fury-Book-7d271e9-Web.zip",
+      "bytes": 13634816,
+      "sha256": "94648cfe6feb2065482999df03494052eb62dffa3c470a85c1304922e333ea61",
+      "archiveEntries": [
+        "Fury-Book-Web.zip"
+      ]
+    }
+  ]
+}

@@ -2,7 +2,9 @@
 
 ## 2026-10-16: current-book purchase implementation
 
-Implemented trap access, named Knowledge admission, explicit skill-specific synergy, elemental spell-count admission, existing school-rank witnesses, martial purchase/effect conflict separation and the five animal-style alternatives. Also fixed Web pack loading from manifests and Windows durable purchase publication; the Android oracle task no longer captures build-script state in the configuration cache. Source gaps remain explicit; no historical purchase is repriced. See [concrete changes and remaining limits](verification/2026-10-16-acquisition-fixes.md). Verification and packaging follow the implementation batch.
+Implemented trap access, named Knowledge admission, explicit skill-specific synergy, elemental spell-count admission, existing school-rank witnesses, martial purchase/effect conflict separation and the five animal-style alternatives. Jump Behind uses the rank explicitly stated in its second card; Hook and Headbutt admit only their agreed first ranks while preserving the disputed maximum. Also fixed Web manifest loading, durable Windows purchase publication, pinned JSON line endings and Android configuration-cache packaging.
+
+Final product code/data: `7d271e9`. Android APK, Compose AppImage, Windows EXE/MSI and Web distribution were built successfully; native storage, source import and shared regression passed. Browser and Desktop UI evidence have their own earlier source cuts and limited scenario coverage. See [concrete changes, source quotations, remaining limits and downloads](verification/2026-10-16-acquisition-fixes.md). No historical purchase is repriced; cloud format 2 writes remain disabled. This is not acceptance of every source-ambiguous purchase or automation of every gameplay effect.
 
 ## 2026-10-16: resumed purchase verification
 
