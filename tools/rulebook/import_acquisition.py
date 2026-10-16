@@ -84,9 +84,10 @@ def source_ref(evidence, paragraph=None, text=None):
 
 def native_source_ref(provenance, excerpt):
     """Native cell paths/offsets stay in the bounded canonical evidence record."""
-    version = (provenance.get('revisionId') or provenance.get('documentVersion') or
-               excerpt.get('documentVersion') or 'excerpt-sha256:'+excerpt['textSha256'])
-    return {'documentId': provenance['documentId'], 'documentVersion': version,
+    document = excerpt.get('documentId', provenance['documentId'])
+    inherited_version = (provenance.get('revisionId') or provenance.get('documentVersion')) if document == provenance['documentId'] else None
+    version = excerpt.get('revisionId') or excerpt.get('documentVersion') or inherited_version or 'excerpt-sha256:'+excerpt['textSha256']
+    return {'documentId': document, 'documentVersion': version,
             'sheet': excerpt['tabId'], 'paragraph': int(excerpt['path'].split('/')[1]),
             'originalText': excerpt['text']}
 
@@ -265,6 +266,10 @@ def apply_native_requirement_bindings(definitions, repo_root):
         key = (owner, value['nodeId'], value['sourceRef']['originalText'])
         if key in bindings:
             seen.add(key); binding = bindings[key]
+            if binding.get('descriptorConfirmation'):
+                by_source = native_source_ref(provenance, binding['evidence'][0])
+                owner_definition = next(d for d in definitions if d['ref']['entryId'] == owner and d['ref']['packId'] == CORE)
+                owner_definition['classificationSources']['admission:spell-descriptor-confirmation'] = by_source
             return replacement_tree(binding['replacement'], value['nodeId'], native_source_ref(provenance, binding['evidence'][0]))
         result = dict(value)
         if 'children' in value:
@@ -739,6 +744,22 @@ def has_confirmed_initial_rank(definition):
         source.get('documentVersion') and source.get('originalText', '').strip())
 
 
+def mark_referenced_school_ownership(definitions):
+    """A cited school-rank requirement can inspect an existing rank without pricing a new one."""
+    by_ref = {(d['ref']['packId'], d['ref']['entryId']): d for d in definitions}
+    for owner in definitions:
+        for condition in walk(owner['requirements']):
+            if condition['type'] != 'OwnedRank' or condition['operand'] <= 0:
+                continue
+            school = by_ref.get((condition['packId'], condition['entryId']))
+            if school is None or school['kind'] != 'SCHOOL' or school.get('maxRank') is not None:
+                continue
+            school['classificationSources']['ownership:source-referenced-school-rank'] = condition['sourceRef']
+            if school['sourceStatus'] == 'Unavailable':
+                school['sourceStatus'] = 'NeedsResolution'
+    return definitions
+
+
 def diagnose_catalog(definitions):
     """Keep exact references; detect all SCCs including self loops, without flattening OR."""
     index = defaultdict(list)
@@ -779,7 +800,8 @@ def diagnose_catalog(definitions):
                 if family and any(v is not None and 0 <= n['operand'] <= v for v in maxima):
                     continue
                 if maximum is None or (family and None in maxima):
-                    if not (0 <= n['operand'] <= 1 and any(has_confirmed_initial_rank(t) for t in targets)):
+                    if not (0 <= n['operand'] <= 1 and any(has_confirmed_initial_rank(t) for t in targets)) and not any(
+                            t['kind'] == 'SCHOOL' and 'ownership:source-referenced-school-rank' in t['classificationSources'] for t in targets):
                         emit('unresolved-reference-rank', d, n, ':'.join(key))
                 elif n['operand'] < 0 or n['operand'] > maximum:
                     emit('rank-out-of-range', d, n, f"{n['operand']} outside 0..{maximum}: {key}")
@@ -1234,6 +1256,7 @@ def build_acquisition_catalogs(repo_root):
         except ImportError:
             from native_weapon_proficiencies import apply_native_weapon_requirement_bindings
         definitions = apply_native_weapon_requirement_bindings(definitions, repo_root)
+    definitions = mark_referenced_school_ownership(definitions)
     diagnostics = diagnose_catalog(definitions)
     definitions = apply_requirement_diagnostics(definitions, diagnostics)
     result = {}

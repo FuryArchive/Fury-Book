@@ -59,7 +59,9 @@ def test_martial_tail_preserved():
         assert tree['type'] == 'AllOf'
         assert any(n['type'] == 'AnyOf' for n in nodes(tree))
         assert any(n['sourceRef']['originalText'] == tail and n['type'] == 'OwnedRank' for n in nodes(tree))
-        assert any(n.get('reason') == 'conflicting-current-native-martial-variants' for n in nodes(tree))
+        conflict = any(n.get('reason') == 'conflicting-current-native-martial-variants' for n in nodes(tree))
+        # The first card's purchase fields agree; its effect discrepancy must not erase the tail.
+        assert conflict == (entry == 'martial_technique_880f59e730436e3f')
         assert not any(n['type'] == 'Unresolved' and 'source-unverified' in n['reason'] for n in nodes(tree))
         assert tree['sourceRef']['documentId'] == '1DaYOkyTRzyGtKiIubo19Gl-lZEumZhnnmyaargKtCo0'
 

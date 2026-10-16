@@ -97,10 +97,10 @@ private fun RequirementTree(value: AcquisitionRequirementView, model: Acquisitio
             modifier = Modifier.testTag("acquisition.requirement.values"), style = MaterialTheme.typography.labelSmall)
         if (value.sourceText.isNotBlank()) Text(value.sourceText, style = MaterialTheme.typography.labelSmall)
         value.external?.takeIf { allowConfirmation }?.let { external ->
-            val checked = model.request?.externalConfirmations?.any { it.evidenceKey == external.evidenceKey && it.scopeId == external.scopeId } == true
+            val confirmation = acquisitionExternalConfirmation(value, model.request)
             Row {
-                Checkbox(checked, { actions.confirmExternal(model, external, it) }, enabled = model.phase in setOf(AcquisitionUiPhase.Ready, AcquisitionUiPhase.ChoiceRequired, AcquisitionUiPhase.Blocked, AcquisitionUiPhase.Stale))
-                Text("Подтверждаю именно это внешнее условие", style = MaterialTheme.typography.bodySmall)
+                Checkbox(confirmation.checked, { actions.confirmExternal(model, external, it) }, enabled = !confirmation.retained && model.phase in setOf(AcquisitionUiPhase.Ready, AcquisitionUiPhase.ChoiceRequired, AcquisitionUiPhase.Blocked, AcquisitionUiPhase.Stale))
+                Text(if (confirmation.retained) "Подтверждение сохранено с покупкой" else "Подтверждаю именно это внешнее условие", style = MaterialTheme.typography.bodySmall)
             }
         }
         value.children.forEach { RequirementTree(it, model, actions, depth + 1, allowConfirmation) }

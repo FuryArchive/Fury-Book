@@ -21,6 +21,13 @@ data class AcquisitionChoiceOptionView(val id: String, val label: String, val pr
 data class AcquisitionRequirementView(val nodeId: String, val label: String, val status: RequirementStatus,
     val actual: RequirementValue?, val required: RequirementValue?, val external: RequirementNode.ExternalEvidence?,
     val children: List<AcquisitionRequirementView>, val sourceText: String)
+data class AcquisitionExternalConfirmationView(val checked: Boolean, val retained: Boolean)
+fun acquisitionExternalConfirmation(value: AcquisitionRequirementView, request: AcquisitionRequest?): AcquisitionExternalConfirmationView {
+    val external = value.external ?: return AcquisitionExternalConfirmationView(false,false)
+    val pending = request?.externalConfirmations?.any { it.evidenceKey == external.evidenceKey && it.scopeId == external.scopeId } == true
+    val retained = !pending && external.operand && value.status == RequirementStatus.Satisfied
+    return AcquisitionExternalConfirmationView(pending || retained,retained)
+}
 data class AcquisitionBlock(val status: RequirementStatus, val message: String, val label: String?, val sourceText: String?)
 data class AcquisitionReceiptView(val cost: Amount, val remaining: Amount, val status: ReceiptStatus,
     val replayed: Boolean, val rows: List<AcquisitionDisplayRow>, val currentBalance: Amount? = null,
@@ -63,13 +70,40 @@ class AcquisitionLabels(private val catalog: AcquisitionCatalog) {
         is RequirementNode.Attribute -> "Характеристика: ${node.attributeId.title}"
         is RequirementNode.NumericProperty -> when(node.propertyId) { "MAGIC_POWER"->"Сила магии";"FORTITUDE"->"Стойкость";else->"Показатель требует уточнения" }
         is RequirementNode.SelectedInstance -> if((node.predicate as? RequirementNode.SkillFamily)?.familyId=="knowledge") "Выбранное знание" else "Выбранная запись"
-        is RequirementNode.SkillFamily -> "Навык выбранной группы"
+        is RequirementNode.SkillFamily -> catalog.definitions[DefinitionRef(node.packId,node.familyId)]
+            ?.takeIf { it.kind == AcquisitionKind.SKILL }?.let { definition(it.ref) }
+            ?: if (node.familyId == "knowledge") "Любое Знание" else "Навык выбранной группы"
         is RequirementNode.BranchAccess -> "Доступ к ветке"
         is RequirementNode.DistinctCount -> "Различные приобретения"
         is RequirementNode.CreationPhase -> "Этап создания персонажа"
         is RequirementNode.Exclusive -> "Несовместимое приобретение"
-        is RequirementNode.ExternalEvidence -> "Подтверждение внешнего условия"
+        is RequirementNode.ExternalEvidence -> when {
+            node.evidenceKey == "applicable-synergy" -> "Применимость синергии к выбранному умению"
+            node.evidenceKey.startsWith("spell-descriptor:") -> "Дескриптор «${node.evidenceKey.substringAfter(':')}»: ${definition(DefinitionRef("dubl-3.69",node.scopeId))}"
+            else -> "Подтверждение внешнего условия"
+        }
         is RequirementNode.Unresolved -> "Правило требует уточнения"
+    }
+    fun condition(node: RequirementNode): String {
+        fun rank(operator: ComparisonOperator, value: Int): String = when(operator) {
+            ComparisonOperator.GE -> "≥ $value"
+            ComparisonOperator.GT -> "> $value"
+            ComparisonOperator.LE -> "≤ $value"
+            ComparisonOperator.LT -> "< $value"
+            ComparisonOperator.EQ -> "= $value"
+        }
+        return when(node) {
+            is RequirementNode.AllOf -> node.children.joinToString(" и ") { condition(it) }.ifBlank { "Без дополнительных требований" }
+            is RequirementNode.AnyOf -> node.children.joinToString(" или ","(",")") { condition(it) }
+            is RequirementNode.OwnedRank -> "${definition(DefinitionRef(node.packId,node.entryId))} ${rank(node.operator,node.operand)}"
+            is RequirementNode.SkillFamily -> "${requirement(node)} ${rank(node.operator,node.operand)}"
+            is RequirementNode.Attribute -> "${node.attributeId.title} ${rank(node.operator,node.operand)}"
+            is RequirementNode.NumericProperty -> "${requirement(node)} ${rank(node.operator,node.operand)}"
+            is RequirementNode.BranchAccess -> "Доступ: ${definition(DefinitionRef(node.packId,node.branchId))}"
+            is RequirementNode.ExternalEvidence -> if(node.evidenceKey == "applicable-synergy")
+                "подтверждена применимость синергии к этому умению" else node.sourceRef.originalText.ifBlank { requirement(node) }
+            else -> node.sourceRef.originalText.ifBlank { requirement(node) }
+        }
     }
 }
 object AcquisitionPresentation {
@@ -82,8 +116,17 @@ object AcquisitionPresentation {
         val labels=AcquisitionLabels(catalog)
         val effectNotices=(plan.request.targets.map { it.definition } + plan.changes.map { it.definition })
             .distinct().mapNotNull { ref ->
-                catalog.definitions[ref]?.classificationSources?.get("effect:pending-owned-form-selections")?.let {
-                    "${labels.definition(ref)}: способности освоенных форм выбираются отдельно. Реестр форм и применение этих эффектов пока не поддержаны."
+                val sources=catalog.definitions[ref]?.classificationSources.orEmpty()
+                when {
+                    "effect:pending-owned-form-selections" in sources ->
+                        "${labels.definition(ref)}: способности освоенных форм выбираются отдельно. Реестр форм и применение этих эффектов пока не поддержаны."
+                    "effect:conflicting-martial-descriptions" in sources ->
+                        "${labels.definition(ref)}: цена, ранг и требования покупки согласованы, но в книге расходятся описания игрового эффекта. Эффект не применяется автоматически."
+                    "effect:missing-martial-description" in sources ->
+                        "${labels.definition(ref)}: цена и условия покупки указаны в книге, но описание игрового эффекта не заполнено. Эффект не применяется автоматически."
+                    "admission:spell-descriptor-confirmation" in sources ->
+                        "${labels.definition(ref)}: в книге не размечены дескрипторы отдельных заклинаний. Подтвердите нужный дескриптор у трёх изученных заклинаний; каждое заклинание считается один раз."
+                    else -> null
                 }
             }
         val phase=when {
@@ -131,7 +174,7 @@ object AcquisitionPresentation {
         },plan.cost?.let { AcquisitionDisplayedPrice.Known(it) } ?: AcquisitionDisplayedPrice.Unknown(),plan.remaining,
             EnvelopeList(rows),EnvelopeList(requirements),EnvelopeList(plan.questions.map { question -> AcquisitionChoiceView(question.id,"Выберите вариант",
                 EnvelopeList(question.options.mapIndexed { index,option -> AcquisitionChoiceOptionView(option.id,
-                    option.changes.joinToString { labels.acquisition(it.definition,it.parameters) }.ifBlank { "Вариант ${index+1}" },price(option.quote)) }),question.selectedId) }),
+                    option.label.ifBlank { option.changes.joinToString { labels.acquisition(it.definition,it.parameters) }.ifBlank { "Вариант ${index+1}" } },price(option.quote)) }),question.selectedId) }),
             EnvelopeList(blocks),phase==AcquisitionUiPhase.Ready,sync=sync(state,capabilities),request=plan.request,selections=selectionPrompts(plan.request,state,catalog),baseRequirements=EnvelopeList(baseRequirements),effectNotices=EnvelopeList(effectNotices))
     }
     /** A canonical ownership fact, independent of executability or an empty plan. */
@@ -167,6 +210,20 @@ object AcquisitionPresentation {
         RequirementStatus.Satisfied -> "Условие выполнено"
     }
     private fun requirement(node:RequirementNode,result:RequirementResult,labels:AcquisitionLabels):AcquisitionRequirementView {
+        val descriptorChoices=(node as? RequirementNode.DistinctCount)?.predicate as? RequirementNode.AnyOf
+        if (descriptorChoices != null && descriptorChoices.children.all { branch ->
+                branch is RequirementNode.AllOf && branch.children.any { it is RequirementNode.ExternalEvidence && it.evidenceKey.startsWith("spell-descriptor:") }
+            }) {
+            // Show the real learned spell candidates, rather than hundreds of unrelated catalog branches.
+            val children=result.children.mapNotNull { candidate ->
+                val proof=candidate.children.firstOrNull { p -> p.witnesses.any { it is RequirementWitness.LearnedSpell } }
+                    ?: return@mapNotNull null
+                val branch=descriptorChoices.children.singleOrNull { it.nodeId == proof.nodeId } ?: return@mapNotNull null
+                requirement(branch,proof,labels)
+            }.distinctBy { it.nodeId }
+            return AcquisitionRequirementView(node.nodeId,labels.requirement(node),result.status,result.actualValue,result.requiredValue,null,
+                EnvelopeList(children),node.sourceRef.originalText)
+        }
         val nodes=when(node) { is RequirementNode.AllOf->node.children;is RequirementNode.AnyOf->node.children;is RequirementNode.Exclusive->listOf(node.conflicting);is RequirementNode.DistinctCount->listOf(node.predicate);is RequirementNode.SelectedInstance->listOf(node.predicate);else->emptyList() }
         return AcquisitionRequirementView(node.nodeId,labels.requirement(node),result.status,result.actualValue,result.requiredValue,node as? RequirementNode.ExternalEvidence,
             EnvelopeList(nodes.map { child -> requirement(child,result.children.firstOrNull { it.nodeId==child.nodeId } ?: RequirementResult(RequirementStatus.SourceUnresolved,child.nodeId),labels) }),node.sourceRef.originalText)

@@ -39,6 +39,7 @@ private class Evaluation(private val context: AcquisitionContext, private val su
     private val budget: EvaluationBudget = EvaluationBudget()) {
     // Depth protects the common targets' stacks; work bounds pathological branching as well as cycles.
     private val maxDepth = 64
+    private val spellCandidateConstraints = mutableMapOf<String, Set<DefinitionRef>?>()
     data class Candidate(val definition: DefinitionRef, val instance: AcquisitionInstance?)
     /** Feasibility and candidate binding are separate from the public diagnostic status.
      * An AND may retain a source blocker while another child definitively rules out this candidate.
@@ -67,6 +68,10 @@ private class Evaluation(private val context: AcquisitionContext, private val su
                 val children = mutableListOf<Proof>()
                 // In a count, independent truth cannot suppress a later bound proof of this candidate.
                 for (child in node.children) {
+                    if (candidate != null) {
+                        val mandatory = mandatorySpellCandidate(child, depth + 1)
+                        if (mandatory != null && candidate.definition !in mandatory) continue
+                    }
                     val alternative = visit(child, path, depth + 1, candidate, ownershipOnly)
                     children += alternative
                     if (alternative.status == RequirementStatus.Satisfied &&
@@ -110,7 +115,9 @@ private class Evaluation(private val context: AcquisitionContext, private val su
             }
             is RequirementNode.ExternalEvidence -> {
                 val facts = context.externalEvidence.filter { it.evidenceKey == node.evidenceKey && it.scopeId == node.scopeId &&
-                    it.evidenceId.isNotBlank() && it.sourceRef.originalText.isNotBlank() }
+                    it.evidenceId.isNotBlank() && it.sourceRef.originalText.isNotBlank() &&
+                    (!node.evidenceKey.startsWith("spell-descriptor:") ||
+                        (it.sourceRef.documentId == node.sourceRef.documentId && it.sourceRef.documentVersion == node.sourceRef.documentVersion)) }
                 when {
                     facts.isEmpty() -> result(node, RequirementStatus.ChoiceRequired, reason = "Confirm external evidence in scope ${node.scopeId}",
                         required = RequirementValue.Flag(node.operand))
@@ -147,7 +154,8 @@ private class Evaluation(private val context: AcquisitionContext, private val su
         if (!ownershipOnly) {
             if (definition.sourceStatus == SourceStatus.Unavailable) return unresolved(node, "Source unavailable for $ref")
             val confirmed = confirmedPurchaseRankCeiling(definition)
-            if (confirmed == null || operand < 0 || operand > confirmed) return unresolved(node, "Unknown or invalid rank boundary for $ref")
+            if (operand < 0 || (!hasReferencedSchoolOwnership(definition) && (confirmed == null || operand > confirmed)))
+                return unresolved(node, "Unknown or invalid rank boundary for $ref")
         }
         val mana = manaReserveDefinition(ref, context.catalog)
         val ownership = if (mana != null) manaReserveOwnership(context, ref) else context.instances
@@ -179,7 +187,8 @@ private class Evaluation(private val context: AcquisitionContext, private val su
             val witness = RequirementWitness.OwnedInstance(ref.packId, ref.entryId, owned.instanceId, owned.rank)
             if (ownershipOnly) return number(node, owned.rank, operator, operand, listOf(witness))
             // Creation/GM approval admits an increase; it does not revoke an already-owned reserve.
-            if (mana != null) return number(node, owned.rank, operator, operand, listOf(witness))
+            if (mana != null || hasReferencedSchoolOwnership(definition))
+                return number(node, owned.rank, operator, operand, listOf(witness))
             val proof = prerequisite(node, definition, path, depth, owned.parameters)
             proofs += proof
             if (proof.status == RequirementStatus.Satisfied) return result(node, RequirementStatus.Satisfied,
@@ -300,6 +309,25 @@ private class Evaluation(private val context: AcquisitionContext, private val su
         return result(node, status, matches.flatMap { it.second.witnesses }.distinct(), evaluated.map { it.second },
             if (truth.size > 1) "Distinct count includes unresolved candidates ($lower..$upper)" else null,
             RequirementValue.Number(lower), RequirementValue.Number(node.operand))
+    }
+
+    /** A positive learned-spell atom in an AND must refer to this candidate.
+     * Unbounded OR alternatives remain unpruned; external facts cannot provide a spell identity. */
+    private fun mandatorySpellCandidate(node: RequirementNode, depth: Int): Set<DefinitionRef>? {
+        if (spellCandidateConstraints.containsKey(node.nodeId)) return spellCandidateConstraints[node.nodeId]
+        if (depth >= maxDepth || budget.remaining-- <= 0) return null
+        val mandatory = when (node) {
+            is RequirementNode.LearnedSpell -> if (node.operand) setOf(DefinitionRef(node.packId,node.entryId)) else null
+            is RequirementNode.AllOf -> node.children.mapNotNull { mandatorySpellCandidate(it,depth+1) }
+                .reduceOrNull { left,right -> left.intersect(right) }
+            is RequirementNode.AnyOf -> {
+                val branches = node.children.map { mandatorySpellCandidate(it,depth+1) }
+                if (branches.any { it == null }) null else branches.filterNotNull().flatten().toSet()
+            }
+            else -> null
+        }
+        spellCandidateConstraints[node.nodeId] = mandatory
+        return mandatory
     }
 
     /** A typed predicate can bind only the definitions it names. Unknown predicates retain

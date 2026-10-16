@@ -57203,6 +57203,75 @@
         "text": "Бой двумя оружиями",
         "textSha256": "7ef5260d3e531e4358217c7804f90262b2b3012a7919d208b0d156a9b8ae8ef0"
       }
+    },
+    {
+      "exactText": "Подлая атака",
+      "canonicalName": "Подлая атака",
+      "entryId": "feat_58c9a78e46ea0cb3",
+      "matchBasis": "EXACT_NAMED_XP_CARD_NOT_AP_ACCESS",
+      "targetEvidence": {
+        "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+        "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+        "tabId": "t.z1o9nhkkrzeb",
+        "path": "paragraphs/1311",
+        "startIndex": 59779,
+        "endIndex": 59791,
+        "text": "Подлая атака",
+        "textSha256": "bceff5084f040f44130d59abe80a68fae02f89165e039f12dcb3dd98078410c8"
+      },
+      "targetContextEvidence": [
+        {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "paragraphs/1312",
+          "startIndex": 59792,
+          "endIndex": 59806,
+          "text": "[Подлая атака]",
+          "textSha256": "b30954362be540229f9e27b832078db1c1cf7fe2deef684121d2d89b3a51bf4d"
+        },
+        {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "paragraphs/1313",
+          "startIndex": 59807,
+          "endIndex": 59821,
+          "text": "Стоимость: 100",
+          "textSha256": "09b46d67ccad8ae52cde13be31196d5ab2b314681b4b02e797790aa5df2ea474"
+        },
+        {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "paragraphs/1314",
+          "startIndex": 59822,
+          "endIndex": 59830,
+          "text": "Ранги: 1",
+          "textSha256": "d1bbce163459ad7ba1dabdc5c30c56c94a004869d19dd87223e1450880cbe888"
+        },
+        {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "paragraphs/1315",
+          "startIndex": 59831,
+          "endIndex": 59937,
+          "text": "Требование: Восприятие 3, Ловкость 3, Холодное оружие 4 или Рукопашный бой 4 или Метание 4 или Стрельба 4.",
+          "textSha256": "245787db6f69eb36cec5a3ec0051d04403ec43030ab1e75e4fd76118ef8656f3"
+        },
+        {
+          "documentId": "1u-7Ue-c50cCaBjyrf4UseO8yBcD7T635lw3pzutUUco",
+          "revisionId": "AHj4eMQigSWBrctFGnCfZjJ1BbwEevH6VSczyTx7Jrt25XsvqARyiT-6MAsEndf-eFiM0ZkGlcWLaA5PUWK4JA",
+          "tabId": "t.z1o9nhkkrzeb",
+          "path": "paragraphs/1316",
+          "startIndex": 59938,
+          "endIndex": 60195,
+          "text": "Выгода: Перед атакой Вы можете отказываться от кости преимущества на атаку и добавлять её к урону. В дальнем бою подлую атаку можно использовать на расстоянии до 10 метров. Подлая атака может быть использована только 1 раз в раунд против каждого противника.",
+          "textSha256": "b982cce9dc6226b0ec0fb906386f42de18b85286c4f3f6948d4dbae6d5b39e1a"
+        }
+      ],
+      "basis": "The actual named100XP ability card is distinct from its AP access table with the same heading."
     }
   ],
   "namedSpecializationBindings": [

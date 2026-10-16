@@ -256,7 +256,7 @@ private class Planning(val request: AcquisitionRequest, val state: StoredCharact
                             componentSources=draft.prices.drop(start.prices.size).flatMap { it.componentSources })
                     } catch (_: ArithmeticException) { PriceResult.Unknown("Amount overflow") }
                     else PriceResult.Unknown("Alternative has unresolved requirements or selections")
-                    AcquisitionChoiceOption(id, child.sourceRef.originalText, draft.changes.drop(start.changes.size), quoted, failures, questions)
+                    AcquisitionChoiceOption(id, AcquisitionLabels(start.context.catalog).condition(child), draft.changes.drop(start.changes.size), quoted, failures, questions)
                 }, selected)
                 val chosen = alternatives.singleOrNull { it.first == selected }?.second
                 when {

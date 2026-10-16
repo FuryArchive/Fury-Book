@@ -5,3 +5,8 @@ internal fun confirmedPurchaseRankCeiling(definition: AcquisitionDefinition): In
     definition.sourceStatus != SourceStatus.Unavailable && definition.repeatPolicy == RepeatPolicy.Single &&
         definition.classificationSources["purchase:initial-rank-confirmed"]?.originalText?.isNotBlank() == true
 }
+
+/** Only an existing school rank is recognized; this supplies no purchase cap or price. */
+internal fun hasReferencedSchoolOwnership(definition: AcquisitionDefinition): Boolean =
+    definition.kind == AcquisitionKind.SCHOOL && definition.maxRank == null &&
+        definition.classificationSources["ownership:source-referenced-school-rank"]?.originalText?.isNotBlank() == true

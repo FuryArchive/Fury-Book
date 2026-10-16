@@ -1,5 +1,9 @@
 # Rule automation: current implementation boundary
 
+## 2026-10-16: current-book purchase implementation
+
+The next implementation batch fixes trap access, named Knowledge admission, explicit skill-specific synergy, elemental spell-count admission, existing school-rank witnesses and martial purchase/effect conflict separation. Source gaps remain explicit; no historical purchase is repriced. See [concrete changes and remaining limits](verification/2026-10-16-acquisition-fixes.md). Verification follows the implementation batch.
+
 ## 2026-10-16: resumed purchase verification
 
 The continuation removes the technical Beast Nature form-selection blocker while retaining Animagia 4 and the source-backed first price of 60 XP. Every platform shows an explicit notice that owned-form effect choices are not automated. No forms, later-rank prices or historical financial changes are inferred. See [current verification](verification/2026-10-15-current-book-purchases.md); browser execution and new downloadable packages are being completed.

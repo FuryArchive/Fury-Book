@@ -26,6 +26,37 @@ def _plain(text):
     return text.replace('\v', '\n')
 
 
+def _requirement_shape(tree):
+    """Compare typed predicates, excluding only their locators and AND/OR order."""
+    result = {k: copy.deepcopy(v) for k, v in tree.items()
+              if k not in ('nodeId', 'sourceRef', 'children', 'predicate', 'conflicting', 'noRequirementsEvidence')}
+    if 'children' in tree:
+        children = {_requirement_shape(c) for c in tree['children']}
+        result['children'] = sorted(children)
+    for key in ('predicate', 'conflicting'):
+        if key in tree:
+            result[key] = _requirement_shape(tree[key])
+    return json.dumps(result, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+
+
+def _purchase_variants_agree(record, data, definitions, aliases, references, specializations, bindings):
+    variants = record.get('nativeVariants', [])
+    if not variants or any((v['xp'], v['maxRank']) != (record['xp'], record['maxRank']) for v in variants):
+        return False
+    # A table containing a technique under its style is an index, not a new
+    # declaration that the detailed card's additional prerequisites disappear.
+    detailed = [v for v in variants if not v.get('parentStyleRequirement')]
+    if not detailed:
+        return False
+    shapes = set()
+    for variant in detailed:
+        source = _source(data, variant['requirementEvidence'][0] if variant['requirementEvidence'] else variant['titleEvidence'])
+        tree = parse_native_martial_requirement(variant['requirementsText'], record['ref']['entryId']+'/variant',
+            source, definitions, aliases, references, specializations, bindings)
+        shapes.add(_requirement_shape(tree))
+    return len(shapes) == 1
+
+
 def validate_native_martial_rules(data):
     if data['schemaVersion'] != 1 or not data['devOnly']:
         raise ValueError('Unsupported native martial rules schema')
@@ -418,6 +449,15 @@ def apply_native_martial_rules(definitions, repo_root, resolution_revision):
                            'operator': 'GE', 'operand': 1} for target in record['alternativeParentStyleIds']]
             tree = {'type': 'AnyOf', 'nodeId': item['ref']['entryId'] + '/requirements',
                     'sourceRef': item['requirementSource'], 'children': from_types}
+        purchase_agrees = _purchase_variants_agree(record, data, definitions, aliases, context_references,
+            named_specializations, authored_bindings.get(record['ref']['entryId'], {})) if record.get('sourceConflict') else True
+        full_effects = {v.get('benefitSha256') for v in record.get('nativeVariants', []) if not v.get('parentStyleRequirement')}
+        if record.get('sourceConflict') and purchase_agrees and len(full_effects) > 1:
+            item['classificationSources']['effect:conflicting-martial-descriptions'] = item['sourceRef']
+            item['sourceStatus'] = 'NeedsResolution'
+        if record.get('missingBenefitSource'):
+            item['classificationSources']['effect:missing-martial-description'] = item['sourceRef']
+            item['sourceStatus'] = 'NeedsResolution'
         blockers = []
         for key, reason in [('sourceConflict', 'conflicting-current-native-martial-variants'),
                             ('sourceDraft', 'current-native-martial-draft-card'),
@@ -425,6 +465,10 @@ def apply_native_martial_rules(definitions, repo_root, resolution_revision):
                             ('missingRankSource', 'missing-current-native-martial-rank-maximum'),
                             ('technicalMissingContract', 'technical-missing-ordered-combo-parameter-contract')]:
             if record.get(key):
+                if key == 'sourceConflict' and purchase_agrees:
+                    continue
+                if key == 'missingBenefitSource':
+                    continue
                 if key == 'missingRankSource' and record.get('initialRankPurchaseConfirmed'):
                     continue
                 blockers.append({'type': 'Unresolved', 'nodeId': item['ref']['entryId'] + '/native/' + key,

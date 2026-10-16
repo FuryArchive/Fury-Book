@@ -346,7 +346,8 @@ private fun validateReferences(definitions: MutableMap<DefinitionRef, Acquisitio
             }
             // A family is an existential choice: one verified member can witness
             // the rank even when another member's maximum is unknown.
-            if (rank != null && targets.none { target -> confirmedPurchaseRankCeiling(target)?.let { rank >= 0 && rank <= it } == true })
+            if (rank != null && targets.none { target -> (rank >= 0 && hasReferencedSchoolOwnership(target)) ||
+                    confirmedPurchaseRankCeiling(target)?.let { rank >= 0 && rank <= it } == true })
                 return problem(n, if (targets.any { it.maxRank == null }) "unresolved-reference-rank" else "rank-out-of-range", "$rank / ${targets.map { it.maxRank }}")
             if (n is RequirementNode.BranchAccess && n.accessOptionId != null && targets.none { it.abilityOptionIds?.contains(n.accessOptionId) == true })
                 return problem(n, "option-out-of-range", n.accessOptionId)

@@ -42,7 +42,7 @@ class AcquisitionBeastNaturePurchaseTest {
         assertEquals(4, reopened.character.development.getValue(animagia.entryId).rank)
         assertEquals(Amount(940, 10), balance(reopened.ledger))
         assertEquals(2, reopened.instances.size)
-        assertFalse(plan(request.copy(targets = listOf(AcquisitionTarget(ref, targetRank = 2))), reopened, catalog).executable,
+        assertFalse(plan(AcquisitionRequest("beast", listOf(AcquisitionTarget(ref, targetRank = 2))), reopened, catalog).executable,
             "Unknown later-rank prices stay unknown")
         assertIs<ApplyResult.Applied>(AcquisitionUndo(store).undo("beast", "undo-nature", after.revision))
         assertEquals(acquisitionProjectionCanonical(before), acquisitionProjectionCanonical(assertIs<LoadResult.Loaded>(store.load("beast")).state))
