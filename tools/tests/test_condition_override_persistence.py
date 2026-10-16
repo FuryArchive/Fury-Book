@@ -11,8 +11,8 @@ HARNESS = ROOT / "tools/tests/kotlin/ConditionOverridePersistenceHarness.kt"
 
 
 def test_desktop_condition_overrides_and_custom_conditions_round_trip():
-    from tools.tests.kotlin_harness_support import run_harness
-    result = run_harness(HARNESS, extra_sources=[ROOT / 'shared/src/desktopMain/kotlin/com/furybook/dubl/data' / name for name in ('DesktopCharacterStore.kt','DesktopCharacterExtrasStore.kt','DesktopAcquisitionStore.kt')], main='com.furybook.dubl.data.ConditionOverridePersistenceHarnessKt')
+    from tools.tests.kotlin_harness_support import run_harness, desktop_storage_classpath
+    result = run_harness(HARNESS, extra_sources=[ROOT / 'shared/src/desktopMain/kotlin/com/furybook/dubl/data' / name for name in ('DesktopCharacterStore.kt','DesktopCharacterExtrasStore.kt','DesktopAcquisitionStore.kt','DesktopAcquisitionFiles.kt')], extra_classpath=desktop_storage_classpath(), main='com.furybook.dubl.data.ConditionOverridePersistenceHarnessKt')
     assert 'CONDITION_OVERRIDE_PERSISTENCE_OK' in result.stdout
 
 

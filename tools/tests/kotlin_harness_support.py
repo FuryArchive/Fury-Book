@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import urllib.request
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -55,7 +56,34 @@ def shared_classes():
     return compiler, coroutine, jar
 
 
-def run_harness(harness, *, extra_sources=(), args=(), main=None, timeout=40):
+def desktop_storage_classpath():
+    """The real Desktop storage bridge needs the same pinned JNA jars as Gradle."""
+    version = '5.18.1'
+    assert f'jna-platform:{version}' in (ROOT / 'shared/build.gradle.kts').read_text()
+    expected = {'jna': '260c4b1e22b1db9e110ee441c4f13ce115f841fa48c41d78750986214b395557',
+                'jna-platform': 'ad14c1b1ec4f43d396231219dfa635ebf828f738eac9f890ea1bc07795892d9a'}
+    cache = ROOT / 'build/python-harness-cache/dependencies'
+    cache.mkdir(parents=True, exist_ok=True)
+    result = []
+    for name, digest in expected.items():
+        target = cache / f'{name}-{version}.jar'
+        if not target.is_file() or hashlib.sha256(target.read_bytes()).hexdigest() != digest:
+            gradle_cache = Path(os.environ.get('GRADLE_USER_HOME', str(Path.home() / '.gradle')))
+            candidates = (gradle_cache / f'caches/modules-2/files-2.1/net.java.dev.jna/{name}/{version}').glob(f'*/{name}-{version}.jar')
+            data = next((p.read_bytes() for p in candidates if hashlib.sha256(p.read_bytes()).hexdigest() == digest), None)
+            if data is None:
+                url = f'https://repo.maven.apache.org/maven2/net/java/dev/jna/{name}/{version}/{name}-{version}.jar'
+                with urllib.request.urlopen(url, timeout=60) as response:
+                    data = response.read()
+            assert hashlib.sha256(data).hexdigest() == digest, f'{name} download differs from the pinned dependency'
+            with tempfile.NamedTemporaryFile(dir=cache, delete=False) as staged:
+                staged.write(data)
+            Path(staged.name).replace(target)
+        result.append(target)
+    return result
+
+
+def run_harness(harness, *, extra_sources=(), extra_classpath=(), args=(), main=None, timeout=40):
     compiler, coroutine, shared = shared_classes()
     harness = Path(harness)
     extra = sorted(set(Path(p) for p in extra_sources) - set(shared_sources()))
@@ -63,7 +91,7 @@ def run_harness(harness, *, extra_sources=(), args=(), main=None, timeout=40):
     entrypoint = main or ((package[1]+'.' if package else '') + harness.stem+'Kt')
     with tempfile.TemporaryDirectory(prefix='furybook-harness-') as temp:
         jar = Path(temp) / 'harness.jar'
-        classpath = os.pathsep.join(map(str, (shared, coroutine)))
+        classpath = os.pathsep.join(map(str, (shared, coroutine, *extra_classpath)))
         _run([compiler, '-language-version', '2.0', '-Xfriend-paths='+str(shared),
               '-cp', classpath, *extra, harness, '-include-runtime', '-d', jar], 90)
         return _run(['java', '-cp', os.pathsep.join((str(jar), classpath)),

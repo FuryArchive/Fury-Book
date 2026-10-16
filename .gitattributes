@@ -1,0 +1,2 @@
+# FCP fingerprints and pinned legacy prices must use identical bytes on every OS.
+*.json text eol=lf

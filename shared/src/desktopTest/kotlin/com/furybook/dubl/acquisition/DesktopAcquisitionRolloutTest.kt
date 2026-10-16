@@ -10,7 +10,7 @@ import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 import kotlin.test.*
 
-/** Linux raw-file characterization, not a complete product backup API or power-loss proof. */
+/** Raw-file characterization, not a complete product backup API or power-loss proof. */
 class DesktopAcquisitionRolloutTest {
     private data class Fixture(val root: Path, val state: StoredCharacter, val command: ConfirmAcquisition,
         val files: Map<Path, ByteArray>)
@@ -48,10 +48,12 @@ class DesktopAcquisitionRolloutTest {
             assertContentEquals(bytes,Files.readAllBytes(target))
             assertContentEquals(MessageDigest.getInstance("SHA-256").digest(bytes),MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(target)))
         }
-        Files.walk(stage).use { paths -> paths.filter { Files.isDirectory(it,LinkOption.NOFOLLOW_LINKS) }
+        // POSIX directory fsync is unavailable on Windows. Native store durability is covered
+        // by AcquisitionWindowsPublicationTest; this helper only characterizes exact-byte copies.
+        if (!DesktopAcquisitionFiles.isWindows) Files.walk(stage).use { paths -> paths.filter { Files.isDirectory(it,LinkOption.NOFOLLOW_LINKS) }
             .sorted(Comparator.reverseOrder()).forEach { FileChannel.open(it,StandardOpenOption.READ).use { c -> c.force(true) } } }
         Files.move(stage,destination,StandardCopyOption.ATOMIC_MOVE)
-        FileChannel.open(destination.parent,StandardOpenOption.READ).use { it.force(true) }
+        if (!DesktopAcquisitionFiles.isWindows) FileChannel.open(destination.parent,StandardOpenOption.READ).use { it.force(true) }
         verify(files,destination)
     }
     private fun verify(files: Map<Path,ByteArray>,root: Path) {
