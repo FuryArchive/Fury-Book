@@ -62456,6 +62456,13 @@
           "paragraph": 36,
           "originalText": "Звериная натура"
         },
+        "effect:pending-owned-form-selections": {
+          "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
+          "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
+          "sheet": "t.yqxgdu56efbe",
+          "paragraph": 41,
+          "originalText": "Выгода: Вы получаете одну специальную атаку или способность животной формы. За каждый ранг Вы выбираете новую способность у каждой освоенной формы зверя."
+        },
         "native:parameter:archmage:t.yqxgdu56efbe:1296:0db2a11626d2": {
           "documentId": "1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg",
           "documentVersion": "AHj4eMTQLuP9yVLKMPfXF04bxfCO4CCdfFXf8dea1DFmXBthsgIY7WeNoLTvikfr2giHlMTW9-sl2j486Z7ztA",
@@ -62492,17 +62499,7 @@
           "originalText": "Выгода: Вы получаете одну специальную атаку или способность животной формы. За каждый ранг Вы выбираете новую способность у каждой освоенной формы зверя."
         }
       },
-      "parameterDefinitions": [
-        {
-          "key": "beastFormAbilitySelections",
-          "domain": {
-            "type": "Unresolved",
-            "reason": "CONFIRMED_PER_FORM_RANK_SELECTION_NOT_IMPLEMENTED: each rank grants a new ability for every actually mastered beast form. Stable owned-form and form-ability registries are required; arbitrary global benefit text is insufficient."
-          },
-          "label": "Способности каждой освоенной формы",
-          "requiredAtRank": 1
-        }
-      ],
+      "parameterDefinitions": [],
       "abilityOptionIds": [],
       "sourceStatus": "Confirmed",
       "sourceRef": {
@@ -233610,5 +233607,5 @@
       "resolutionRevision": "cff687788481ae6a282a7b49ca6c608aeb2d1546f91df3aa7d1e77de26a276f0"
     }
   },
-  "catalogRevision": "b077454c7daced5dcc13ebe4df726529660fd3184954c3a82c06bb418a560562"
+  "catalogRevision": "90e4b82c3a15caac186b26f11c90820b1ca237589398bcfd090916b9690c209f"
 }

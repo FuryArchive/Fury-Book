@@ -1,5 +1,9 @@
 # Rule automation: current implementation boundary
 
+## 2026-10-16: resumed purchase verification
+
+The continuation removes the technical Beast Nature form-selection blocker while retaining Animagia 4 and the source-backed first price of 60 XP. Every platform shows an explicit notice that owned-form effect choices are not automated. No forms, later-rank prices or historical financial changes are inferred. See [current verification](verification/2026-10-15-current-book-purchases.md); browser execution and new downloadable packages are being completed.
+
 ## 2026-10-15: paused current-book acquisition implementation
 
 The user paused work after substantive source-backed acquisition and UI changes. Authenticated Drive access succeeded in this session; the earlier 401-only inventory is historical. Current implementation, evidence, exact remaining source limits, the pending Beast Nature test, browser verification and build continuation are recorded in [the pause checkpoint](verification/2026-10-15-current-book-purchases.md). This checkpoint is not full catalog acceptance or a new downloadable build. Preserve existing financial history and keep cloud format 2 writes off.

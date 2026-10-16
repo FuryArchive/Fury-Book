@@ -8,8 +8,6 @@ import kotlin.test.*
 
 /** Buying a single ability is distinct from automating its per-form game effects. */
 class AcquisitionBeastNaturePurchaseTest {
-    // Pending implementation at the user's pause checkpoint. See the current-book verification note.
-    @Ignore
     @Test fun actual_first_rank_needs_animagia_four_without_inventing_a_form_prerequisite() = runBlocking {
         val catalog = DublFcp.open(FcpTextSource { javaClass.classLoader.getResource(it)?.readText() }).loadAcquisition().catalog
         val ref = DefinitionRef("dubl-3.69", "feat_fc1f69730433e92b")
@@ -28,6 +26,13 @@ class AcquisitionBeastNaturePurchaseTest {
         assertEquals(Amount(60, 0), preview.cost)
         assertEquals(listOf(ref), preview.changes.map { it.definition })
         assertTrue(preview.changes.single().parameters.isEmpty(), "A form or effect choice must not be silently invented")
+        val model = AcquisitionPresentation.present(AcquisitionScope("local", "beast", 0, 0, 0),
+            AcquisitionQuoteKey("nature", 0), preview, before, catalog, AcquisitionCapabilities(true, false, true))
+        assertEquals(AcquisitionUiPhase.Ready, model.phase)
+        assertTrue(model.canConfirm)
+        assertEquals(1, model.effectNotices.size)
+        assertTrue(model.effectNotices.single().contains("способности освоенных форм выбираются отдельно"))
+        assertTrue(model.effectNotices.single().contains("пока не поддержаны"))
         val result = assertIs<ApplyResult.Applied>(service.apply(ConfirmAcquisition("buy-nature", "beast", request,
             preview.baseRevision, preview.previewToken)))
         assertEquals(Amount(60, 0), result.receipt.result.cost)

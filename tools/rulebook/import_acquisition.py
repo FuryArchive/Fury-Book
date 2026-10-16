@@ -378,6 +378,11 @@ def apply_native_parameter_rules(definitions, repo_root):
             raise ValueError('Native repeat policy references an undefined parameter')
         item.update(parameterDefinitions=parameters, repeatPolicy=copy.deepcopy(record['repeatPolicy']))
         item['classificationSources']['native:parameter-identity'] = source
+        effect = record.get('unautomatedEffect')
+        if effect is not None:
+            if effect['type'] != 'OwnedFormAbilitySelections' or effect['evidence'] not in record['evidence']:
+                raise ValueError('Unsupported or uncited unautomated effect')
+            item['classificationSources']['effect:pending-owned-form-selections'] = citation(effect['evidence'])
         if any(p.get('selectionSource', {}).get('type') == 'OrderedOwnedInstances' for p in parameters):
             item['nativeAdditionalRequirements'] = [n for n in item.get('nativeAdditionalRequirements', [])
                 if n.get('reason') != 'technical-missing-ordered-combo-parameter-contract']

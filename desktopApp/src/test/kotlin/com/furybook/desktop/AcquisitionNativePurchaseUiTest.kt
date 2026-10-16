@@ -14,6 +14,33 @@ import kotlin.time.Duration.Companion.seconds
 /** An actual current-book card uses the production root, shared planner, file store and history. */
 @OptIn(ExperimentalTestApi::class)
 class AcquisitionNativePurchaseUiTest {
+    @Test fun beast_nature_is_buyable_and_names_its_unautomated_effect() = runDesktopComposeUiTest(width=1280,height=1000,testTimeout=120.seconds) {
+        val card="feat_fc1f69730433e92b"
+        val animagia=DefinitionRef("dubl-3.69","feat_29ff1cb23df7879d")
+        val fixture=AcquisitionUiFixtures(allDefinitions=true,seed={ original -> original.copy(
+            character=original.character.copy(development=mapOf(animagia.entryId to OwnedDevelopment(4))),
+            instances=original.instances+AcquisitionInstance("known-animagia",animagia,4,emptyMap(),null,AcquisitionOrigin.New)) })
+        val state=fixture.app()
+        setContent { DublTheme { DesktopVisualTheme { DesktopAppContent(state) } } }
+        waitUntil(timeoutMillis=30_000) { state.canonicalViewReady }
+        onNodeWithTag("navigation.DEVELOPMENT").performClick()
+        onNodeWithText("Спец. ветки").performClick()
+        onNodeWithTag("development.search").performTextInput("Звериная натура")
+        val open=hasTestTag("acquisition.open") and hasAnyAncestor(hasTestTag("acquisition.definition.$card"))
+        waitUntil(timeoutMillis=30_000) { onAllNodes(open and isEnabled(),useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty() }
+        onAllNodes(open,useUnmergedTree=true).onFirst().performScrollTo().performClick()
+        waitUntil(timeoutMillis=30_000) { state.acquisitionUiModel?.phase==AcquisitionUiPhase.Ready }
+        onNode(hasTestTag("acquisition.effect.notice") and hasAnyAncestor(hasTestTag("acquisition.preview")),useUnmergedTree=true)
+            .assertTextContains("способности освоенных форм выбираются отдельно",substring=true)
+        onNode(hasTestTag("acquisition.price") and hasAnyAncestor(hasTestTag("acquisition.preview")),useUnmergedTree=true)
+            .assertTextEquals("60 XP / 0 ОСп")
+        onNodeWithTag("acquisition.confirm").assertIsEnabled().performClick()
+        waitUntil(timeoutMillis=30_000) { state.acquisitionUiModel?.phase==AcquisitionUiPhase.Committed }
+        assertEquals(Amount(40,2),balance(fixture.saved().ledger))
+        assertEquals(1,fixture.saved().character.development.getValue(card).rank)
+        assertTrue(fixture.saved().instances.single { it.definition.entryId==card }.parameters.isEmpty())
+    }
+
     @Test fun acrobatic_dodge_buys_access_and_predecessor_then_reopens_and_undoes() = runDesktopComposeUiTest(width=1280,height=1000,testTimeout=150.seconds) {
         val card="feat_7eece523ffdc8431"
         val fixture=AcquisitionUiFixtures(allDefinitions=true,seed={ state ->

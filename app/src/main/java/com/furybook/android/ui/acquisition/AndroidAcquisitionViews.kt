@@ -30,6 +30,7 @@ fun AcquisitionCardSummary(model: AcquisitionUiModel, modifier: Modifier = Modif
         Text(binding.price, Modifier.testTag("acquisition.price"), style = MaterialTheme.typography.labelLarge)
         binding.remaining?.let { Text("После: $it", style = MaterialTheme.typography.bodySmall) }
         Text(binding.status, Modifier.testTag("acquisition.status"), style = MaterialTheme.typography.bodySmall)
+        model.effectNotices.forEach { Text(it, Modifier.testTag("acquisition.effect.notice"), style = MaterialTheme.typography.bodySmall) }
     }
 }
 
@@ -128,6 +129,7 @@ fun AcquisitionPurchaseSurface(model: AcquisitionUiModel, actions: AndroidAcquis
         text = {
             Column(Modifier.heightIn(max = 620.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(binding.status, Modifier.testTag("acquisition.status"))
+                model.effectNotices.forEach { Text(it, Modifier.testTag("acquisition.effect.notice")) }
                 actions.reviewLabel?.takeIf { it.first == model.key }?.let { Text(it.second) }
                 model.funding?.let {
                     Text("Начальный XP: ${it.initialXP}")

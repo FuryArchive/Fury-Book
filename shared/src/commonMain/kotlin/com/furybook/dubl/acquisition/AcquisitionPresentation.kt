@@ -35,7 +35,9 @@ data class AcquisitionUiModel(val scope: AcquisitionScope, val key: AcquisitionQ
     val request: AcquisitionRequest? = null, val selections: List<AcquisitionSelectionPrompt> = emptyList(),
     val reason: String? = null, val balanceDelta: Amount? = null,
     /** requirements describes the exact plan projection; these are the acknowledged pre-plan facts. */
-    val baseRequirements: List<AcquisitionRequirementView> = emptyList())
+    val baseRequirements: List<AcquisitionRequirementView> = emptyList(),
+    /** Informational game-effect limits; never purchase prerequisites or silent choices. */
+    val effectNotices: List<String> = emptyList())
 
 /** Missing labels never fall back to stable identifiers. Labels are not rule/identity authority. */
 class AcquisitionLabels(private val catalog: AcquisitionCatalog) {
@@ -78,6 +80,12 @@ object AcquisitionPresentation {
     fun present(scope: AcquisitionScope, key: AcquisitionQuoteKey, plan: AcquisitionPlan, state: StoredCharacter,
         catalog: AcquisitionCatalog, capabilities: AcquisitionCapabilities): AcquisitionUiModel {
         val labels=AcquisitionLabels(catalog)
+        val effectNotices=(plan.request.targets.map { it.definition } + plan.changes.map { it.definition })
+            .distinct().mapNotNull { ref ->
+                catalog.definitions[ref]?.classificationSources?.get("effect:pending-owned-form-selections")?.let {
+                    "${labels.definition(ref)}: способности освоенных форм выбираются отдельно. Реестр форм и применение этих эффектов пока не поддержаны."
+                }
+            }
         val phase=when {
             !capabilities.localDurable || !capabilities.formatWritable -> AcquisitionUiPhase.Blocked
             plan.questions.any { !it.resolved } || plan.issues.any { it.status==RequirementStatus.ChoiceRequired } -> AcquisitionUiPhase.ChoiceRequired
@@ -124,7 +132,7 @@ object AcquisitionPresentation {
             EnvelopeList(rows),EnvelopeList(requirements),EnvelopeList(plan.questions.map { question -> AcquisitionChoiceView(question.id,"Выберите вариант",
                 EnvelopeList(question.options.mapIndexed { index,option -> AcquisitionChoiceOptionView(option.id,
                     option.changes.joinToString { labels.acquisition(it.definition,it.parameters) }.ifBlank { "Вариант ${index+1}" },price(option.quote)) }),question.selectedId) }),
-            EnvelopeList(blocks),phase==AcquisitionUiPhase.Ready,sync=sync(state,capabilities),request=plan.request,selections=selectionPrompts(plan.request,state,catalog),baseRequirements=EnvelopeList(baseRequirements))
+            EnvelopeList(blocks),phase==AcquisitionUiPhase.Ready,sync=sync(state,capabilities),request=plan.request,selections=selectionPrompts(plan.request,state,catalog),baseRequirements=EnvelopeList(baseRequirements),effectNotices=EnvelopeList(effectNotices))
     }
     /** A canonical ownership fact, independent of executability or an empty plan. */
     private fun attained(target:AcquisitionTarget,state:StoredCharacter,catalog:AcquisitionCatalog):Boolean {

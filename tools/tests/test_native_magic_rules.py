@@ -8,6 +8,20 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class NativeMagicRulesTest(unittest.TestCase):
+    def test_beast_nature_effect_selection_is_not_a_purchase_prerequisite(self):
+        from tools.rulebook.import_acquisition import build_acquisition_catalogs
+        definitions = build_acquisition_catalogs(ROOT)['dubl-3.69']['definitions']
+        nature = next(d for d in definitions if d['ref']['entryId'] == 'feat_fc1f69730433e92b')
+        self.assertEqual({'type': 'Single'}, nature['repeatPolicy'])
+        self.assertEqual([], nature['parameterDefinitions'], 'Choosing a form ability is not the identity of this scalar purchase')
+        self.assertEqual([(0, 1, '60', '0')], [(t['fromRank'], t['toRank'], t['xp'], t['ap'])
+            for t in nature['priceRule']['transitions']])
+        self.assertEqual(('OwnedRank', 'feat_29ff1cb23df7879d', 4),
+            tuple(nature['requirements'][k] for k in ('type', 'entryId', 'operand')))
+        source = nature['classificationSources']['effect:pending-owned-form-selections']
+        self.assertEqual('1BGajeMuh0clSbybt0IGyqv2_6zxdKEtHvnjh_TbKqGg', source['documentId'])
+        self.assertIn('у каждой освоенной формы зверя', source['originalText'])
+
     def definition(self, entry, kind='DEVELOPMENT', pack='dubl-3.69'):
         return {'ref': {'packId': pack, 'entryId': entry}, 'kind': kind,
                 'name': 'placeholder', 'sourceStatus': 'Unavailable',

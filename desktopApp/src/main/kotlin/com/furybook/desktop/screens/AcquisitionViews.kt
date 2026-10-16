@@ -280,6 +280,7 @@ fun AcquisitionCardSummary(model: AcquisitionUiModel, modifier: Modifier = Modif
         Text(binding.price, Modifier.testTag("acquisition.price"), style = MaterialTheme.typography.labelLarge)
         binding.remaining?.let { Text("После: $it", style = MaterialTheme.typography.bodySmall) }
         Text(binding.status, Modifier.testTag("acquisition.status"), style = MaterialTheme.typography.bodySmall)
+        model.effectNotices.forEach { Text(it, Modifier.testTag("acquisition.effect.notice"), style = MaterialTheme.typography.bodySmall) }
     }
 }
 
@@ -677,6 +678,7 @@ internal fun AcquisitionPlanContent(model:AcquisitionUiModel, actions:DesktopAcq
     val binding=bindDesktopAcquisition(model)
     Column(Modifier.testTag("acquisition.plan.content"),verticalArrangement=Arrangement.spacedBy(8.dp)) {
                 Text(binding.status, Modifier.testTag("acquisition.status"))
+                model.effectNotices.forEach { Text(it, Modifier.testTag("acquisition.effect.notice")) }
                 model.funding?.let {
                     Text("Начальный XP: ${it.initialXP}")
                     Text("Начальный ОСп: ${it.initialAP?.toString() ?: "не определён"}")
