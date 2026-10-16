@@ -135,13 +135,15 @@ dependencies {
 val androidAcquisitionOracleSources = layout.buildDirectory.dir("generated/acquisitionOracle/kotlin")
 val androidAcquisitionOracleResources = layout.buildDirectory.dir("generated/acquisitionOracle/resources")
 val prepareAndroidAcquisitionOracle by tasks.registering {
+    val generatedSources = androidAcquisitionOracleSources.get().asFile
+    val generatedResources = androidAcquisitionOracleResources.get().asFile
     val sharedFixture = rootProject.file("shared/src/commonTest/kotlin/com/furybook/dubl/acquisition/AcquisitionPriceFixtures.kt")
     val sharedStream = rootProject.file("shared/src/desktopTest/kotlin/com/furybook/dubl/acquisition/AcquisitionPresentationSourceMatrixTest.kt")
     val oracle = rootProject.file("rulesets/dubl-3.69/acquisition")
     inputs.files(sharedFixture, sharedStream, oracle.resolve("expected_prices.json"), oracle.resolve("author_expected_price_updates.json"))
-    outputs.dirs(androidAcquisitionOracleSources, androidAcquisitionOracleResources)
+    outputs.dirs(generatedSources, generatedResources)
     doLast {
-        val output = androidAcquisitionOracleSources.get().asFile.resolve("com/furybook/dubl/acquisition")
+        val output = generatedSources.resolve("com/furybook/dubl/acquisition")
         output.mkdirs()
         output.resolve(sharedFixture.name).writeText(sharedFixture.readText().replace("import com.furybook.core.json.*", "import com.furybook.android.acquisition.oracle.*"))
         val entry = "@Test fun all_rows_preserve_exact_direct_bulk_intent_and_unverified_source_presentation()"
@@ -166,7 +168,7 @@ val prepareAndroidAcquisitionOracle by tasks.registering {
             .replace("assertEquals(actual.cost,(current.price", "observe(id, current);assertEquals(actual.cost,(current.price")
             .replace("assertFalse(shown.canConfirm,id);assertTrue(shown.blocks", "observe(id, shown);assertFalse(shown.canConfirm,id);assertTrue(shown.blocks")
         output.resolve("AndroidAcquisitionOracleStream.kt").writeText(helper)
-        val resources = androidAcquisitionOracleResources.get().asFile.resolve("acquisition-oracle")
+        val resources = generatedResources.resolve("acquisition-oracle")
         resources.mkdirs()
         listOf("expected_prices.json", "author_expected_price_updates.json").forEach { oracle.resolve(it).copyTo(resources.resolve(it), overwrite = true) }
     }

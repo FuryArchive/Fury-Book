@@ -36,5 +36,8 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
+        getByName("desktopMain").dependencies {
+            implementation("net.java.dev.jna:jna-platform:5.18.1")
+        }
     }
 }

@@ -25,7 +25,7 @@ enum class DesktopAcquisitionWriteStage {
 
 /**
  * Separate versioned container. Atomic replace is mandatory; unsupported filesystems fail closed.
- * File + directory force precede acknowledgement. Orphan temps are never promoted. A corrupt/future
+ * File + directory force (or Windows checked write-through publication) precede acknowledgement. Orphan temps are never promoted. A corrupt/future
  * head is retained for export, not silently recovered/reset. Legacy files are immutable import inputs.
  * Stable lock files are never removed; an OS lock serializes other JVMs and a JVM lock prevents
  * overlapping FileChannel locks between instances. Character IDs never become path components.
@@ -63,7 +63,7 @@ class DesktopAcquisitionStore(
                         return@locked GameplayMigrationResult.Blocked("Different or already completed migration")
                     require(readIfExists(backup) == proof.sourceRaw) { "Migration backup is missing or differs" }
                     FileChannel.open(backup, WRITE).use { it.force(true) }
-                    forceDirectory(backupDirectory)
+                    DesktopAcquisitionFiles.recoverDirectoryEntry(backup, proof.sourceRaw)
                     return@locked GameplayMigrationResult.AlreadyMigrated(backup.toString())
                 }
                 val sourceRaw = checkNotNull(readIfExists(envelopePath(request.characterId))) { "Missing canonical source" }
@@ -73,7 +73,7 @@ class DesktopAcquisitionStore(
                 if (saved != null) {
                     require(saved == sourceRaw) { "Migration ID already has a different backup" }
                     FileChannel.open(backup, WRITE).use { it.force(true) }
-                    forceDirectory(backupDirectory)
+                    DesktopAcquisitionFiles.recoverDirectoryEntry(backup, sourceRaw)
                 } else durableReplace(backup, sourceRaw)
                 require(readIfExists(backup) == sourceRaw) { "Backup verification failed" }
                 fault(DesktopAcquisitionWriteStage.AfterGameplayBackup)
@@ -205,7 +205,7 @@ class DesktopAcquisitionStore(
                 FileChannel.open(path, WRITE).use { it.force(true) }
                 createDirectoriesDurably(container) // Under the same per-character OS lock.
                 fault(DesktopAcquisitionWriteStage.BeforeRecoveryDirectoryFlush)
-                forceDirectory(container)
+                DesktopAcquisitionFiles.recoverDirectoryEntry(path, raw)
                 fault(DesktopAcquisitionWriteStage.AfterRecoveryDurability)
             }
             return loaded
@@ -238,7 +238,7 @@ class DesktopAcquisitionStore(
             }
             fault(DesktopAcquisitionWriteStage.AfterTempFlush)
             fault(DesktopAcquisitionWriteStage.BeforeReplace)
-            Files.move(temp, path, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+            DesktopAcquisitionFiles.replace(temp, path)
             fault(DesktopAcquisitionWriteStage.AfterReplace)
             // Head files live in container; migration backups have their own directory entry.
             forceDirectory(path.parent)
@@ -259,6 +259,12 @@ class DesktopAcquisitionStore(
         catch (_: java.nio.file.NoSuchFileException) { null }
 
     private fun createDirectoriesDurably(path: Path) {
+        if (DesktopAcquisitionFiles.isWindows) {
+            DesktopAcquisitionFiles.initializeDirectory(path,
+                { fault(DesktopAcquisitionWriteStage.AfterDirectoryCreate) },
+                { fault(DesktopAcquisitionWriteStage.BeforeAncestorDirectoryFlush) })
+            return
+        }
         val parent = path.parent
         if (parent != null) createDirectoriesDurably(parent)
         if (!Files.isDirectory(path)) {
@@ -280,7 +286,7 @@ class DesktopAcquisitionStore(
         .onMalformedInput(CodingErrorAction.REPORT).onUnmappableCharacter(CodingErrorAction.REPORT)
         .decode(ByteBuffer.wrap(Files.readAllBytes(path))).toString()
     private fun key(id: String): String = legacySourceFingerprint(id).substringAfter(':')
-    private fun forceDirectory(path: Path) { FileChannel.open(path, READ).use { it.force(true) } }
+    private fun forceDirectory(path: Path) = DesktopAcquisitionFiles.forceDirectory(path)
     companion object { private val locks = ConcurrentHashMap<Path, ReentrantLock>() }
 }
 

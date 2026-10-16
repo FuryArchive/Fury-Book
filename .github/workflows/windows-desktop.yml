@@ -59,6 +59,17 @@ jobs:
           $env:FURY_BOOK_VERSION = $env:FURY_BOOK_DESKTOP_VERSION
           .\gradlew.bat --no-daemon --init-script tools/ci/standard-regression.init.gradle :shared:desktopTest :desktopApp:compileKotlin :desktopApp:createDistributable :desktopApp:packageExe :desktopApp:packageMsi --stacktrace
 
+      - name: Upload Windows regression evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Fury-Book-Windows-Regression
+          path: |
+            shared/build/reports/tests/desktopTest/
+            shared/build/test-results/desktopTest/
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Verify bundled Desktop runtime modules
         shell: pwsh
         run: |
