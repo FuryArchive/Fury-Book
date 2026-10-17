@@ -1,5 +1,11 @@
 # Rule automation: current implementation boundary
 
+## 2026-10-18: existing character startup compatibility
+
+Fixed the reported `Unknown character extras field` startup failure. Ordinary Desktop/Web extras loading preserves unrecognized fields and opaque values; financial migration keeps its separate strict validation. Desktop retains an exact original extras backup on first edit. With local rules enabled, a legacy sheet is now visible before financial migration, with an explicit read-only notice and migration under Characters. No historical purchase is repriced and cloud format 2 writes remain off.
+
+Code `db57304` preserves the fresh flaming-skull icon from `8bb5e92`. Existing-character reopening passed in the real Desktop Compose content; the browser adapter compatibility scenario ran in Firefox. APK, Compose AppImage, Windows EXE/MSI and Web distribution were built successfully. See [startup fix, evidence and remaining limits](verification/2026-10-18-legacy-character-startup.md) and [build metadata](verification/2026-10-18-builds.json).
+
 ## 2026-10-16: current-book purchase implementation
 
 Implemented trap access, named Knowledge admission, explicit skill-specific synergy, elemental spell-count admission, existing school-rank witnesses, martial purchase/effect conflict separation and the five animal-style alternatives. Jump Behind uses the rank explicitly stated in its second card; Hook and Headbutt admit only their agreed first ranks while preserving the disputed maximum. Also fixed Web manifest loading, durable Windows purchase publication, pinned JSON line endings and Android configuration-cache packaging.

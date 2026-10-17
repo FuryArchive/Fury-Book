@@ -10,4 +10,10 @@ Desktop also displays the legacy sheet and its other ordinary sections when loca
 
 The patch is based on icon commit `8bb5e923ace4f6fa210867a8b9b2a27da9a10179`. No artwork, platform icon assets or icon wiring are changed. Cloud format 2 writes remain disabled; no cloud queue is cleared.
 
-Local verification: real Shared code compiled with Kotlin 2.4.0; legacy document/file compatibility and native acquisition storage/transfer checks passed. The regular local Gradle invocation could not resolve Android plugin 9.3.0, so it is not recorded as a passing Gradle build. Linux CI additionally opens and reopens a schema-7 character with its old extras in the production Compose sheet; Web CI exercises the actual browser extras adapter. Those platform results and packages are recorded after CI completes.
+Product source: `db573044142c9878b4cf19014f3d3eb449024e52`. Linux, Windows, Android and Web CI completed successfully. Linux opens and reopens a schema-7 character in the production Compose sheet with local rules enabled and no financial migration; default-mode reopening is also covered. The old character/extras bytes, selected identity, XP, rank, AP override, notes and explicit condition remain intact. Web executes the legacy extras edit/recreation scenario in Firefox and retains the exact original source for migration.
+
+APK, real Compose AppImage, Windows EXE/MSI and Web ZIP are built from that same source. The packaged AppImage icon and Web icon files were compared with the new branch assets. [Build provenance, artifact IDs, sizes, checksums and platform limits](2026-10-18-builds.json) distinguish these builds from the earlier release.
+
+The ordinary shared regression gate retains its existing full-corpus exclusions; this is not full acquisition/effect acceptance. Windows interactive installation, physical Android legacy-character interaction and an authenticated Web character UI were not exercised. Financial migration of unrepresented fields and recovery of actually damaged JSON remain separate from viewing a valid old sheet.
+
+Local verification also compiled the real Shared code with Kotlin 2.4.0 and passed legacy document/file compatibility plus native acquisition storage/transfer checks. The regular local Gradle invocation could not resolve Android plugin 9.3.0; the successful platform builds above came from CI.

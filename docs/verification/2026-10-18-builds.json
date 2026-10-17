@@ -1,0 +1,51 @@
+{
+  "sourceCommit": "db573044142c9878b4cf19014f3d3eb449024e52",
+  "branch": "codex/furybook-rules-completion-20261015",
+  "iconCommit": "8bb5e923ace4f6fa210867a8b9b2a27da9a10179",
+  "linux": {
+    "runId": 39071677769,
+    "jobId": 117510466087,
+    "artifactId": 12116170240,
+    "conclusion": "success",
+    "verified": "Legacy schema-7 profile renders and reopens in production Compose content before financial migration; original character/extras bytes retained. Built AppImage starts under Xvfb."
+  },
+  "windows": {
+    "runId": 39071677745,
+    "jobId": 117510450329,
+    "artifactId": 12115537659,
+    "conclusion": "success",
+    "verified": "Shared regression, native storage and EXE/MSI packaging. Interactive installer use not exercised."
+  },
+  "androidWeb": {
+    "runId": 39071677726,
+    "conclusion": "success",
+    "androidJobId": 117511715604,
+    "androidArtifactId": 12115113507,
+    "webJobId": 117511715538,
+    "webArtifactId": 12116085816,
+    "verified": "Shared and Android host regression, APK packaging, Web distribution and Firefox legacy extras adapter edit/recreation with exact original source retention. Physical Android and authenticated Web character UI not exercised."
+  },
+  "downloads": [
+    {
+      "filename": "Fury-Book-db57304-Linux.AppImage",
+      "sizeBytes": 72116728,
+      "sha256": "6d37c342afa7593fb902f963ba33486f591d5d98a3d07ac767c3dc812e40efcc"
+    },
+    {
+      "filename": "Fury-Book-db57304-Android.apk",
+      "sizeBytes": 4407684,
+      "sha256": "bdc50b7e977d4b66501f4765db0f4b224cf16eb3abd4d420e0aa8db53826d235"
+    },
+    {
+      "filename": "Fury-Book-db57304-Windows.zip",
+      "sizeBytes": 138989303,
+      "sha256": "47ca9c5cf856c67fe9c4bd8c660bd31bab40daa35df7644444a58a9352b19ea0"
+    },
+    {
+      "filename": "Fury-Book-db57304-Web.zip",
+      "sizeBytes": 14360188,
+      "sha256": "e3d9f0148f11ee159ed2ae179e403248251038ebe84a2f4658bbffaf79bb7a50"
+    }
+  ],
+  "scope": "Legacy startup compatibility only. Financial migration stays strict; invalid JSON recovery and full-catalog acquisition/effect acceptance are not claimed. Cloud format 2 writes remain off."
+}
