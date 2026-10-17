@@ -143,6 +143,9 @@ jobs:
           chmod +x gradlew
           ./gradlew --init-script tools/ci/standard-regression.init.gradle :shared:desktopTest :desktopApp:compileKotlin --stacktrace
 
+      - name: Open an existing legacy character in the real Compose sheet
+        run: ./gradlew --no-daemon :desktopApp:test --tests '*LegacyCharacterStartupTest' --stacktrace
+
       - name: Resolve desktop version
         shell: bash
         run: |

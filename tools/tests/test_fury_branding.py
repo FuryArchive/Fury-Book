@@ -19,19 +19,22 @@ def test_android_branding_uses_fury_book_without_changing_stable_application_id(
     assert 'android:icon="@mipmap/ic_launcher"' in manifest
     assert 'android:roundIcon="@mipmap/ic_launcher_round"' in manifest
     assert (ROOT / "app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml").is_file()
-    assert (ROOT / "app/src/main/res/mipmap-anydpi/ic_launcher.xml").is_file()
-    assert (ROOT / "app/src/main/res/mipmap-anydpi/ic_launcher_round.xml").is_file()
-    assert (ROOT / "app/src/main/res/drawable/ic_fury_foreground.xml").is_file()
+    for density in ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"):
+        for name in ("ic_launcher.png", "ic_launcher_round.png"):
+            assert (ROOT / f"app/src/main/res/mipmap-{density}/{name}").read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    adaptive = text("app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml")
+    assert '@drawable/ic_fury_adaptive_foreground' in adaptive
+    assert (ROOT / "app/src/main/res/drawable-nodpi/ic_fury_adaptive_foreground.png").is_file()
 
 
 def test_desktop_window_and_distribution_are_fury_book_branded_with_custom_icon():
     main = text("desktopApp/src/main/kotlin/com/furybook/desktop/Main.kt")
     gradle = text("desktopApp/build.gradle.kts")
-    icon = ROOT / "desktopApp/src/main/resources/fury-icon.svg"
+    icon = ROOT / "desktopApp/src/main/resources/fury-icon.png"
 
     assert 'title = "Fury Book — DUBL 3.69"' in main
     assert 'Text(\n            "Fury Book"' in main
-    assert 'painterResource("fury-icon.svg")' in main
+    assert 'painterResource("fury-icon.png")' in main
     assert 'packageName = "FuryBook"' in gradle
     assert 'FURY_BOOK_VERSION' in gradle
     assert 'DUBL_VERSION' in gradle
@@ -40,7 +43,8 @@ def test_desktop_window_and_distribution_are_fury_book_branded_with_custom_icon(
     assert icon.is_file()
     assert (ROOT / "desktopApp/src/main/resources/fury-icon.ico").is_file()
     assert (ROOT / "desktopApp/src/main/resources/fury-icon.png").is_file()
-    assert '<svg' in icon.read_text(encoding="utf-8")
+    assert icon.read_bytes().startswith(b"\x89PNG\r\n\x1a\n")
+    assert (ROOT / "branding/furybook-flaming-skull.png").is_file()
 
 
 def test_linux_appimage_uses_fury_book_name_and_icon_but_preserves_data_identity():

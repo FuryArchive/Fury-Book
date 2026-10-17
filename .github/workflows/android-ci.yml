@@ -162,6 +162,23 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon --configuration-cache :webApp:compileKotlinJs :webApp:jsBrowserDistribution --stacktrace
 
+      - name: Set up Firefox for legacy character compatibility
+        id: legacy-firefox
+        uses: browser-actions/setup-firefox@v1
+        with:
+          firefox-version: latest-esr
+
+      - name: Reopen legacy browser extras without losing unknown fields
+        env:
+          FIREFOX_BIN: ${{ steps.legacy-firefox.outputs.firefox-path }}
+          NPM_CONFIG_ALLOW_GIT: all
+        run: |
+          export FURYBOOK_FIREFOX_LAUNCH_SCRIPT="$GITHUB_WORKSPACE/tools/tests/launch_browser_acquisition_firefox.sh"
+          export FURYBOOK_FIREFOX_PROFILE="$RUNNER_TEMP/fury-legacy-firefox-profile"
+          mkdir -p "$FURYBOOK_FIREFOX_PROFILE"
+          chmod +x "$FURYBOOK_FIREFOX_LAUNCH_SCRIPT"
+          ./gradlew --no-daemon :webApp:jsBrowserTest --tests '*BrowserLegacyExtrasCompatibilityTest' --stacktrace
+
       - name: Package web distribution
         run: |
           test -f webApp/build/dist/js/productionExecutable/index.html

@@ -222,7 +222,9 @@ class DesktopAcquisitionStoreTest {
         Files.writeString(dir.resolve("characters.json"),SnapshotCodec.encode(AppSnapshot(listOf(DublCharacter("real")),"real")))
         Files.writeString(dir.resolve("sheet-extras.json"),"{\"version\":999,\"characters\":{}}")
         assertIs<MigrationResult.Unsupported>(store.prepareMigration("real",listOf("dubl-3.69"),null))
-        assertFails { DesktopCharacterExtrasStore(dir.resolve("sheet-extras.json")).load("real") }
+        // Viewing a character is independent of whether the financial migration is supported.
+        assertEquals(CharacterSheetExtras(), DesktopCharacterExtrasStore(dir.resolve("sheet-extras.json")).load("real"))
+        assertFails { DesktopCharacterExtrasStore(dir.resolve("sheet-extras.json")).save("real", CharacterSheetExtras()) }
     }
 }
 

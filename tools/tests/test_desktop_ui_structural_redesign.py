@@ -141,15 +141,17 @@ def test_notes_flow_through_shared_application_boundary_and_persistence():
         assert token in session
         assert token in sheet_app
         assert token in desktop_state
-    assert 'CharacterNoteDataCodec.encode' in desktop_store
-    assert 'CharacterNoteDataCodec.decode' in desktop_store
+    legacy_document = read(ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/data/LegacyExtrasDocument.kt')
+    assert 'LegacyExtrasDocument.decode' in desktop_store
+    assert 'CharacterNoteDataCodec.encode' in legacy_document
+    assert 'CharacterNoteDataCodec.decode' in legacy_document
     assert 'CharacterNoteDataCodec.encode' in android_store
     legacy_source = read(ROOT / 'app/src/main/java/com/furybook/android/data/AndroidLegacyAcquisitionSource.kt')
     assert 'CharacterNoteDataCodec.decode(string("note_entries"))' in legacy_source
     assert 'characterIds.associateWith(captured::extras)' in android_store
     assert 'cache.clear();cache.putAll(values)' in android_store
     assert 'override fun load(characterId:String):CharacterSheetExtras = cache[characterId]' in android_store
-    assert '"notes"' in desktop_store
+    assert '"notes"' in legacy_document
 
 
 def test_dense_sheet_keeps_grouping_and_development_details_reachable():
