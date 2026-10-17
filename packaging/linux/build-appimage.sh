@@ -20,7 +20,7 @@ mkdir -p "$DIST" "$(dirname "$APPIMAGETOOL")"
 SOURCE="$ROOT/desktopApp/build/compose/binaries/main/app/FuryBook"
 [[ -d "$SOURCE" ]] || { echo "Compose distributable not found: $SOURCE" >&2; exit 1; }
 rm -rf "$APPDIR"
-mkdir -p "$APPDIR/usr/lib/fury-book" "$APPDIR/usr/bin" "$APPDIR/usr/share/applications"
+mkdir -p "$APPDIR/usr/lib/fury-book" "$APPDIR/usr/bin" "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/512x512/apps"
 cp -a "$SOURCE/." "$APPDIR/usr/lib/fury-book/"
 ln -s ../lib/fury-book/bin/FuryBook "$APPDIR/usr/bin/fury-book"
 cat > "$APPDIR/AppRun" <<'APPRUN'
@@ -40,15 +40,9 @@ Terminal=false
 Categories=Game;Utility;
 DESKTOP
 cp "$APPDIR/fury-book.desktop" "$APPDIR/usr/share/applications/fury-book.desktop"
-cat > "$APPDIR/fury-book.svg" <<'SVG'
-<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <rect width="256" height="256" rx="52" fill="#111318"/>
-  <rect x="18" y="18" width="220" height="220" rx="38" fill="none" stroke="#2B2F38" stroke-width="4"/>
-  <path d="M73 58h118v30h-82v38h66v29h-66v69H73V58z" fill="#F4F0E8"/>
-  <path d="M174 157l33 0v67h-33z" fill="#B53C4C"/>
-</svg>
-SVG
-ln -s fury-book.svg "$APPDIR/.DirIcon"
+cp "$ROOT/desktopApp/src/main/resources/fury-icon.png" "$APPDIR/fury-book.png"
+cp "$APPDIR/fury-book.png" "$APPDIR/usr/share/icons/hicolor/512x512/apps/fury-book.png"
+ln -s fury-book.png "$APPDIR/.DirIcon"
 
 if [[ ! -f "$APPIMAGETOOL" ]]; then
   curl -fsSL "$APPIMAGETOOL_URL" -o "$APPIMAGETOOL"
