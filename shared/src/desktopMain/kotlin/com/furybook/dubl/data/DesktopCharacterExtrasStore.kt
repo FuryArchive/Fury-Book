@@ -20,7 +20,9 @@ class DesktopCharacterExtrasStore(
     }
 
     override fun delete(characterId: String) {
-        val next = ensureLoaded().withoutCharacter(characterId)
+        val current = ensureLoaded()
+        val next = current.withoutCharacter(characterId)
+        if (next === current) return
         persist(next)
         document = next
     }

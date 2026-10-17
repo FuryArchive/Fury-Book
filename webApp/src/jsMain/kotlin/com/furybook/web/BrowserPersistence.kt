@@ -108,7 +108,10 @@ class BrowserCharacterExtrasStore : CharacterExtrasStore {
         persist(next)
     }
 
-    override fun delete(characterId: String) = persist(document.withoutCharacter(characterId))
+    override fun delete(characterId: String) {
+        val next = document.withoutCharacter(characterId)
+        if (next !== document) persist(next)
+    }
 
     fun raw(): String = document.encode()
 

@@ -16,6 +16,7 @@ class LegacyExtrasDocumentTest {
         assertEquals(setOf(CharacterSheetResourceId.CHI), extras.hiddenResourceIds)
         assertEquals(mapOf("athletics" to AttributeId.STRENGTH), extras.preferredSkillAttributes)
         assertEquals(parse(old), parse(document.encode()))
+        assertSame(document, document.withoutCharacter("absent"))
         assertFailsWith<IllegalArgumentException> { document.forMigration() }
     }
 

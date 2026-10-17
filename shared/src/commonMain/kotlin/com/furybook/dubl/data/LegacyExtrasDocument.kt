@@ -31,6 +31,7 @@ class LegacyExtrasDocument private constructor(private val root: JsonValue.Obj) 
     }
 
     fun withoutCharacter(characterId: String): LegacyExtrasDocument {
+        if (characterId !in characters.values) return this
         requireSupportedVersion()
         return withCharacters(characters.values - characterId)
     }

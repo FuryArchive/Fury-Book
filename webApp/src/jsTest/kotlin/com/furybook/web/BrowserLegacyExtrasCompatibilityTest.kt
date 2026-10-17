@@ -14,6 +14,8 @@ class BrowserLegacyExtrasCompatibilityTest {
             store.replaceRaw(raw)
             assertEquals("Старая заметка\nвторая строка", store.load("old").notes)
             assertEquals(raw, captureBrowserLegacySource("legacy-compatibility")!!.extrasRaw)
+            store.delete("absent")
+            assertIs<BrowserLegacySourceState.Present>(browserLegacySourceState("legacy-compatibility"))
             assertFails { decodeBrowserLegacyExtras(raw) }
             store.save("old", store.load("old").copy(portraitUri = "portrait.png"))
             val reopened = BrowserCharacterExtrasStore()
