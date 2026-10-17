@@ -215,6 +215,10 @@ private fun DesktopNavigationContent(state: DesktopAppState, cloudController: De
     var selected by remember(state) { mutableStateOf(if (state.unfundedPlaceholder) DesktopSection.CHARACTERS else DesktopSection.SHEET) }
     Column(Modifier.fillMaxSize()) {
         state.storageError?.let { Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(12.dp)) }
+        if (state.canonicalMode && state.localStoredCharacter() is LoadResult.MigrationRequired) {
+            Text("Старый лист доступен для просмотра. Для покупок и изменений подготовьте перенос в разделе «Персонажи».",
+                modifier = Modifier.padding(12.dp).testTag("legacy.character.readonly"))
+        }
         BoxWithConstraints(Modifier.weight(1f).fillMaxWidth().background(MaterialTheme.colorScheme.background)) {
             val layout = layoutClassForWidth(maxWidth.value.toInt())
             if (layout == DublLayoutClass.COMPACT) {
@@ -455,7 +459,9 @@ private fun DesktopContent(
                 alpha = pageProgress
                 translationY = (1f - pageProgress) * 6f
             }
-            if (state.canonicalMode && section != DesktopSection.CHARACTERS && state.localStoredCharacter() !is LoadResult.Loaded) {
+            val stored = state.localStoredCharacter()
+            if (state.canonicalMode && section != DesktopSection.CHARACTERS &&
+                stored !is LoadResult.Loaded && stored !is LoadResult.MigrationRequired) {
                 LocalAcquisitionStoragePanel(state)
             } else when (section) {
                 DesktopSection.SHEET -> CharacterSheetScreen(

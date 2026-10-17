@@ -61,6 +61,7 @@ class LegacyCharacterStartupTest {
                     state.canonicalViewReady && onAllNodesWithTag("character.sheet").fetchSemanticsNodes().isNotEmpty()
                 }
                 onAllNodesWithText("Персонаж до обновления").onFirst().assertExists()
+                onNodeWithTag("legacy.character.readonly").assertExists()
                 assertNull(state.storageError)
                 assertIs<LoadResult.MigrationRequired>(state.localStoredCharacter())
                 profile.assertCharacter(state)
