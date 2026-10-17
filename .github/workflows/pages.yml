@@ -54,6 +54,9 @@ jobs:
           rm -rf site/app
           mkdir -p site/app
           cp -a webApp/build/dist/js/productionExecutable/. site/app/
+          cp -a webApp/src/jsMain/resources/favicon* site/app/
+          cp -a webApp/src/jsMain/resources/icon-*.png site/app/
+          cp -a webApp/src/jsMain/resources/apple-touch-icon.png webApp/src/jsMain/resources/manifest.webmanifest site/app/
 
       - name: Configure Pages
         uses: actions/configure-pages@v5

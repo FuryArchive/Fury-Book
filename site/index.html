@@ -4,6 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0E1014">
+  <link rel="icon" href="./favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.webmanifest">
   <meta name="description" content="Fury Book — character manager for DUBL.">
   <title>Fury Book</title>
   <style>
@@ -43,18 +47,14 @@
     }
 
     .mark {
-      width: 86px;
-      height: 86px;
+      width: 112px;
+      height: 112px;
       margin: 0 auto 26px;
       display: grid;
       place-items: center;
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      background: #111318;
-      box-shadow: 0 20px 70px rgba(0, 0, 0, 0.28);
     }
 
-    .mark svg { width: 64px; height: 64px; }
+    .mark img { width: 112px; height: 112px; display: block; }
 
     h1 {
       margin: 0;
@@ -164,10 +164,7 @@
 <body>
   <main>
     <div class="mark" aria-hidden="true">
-      <svg viewBox="0 0 256 256" role="img">
-        <path d="M73 58h118v30h-82v38h66v29h-66v69H73V58z" fill="#EEE9E1"/>
-        <path d="M174 157h33v67h-33z" fill="#A83948"/>
-      </svg>
+      <img src="./icon-192.png" alt="">
     </div>
 
     <h1>FURY BOOK</h1>

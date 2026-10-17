@@ -97,7 +97,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "Fury Book — DUBL 3.69",
-        icon = painterResource("fury-icon.svg"),
+        icon = painterResource("fury-icon.png"),
     ) {
         DublTheme { DesktopVisualTheme { DesktopApp() } }
     }
