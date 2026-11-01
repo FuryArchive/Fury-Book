@@ -127,3 +127,8 @@ test('web entry intercepts recovery before starting the character app', () => {
     if (expectRecovery) assert.equal(redirected[0], '../reset-password.html'+hash);
   }
 });
+
+test('legacy REST error_code takes precedence over numeric HTTP code', async () => {
+  const client = api.createRecoveryClient(async () => response(422, {code:422,error_code:'same_password',msg:'Server detail'}));
+  await assert.rejects(client.updatePassword('emailed-token','long-password'), /отличаться/i);
+});
