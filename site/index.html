@@ -3,6 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <script data-recovery-redirect>
+    // Also handle links sent directly from the Supabase dashboard using the Site URL.
+    const recoveryParams = new URLSearchParams(window.location.hash.slice(1));
+    if (recoveryParams.get('type') === 'recovery' || recoveryParams.has('error') || recoveryParams.has('error_code')) {
+      window.location.replace('./reset-password.html' + window.location.hash);
+    }
+  </script>
   <meta name="theme-color" content="#0E1014">
   <link rel="icon" href="./favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
@@ -193,6 +201,8 @@
     <div id="release" class="meta">Latest release: v0.6</div>
 
     <footer>
+      <a href="./reset-password.html">Забыли пароль?</a>
+      <span class="sep">·</span>
       <a href="https://github.com/FuryArchive/Fury-Book">Source</a>
       <span class="sep">·</span>
       <a href="https://github.com/FuryArchive/Fury-Book/releases/latest">Release notes</a>
