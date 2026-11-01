@@ -61,7 +61,7 @@ export function createRecoveryClient(fetchImpl = globalThis.fetch) {
       }
       let data = {};
       try { data = await response.json() || {}; } catch { /* Empty 204 responses are valid. */ }
-      if (!response.ok) throw apiError(data.code || data.error_code, response.status);
+      if (!response.ok) throw apiError(data.error_code || (typeof data.code === 'string' ? data.code : undefined), response.status);
       return data;
     } finally {
       clearTimeout(timeout);
