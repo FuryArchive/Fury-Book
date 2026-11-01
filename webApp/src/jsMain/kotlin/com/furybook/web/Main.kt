@@ -368,6 +368,16 @@ private fun LoginScreen(
                     )
                 }
 
+                if (mode == AuthMode.LOGIN) {
+                    TextButton(
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !busy,
+                        onClick = { kotlinx.browser.window.location.href = "../reset-password.html" },
+                    ) {
+                        Text("Забыли пароль?")
+                    }
+                }
+
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !busy,
