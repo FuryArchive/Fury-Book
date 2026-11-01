@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="referrer" content="no-referrer" />
   <meta name="theme-color" content="#0E1014" />
   <link rel="icon" href="./favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
@@ -16,6 +17,16 @@
 </head>
 <body>
   <div id="furybook-app"></div>
-  <script src="fury-book.js"></script>
+  <script data-auth-entry>
+    // Handle recovery before Supabase's normal bootstrap can consume the token and sync characters.
+    const authParams = new URLSearchParams(window.location.hash.slice(1));
+    if (authParams.get('type') === 'recovery' || authParams.has('error') || authParams.has('error_code')) {
+      window.location.replace('../reset-password.html' + window.location.hash);
+    } else {
+      const appScript = document.createElement('script');
+      appScript.src = 'fury-book.js';
+      document.body.appendChild(appScript);
+    }
+  </script>
 </body>
 </html>
