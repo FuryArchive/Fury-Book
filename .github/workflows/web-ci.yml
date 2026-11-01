@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "webApp/**"
+      - "site/**"
+      - "tests/password-recovery.test.mjs"
       - "shared/**"
       - "supabase/**"
       - "build.gradle.kts"
@@ -17,6 +19,8 @@ on:
       - main
     paths:
       - "webApp/**"
+      - "site/**"
+      - "tests/password-recovery.test.mjs"
       - "shared/**"
       - "supabase/**"
       - "build.gradle.kts"
@@ -46,6 +50,9 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24"
+
+      - name: Verify password recovery
+        run: node --test tests/password-recovery.test.mjs
 
       - name: Verify shared rules and web build
         env:
