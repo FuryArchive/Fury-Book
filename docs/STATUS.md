@@ -1,6 +1,6 @@
 # Current project status
 
-Last refreshed: 2026-09-22
+Last refreshed: 2026-11-02
 
 This is the living status document for Fury Book. Historical milestone reports may contain older product names and are not current branding or architecture authority.
 
@@ -9,8 +9,8 @@ This is the living status document for Fury Book. Historical milestone reports m
 - Product: **Fury Book**
 - Current public product line: **0.5**
 - Currently shipped ruleset: **DUBL 3.69**
-- Frontends: Android + Compose Desktop (Linux/Windows)
-- Web/Wasm, accounts and sync: out of current scope
+- Frontends: Android, Compose Desktop (Linux/Windows) and Web (`webApp/`, Kotlin/JS)
+- Backend: Supabase (`supabase/migrations`) for web accounts, password recovery, cloud sync and campaigns/GM screen
 
 Fury Book is the product shell and cross-platform application. DUBL is the current ruleset integration.
 
@@ -64,18 +64,6 @@ Do not infer a DUBL rule from current UI behavior when the rulebook source is am
 4. persistence / transfer compatibility
 5. performance and interaction polish
 6. reliable Android, Linux and Windows release gates
-
-## Legacy / historical material
-
-These remain historical context, not current implementation or branding authority:
-
-- `docs/KMP_FOUNDATION_REPORT.md`
-- `docs/DESKTOP_0_2_PARITY.md`
-- `docs/DESKTOP_CHARACTER_SHEET_REPORT.md`
-- `docs/superpowers/plans/`
-- `docs/superpowers/specs/`
-- `packaging/linux/portable-src/`
-- `packaging/linux/build-portable-appimage.sh`
 
 ## Verification
 

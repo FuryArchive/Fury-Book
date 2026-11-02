@@ -12,6 +12,3 @@ They do not need Gradle, a JDK, Android Studio, or the Android SDK.
 
 `packaging/linux/build-appimage.sh` first builds the real Compose Desktop distributable (including its JVM runtime) and then converts it to an AppImage. `.github/workflows/linux-appimage.yml` runs this for `main` pushes and manual dispatches. Production tags are built and published by `.github/workflows/release.yml`.
 
-## Legacy portable fallback
-
-`packaging/linux/build-portable-appimage.sh` and `portable-src` are retained temporarily as a regression oracle/fallback for restricted environments with no Gradle/Maven access. They are frozen for feature development and are **not** the canonical release path. New Linux releases must come from `desktopApp` through `build-appimage.sh`.

@@ -103,6 +103,3 @@ Treat these as compatibility boundaries unless a deliberate migration is include
 - typed golden scenarios
 - public release packaging
 
-## Legacy code
-
-`packaging/linux/portable-src` is retained as a restricted-environment fallback/parity oracle. Do not add new product behavior there unless the change is specifically about that fallback path.
