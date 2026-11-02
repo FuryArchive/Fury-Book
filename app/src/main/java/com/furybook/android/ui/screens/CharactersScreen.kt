@@ -282,6 +282,30 @@ fun CharactersScreen(
                         },
                     )
                 }
+                if (!cloudRegistering) {
+                    TextButton(
+                        enabled = !cloudAuthBusy,
+                        onClick = {
+                            val email = cloudEmail.trim()
+                            if (email.isBlank() || !email.contains("@") || !email.substringAfter("@", "").contains(".")) {
+                                cloudLoginMessage = "Введите email, на который отправить ссылку для сброса пароля."
+                            } else {
+                                cloudAuthBusy = true
+                                cloudLoginMessage = null
+                                cloudScope.launch {
+                                    cloudController.requestPasswordReset(email)
+                                        .onSuccess {
+                                            cloudLoginMessage = "Если аккаунт с таким email существует, мы отправили письмо со ссылкой для сброса пароля. Откройте её, задайте новый пароль и вернитесь сюда."
+                                        }
+                                        .onFailure { cloudLoginMessage = it.message ?: "Не удалось отправить письмо для сброса пароля." }
+                                    cloudAuthBusy = false
+                                }
+                            }
+                        },
+                    ) {
+                        Text("Забыли пароль?")
+                    }
+                }
                 if (cloudRegistering) {
                     Text(
                         "После регистрации откройте письмо, подтвердите email и вернитесь в Fury Book. Локальные персонажи до входа никуда не исчезнут.",
