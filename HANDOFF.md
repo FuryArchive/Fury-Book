@@ -58,4 +58,3 @@ The immediate focus is:
 - persistence/transfer compatibility
 - release reliability and packaging
 
-`packaging/linux/portable-src` and `build-portable-appimage.sh` are frozen legacy fallback/oracle paths. New product functionality belongs in `shared`, `app`, and `desktopApp`.

@@ -45,10 +45,6 @@ jobs:
             tools/tests/test_desktop_02_parity.py \
             tools/tests/test_desktop_02_catalogs.py \
             tools/tests/test_desktop_02_persistence.py \
-            tools/tests/test_desktop_02_workflows.py \
-            tools/tests/test_desktop_02_sheet_parity.py \
-            tools/tests/test_desktop_02_detail_parity.py \
-            tools/tests/test_desktop_02_development_grouping.py \
             tools/tests/test_compose_desktop_parity.py \
             tools/tests/test_compose_sheet_remaining_parity.py \
             tools/tests/test_compose_interaction_parity.py \

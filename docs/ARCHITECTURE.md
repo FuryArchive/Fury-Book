@@ -81,10 +81,6 @@ Jetpack Compose mobile application in `app`. Android owns mobile presentation, A
 
 `desktopApp` is the canonical desktop frontend. It uses desktop-native responsive Compose layouts over the same shared application, rules, catalogs and persistence semantics.
 
-### Legacy portable frontend
-
-`packaging/linux/portable-src` is a frozen restricted-environment fallback/parity oracle. It is not a canonical product frontend and receives no new features.
-
 ## Release architecture
 
 - Android development builds: `.github/workflows/android-ci.yml`

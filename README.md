@@ -82,7 +82,6 @@ Fury Book is being structured so additional rulesets can be integrated without t
 | `docs/` | living architecture/status docs and historical reports |
 | `ci/` | CI-only signing/test fixtures |
 
-`packaging/linux/portable-src` is legacy fallback/oracle code and is not the canonical desktop implementation.
 
 ## Build and verify
 
@@ -196,4 +195,4 @@ Useful engineering references:
 
 Current priorities are DUBL 3.69 correctness, Android/Desktop parity, shared application behavior, persistence compatibility, performance, release reliability, and separating product-level Fury Book architecture from ruleset-specific DUBL implementation details.
 
-Web/Wasm, server accounts and sync are intentionally out of scope for the current milestone.
+The web app (`webApp/`, Supabase accounts, cloud sync and campaigns/GM screen) is in active development alongside Android and Desktop.

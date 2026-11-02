@@ -10,7 +10,6 @@ SESSION = SHARED / "com/dubl/character/android/state/CharacterSheetSession.kt"
 DESKTOP = ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/Main.kt"
 APP_STATE = ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt"
 SHEET = ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt"
-PORTABLE = ROOT / "packaging/linux/portable-src/com/dubl/character/portable/Main.kt"
 HARNESS = ROOT / "tools/tests/kotlin/CharacterSheetSessionHarness.kt"
 
 
@@ -61,14 +60,6 @@ class DesktopCharacterSheetWorkflowTest(unittest.TestCase):
         self.assertNotIn("FoundationSummaryCard", main + sheet)
         self.assertNotIn("InMemoryCharacterStore", main + state + sheet)
 
-    def test_portable_clickable_release_uses_same_shared_session(self):
-        text = PORTABLE.read_text(encoding="utf-8")
-        self.assertIn("CharacterSession", text)
-        window = (ROOT / "packaging/linux/portable-src/com/dubl/character/portable/DublWindow.kt").read_text(encoding="utf-8")
-        self.assertIn("showIdentityDialog", window)
-        self.assertIn("changeAttribute", window)
-        self.assertIn("changeHp", window)
-        self.assertNotIn("Shared foundation", text)
 
 
 if __name__ == "__main__":
