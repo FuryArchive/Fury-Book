@@ -23,6 +23,14 @@ object FuryAuthProtocol {
         ),
     )
 
+    /** Page that completes a password reset; same page the web login links to. */
+    const val RECOVERY_REDIRECT_URL = "https://furyarchive.github.io/Fury-Book/reset-password.html"
+    const val RECOVERY_PATH = "/auth/v1/recover?redirect_to=https%3A%2F%2Ffuryarchive.github.io%2FFury-Book%2Freset-password.html"
+
+    fun recoverBody(email: String): String = jsonStringify(
+        jsonObject("email" to jsonString(email.trim())),
+    )
+
     fun refreshBody(refreshToken: String): String = jsonStringify(
         jsonObject("refresh_token" to jsonString(refreshToken)),
     )

@@ -55,6 +55,19 @@ class AndroidFuryCloudGateway(context: Context) : FuryCloudAuth, FuryCloudTransp
         }
     }
 
+    override suspend fun requestPasswordReset(email: String): Result<Unit> = runCatching {
+        withContext(Dispatchers.IO) {
+            val response = request(
+                path = FuryAuthProtocol.RECOVERY_PATH,
+                body = FuryAuthProtocol.recoverBody(email),
+                bearer = null,
+            )
+            if (response.code !in 200..299) {
+                error(FuryAuthProtocol.friendlyError(FuryAuthProtocol.parseError(response.body)))
+            }
+        }
+    }
+
     override suspend fun signOut() {
         val session = sessionStore.load()
         if (session != null) {

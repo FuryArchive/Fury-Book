@@ -138,6 +138,8 @@ class DesktopCloudController(
         statusMessage = error.message ?: "Не удалось создать Fury Account."
     }
 
+    suspend fun requestPasswordReset(email: String): Result<Unit> = gateway.requestPasswordReset(email)
+
     suspend fun signOut() {
         scheduledJob?.cancel()
         gateway.signOut()
