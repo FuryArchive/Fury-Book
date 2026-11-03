@@ -263,11 +263,20 @@ object MagicEquipmentRules {
     fun manaRankXp(character: DublCharacter): Int = character.magic.manaRank.coerceIn(0, 5) * 100
 
 
-    fun catalogGearLoad(entry: GearCatalogEntry): Double {
-        val raw = entry.fields["Вес"]
-            ?: entry.fields["Вес, кг"]
-            ?: return 0.0
-        val match = Regex("""\d+(?:[.,]\d+)?""").find(raw) ?: return 0.0
+    /**
+     * Core 3.69 "Экипировка": the Equipment value is filled by each item's
+     * Strength requirement, not by its weight in kilograms. Items without a
+     * requirement (ammunition, clothing) add no load.
+     */
+    fun catalogGearLoad(entry: GearCatalogEntry): Double =
+        firstNumber(entry.fields["Треб."] ?: entry.fields["Треб"] ?: entry.fields["Требование"])
+
+    /** Weight-based value written by builds that used kilograms as load; used only to repair stored items. */
+    fun legacyCatalogGearWeight(entry: GearCatalogEntry): Double =
+        firstNumber(entry.fields["Вес"] ?: entry.fields["Вес, кг"])
+
+    private fun firstNumber(raw: String?): Double {
+        val match = Regex("""\d+(?:[.,]\d+)?""").find(raw ?: return 0.0) ?: return 0.0
         return match.value.replace(',', '.').toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0
     }
 

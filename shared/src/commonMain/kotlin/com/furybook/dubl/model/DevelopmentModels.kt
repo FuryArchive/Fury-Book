@@ -226,6 +226,7 @@ private val DEVELOPMENT_ALIASES = mapOf(
     "мастер ловушек" to "капканщик / мастер ловушек",
     "ул. инициатива" to "улучшенная инициатива",
     "инженерное дело" to "инженерное дело (ремонт)",
+    "ремонт" to "инженерное дело (ремонт)",
     "тело" to "телосложение",
     "рукопашный" to "рукопашный бой",
     "рукопашное" to "рукопашный бой",
@@ -238,10 +239,23 @@ fun developmentNormalize(value: String): String = value
     .replace(Regex("\\s+"), " ")
     .trim(' ', '.', ',', ':', ';')
 
+// The book writes specialised skills both as "Знание (Магия)" and "Знание: Магия".
+private val SPECIALISED_SKILL_COLON = Regex("^(знани[ея]|ремесло|исполнение|профессия)\\s*:\\s*(.+)$")
+
 fun developmentAlias(value: String): String {
     val normalized = developmentNormalize(value)
+        .replace(SPECIALISED_SKILL_COLON) { "${it.groupValues[1]} (${it.groupValues[2]})" }
     return DEVELOPMENT_ALIASES[normalized] ?: normalized
 }
+
+/** Master of Melee: "a character may learn only one Chi school" unless the GM allows syncretism. */
+val DevelopmentEntry.isChiSchool: Boolean
+    get() = developmentNormalize(category) == "школы ци"
+
+private val spellDescriptorStems = mapOf(
+    "огонь" to listOf("огон", "огн", "пламен", "пламя", "горени"),
+    "холод" to listOf("холод", "лед", "ледян", "мороз", "обморож"),
+)
 
 class DevelopmentRules(
     private val character: DublCharacter,
@@ -473,6 +487,19 @@ class DevelopmentRules(
             }
         }
 
+        if (entry.isChiSchool) {
+            val other = progress.owned.keys
+                .mapNotNull(catalog::byId)
+                .filter { it.isChiSchool && it.id != entry.id && progress.rank(it.id) > 0 }
+            if (other.isNotEmpty()) {
+                checks += RequirementCheck(
+                    RequirementStatus.FAIL,
+                    "Только одна школа Ци (синкретизм — на усмотрение Мастера); уже выбрана: ${other.joinToString { it.name }}",
+                    other.first().id,
+                )
+            }
+        }
+
         val raw = entry.requirements.trim(' ', '.', ',', ';')
         if (raw.isNotBlank() && raw != "-" && raw != "—") {
             requirementParts(raw).forEach { part ->
@@ -562,8 +589,11 @@ class DevelopmentRules(
         val spellCountRequirement = Regex("^Знать\\s*(\\d+)\\s*заклинани", RegexOption.IGNORE_CASE).find(text)
         if (spellCountRequirement != null) {
             val needSpells = spellCountRequirement.groupValues[1].toIntOrNull() ?: 0
-            val haveSpells = character.magic.spells.count { it.learned }
-            return valueCheck("Изученные заклинания", haveSpells, needSpells)
+            val learned = character.magic.spells.filter { it.learned }
+            val descriptor = Regex("дескриптор[а-яё]*\\s*[«“\"']?([^»”\"'.]+)", RegexOption.IGNORE_CASE)
+                .find(text)?.groupValues?.get(1)?.trim()?.lowercase()
+                ?: return valueCheck("Изученные заклинания", learned.size, needSpells)
+            return spellDescriptorCheck(descriptor, learned, needSpells)
         }
 
         val numeric = Regex("^(.+?)\\s*:?\\s*(\\d+)(?:\\s*ранг(?:а|ов)?)?$", RegexOption.IGNORE_CASE)
@@ -635,6 +665,26 @@ class DevelopmentRules(
         }
 
         return RequirementCheck(RequirementStatus.MANUAL, text)
+    }
+
+    /**
+     * Spell cards have no descriptor field in the book, so a descriptor is recognised
+     * only from the spell's own text. Too few learned spells fails; textual evidence
+     * short of the requirement is left to a manual check rather than guessed.
+     */
+    private fun spellDescriptorCheck(descriptor: String, learned: List<KnownSpell>, need: Int): RequirementCheck {
+        val label = "Заклинания с дескриптором «$descriptor»"
+        if (learned.size < need) return valueCheck(label, learned.size, need)
+        val stems = spellDescriptorStems[descriptor] ?: listOf(descriptor.take(4))
+        val matching = learned.count { spell ->
+            val haystack = listOf(spell.name, spell.description, spell.action).joinToString(" ").lowercase().replace('ё', 'е')
+            stems.any { it in haystack }
+        }
+        return if (matching >= need) {
+            valueCheck(label, matching, need)
+        } else {
+            RequirementCheck(RequirementStatus.MANUAL, "$label: найдено по тексту $matching / $need — проверьте вручную")
+        }
     }
 
     private fun requirementParts(raw: String): List<String> = raw

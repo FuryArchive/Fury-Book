@@ -117,6 +117,7 @@ object SnapshotCodec {
         "untrainedOverride" to skill.untrainedOverride?.name?.let(::jsonString),
         "auto6Override" to skill.auto6Override?.let(::jsonString),
         "auto12Override" to skill.auto12Override?.let(::jsonString),
+        "creationRank" to skill.creationRank.takeIf { it > 0 }?.let(::jsonNumber),
     )
 
     private fun encodeDevelopmentEntry(entry: DevelopmentEntry): JsonValue.Obj = jsonObject(
@@ -339,6 +340,7 @@ object SnapshotCodec {
             untrainedOverride = untrained,
             auto6Override = root.string("auto6Override").takeIf(String::isNotBlank),
             auto12Override = root.string("auto12Override").takeIf(String::isNotBlank),
+            creationRank = root.int("creationRank", 0),
         )
     }
 

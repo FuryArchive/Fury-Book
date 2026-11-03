@@ -111,7 +111,7 @@ fun EquipmentScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                         Button(onClick = { state.addCatalogGear(entry) }) { Text("Добавить") }
                     }
                 }) {
-                    Text("${entry.category} · ${entry.section} · вес ${formatNumber(MagicEquipmentRules.catalogGearLoad(entry))}", color = DublMuted)
+                    Text("${entry.category} · ${entry.section} · нагрузка ${formatNumber(MagicEquipmentRules.catalogGearLoad(entry))}", color = DublMuted)
                     if (entry.description.isNotBlank()) Text(entry.description, color = DublMuted)
                 }
             }
@@ -151,7 +151,7 @@ private fun GearDialog(state: DesktopAppState, item: GearItem?, onDelete: (Strin
                 OutlinedTextField(name, { name = it }, label = { Text("Название") })
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(quantity, { quantity = it.filter(Char::isDigit) }, label = { Text("Количество") }, modifier = Modifier.weight(1f), singleLine = true)
-                    OutlinedTextField(load, { load = it.filter { c -> c.isDigit() || c == '.' || c == ',' } }, label = { Text("Вес / нагрузка") }, modifier = Modifier.weight(1f), singleLine = true)
+                    OutlinedTextField(load, { load = it.filter { c -> c.isDigit() || c == '.' || c == ',' } }, label = { Text("Нагрузка (треб. силы)") }, modifier = Modifier.weight(1f), singleLine = true)
                 }
                 OutlinedTextField(category, { category = it }, label = { Text("Категория") })
                 OutlinedTextField(section, { section = it }, label = { Text("Раздел") })
@@ -188,7 +188,7 @@ private fun CatalogGearDialog(state: DesktopAppState, entry: GearCatalogEntry, o
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 KeyValue("Категория", entry.category)
                 KeyValue("Раздел", entry.section)
-                KeyValue("Вес", formatNumber(MagicEquipmentRules.catalogGearLoad(entry)))
+                KeyValue("Нагрузка (треб. силы)", formatNumber(MagicEquipmentRules.catalogGearLoad(entry)))
                 entry.fields.forEach { (key, value) -> KeyValue(key, value) }
                 if (entry.description.isNotBlank()) Text(entry.description)
             }

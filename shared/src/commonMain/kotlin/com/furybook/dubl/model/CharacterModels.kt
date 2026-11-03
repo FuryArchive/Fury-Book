@@ -189,6 +189,7 @@ data class DublCharacter(
         val normalizedSkills = skills.mapValues { (_, skill) ->
             skill.copy(
                 rank = skill.rank.coerceIn(0, 10),
+                creationRank = skill.creationRank.coerceIn(0, 10),
                 attributes = skill.attributes.distinct(),
             )
         }

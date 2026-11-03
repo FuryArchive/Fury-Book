@@ -94,7 +94,7 @@
         "core"
       ],
       "runtimeArtifact": "shared/src/commonMain/resources/fcp/dubl-3.69/content/development_ability_roots_catalog.json",
-      "note": "Root ability-access nodes are generated from DUBL 3.69 ability source tables. Empty template fields and draft sources remain incomplete and locally overridable."
+      "note": "Root ability-access nodes are generated from DUBL 3.69 ability source tables. Empty Описание/Особое template rows are diagnostics only (mechanics live in the child card); draft sources and missing costs remain incomplete and locally overridable."
     },
     "development_martial": {
       "status": "source_generated",

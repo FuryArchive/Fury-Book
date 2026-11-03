@@ -88,7 +88,7 @@ class RollRulesTest {
     }
 
     @Test
-    fun hindranceKeepsTwoLowestAfterDoubleFollowUpDie() {
+    fun hindranceDoubleAdvantageDieNeverLowersResult() {
         val initial = rollCheck(
             mode = RollMode.HINDRANCE,
             effectCount = 1,
@@ -99,9 +99,24 @@ class RollRulesTest {
         )
         assertEquals(RollFollowUp.ADVANTAGE_DIE, initial.followUp)
 
-        val resolved = rollFollowUp(initial, dice(1))
+        val low = rollFollowUp(initial, dice(1))
+        assertEquals(setOf(0, 1), low.chosenIndices)
+        assertEquals(4, low.total)
+    }
+
+    @Test
+    fun hindranceDoubleAdvantageDieImprovesKeptPair() {
+        val initial = rollCheck(
+            mode = RollMode.HINDRANCE,
+            effectCount = 1,
+            checkBonus = 0,
+            checkBonusLabel = "Бонус",
+            situationalBonus = 0,
+            rollDie = dice(3, 3, 5),
+        )
+        val resolved = rollFollowUp(initial, dice(6))
         assertEquals(setOf(0, 3), resolved.chosenIndices)
-        assertEquals(3, resolved.total)
+        assertEquals(9, resolved.total)
     }
     @Test
     fun comparesRollAgainstOptionalTargetWithoutChangingRollTotal() {
@@ -135,4 +150,71 @@ class RollRulesTest {
         assertEquals(RollTargetOutcome.FAILURE, comparison.outcome)
     }
 
+    private fun attack(bonus: Int, vararg rolled: Int) = rollCheck(
+        mode = RollMode.NORMAL,
+        effectCount = 0,
+        checkBonus = bonus,
+        checkBonusLabel = "Атака",
+        situationalBonus = 0,
+        rollDie = dice(*rolled),
+    )
+
+    @Test
+    fun attackBelowEqualAndAboveDefenseMissPartialAndFullHit() {
+        // Rulebook example: Defense 6, attack +3; rolling 2 and 1 totals 6 → partial hit.
+        assertEquals(AttackOutcome.PARTIAL_HIT, resolveAttack(attack(3, 2, 1), 6).outcome)
+        assertEquals(AttackOutcome.FULL_HIT, resolveAttack(attack(3, 3, 1), 6).outcome)
+        assertEquals(AttackOutcome.MISS, resolveAttack(attack(3, 1, 2), 7).outcome)
+    }
+
+    @Test
+    fun doubleSixThatHitsIsCriticalWithoutSuperiorityDie() {
+        val roll = attack(0, 6, 6)
+        assertEquals(AttackOutcome.CRITICAL_HIT, resolveAttack(roll, 12).outcome)
+        assertNull(roll.availableFollowUp(attackDefense = 12))
+        assertEquals(RollFollowUp.SUPERIORITY_DIE, roll.availableFollowUp())
+    }
+
+    @Test
+    fun doubleSixThatMissesEarnsSuperiorityDieAndIsNotCritical() {
+        val roll = attack(0, 6, 6)
+        assertEquals(AttackOutcome.MISS, resolveAttack(roll, 15).outcome)
+        assertEquals(RollFollowUp.SUPERIORITY_DIE, roll.availableFollowUp(attackDefense = 15))
+
+        val withDie = rollFollowUp(roll, dice(4))
+        assertEquals(16, withDie.total)
+        assertEquals(AttackOutcome.FULL_HIT, resolveAttack(withDie, 15).outcome)
+        assertEquals(AttackOutcome.MISS, resolveAttack(rollFollowUp(roll, dice(2)), 15).outcome)
+    }
+
+    @Test
+    fun doubleOneAttackIsCriticalMissEvenAboveDefense() {
+        assertEquals(AttackOutcome.CRITICAL_MISS, resolveAttack(attack(20, 1, 1), 6).outcome)
+    }
+
+    @Test
+    fun flurryScoresOneHitPerRequiredExcessUpToWeaponMaximum() {
+        val light = FlurryWeaponProfile.LIGHT.rule(short = false)
+        assertEquals(0, light.resolve(attack(0, 4, 5), 9).hits)
+        assertEquals(0, light.resolve(attack(0, 4, 6), 9).hits)
+        assertEquals(1, light.resolve(attack(0, 5, 6), 9).hits)
+        assertEquals(2, light.resolve(attack(2, 5, 6), 9).hits)
+        assertEquals(3, light.resolve(attack(20, 5, 6), 9).hits)
+
+        val twoWeapons = FlurryWeaponProfile.TWO_WEAPONS_LIGHT.rule(short = false)
+        assertEquals(6, twoWeapons.resolve(attack(20, 5, 6), 9).hits)
+    }
+
+    @Test
+    fun shortFlurryNeedsOneMoreExcessPerHit() {
+        val shortTwoHanded = FlurryWeaponProfile.TWO_HANDED.rule(short = true)
+        val resolution = shortTwoHanded.resolve(attack(10, 4, 5), 9)
+        assertEquals(5, resolution.excessPerHit)
+        assertEquals(2, resolution.hits)
+    }
+
+    @Test
+    fun flurryCriticalFailureScoresNoHits() {
+        assertEquals(0, FlurryWeaponProfile.LIGHT.rule(short = false).resolve(attack(30, 1, 1), 6).hits)
+    }
 }
