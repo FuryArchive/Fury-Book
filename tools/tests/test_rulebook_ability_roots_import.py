@@ -129,6 +129,19 @@ def test_promote_ability_roots_uses_source_mechanics_and_marks_drafts_incomplete
     assert "локаль" in by_id["connections"]["conflictNote"].lower()
 
 
+def test_promote_ability_roots_does_not_block_branch_for_empty_template_rows_only():
+    from tools.rulebook.import_ability_roots import promote_ability_roots
+    imported={"entries":[{
+        "id":"sneak","name":"Подлая атака","abilityOptions":[{"source":"Мастерство","value":1}],
+        "requirements":"","benefit":"","sourceRefs":["core:h","core:t"],
+        "emptyFields":["описание","особое"],
+    }]}
+    bindings={"bindings":[{"id":"sneak","name":"Подлая атака","category":"Особые способности"}]}
+    entry=promote_ability_roots(imported,bindings,"3.69")["entries"][0]
+    assert "incomplete" not in entry
+    assert "mechanicsConflict" not in entry
+
+
 def test_compare_ability_roots_ignores_application_only_generic_access_helper():
     from tools.rulebook.import_ability_roots import compare_ability_roots_runtime
     imported={"entries":[{"id":"root","name":"Корень","abilityOptions":[{"source":"Мастерство","value":1}],"requirements":"","benefit":"","sourceRefs":["core:r"]}]}

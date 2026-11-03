@@ -49,6 +49,8 @@ data class CharacterSkill(
     val untrainedOverride: UntrainedRule? = null,
     val auto6Override: String? = null,
     val auto12Override: String? = null,
+    /** Rank held when character creation was completed; Self-taught never discounts these ranks. */
+    val creationRank: Int = 0,
 )
 
 data class ResolvedSkill(
@@ -237,13 +239,20 @@ fun DublCharacter.skillCalculationOptions(skill: ResolvedSkill): List<Pair<Attri
     }
 
 fun DublCharacter.skillXpSpent(): Int = resolvedSkills(includeHidden = true)
-    .sumOf { skillXpCostForRank(it.rank) }
+    .sumOf { skillXpCostForRank(it.rank, it.state.creationRank) }
 
-fun DublCharacter.skillXpCostForRank(rank: Int): Int {
+/**
+ * Self-taught halves the price of ranks up to 2 inclusive, but "does not work at
+ * character creation": ranks already held when creation was completed keep full price.
+ */
+fun DublCharacter.skillXpCostForRank(rank: Int, creationRank: Int = 0): Int {
     val normalized = rank.coerceIn(0, 10)
     val base = SkillCatalog.costForRank(normalized)
     if (!creationComplete || developmentRank(DevelopmentEffectIds.SELF_TAUGHT) <= 0) return base
-    val discountedPart = SkillCatalog.costForRank(normalized.coerceAtMost(2))
+    val discountedFrom = creationRank.coerceIn(0, 2)
+    val discountedTo = normalized.coerceAtMost(2)
+    if (discountedTo <= discountedFrom) return base
+    val discountedPart = SkillCatalog.costForRank(discountedTo) - SkillCatalog.costForRank(discountedFrom)
     return base - discountedPart / 2
 }
 

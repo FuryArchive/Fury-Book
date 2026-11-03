@@ -15,7 +15,7 @@ fun main() {
         name = "Меч",
         category = "Оружие",
         section = "Ближний бой",
-        fields = linkedMapOf("Вес" to "2,5 кг", "Урон" to "1d6"),
+        fields = linkedMapOf("Вес" to "2,5 кг", "Треб." to "3", "Урон" to "1d6"),
         description = "Стальной меч",
     )
     val uid = session.addCatalogGear(catalog)
@@ -27,14 +27,14 @@ fun main() {
     check(item.section == catalog.section)
     check(item.description == catalog.description)
     check(item.fields == catalog.fields)
-    check(item.load == 2.5)
+    check(item.load == 3.0) { "catalog load is the Strength requirement, not the weight" }
     check(item.quantity == 1)
     check(!item.custom)
 
     check(session.addCatalogGear(catalog) == uid)
     item = session.active.gear.items.single()
     check(item.quantity == 2) { "re-adding canonical gear must increment the existing stack" }
-    check(MagicEquipmentRules.equipmentLoad(session.active) == 5.0)
+    check(MagicEquipmentRules.equipmentLoad(session.active) == 6.0)
 
     val customUid = session.addCustomGear(
         GearItem(
@@ -62,7 +62,7 @@ fun main() {
     session.updateGearItem(uid) { it.copy(carried = false) }
     check(MagicEquipmentRules.equipmentLoad(session.active) == 0.0)
     session.updateGearItem(uid) { it.copy(carried = true, quantity = 3) }
-    check(MagicEquipmentRules.equipmentLoad(session.active) == 7.5)
+    check(MagicEquipmentRules.equipmentLoad(session.active) == 9.0)
 
     session.setGearLoadAutomatic(false)
     session.setGearManualLoad(-100.0)
@@ -88,10 +88,10 @@ fun main() {
     )
     session.addCatalogGear(legacy)
     val legacyUid = session.active.gear.items.single { it.catalogId == legacy.id }.uid
-    session.updateGearItem(legacyUid) { it.copy(load = 3.0) }
+    session.updateGearItem(legacyUid) { it.copy(load = 8.0) }
     session.syncCatalogGearLoads(listOf(catalog, legacy))
-    check(session.active.gear.items.single { it.uid == legacyUid }.load == 8.0) {
-        "legacy requirement-as-weight values must be repaired from the canonical catalog"
+    check(session.active.gear.items.single { it.uid == legacyUid }.load == 3.0) {
+        "legacy weight-as-load values must be repaired to the canonical Strength requirement"
     }
 
     println("EQUIPMENT_PARITY_OK")

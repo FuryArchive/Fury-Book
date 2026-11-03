@@ -79,6 +79,7 @@ internal class CharacterSession(
         character.copy(
             creationExperience = creationXp,
             creationComplete = true,
+            skills = character.skills.mapValues { (_, skill) -> skill.copy(creationRank = skill.rank) },
             hpCurrent = character.healthMaximum,
             manaCurrent = fullMana,
             chiCurrent = fullChi,
@@ -498,12 +499,8 @@ internal class CharacterSession(
         val repaired = current.gear.items.map { item ->
             val catalogEntry = item.catalogId?.let(byId::get) ?: return@map item
             val expected = MagicEquipmentRules.catalogGearLoad(catalogEntry)
-            val legacyRequirementLoad = (catalogEntry.fields["Треб."] ?: catalogEntry.fields["Требование"] ?: "0")
-                .replace(',', '.')
-                .toDoubleOrNull()
-                ?.coerceAtLeast(0.0)
-                ?: 0.0
-            val isLegacyCatalogValue = kotlin.math.abs(item.load - legacyRequirementLoad) < 0.0001
+            val legacyWeightLoad = MagicEquipmentRules.legacyCatalogGearWeight(catalogEntry)
+            val isLegacyCatalogValue = kotlin.math.abs(item.load - legacyWeightLoad) < 0.0001
             if (!isLegacyCatalogValue || kotlin.math.abs(item.load - expected) < 0.0001) item
             else item.copy(load = expected)
         }

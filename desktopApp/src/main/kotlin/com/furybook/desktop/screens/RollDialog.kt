@@ -32,7 +32,11 @@ import com.furybook.dubl.model.SkillEffectCatalog
 import com.furybook.dubl.model.SkillEffectRules
 import com.furybook.dubl.model.allowedAttributes
 import com.furybook.dubl.model.allowedSkillIds
+import com.furybook.dubl.model.availableFollowUp
 import com.furybook.dubl.model.compareRollToTarget
+import com.furybook.dubl.model.resolve
+import com.furybook.dubl.model.resolveAttack
+import com.furybook.dubl.model.summary
 import com.furybook.dubl.model.developmentNormalize
 import com.furybook.dubl.model.resolveSkill
 import com.furybook.dubl.model.rollCheck
@@ -268,6 +272,7 @@ fun ContextRollDialog(
     var hindranceText by remember(context) { mutableStateOf("0") }
     var situationalText by remember(context) { mutableStateOf("0") }
     var targetText by remember(context) { mutableStateOf("") }
+    val isAttack = context == RollContext.ATTACK
     var result by remember(context) { mutableStateOf<RollResult?>(null) }
     var skillMenu by remember { mutableStateOf(false) }
     var attributeMenu by remember { mutableStateOf(false) }
@@ -356,20 +361,29 @@ fun ContextRollDialog(
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(situationalText, { situationalText = it.take(4) }, label = { Text("Поправка") }, modifier = Modifier.weight(1f), singleLine = true)
-                    OutlinedTextField(targetText, { targetText = it.take(4) }, label = { Text("Цель / СЛ") }, modifier = Modifier.weight(1f), singleLine = true)
+                    OutlinedTextField(targetText, { targetText = it.take(4) }, label = { Text(if (isAttack || flurryRule != null) "Защита цели" else "Цель / СЛ") }, modifier = Modifier.weight(1f), singleLine = true)
                 }
                 preset.contributions.forEach { contribution -> Text("${contribution.label}: ${signed(contribution.value)}", color = DublMuted) }
                 reminders.forEach { reminder -> Text("${reminder.sourceName}: ${reminder.effectText}", color = DublMuted) }
                 Text(preset.formulaText, color = DublMuted)
                 result?.let { roll ->
+                    val target = targetText.toIntOrNull()
                     Text("Кости: ${roll.dice.joinToString()} · итог ${roll.total}")
-                    targetText.toIntOrNull()?.let { target ->
+                    if (target != null && isAttack) {
+                        val attack = resolveAttack(roll, target)
+                        Text("${attack.outcome.title} (${signed(attack.margin)})", fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    } else if (target != null && flurryRule != null) {
+                        Text(flurryRule.resolve(roll, target).summary, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                    } else if (target != null) {
                         val comparison = compareRollToTarget(roll, target)
                         Text("${comparison.outcome} (${signed(comparison.margin)})")
                     }
+                    val followUp = roll.availableFollowUp(attackDefense = target.takeIf { isAttack })
                     roll.specialResult?.let { Text(it.title) }
-                    roll.note?.let { Text(it, color = DublMuted) }
-                    roll.followUp?.let { follow -> OutlinedButton(onClick = { result = rollFollowUp(roll) }) { Text(follow.buttonTitle) } }
+                    roll.note?.takeIf { followUp != null || roll.followUp == null }?.let { Text(it, color = DublMuted) }
+                    followUp?.let { follow ->
+                        OutlinedButton(onClick = { result = rollFollowUp(roll) }) { Text(follow.buttonTitle) }
+                    }
                 }
             }
         },

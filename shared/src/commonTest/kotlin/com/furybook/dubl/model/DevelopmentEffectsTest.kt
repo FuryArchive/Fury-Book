@@ -61,6 +61,46 @@ class DevelopmentEffectsTest {
     }
 
     @Test
+    fun selfTaughtDoesNotRefundRanksHeldAtCreation() {
+        val selfTaught = mapOf(DevelopmentEffectIds.SELF_TAUGHT to OwnedDevelopment(1))
+        fun athletics(rank: Int, creationRank: Int) = mapOf(
+            "athletics" to CharacterSkill(id = "athletics", definitionId = "athletics", rank = rank, creationRank = creationRank),
+        )
+
+        val boughtAtCreation = DublCharacter(id = "a", creationComplete = true, skills = athletics(2, 2), development = selfTaught)
+        assertEquals(30, boughtAtCreation.skillXpSpent())
+
+        // Rank 1 at creation, rank 2 bought later at half price: 10 + 20 / 2.
+        val raisedAfter = DublCharacter(id = "b", creationComplete = true, skills = athletics(2, 1), development = selfTaught)
+        assertEquals(20, raisedAfter.skillXpSpent())
+        assertEquals(10, raisedAfter.skillNextRankCost(1))
+    }
+
+    @Test
+    fun completingCreationRecordsCreationRanksAndKeepsXpSpent() {
+        val session = com.furybook.dubl.state.CharacterSession(
+            com.furybook.dubl.data.InMemoryCharacterStore(
+                AppSnapshot(
+                    listOf(
+                        DublCharacter(
+                            id = "c",
+                            experience = 1000,
+                            skills = mapOf("athletics" to CharacterSkill(id = "athletics", definitionId = "athletics", rank = 2)),
+                            development = mapOf(DevelopmentEffectIds.SELF_TAUGHT to OwnedDevelopment(1)),
+                        ),
+                    ),
+                    "c",
+                ),
+            ),
+        ) { "id" }
+        val before = session.active.skillXpSpent()
+        session.completeCreation()
+
+        assertEquals(2, session.active.skills.getValue("athletics").creationRank)
+        assertEquals(before, session.active.skillXpSpent())
+    }
+
+    @Test
     fun haulerRaisesEquipmentCapacityByTenPercentPerRank() {
         val character = DublCharacter(
             id = "hauler",

@@ -56,6 +56,31 @@ fun FlurryWeaponProfile.rule(short: Boolean): FlurryAttackRule = FlurryAttackRul
     alternateWeaponDamage = twoWeapons,
 )
 
+data class FlurryResolution(
+    val defense: Int,
+    val margin: Int,
+    val excessPerHit: Int,
+    val hits: Int,
+    val maxHits: Int,
+)
+
+/**
+ * Core 3.69 "Шквал атак": one hit for every [FlurryAttackRule.excessPerHit] points
+ * the single check exceeds Defense (short flurry: +1 required excess), capped at
+ * the weapon maximum. A critical failure scores no hits.
+ */
+fun FlurryAttackRule.resolve(roll: RollResult, defense: Int): FlurryResolution {
+    val margin = roll.total - defense
+    val perHit = excessPerHit + shortExcessPenalty
+    val criticalFailure = roll.specialResult == RollSpecialResult.CRITICAL_FAILURE ||
+        roll.specialResult == RollSpecialResult.CONFIRMED_CRITICAL_FAILURE
+    val hits = if (criticalFailure || margin < perHit) 0 else (margin / perHit).coerceAtMost(maxHits)
+    return FlurryResolution(defense = defense, margin = margin, excessPerHit = perHit, hits = hits, maxHits = maxHits)
+}
+
+val FlurryResolution.summary: String
+    get() = "Попаданий: $hits из $maxHits · превышение ${if (margin >= 0) "+" else ""}$margin, по 1 за каждые $excessPerHit"
+
 fun RollContext.allowedSkillIds(): List<String> = when (this) {
     RollContext.ATTACK, RollContext.FLURRY, RollContext.BREAK_ITEM -> listOf("unarmed", "melee_weapon", "shooting", "throwing")
     RollContext.PARRY, RollContext.DISARM -> listOf("unarmed", "melee_weapon")

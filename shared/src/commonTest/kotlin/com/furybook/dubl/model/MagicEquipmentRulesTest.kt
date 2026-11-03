@@ -114,7 +114,7 @@ class MagicEquipmentRulesTest {
     }
 
     @Test
-    fun catalogGearLoadUsesWeightInsteadOfRequirement() {
+    fun catalogGearLoadUsesStrengthRequirementInsteadOfWeight() {
         val entry = GearCatalogEntry(
             id = "bow",
             name = "Лук",
@@ -123,24 +123,45 @@ class MagicEquipmentRulesTest {
             fields = mapOf("Треб." to "4", "Вес" to "0,6 кг"),
             description = "",
         )
-        assertEquals(0.6, MagicEquipmentRules.catalogGearLoad(entry), 0.001)
+        assertEquals(4.0, MagicEquipmentRules.catalogGearLoad(entry), 0.001)
+        assertEquals(0.6, MagicEquipmentRules.legacyCatalogGearWeight(entry), 0.001)
     }
 
     @Test
-    fun catalogGearLoadParsesDesktopWeightVariantsAndMissingWeight() {
-        fun entry(weightKey: String? = null, weight: String = "") = GearCatalogEntry(
-            id = weight,
+    fun catalogGearLoadParsesRequirementVariantsAndMissingRequirement() {
+        fun entry(key: String? = null, value: String = "") = GearCatalogEntry(
+            id = value,
             name = "Тест",
             category = "Снаряжение",
             section = "Тест",
-            fields = if (weightKey == null) emptyMap() else mapOf(weightKey to weight),
+            fields = if (key == null) mapOf("Вес" to "19 кг") else mapOf(key to value, "Вес" to "19 кг"),
             description = "",
         )
 
-        assertEquals(2.5, MagicEquipmentRules.catalogGearLoad(entry("Вес", "2,5 кг")), 0.001)
-        assertEquals(20.0, MagicEquipmentRules.catalogGearLoad(entry("Вес, кг", "от 20")), 0.001)
-        assertEquals(0.5, MagicEquipmentRules.catalogGearLoad(entry("Вес", "0.5-1 кг")), 0.001)
+        assertEquals(3.0, MagicEquipmentRules.catalogGearLoad(entry("Треб.", "3(4*)")), 0.001)
+        assertEquals(2.0, MagicEquipmentRules.catalogGearLoad(entry("Треб.", "2*")), 0.001)
+        assertEquals(8.0, MagicEquipmentRules.catalogGearLoad(entry("Требование", "8")), 0.001)
+        assertEquals(0.0, MagicEquipmentRules.catalogGearLoad(entry("Треб", "-")), 0.001)
         assertEquals(0.0, MagicEquipmentRules.catalogGearLoad(entry()), 0.001)
+    }
+
+    @Test
+    fun longswordAndChainShirtGiveMediumLoadForStrengthTwoConstitutionTwo() {
+        fun gear(name: String, requirement: String, weight: String) =
+            GearCatalogEntry(name, name, "Снаряжение", "Тест", mapOf("Треб." to requirement, "Вес" to weight), "")
+        val character = DublCharacter(
+            id = "load",
+            attributes = defaultAttributes() +
+                (AttributeId.STRENGTH to AttributeValue(2)) +
+                (AttributeId.CONSTITUTION to AttributeValue(2)),
+            gear = CharacterGear(
+                items = listOf(gear("Длинный меч", "3", "1.5 кг"), gear("Кольчужный", "4", "19 кг")).map {
+                    GearItem(uid = it.id, catalogId = it.id, load = MagicEquipmentRules.catalogGearLoad(it))
+                },
+            ),
+        )
+        assertEquals(7.0, MagicEquipmentRules.equipmentLoad(character), 0.001)
+        assertEquals(-2, MagicEquipmentRules.burden(character).penalty)
     }
 
 

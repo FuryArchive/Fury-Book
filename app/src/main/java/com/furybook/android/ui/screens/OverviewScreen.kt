@@ -139,10 +139,15 @@ import com.furybook.dubl.model.SkillEffectRules
 import com.furybook.dubl.model.SkillRollEffectOption
 import com.furybook.dubl.model.allowedAttributes
 import com.furybook.dubl.model.allowedSkillIds
+import com.furybook.dubl.model.AttackOutcome
+import com.furybook.dubl.model.availableFollowUp
 import com.furybook.dubl.model.compareRollToTarget
+import com.furybook.dubl.model.resolve
+import com.furybook.dubl.model.resolveAttack
+import com.furybook.dubl.model.rule
+import com.furybook.dubl.model.summary
 import com.furybook.dubl.model.developmentNormalize
 import com.furybook.dubl.model.rollPreset
-import com.furybook.dubl.model.rule
 import com.furybook.dubl.model.rollCheck
 import com.furybook.dubl.model.rollFollowUp
 import com.furybook.dubl.model.resolveSkill
@@ -1741,6 +1746,7 @@ private fun ContextRollSheet(
         shortFlurry = shortFlurry,
         onFlurryProfile = { flurryProfile = it },
         onShortFlurry = { shortFlurry = it },
+        attackResolution = context == RollContext.ATTACK,
         onDismiss = onDismiss,
     )
 }
@@ -3443,6 +3449,7 @@ private fun CheckRollSheet(
     shortFlurry: Boolean = false,
     onFlurryProfile: ((FlurryWeaponProfile) -> Unit)? = null,
     onShortFlurry: ((Boolean) -> Unit)? = null,
+    attackResolution: Boolean = false,
     onDismiss: () -> Unit,
 ) {
     var advantageCount by remember(rememberKey) { mutableStateOf(0) }
@@ -3742,7 +3749,7 @@ private fun CheckRollSheet(
                         invalidateResult()
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("СЛ / результат противника (необязательно)") },
+                    label = { Text(if (attackResolution || flurryProfile != null) "Защита цели (необязательно)" else "СЛ / результат противника (необязательно)") },
                     supportingText = { Text("Нужен только для автоматического сравнения результата") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
@@ -3806,7 +3813,35 @@ private fun CheckRollSheet(
                             fontWeight = FontWeight.Bold,
                             color = DublGold,
                         )
-                        targetValue?.let { target ->
+                        val attackDefense = targetValue?.takeIf { attackResolution }
+                        val availableFollowUp = roll.availableFollowUp(attackDefense)
+                        attackDefense?.let { defense ->
+                            val attack = resolveAttack(roll, defense)
+                            Text(
+                                text = "${attack.outcome.title} · ${signed(attack.margin)}",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = when (attack.outcome) {
+                                    AttackOutcome.CRITICAL_HIT, AttackOutcome.FULL_HIT -> DublAccent
+                                    AttackOutcome.PARTIAL_HIT -> DublGold
+                                    AttackOutcome.MISS, AttackOutcome.CRITICAL_MISS -> DublDanger
+                                },
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                        val flurryResolution = flurryProfile?.let { profile ->
+                            targetValue?.let { profile.rule(shortFlurry).resolve(roll, it) }
+                        }
+                        flurryResolution?.let { flurry ->
+                            Text(
+                                text = flurry.summary,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = if (flurry.hits > 0) DublAccent else DublDanger,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                        targetValue?.takeIf { !attackResolution && flurryProfile == null }?.let { target ->
                             val comparison = compareRollToTarget(roll, target)
                             Text(
                                 text = when (comparison.outcome) {
@@ -3847,7 +3882,7 @@ private fun CheckRollSheet(
                                 DiceChip(value = die, selected = index in roll.chosenIndices)
                             }
                         }
-                        roll.followUp?.let { followUp ->
+                        availableFollowUp?.let { followUp ->
                             Spacer(Modifier.height(12.dp))
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
@@ -3916,7 +3951,7 @@ private fun CheckRollSheet(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center,
                         )
-                        roll.note?.let { note ->
+                        roll.note?.takeIf { availableFollowUp != null || roll.followUp == null }?.let { note ->
                             Spacer(Modifier.height(7.dp))
                             Text(
                                 text = note,

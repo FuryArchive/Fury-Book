@@ -337,7 +337,10 @@ def promote_ability_roots(imported: dict, bindings: dict, version: str = "3.69")
             runtime["tags"] = tags
 
         draft_source = any(normalize_lookup(str(option.get("source", ""))) == "???" for option in options)
-        incomplete = bool(empty_fields or not options or draft_source or unresolved)
+        # Empty "Описание:/Особое:" rows are the book's normal root template: the
+        # mechanics live in the same-named child card. They stay import
+        # diagnostics but must not block every child of the branch.
+        incomplete = bool(not options or draft_source or unresolved)
         if incomplete:
             reasons: list[str] = []
             if empty_fields:

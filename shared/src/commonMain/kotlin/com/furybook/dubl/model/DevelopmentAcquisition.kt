@@ -241,6 +241,15 @@ class DevelopmentAcquisitionPlanner(
             }
         }
 
+        if (entry.isChiSchool) {
+            val conflicting = next.character.development.keys
+                .mapNotNull(catalog::byId)
+                .firstOrNull { it.isChiSchool && it.id != entry.id && next.character.developmentRank(it.id) > 0 }
+            if (conflicting != null) {
+                next = next.copy(unresolved = next.unresolved + "Только одна школа Ци; уже выбрана: ${conflicting.name}")
+            }
+        }
+
         val raw = entry.requirements.trim(' ', '.', ',', ';')
         if (raw.isNotBlank() && raw != "-" && raw != "—") {
             requirementParts(raw).forEachIndexed { index, atom ->
@@ -419,8 +428,8 @@ class DevelopmentAcquisitionPlanner(
         val skill = matches.maxByOrNull { it.rank } ?: return null
         if (skill.rank >= need) return state
         if (need > 10) return state.copy(unresolved = state.unresolved + "$name $need: максимальный ранг умения 10")
-        val from = state.character.skillXpCostForRank(skill.rank)
-        val to = state.character.skillXpCostForRank(need)
+        val from = state.character.skillXpCostForRank(skill.rank, skill.state.creationRank)
+        val to = state.character.skillXpCostForRank(need, skill.state.creationRank)
         val currentState = state.character.skills[skill.id] ?: CharacterSkill(id = skill.id, definitionId = skill.definition?.id ?: skill.id)
         val nextCharacter = state.character.copy(
             skills = state.character.skills + (skill.id to currentState.copy(rank = need)),
