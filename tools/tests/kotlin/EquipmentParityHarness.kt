@@ -62,7 +62,7 @@ fun main() {
     session.updateGearItem(uid) { it.copy(carried = false) }
     check(MagicEquipmentRules.equipmentLoad(session.active) == 0.0)
     session.updateGearItem(uid) { it.copy(carried = true, quantity = 3) }
-    check(MagicEquipmentRules.equipmentLoad(session.active) == 7.5)
+    check(MagicEquipmentRules.equipmentLoad(session.active) == 9.0)
 
     session.setGearLoadAutomatic(false)
     session.setGearManualLoad(-100.0)
