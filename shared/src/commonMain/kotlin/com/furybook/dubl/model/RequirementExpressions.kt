@@ -8,6 +8,14 @@ internal enum class RequirementSkillFamily(val title: String, val templateId: St
     PROFESSION("Профессия", "profession_template", "професси[яий]"),
 }
 
+/** Explicit book/catalog spelling variants; never fuzzy-match unrelated techniques. */
+internal fun developmentCatalogAlias(normalizedName: String): String? = when (normalizedName) {
+    "джит кун до" -> "Джит Кун-До"
+    "дэрвиш" -> "Танец ветра (Дэрвиш)"
+    "открытая ладонь" -> "Школа Открытой Ладони"
+    else -> null
+}
+
 private val requirementRank = Regex("^(.+?)\\s*:?\\s*(\\d+)(?:\\s*ранг(?:а|ов)?)?$", RegexOption.IGNORE_CASE)
 private val anySpecialization = setOf("любое", "любая", "любой", "любые", "любых")
 
@@ -74,8 +82,12 @@ private fun skillFamily(skill: ResolvedSkill): RequirementSkillFamily? {
     return familyName(skill.name)?.first
 }
 
-private fun specializationName(skill: ResolvedSkill): String =
-    familyName(skill.name)?.second ?: developmentNormalize(skill.name)
+private fun specializationName(skill: ResolvedSkill): String {
+    // A built-in specialization retains its canonical identity after a display-name edit.
+    // Template instances, in contrast, define their own specialization through their name.
+    val name = skill.definition?.takeUnless { it.template }?.name ?: skill.name
+    return familyName(name)?.second ?: developmentNormalize(name)
+}
 
 private fun skillRequirementIdentity(skill: ResolvedSkill): String {
     val family = skillFamily(skill)

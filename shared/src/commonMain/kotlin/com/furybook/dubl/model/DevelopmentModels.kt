@@ -210,6 +210,11 @@ class DevelopmentCatalog(
         val normalized = developmentAlias(name)
         val exact = byNameMap[normalized].orEmpty()
         if (exact.isNotEmpty()) return exact
+        // Preserve exact local names before applying explicit rulebook spelling aliases.
+        developmentCatalogAlias(normalized)?.let { canonical ->
+            val aliased = byNameMap[developmentAlias(canonical)].orEmpty()
+            if (aliased.isNotEmpty()) return aliased
+        }
         return entries.filter { entry ->
             entry.name.split(" / ").any { developmentAlias(it) == normalized }
         }
