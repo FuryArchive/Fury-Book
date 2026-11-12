@@ -191,7 +191,14 @@ class DevelopmentAcquisitionPlanner(
         val xpRemainingAfter = economy.remainingXp - xpCost
         val abilityRemainingAfter = economy.abilityPointsRemaining - abilityCost
         val canAfford = xpRemainingAfter >= 0 && abilityRemainingAfter >= 0
-        val unresolved = state.unresolved.distinct()
+        // A plan is not executable unless the same rules used by the detail card accept it.
+        // This also catches a later batch target invalidating an earlier exclusive branch.
+        val finalRules = DevelopmentRules(state.character, catalog, DevelopmentProgress(state.character.development))
+        val finalFailures = request.targets.mapNotNull { catalog.byId(it.entryId) }
+            .flatMap { finalRules.requirements(it) }
+            .filter { it.status != RequirementStatus.OK }
+            .map { it.text }
+        val unresolved = (state.unresolved + finalFailures).distinct()
         val canApply = compact.isNotEmpty() && unresolved.isEmpty() && (!request.enforceBudget || canAfford)
         return DevelopmentAcquisitionPlan(
             request = request,
@@ -273,13 +280,15 @@ class DevelopmentAcquisitionPlanner(
         request: DevelopmentAcquisitionRequest,
         path: String,
     ): State {
-        val text = source.trim(' ', '.', ';')
+        val text = developmentRequirementText(source)
         if (text.isBlank() || text == "-" || text == "—") return state
 
+        val check = DevelopmentRules(state.character, catalog, DevelopmentProgress(state.character.development))
+            .checkRequirement(text, owner)
+        if (check.status == RequirementStatus.OK) return state
+
         if (Regex("только\\s+при\\s+создании|при\\s+создании\\s+персонажа", RegexOption.IGNORE_CASE).containsMatchIn(text)) {
-            return if (!state.character.creationComplete || state.character.developmentRank(owner.id) > 0) state else {
-                state.copy(unresolved = state.unresolved + "$text — создание уже завершено")
-            }
+            return state.copy(unresolved = state.unresolved + check.text)
         }
         if (Regex("на усмотрение|согласован", RegexOption.IGNORE_CASE).containsMatchIn(text)) {
             return state.copy(unresolved = state.unresolved + text)
@@ -290,13 +299,12 @@ class DevelopmentAcquisitionPlanner(
             return chooseAlternative(state, text, alternatives, owner, request, path)
         }
 
-        if (Regex("\\sили\\s", RegexOption.IGNORE_CASE).containsMatchIn(text)) {
-            val parts = text.split(Regex("\\s+или\\s+", RegexOption.IGNORE_CASE))
-            val trailingRank = Regex("\\s(\\d+)$").find(parts.last())?.groupValues?.getOrNull(1)
-            val expanded = if (trailingRank != null) {
-                parts.map { part -> if (Regex("\\d+$").containsMatchIn(part.trim())) part else "$part $trailingRank" }
-            } else parts
-            return chooseAlternative(state, text, expanded, owner, request, path)
+        developmentRequirementAlternatives(text)?.let { alternatives ->
+            return chooseAlternative(state, text, alternatives, owner, request, path)
+        }
+
+        parseDevelopmentSkillRequirement(text)?.let { selector ->
+            return satisfySkillRequirement(state, selector, request, path)
         }
 
         developmentManaRequirementRank(text)?.let { needMana ->
@@ -317,10 +325,7 @@ class DevelopmentAcquisitionPlanner(
             Regex("^Знать\\s*\\d+\\s*заклинани", RegexOption.IGNORE_CASE).containsMatchIn(text) ||
             Regex("^Любые (два|три) боевых крика", RegexOption.IGNORE_CASE).containsMatchIn(text)
         ) {
-            val check = DevelopmentRules(state.character, catalog, DevelopmentProgress(state.character.development))
-                .requirements(owner)
-                .firstOrNull { developmentNormalize(it.text).contains(developmentNormalize(text.substringBefore(':'))) }
-            return if (check?.status == RequirementStatus.OK) state else state.copy(unresolved = state.unresolved + text)
+            return state.copy(unresolved = state.unresolved + check.text)
         }
 
         val numeric = Regex("^(.+?)\\s*:?\\s*(\\d+)(?:\\s*ранг(?:а|ов)?)?$", RegexOption.IGNORE_CASE).matchEntire(text)
@@ -330,21 +335,56 @@ class DevelopmentAcquisitionPlanner(
             satisfyAttribute(state, name, need)?.let { return it }
             satisfySkill(state, name, need)?.let { return it }
             satisfyDevelopmentByName(state, name, need, request, path)?.let { return it }
-
-            val status = DevelopmentRules(state.character, catalog, DevelopmentProgress(state.character.development))
-                .requirements(owner)
-                .firstOrNull { developmentNormalize(it.text).startsWith(developmentNormalize(name)) }
-            if (status?.status == RequirementStatus.OK) return state
-            return state.copy(unresolved = state.unresolved + text)
+            return state.copy(unresolved = state.unresolved + check.text)
         }
 
         satisfySkill(state, text, 1)?.let { return it }
         satisfyDevelopmentByName(state, text, 1, request, path)?.let { return it }
+        return state.copy(unresolved = state.unresolved + check.text)
+    }
 
-        val status = DevelopmentRules(state.character, catalog, DevelopmentProgress(state.character.development))
-            .requirements(owner)
-            .firstOrNull { developmentNormalize(it.text).contains(developmentNormalize(text)) }
-        return if (status?.status == RequirementStatus.OK) state else state.copy(unresolved = state.unresolved + text)
+    private fun satisfySkillRequirement(
+        state: State,
+        selector: DevelopmentSkillRequirement,
+        request: DevelopmentAcquisitionRequest,
+        path: String,
+    ): State {
+        if (selector.minimumRank > 10) {
+            return state.copy(unresolved = state.unresolved + "${selector.source}: максимальный ранг умения 10")
+        }
+        var next = state
+        val qualified = selector.candidates(next.character).count { it.rank >= selector.minimumRank }
+        val missing = (selector.minimumCount - qualified).coerceAtLeast(0)
+        repeat(missing) { index ->
+            val available = selector.candidates(next.character, includeMissingNamed = true)
+                .filter { it.rank < selector.minimumRank }
+            if (available.isEmpty()) {
+                return next.copy(unresolved = next.unresolved + "${selector.source}: добавьте недостающую специализацию умения")
+            }
+            val candidates = available.map { increaseSkill(next, it, selector.minimumRank) }
+            val options = candidates.mapIndexed { candidateIndex, candidate ->
+                DevelopmentAcquisitionChoiceOption(
+                    label = "${available[candidateIndex].name} ${selector.minimumRank}",
+                    xpCost = candidate.steps.drop(next.steps.size).sumOf { it.xpCost },
+                    abilityCost = 0,
+                    unresolvedCount = (candidate.unresolved.size - next.unresolved.size).coerceAtLeast(0),
+                )
+            }
+            val choiceId = "$path:skill-$index"
+            val selectedIndex = request.choiceSelections[choiceId]?.coerceIn(0, candidates.lastIndex)
+                ?: options.indices.minWithOrNull(compareBy<Int>({ options[it].unresolvedCount }, { options[it].xpCost }))
+                ?: 0
+            val selected = candidates[selectedIndex]
+            next = if (options.size > 1) {
+                selected.copy(choices = selected.choices + DevelopmentAcquisitionChoice(
+                    id = choiceId,
+                    label = selector.source,
+                    options = options,
+                    selectedIndex = selectedIndex,
+                ))
+            } else selected
+        }
+        return next
     }
 
     private fun chooseAlternative(
@@ -426,11 +466,16 @@ class DevelopmentAcquisitionPlanner(
             normalized.length >= 4 && (skillName.startsWith(normalized) || normalized.startsWith(skillName))
         }.takeIf { candidates -> candidates.map { developmentAlias(it.name) }.distinct().size == 1 }.orEmpty()
         val skill = matches.maxByOrNull { it.rank } ?: return null
+        return increaseSkill(state, skill, need)
+    }
+
+    private fun increaseSkill(state: State, skill: ResolvedSkill, need: Int): State {
         if (skill.rank >= need) return state
-        if (need > 10) return state.copy(unresolved = state.unresolved + "$name $need: максимальный ранг умения 10")
+        if (need > 10) return state.copy(unresolved = state.unresolved + "${skill.name} $need: максимальный ранг умения 10")
         val from = state.character.skillXpCostForRank(skill.rank, skill.state.creationRank)
         val to = state.character.skillXpCostForRank(need, skill.state.creationRank)
-        val currentState = state.character.skills[skill.id] ?: CharacterSkill(id = skill.id, definitionId = skill.definition?.id ?: skill.id)
+        // Proposed named specializations already carry their name and canonical template.
+        val currentState = state.character.skills[skill.id] ?: skill.state
         val nextCharacter = state.character.copy(
             skills = state.character.skills + (skill.id to currentState.copy(rank = need)),
         )
@@ -510,18 +555,7 @@ class DevelopmentAcquisitionPlanner(
         return entry.abilityOptions.indices.minByOrNull { entry.abilityOptions[it].value } ?: 0
     }
 
-    private fun requirementParts(raw: String): List<String> = raw
-        .split(Regex("[;\\n]+"))
-        .flatMap { segment ->
-            val clean = segment.trim()
-            if (Regex("^Боевые\\s+искусства\\s*:", RegexOption.IGNORE_CASE).containsMatchIn(clean)) {
-                listOf(clean)
-            } else {
-                clean.split(Regex(",+(?![^()]*\\))"))
-            }
-        }
-        .map { it.trim() }
-        .filter { it.isNotBlank() }
+    private fun requirementParts(raw: String): List<String> = unlockRules.requirementParts(raw)
 
     private fun martialArtsAlternatives(text: String): List<String>? {
         val match = Regex(

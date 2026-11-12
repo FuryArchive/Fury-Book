@@ -210,6 +210,11 @@ class DevelopmentCatalog(
         val normalized = developmentAlias(name)
         val exact = byNameMap[normalized].orEmpty()
         if (exact.isNotEmpty()) return exact
+        // Preserve exact local names before applying explicit rulebook spelling aliases.
+        developmentCatalogAlias(normalized)?.let { canonical ->
+            val aliased = byNameMap[developmentAlias(canonical)].orEmpty()
+            if (aliased.isNotEmpty()) return aliased
+        }
         return entries.filter { entry ->
             entry.name.split(" / ").any { developmentAlias(it) == normalized }
         }
@@ -267,6 +272,9 @@ class DevelopmentRules(
 
     fun requirements(entry: DevelopmentEntry): List<RequirementCheck> =
         requirementsInternal(entry, emptySet())
+
+    internal fun checkRequirement(source: String, owner: DevelopmentEntry): RequirementCheck =
+        checkAtom(source, owner, setOf(owner.id))
 
     fun ownedSheetSections(): List<DevelopmentSheetSection> {
         val ownedEntries = progress.owned.entries.mapNotNull { (id, owned) ->
@@ -529,7 +537,7 @@ class DevelopmentRules(
         entry: DevelopmentEntry,
         seen: Set<String>,
     ): RequirementCheck {
-        val text = source.trim(' ', '.', ';')
+        val text = developmentRequirementText(source)
         if (text.isBlank() || text == "-" || text == "—") {
             return RequirementCheck(RequirementStatus.OK, "Без требований")
         }
@@ -547,17 +555,8 @@ class DevelopmentRules(
 
         martialArtsRequirement(text, seen)?.let { return it }
 
-        if (Regex("\\sили\\s", RegexOption.IGNORE_CASE).containsMatchIn(text)) {
-            val parts = text.split(Regex("\\s+или\\s+", RegexOption.IGNORE_CASE))
-            val trailingRank = Regex("\\s(\\d+)$").find(parts.last())?.groupValues?.getOrNull(1)
-            val expanded = if (trailingRank != null) {
-                parts.map { part ->
-                    if (Regex("\\d+$").containsMatchIn(part.trim())) part else "$part $trailingRank"
-                }
-            } else {
-                parts
-            }
-            val alternatives = expanded.map { checkAtom(it, entry, seen) }
+        developmentRequirementAlternatives(text)?.let { parts ->
+            val alternatives = parts.map { checkAtom(it, entry, seen) }
             val status = when {
                 alternatives.any { it.status == RequirementStatus.OK } -> RequirementStatus.OK
                 alternatives.any { it.status == RequirementStatus.MANUAL } -> RequirementStatus.MANUAL
@@ -570,6 +569,8 @@ class DevelopmentRules(
                     ?: alternatives.firstOrNull()?.targetEntryId,
             )
         }
+
+        parseDevelopmentSkillRequirement(text)?.let { return it.check(character) }
 
         developmentManaRequirementRank(text)?.let { needMana ->
             return valueCheck(
@@ -687,7 +688,7 @@ class DevelopmentRules(
         }
     }
 
-    private fun requirementParts(raw: String): List<String> = raw
+    internal fun requirementParts(raw: String): List<String> = raw
         .split(Regex("[;\\n]+"))
         .flatMap { segment ->
             val clean = segment.trim()
