@@ -81,7 +81,7 @@ fun main() {
             .plan(DevelopmentAcquisitionRequest.single(feat.id))
         check(!plan.canApply && !plan.canAfford)
     }
-    scenario("unknown spell descriptor is never accepted just to remove manual checks") {
+    scenario("explicit GM agreement is not silently accepted") {
         val feat = edgeEntry("unknown", "Unknown", "Требуется согласование с мастером")
         check(DevelopmentRules(empty, catalog, DevelopmentProgress()).requirements(feat).single().status == RequirementStatus.MANUAL)
     }
