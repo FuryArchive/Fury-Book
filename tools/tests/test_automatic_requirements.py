@@ -3,8 +3,23 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import json
+import difflib
 
 ROOT = Path(__file__).resolve().parents[2]
+
+
+def catalog_diagnostics():
+    entries = []
+    for path in (ROOT / "shared/src/commonMain/resources/fcp").rglob("development_*.json"):
+        entries.extend(json.loads(path.read_text(encoding="utf-8")).get("entries", []))
+    names = {entry["name"]: entry for entry in entries}
+    for missing in ["Открытая Ладонь", "Медитация", "Ярость", "Тайное знание", "Джеб", "Сико-дати", "Джит Кун До", "Иайдзюцу", "Дэрвиш", "Пляшущий ветер", "Мастерство обороны", "Владыка маны", "Нюх", "Изощрённая подлость", "Вместилище мистического пламени", "Магический взрыв", "Разложение заклинаний", "Призыв оружия", "Пламя ярости", "Невидимая работа", "Подстава", "Ледяная хватка", "Смежный специалист", "Специализация в оружии", "Владение оружием"]:
+        candidates = difflib.get_close_matches(missing, names, n=3, cutoff=0.45)
+        print("CATALOG_LOOKUP", missing)
+        for name in candidates:
+            e = names[name]
+            print(json.dumps({k: e.get(k) for k in ["id", "name", "ranks", "requirements", "benefit", "notes", "incomplete", "mechanicsConflict"]}, ensure_ascii=False))
 
 
 def run_harness(*args):
@@ -33,4 +48,6 @@ def test_automatic_requirements():
 
 if __name__ == "__main__":
     import sys
+    if "--audit" in sys.argv:
+        catalog_diagnostics()
     run_harness(*sys.argv[1:])
