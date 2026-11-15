@@ -98,6 +98,8 @@ android {
         }
     }
 
+    testOptions.unitTests.isIncludeAndroidResources = true
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -123,4 +125,14 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation(composeBom)
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation("org.robolectric:robolectric:4.17")
+    testImplementation("androidx.test:core:1.7.0")
+}
+
+// Host-side Android screen regressions run in CI without a connected device.
+tasks.withType<Test>().configureEach {
+    maxHeapSize = "1g"
+    systemProperty("robolectric.dependency.repo.url", "https://repo.maven.apache.org/maven2")
 }
