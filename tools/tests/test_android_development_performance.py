@@ -9,14 +9,15 @@ PLANNER = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/model/Developm
 
 
 def test_default_android_development_browser_filters_off_main_thread():
-    assert 'produceState<List<DevelopmentEntry>?>' in FEATS
+    assert 'produceState<DevelopmentFilterResult?>' in FEATS
     assert 'withContext(Dispatchers.Default)' in FEATS
-    assert 'val filteredEntries = filteredEntriesAsync.orEmpty()' in FEATS
+    assert 'takeIf { it.key == filterKey }' in FEATS
 
 
-def test_android_development_rows_use_precomputed_requirements_after_loading_gate():
+def test_android_development_rows_use_ui_confined_lazy_availability():
     assert 'availabilityById' in FEATS
-    assert 'associate { entry -> entry.id to preparationRules.availability(entry) }' in FEATS
+    assert 'val availabilityById = remember(character, catalog)' in FEATS
+    assert 'availabilityById.getOrPut(entry.id) { rules.availability(entry) }' in FEATS
     row = FEATS.split('private fun DevelopmentRow(', 1)[1].split('@Composable\nprivate fun DevelopmentStatusPill', 1)[0]
     assert 'availability: DevelopmentAvailability' in row
     assert 'rules: DevelopmentRules' not in row
@@ -26,10 +27,12 @@ def test_android_development_rows_use_precomputed_requirements_after_loading_gat
 def test_android_reverse_unlock_index_is_deferred_until_detail_selection():
     assert 'DevelopmentUnlockUiIndex' not in FEATS
     assert 'developmentUnlockIndex' not in FEATS
-    assert 'val selectedUnlocks by produceState<List<DevelopmentEntry>?>' in FEATS
-    selected = FEATS.split('val selectedUnlocks by produceState', 1)[1].split('val filteredChiTechniques', 1)[0]
-    assert 'selectedEntryId' in selected
-    assert 'withContext(Dispatchers.Default) { planner.unlocks(id) }' in selected
+    assert 'val selectedUnlocksAsync by produceState<DevelopmentUnlockResult?>' in FEATS
+    selected = FEATS.split('val selectedUnlocksAsync by produceState', 1)[1].split('val filteredChiTechniques', 1)[0]
+    assert 'request.entryId == null' in selected
+    assert 'withContext(Dispatchers.Default)' in selected
+    assert 'workerPlanner.unlocks(request.entryId)' in selected
+    assert 'workerContext.ensureActive()' in selected
 
 
 def test_android_app_start_does_not_prewarm_large_development_catalogs():
@@ -39,7 +42,7 @@ def test_android_app_start_does_not_prewarm_large_development_catalogs():
 
 
 def test_android_catalogs_remain_cached_after_first_real_use():
-    assert '@Volatile' in DEV_REPO and 'cached' in DEV_REPO and 'synchronized' in DEV_REPO
+    assert 'cache[cacheKey]' in DEV_REPO and 'synchronized(lock)' in DEV_REPO
     assert '@Volatile' in CHI_REPO and 'cached' in CHI_REPO and 'synchronized' in CHI_REPO
 
 

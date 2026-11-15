@@ -9,17 +9,20 @@ def test_android_development_has_full_loading_gate_before_browser_mounts():
     assert 'private fun DevelopmentLoadingScreen(' in FEATS
     assert 'CircularProgressIndicator(' in FEATS
     assert 'Первое открытие может занять несколько секунд' in FEATS
-    assert 'if (preparation == null)' in FEATS
-    loading_gate = FEATS.split('if (preparation == null)', 1)[1].split('val prepared = preparation!!', 1)[0]
+    assert 'if (prepared == null)' in FEATS
+    loading_gate = FEATS.split('if (prepared == null)', 1)[1].split('val catalog = prepared.catalog', 1)[0]
     assert 'DevelopmentLoadingScreen(' in loading_gate
     assert 'return' in loading_gate
 
 
-def test_android_development_precomputes_row_availability_off_main_thread():
-    preparation = FEATS.split('fun FeatsScreen(controller: CharacterController)', 1)[1].split('val prepared = preparation!!', 1)[0]
+def test_android_prepares_only_static_catalog_off_main_thread():
+    preparation = FEATS.split('val preparation by produceState', 1)[1].split('val catalog = prepared.catalog', 1)[0]
     assert 'withContext(Dispatchers.Default)' in preparation
-    assert 'availabilityById' in preparation
-    assert 'associate { entry -> entry.id to preparationRules.availability(entry) }' in preparation
+    assert 'DevelopmentScreenIndex(effectiveCatalog)' in preparation
+    assert 'DevelopmentRules(' not in preparation
+    assert 'key2 = catalogInput' in preparation
+    assert 'key2 = character' not in preparation
+    assert 'takeIf { it.input == catalogInput }' in preparation
 
 
 def test_android_development_rows_do_not_run_requirement_engine_during_composition():

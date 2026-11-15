@@ -25,3 +25,7 @@ Next evidence needed for the crash: affected `.dubl` character immediately befor
 - Gradle: `:shared:desktopTest :app:compileDebugKotlin :desktopApp:compileKotlin :webApp:compileKotlinJs` succeeded. Shared test XML reports 177 tests, zero failures/errors/skips.
 - Reviewed all changed callbacks, both Desktop/Web layouts, ordinary single-rank path, default budget enforcement and one-save/one-undo semantics. No separate reviewer agent or Android device UI test is claimed.
 - Original reported crash remains open; no changes were made to health formulas, save formats or prices.
+
+
+## Follow-up Android stability work
+The user confirmed the current release and approved fixing the concrete lifecycle/concurrency risks found during Android investigation. See `2026-11-15-android-development-stability.md` for the implemented patch and test evidence. The original report remains open for physical-device confirmation; the PR now includes tested stability fixes as well as the bulk-rank action.

@@ -266,7 +266,9 @@ class DevelopmentRules(
     private val character: DublCharacter,
     private val catalog: DevelopmentCatalog,
     private val progress: DevelopmentProgress,
+    private val cancellationCheckpoint: () -> Unit = {},
 ) {
+    // Confined to one caller/task. Do not share this mutable evaluator across threads.
     private val requirementsMemo = mutableMapOf<String, List<RequirementCheck>>()
     private val allSkills by lazy { character.resolvedSkills(includeHidden = true) }
 
@@ -449,6 +451,7 @@ class DevelopmentRules(
     }
 
     private fun requirementsInternal(entry: DevelopmentEntry, seen: Set<String>): List<RequirementCheck> {
+        cancellationCheckpoint()
         if (entry.id !in seen) {
             requirementsMemo[entry.id]?.let { return it }
         }
@@ -537,6 +540,7 @@ class DevelopmentRules(
         entry: DevelopmentEntry,
         seen: Set<String>,
     ): RequirementCheck {
+        cancellationCheckpoint()
         val text = developmentRequirementText(source)
         if (text.isBlank() || text == "-" || text == "—") {
             return RequirementCheck(RequirementStatus.OK, "Без требований")

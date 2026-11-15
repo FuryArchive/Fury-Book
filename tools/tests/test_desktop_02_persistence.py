@@ -15,8 +15,9 @@ class Desktop02PersistenceTest(unittest.TestCase):
 
     def test_android_repository_delegates_to_shared_codec(self):
         text = (ROOT / 'app/src/main/java/com/furybook/android/data/CharacterRepository.kt').read_text()
-        self.assertIn('SnapshotCodec.decode', text)
-        self.assertIn('SnapshotCodec.encode', text)
+        self.assertIn('CachedSnapshotCodec', text)
+        self.assertIn('codec.decode(raw)', text)
+        self.assertIn('codec.encode(snapshot)', text)
         self.assertNotIn('org.json', text)
 
     def test_desktop_file_store_exists_and_uses_atomic_replace(self):

@@ -32,6 +32,48 @@ class DevelopmentScreenStabilityTest {
 
     @Test fun slowPreparationWhilePurchasingHealth() = scenario(false, false, true)
 
+    @Test fun bulkPurchaseAndUndoKeepSheetMounted() {
+        val (controller, store) = openHealth()
+        val before = compose.onNodeWithText("Что даёт").fetchSemanticsNode().id
+        compose.onNode(hasText("Взять все оставшиеся ранги", substring = true)).performScrollTo().performClick()
+        compose.onNode(hasText("Применить · 100 XP", substring = true)).performClick()
+        compose.waitUntil(30000) { controller.active.developmentRank(DevelopmentEffectIds.INCREDIBLE_HEALTH) == 20 }
+        assertEquals(before, compose.onNodeWithText("Что даёт").fetchSemanticsNode().id)
+        compose.runOnIdle { check(controller.undoLast()) }
+        compose.waitUntil(30000) { controller.active.developmentRank(DevelopmentEffectIds.INCREDIBLE_HEALTH) == 0 }
+        assertEquals(before, compose.onNodeWithText("Что даёт").fetchSemanticsNode().id)
+        assertEquals(0, store.load().activeCharacter.developmentRank(DevelopmentEffectIds.INCREDIBLE_HEALTH))
+    }
+
+    @Test fun currentRequirementsUpdateWithoutReplacingSheet() {
+        val (controller, _) = openHealth()
+        val before = compose.onNodeWithText("Что даёт").fetchSemanticsNode().id
+        compose.runOnIdle { controller.changeAttribute(AttributeId.CONSTITUTION, -1) }
+        compose.onNode(hasText("сейчас: 1")).assertExists()
+        compose.onNode(hasText("Добрать и взять", substring = true)).assertExists()
+        assertEquals(before, compose.onNodeWithText("Что даёт").fetchSemanticsNode().id)
+        compose.runOnIdle { controller.changeAttribute(AttributeId.CONSTITUTION, 1) }
+        compose.onNode(hasText("сейчас: 2")).assertExists()
+        compose.onNode(hasText("Взять ранг", substring = true)).assertExists()
+    }
+
+    private fun openHealth(): Pair<CharacterController, CharacterRepository> {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val character = DublCharacter("android-bulk", experience = 10000,
+            attributes = defaultAttributes().mapValues { AttributeValue(base = 2) })
+        val store = CharacterRepository(context)
+        store.save(AppSnapshot(listOf(character), character.id))
+        val controller = CharacterController(ObservingCharacterStore(store), CharacterSheetExtrasRepository(context))
+        compose.setContent { DublTheme { FeatsScreen(controller, chiPackEnabled = false) } }
+        compose.waitUntil(30000) { compose.onAllNodes(hasSetTextAction()).fetchSemanticsNodes().isNotEmpty() }
+        compose.onAllNodes(hasSetTextAction()).onFirst().performTextInput("Невероятное здоровье")
+        val row = hasText("Невероятное здоровье") and hasClickAction() and !hasSetTextAction()
+        compose.waitUntil(30000) { compose.onAllNodes(row).fetchSemanticsNodes().isNotEmpty() }
+        compose.onAllNodes(row).onFirst().performScrollTo().performClick()
+        compose.waitUntil(30000) { compose.onAllNodesWithText("Что даёт").fetchSemanticsNodes().isNotEmpty() }
+        return controller to store
+    }
+
     private fun scenario(available: Boolean, manual: Boolean, slow: Boolean = false) {
         val context = ApplicationProvider.getApplicationContext<android.content.Context>()
         val character = DublCharacter("android-repro", experience = 10000,
@@ -82,6 +124,7 @@ class DevelopmentScreenStabilityTest {
             assertEquals("Purchasing rank $rank must not recreate the detail sheet", sheetNodeBefore, sheetNodeAfter)
             compose.onNode(hasText("ранг $rank/20", substring = true)).assertExists()
             assertEquals(rank, store.load().activeCharacter.developmentRank(DevelopmentEffectIds.INCREDIBLE_HEALTH))
+            if (manual) compose.onNodeWithText("Дополнительно ▲").assertExists()
             println("ANDROID_UI_APPLIED_RANK=$rank sheet=$sheetNodeAfter")
         }
         println("ANDROID_UI_TWENTY_RANKS_OK")

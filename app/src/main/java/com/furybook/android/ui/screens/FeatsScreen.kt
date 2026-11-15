@@ -99,6 +99,8 @@ import com.furybook.ui.theme.DublAccent
 import com.furybook.ui.theme.DublDanger
 import com.furybook.ui.theme.DublGold
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 
 private enum class DevelopmentTab(val title: String) {
@@ -127,20 +129,40 @@ private data class PendingRequirementOverride(
     val failedChecks: List<RequirementCheck>,
 )
 
+// Only local catalog definitions/pack selection affect static preparation. Buying a rank
+// must not invalidate it and remove the open ModalBottomSheet from composition.
+private data class DevelopmentCatalogInput(
+    val overrides: Map<String, DevelopmentEntry>,
+    val customEntries: List<DevelopmentEntry>,
+    val includeChi: Boolean,
+)
+
 private data class DevelopmentScreenPreparation(
+    val input: DevelopmentCatalogInput,
     val catalog: DevelopmentCatalog,
     val chiCatalog: ChiCatalog,
-    val economy: CharacterEconomyBreakdown,
-    val availabilityById: RetainedPreparationCache<String, DevelopmentAvailability>,
-    val rules: DevelopmentRules,
     val index: DevelopmentScreenIndex,
 )
 
 private data class DevelopmentPreparationKey(
-    val character: DublCharacter,
-    val catalogVersion: String,
-    val chiCatalogVersion: String,
+    val catalog: DevelopmentCatalog,
+    val chiCatalog: ChiCatalog,
+    val input: DevelopmentCatalogInput,
 )
+
+private data class DevelopmentFilterKey(
+    val character: DublCharacter,
+    val catalog: DevelopmentCatalog,
+    val query: String,
+    val tab: DevelopmentTab,
+    val availableOnly: Boolean,
+    val browserFilter: DevelopmentBrowserFilter,
+    val plannedIds: Set<String>,
+)
+
+private data class DevelopmentFilterResult(val key: DevelopmentFilterKey, val entries: List<DevelopmentEntry>)
+private data class DevelopmentUnlockKey(val character: DublCharacter, val catalog: DevelopmentCatalog, val entryId: String?)
+private data class DevelopmentUnlockResult(val key: DevelopmentUnlockKey, val entries: List<DevelopmentEntry>)
 
 private val developmentPreparationCache =
     RetainedPreparationCache<DevelopmentPreparationKey, DevelopmentScreenPreparation>(maximumEntries = 2)
@@ -185,60 +207,68 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     var creatingCustomDevelopment by remember(character.id) { mutableStateOf(false) }
     var groupVisibility by remember(character.id) { mutableStateOf(DevelopmentGroupVisibility()) }
 
-    var loadingStage by remember(character.id) { mutableStateOf("Загружаем каталог развития…") }
+    val catalogInput = DevelopmentCatalogInput(
+        overrides = character.developmentOverrides,
+        customEntries = character.customDevelopmentEntries,
+        includeChi = chiTabUi != null,
+    )
+    var loadingStage by remember { mutableStateOf("Загружаем каталог развития…") }
     val preparation by produceState<DevelopmentScreenPreparation?>(
         initialValue = null,
         key1 = context.applicationContext,
-        key2 = character,
-        key3 = chiPackEnabled,
+        key2 = catalogInput,
     ) {
-        value = null
+        // Capture inputs for this effect. No mutable Compose state is read on workers.
+        val input = catalogInput
+        val sourceCharacter = character
         loadingStage = "Загружаем каталог развития…"
         val loadedCatalogs = withContext(Dispatchers.IO) {
-            val development = DevelopmentCatalogRepository(context.applicationContext).load(includeChi = chiTabUi != null)
-            val chi = if (chiTabUi != null) {
-                ChiCatalogRepository(context.applicationContext).load()
-            } else {
-                ChiCatalog("disabled", emptyList(), emptyList())
-            }
+            currentCoroutineContext().ensureActive()
+            val development = DevelopmentCatalogRepository(context.applicationContext).load(includeChi = input.includeChi)
+            val chi = if (input.includeChi) ChiCatalogRepository(context.applicationContext).load()
+                else ChiCatalog("disabled", emptyList(), emptyList())
             development to chi
         }
-
         loadingStage = "Готовим быстрый индекс навыков…"
         value = withContext(Dispatchers.Default) {
-            val key = DevelopmentPreparationKey(character, loadedCatalogs.first.version, loadedCatalogs.second.version)
+            val workerContext = currentCoroutineContext()
+            workerContext.ensureActive()
+            val key = DevelopmentPreparationKey(loadedCatalogs.first, loadedCatalogs.second, input)
             developmentPreparationCache.getOrPut(key) {
-                val effectiveCatalog = character.effectiveDevelopmentCatalog(loadedCatalogs.first)
-                    .let { catalog -> if (chiTabUi != null) catalog else catalog.withoutChiContent() }
-                val preparationProgress = DevelopmentProgress(character.development)
-                val preparationRules = DevelopmentRules(character, effectiveCatalog, preparationProgress)
+                workerContext.ensureActive()
+                val effectiveCatalog = sourceCharacter.effectiveDevelopmentCatalog(loadedCatalogs.first)
+                    .let { catalog -> if (input.includeChi) catalog else catalog.withoutChiContent() }
                 DevelopmentScreenPreparation(
+                    input = input,
                     catalog = effectiveCatalog,
                     chiCatalog = loadedCatalogs.second,
-                    economy = CharacterEconomy.breakdown(character, effectiveCatalog, includeChi = chiEconomyUi != null),
-                    availabilityById = RetainedPreparationCache(maximumEntries = effectiveCatalog.entries.size),
-                    rules = preparationRules,
                     index = DevelopmentScreenIndex(effectiveCatalog),
                 )
-            }
+            }.also { workerContext.ensureActive() }
         }
     }
 
-    if (preparation == null) {
+    // A different pack/local override must not use stale catalog data. Rank changes
+    // leave this key unchanged, so the detail sheet stays mounted throughout purchase.
+    val prepared = preparation?.takeIf { it.input == catalogInput }
+    if (prepared == null) {
         DevelopmentLoadingScreen(stage = loadingStage)
         return
     }
 
-    val prepared = preparation!!
     val catalog = prepared.catalog
     val chiCatalog = prepared.chiCatalog
-    val economy = prepared.economy
-    val availabilityById = prepared.availabilityById
     val developmentIndex = prepared.index
     val progress = DevelopmentProgress(character.development)
-    val rules = prepared.rules
+    // These mutable memoized evaluators are confined to the UI thread and all use
+    // this exact character revision. Workers construct their own evaluators below.
+    val rules = remember(character, catalog) { DevelopmentRules(character, catalog, progress) }
     val planner = remember(character, catalog) { DevelopmentAcquisitionPlanner(character, catalog) }
     val chiRules = remember(character, catalog) { ChiRules(character, catalog) }
+    val economy = remember(character, catalog, chiEconomyUi != null) {
+        CharacterEconomy.breakdown(character, catalog, includeChi = chiEconomyUi != null)
+    }
+    val availabilityById = remember(character, catalog) { mutableMapOf<String, DevelopmentAvailability>() }
 
     fun increase(entry: DevelopmentEntry, optionIndex: Int) {
         val availability = rules.availability(entry, optionIndex)
@@ -275,49 +305,43 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
     fun availabilityFor(entry: DevelopmentEntry): DevelopmentAvailability =
         availabilityById.getOrPut(entry.id) { rules.availability(entry) }
 
-    val filteredEntriesAsync by produceState<List<DevelopmentEntry>?>(
-        null,
-        query,
-        tab,
-        availableOnly,
-        browserFilter,
-        plannedDevelopmentIds,
-        character,
-        catalog,
-        availabilityById,
-    ) {
-        value = null
+    val filterKey = DevelopmentFilterKey(character, catalog, query, tab, availableOnly, browserFilter, plannedDevelopmentIds)
+    val filteredEntriesAsync by produceState<DevelopmentFilterResult?>(null, filterKey, developmentIndex) {
+        val request = filterKey
+        val index = developmentIndex
         value = withContext(Dispatchers.Default) {
-            val needle = developmentNormalize(query)
-            developmentIndex.all
-                .asSequence()
+            val workerContext = currentCoroutineContext()
+            val checkpoint = { workerContext.ensureActive() }
+            val workerRules = DevelopmentRules(
+                request.character, request.catalog, DevelopmentProgress(request.character.development), checkpoint,
+            )
+            val workerPlanner = DevelopmentAcquisitionPlanner(request.character, request.catalog, checkpoint)
+            val needle = developmentNormalize(request.query)
+            val entries = index.all.asSequence()
+                .onEach { checkpoint() }
                 .filterNot { it.entry.id == MagicEquipmentRules.BASE_MANA_ENTRY_ID }
                 .filter { indexed ->
-                    val entry = indexed.entry
-                    when (tab) {
+                    when (request.tab) {
                         DevelopmentTab.REGULAR -> indexed.kind == DevelopmentEntryKind.REGULAR
                         DevelopmentTab.SPECIAL -> indexed.kind == DevelopmentEntryKind.SPECIAL
                         DevelopmentTab.MARTIAL_ARTS -> indexed.kind == DevelopmentEntryKind.MARTIAL
                         DevelopmentTab.CHI -> indexed.kind == DevelopmentEntryKind.CHI
-                        DevelopmentTab.OWNED -> progress.rank(entry.id) > 0
+                        DevelopmentTab.OWNED -> request.character.developmentRank(indexed.entry.id) > 0
                     }
                 }
-                .filter { indexed ->
-                    needle.isBlank() || indexed.searchText.contains(needle)
-                }
+                .filter { needle.isBlank() || it.searchText.contains(needle) }
                 .filter { indexed ->
                     val entry = indexed.entry
-                    if (tab == DevelopmentTab.OWNED || tab == DevelopmentTab.CHI) {
-                        tab == DevelopmentTab.OWNED || !availableOnly || availabilityFor(entry).canIncrease
+                    if (request.tab == DevelopmentTab.OWNED || request.tab == DevelopmentTab.CHI) {
+                        request.tab == DevelopmentTab.OWNED || !request.availableOnly || workerRules.availability(entry).canIncrease
                     } else {
-                        when (browserFilter) {
+                        when (request.browserFilter) {
                             DevelopmentBrowserFilter.ALL -> true
-                            DevelopmentBrowserFilter.PLAN -> entry.id in plannedDevelopmentIds
-                            DevelopmentBrowserFilter.AVAILABLE -> availabilityFor(entry).canIncrease
+                            DevelopmentBrowserFilter.PLAN -> entry.id in request.plannedIds
+                            DevelopmentBrowserFilter.AVAILABLE -> workerRules.availability(entry).canIncrease
                             DevelopmentBrowserFilter.ALMOST -> {
-                                val availability = availabilityFor(entry)
-                                if (availability.canIncrease) false else {
-                                    val missing = planner.plan(
+                                if (workerRules.availability(entry).canIncrease) false else {
+                                    val missing = workerPlanner.plan(
                                         DevelopmentAcquisitionRequest.single(entry.id, includeTarget = false, enforceBudget = false),
                                     )
                                     missing.unresolvedRequirements.isEmpty() && missing.steps.size == 1
@@ -328,17 +352,21 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                 }
                 .sortedWith(
                     compareBy<IndexedDevelopmentEntry>(
-                        { indexed -> if (tab == DevelopmentTab.SPECIAL || (tab == DevelopmentTab.OWNED && indexed.entry.isSpecialDevelopment)) developmentNormalize(indexed.groupName) else developmentNormalize(indexed.entry.category) },
+                        { indexed -> if (request.tab == DevelopmentTab.SPECIAL || (request.tab == DevelopmentTab.OWNED && indexed.entry.isSpecialDevelopment)) developmentNormalize(indexed.groupName) else developmentNormalize(indexed.entry.category) },
                         { indexed -> if (indexed.entry.isAbility) 0 else 1 },
                         { indexed -> developmentNormalize(indexed.entry.name) },
                     )
                 )
                 .map { it.entry }
                 .toList()
+            checkpoint()
+            DevelopmentFilterResult(request, entries)
         }
     }
-    val filteredEntries = filteredEntriesAsync.orEmpty()
-    val filteredEntriesPreparing = filteredEntriesAsync == null
+    // produceState retains its last value until the new producer runs. Reject old
+    // results synchronously rather than showing another revision's availability.
+    val filteredEntries = filteredEntriesAsync?.takeIf { it.key == filterKey }?.entries.orEmpty()
+    val filteredEntriesPreparing = filteredEntriesAsync?.key != filterKey
     val searchActive = query.isNotBlank()
 
     fun groupId(prefix: String, name: String): String = "$prefix:$name"
@@ -346,19 +374,22 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
         groupVisibility = groupVisibility.toggle(id)
     }
 
-    val selectedUnlocks by produceState<List<DevelopmentEntry>?>(
-        initialValue = null,
-        key1 = selectedEntryId,
-        key2 = planner,
-    ) {
-        val id = selectedEntryId
-        if (id == null) {
-            value = emptyList()
-        } else {
-            value = null
-            value = withContext(Dispatchers.Default) { planner.unlocks(id) }
+    val unlockKey = DevelopmentUnlockKey(character, catalog, selectedEntryId)
+    val selectedUnlocksAsync by produceState<DevelopmentUnlockResult?>(null, unlockKey) {
+        val request = unlockKey
+        value = if (request.entryId == null) DevelopmentUnlockResult(request, emptyList()) else {
+            withContext(Dispatchers.Default) {
+                val workerContext = currentCoroutineContext()
+                val workerPlanner = DevelopmentAcquisitionPlanner(
+                    request.character, request.catalog, cancellationCheckpoint = { workerContext.ensureActive() },
+                )
+                val entries = workerPlanner.unlocks(request.entryId)
+                workerContext.ensureActive()
+                DevelopmentUnlockResult(request, entries)
+            }
         }
     }
+    val selectedUnlocks = selectedUnlocksAsync?.takeIf { it.key == unlockKey }?.entries
 
     val filteredChiTechniques = remember(query, availableOnly, character, chiCatalog, catalog, tab) {
         if (tab != DevelopmentTab.CHI || chiTabUi == null) {

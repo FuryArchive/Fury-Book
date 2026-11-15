@@ -7,6 +7,7 @@ PLANNER = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/model/Developm
 
 
 def test_catalog_preparation_does_not_depend_on_owned_ranks():
+    assert "private data class DevelopmentCatalogInput(" in FEATS
     key = FEATS.split("private data class DevelopmentCatalogInput(", 1)[1].split(")", 1)[0]
     assert "DublCharacter" not in key
     for name in ("overrides", "customEntries", "includeChi"):
