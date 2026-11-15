@@ -29,3 +29,13 @@ jobs:
         run: python3 tools/tests/test_automatic_requirements.py --audit
       - name: Run requirement and planner regressions
         run: python3 tools/tests/test_automatic_requirements.py
+      - name: Install rank regression test runner
+        run: sudo apt-get update && sudo apt-get install -y python3-pytest
+      - name: Run high-rank purchase and persistence regressions
+        run: >-
+          python3 -m pytest -q -s
+          tools/tests/test_development_bulk_ranks.py
+          tools/tests/test_android_development_stability.py
+          tools/tests/test_android_development_performance.py
+          tools/tests/test_android_development_loading_gate.py
+          tools/tests/test_android_development_cockpit.py

@@ -113,6 +113,7 @@ data class DevelopmentAcquisitionResult(
 class DevelopmentAcquisitionPlanner(
     private val baseCharacter: DublCharacter,
     private val catalog: DevelopmentCatalog,
+    private val cancellationCheckpoint: () -> Unit = {},
 ) {
     private data class State(
         val character: DublCharacter,
@@ -129,10 +130,11 @@ class DevelopmentAcquisitionPlanner(
             character.developmentRank(entry.id)
         }
 
-    private val unlockRules = DevelopmentRules(baseCharacter, catalog, DevelopmentProgress(baseCharacter.development))
+    private val unlockRules = DevelopmentRules(baseCharacter, catalog, DevelopmentProgress(baseCharacter.development), cancellationCheckpoint)
     private val unlocksIndex: Map<String, List<DevelopmentEntry>> by lazy {
         val reverse = linkedMapOf<String, MutableList<DevelopmentEntry>>()
         catalog.entries.forEach { candidate ->
+            cancellationCheckpoint()
             val dependencies = linkedSetOf<String>()
             candidate.accessId?.let(dependencies::add)
             unlockRules.requirements(candidate).mapNotNullTo(dependencies) { it.targetEntryId }
@@ -154,8 +156,10 @@ class DevelopmentAcquisitionPlanner(
         requested ?: cheapestAbilityOption(entry)
 
     fun plan(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionPlan {
+        cancellationCheckpoint()
         var state = State(baseCharacter)
         request.targets.forEachIndexed { index, target ->
+            cancellationCheckpoint()
             val entry = catalog.byId(target.entryId)
             if (entry == null) {
                 state = state.copy(unresolved = state.unresolved + "Неизвестная запись: ${target.entryId}")
@@ -193,7 +197,7 @@ class DevelopmentAcquisitionPlanner(
         val canAfford = xpRemainingAfter >= 0 && abilityRemainingAfter >= 0
         // A plan is not executable unless the same rules used by the detail card accept it.
         // This also catches a later batch target invalidating an earlier exclusive branch.
-        val finalRules = DevelopmentRules(state.character, catalog, DevelopmentProgress(state.character.development))
+        val finalRules = DevelopmentRules(state.character, catalog, DevelopmentProgress(state.character.development), cancellationCheckpoint)
         val finalFailures = request.targets.mapNotNull { catalog.byId(it.entryId) }
             .flatMap { finalRules.requirements(it) }
             .filter { it.status != RequirementStatus.OK }
@@ -225,6 +229,7 @@ class DevelopmentAcquisitionPlanner(
         request: DevelopmentAcquisitionRequest,
         path: String,
     ): State {
+        cancellationCheckpoint()
         if (entry.id in state.stack) {
             return state.copy(unresolved = state.unresolved + "${entry.name}: цикл требований")
         }
@@ -280,10 +285,11 @@ class DevelopmentAcquisitionPlanner(
         request: DevelopmentAcquisitionRequest,
         path: String,
     ): State {
+        cancellationCheckpoint()
         val text = developmentRequirementText(source)
         if (text.isBlank() || text == "-" || text == "—") return state
 
-        val check = DevelopmentRules(state.character, catalog, DevelopmentProgress(state.character.development))
+        val check = DevelopmentRules(state.character, catalog, DevelopmentProgress(state.character.development), cancellationCheckpoint)
             .checkRequirement(text, owner)
         if (check.status == RequirementStatus.OK) return state
 
@@ -356,6 +362,7 @@ class DevelopmentAcquisitionPlanner(
         val qualified = selector.candidates(next.character).count { it.rank >= selector.minimumRank }
         val missing = (selector.minimumCount - qualified).coerceAtLeast(0)
         repeat(missing) { index ->
+            cancellationCheckpoint()
             val available = selector.candidates(next.character, includeMissingNamed = true)
                 .filter { it.rank < selector.minimumRank }
             if (available.isEmpty()) {

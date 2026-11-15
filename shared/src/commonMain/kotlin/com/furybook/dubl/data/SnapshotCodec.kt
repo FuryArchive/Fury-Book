@@ -49,7 +49,7 @@ object SnapshotCodec {
         return AppSnapshot(characters, active)
     }
 
-    private fun encodeCharacter(character: DublCharacter): JsonValue.Obj = jsonObject(
+    internal fun encodeCharacter(character: DublCharacter): JsonValue.Obj = jsonObject(
         "id" to jsonString(character.id),
         "ruleset" to jsonObject(
             "id" to jsonString(character.ruleset.id),
@@ -197,7 +197,7 @@ object SnapshotCodec {
         }),
     )
 
-    private fun decodeCharacter(root: JsonValue.Obj, schema: Int, idFactory: () -> String): DublCharacter {
+    internal fun decodeCharacter(root: JsonValue.Obj, schema: Int, idFactory: () -> String): DublCharacter {
         val attributes = defaultAttributes().toMutableMap()
         val jsonAttributes = root.objectValue("attributes")
         AttributeId.entries.forEach { id ->

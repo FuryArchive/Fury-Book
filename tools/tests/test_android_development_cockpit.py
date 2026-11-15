@@ -13,7 +13,7 @@ def test_android_has_same_build_filters_and_plan_workflow():
 
 def test_android_detail_sheet_surfaces_missing_requirements_unlocks_and_auto_acquire():
     assert 'DevelopmentDetailSheet(' in FEATS
-    assert 'val selectedUnlocks by produceState<List<DevelopmentEntry>?>' in FEATS
+    assert 'val selectedUnlocksAsync by produceState<DevelopmentUnlockResult?>' in FEATS
     assert 'unlocks = selectedUnlocks' in FEATS
     assert 'unlocks: List<DevelopmentEntry>?' in FEATS
     assert 'Что нужно сделать' in FEATS
