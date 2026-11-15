@@ -399,6 +399,13 @@ fun DevelopmentScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                             onAcquireAll = { optionIndex ->
                                 acquisitionRequest = DevelopmentAcquisitionRequest.single(entry.id, includeTarget = true, optionIndex = optionIndex)
                             },
+                            onAcquireAllRanks = { optionIndex ->
+                                acquisitionRequest = DevelopmentAcquisitionRequest.single(
+                                    entryId = entry.id,
+                                    targetRank = entry.maxRank,
+                                    optionIndex = optionIndex,
+                                )
+                            },
                             onManual = { legacyDetailsEntry = entry },
                             onEditLocal = { editingDevelopment = entry },
                             onResetLocal = { state.resetDevelopmentOverride(entry.id) },
@@ -473,6 +480,13 @@ fun DevelopmentScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                                 acquisitionRequest = DevelopmentAcquisitionRequest.single(
                                     entryId = entry.id,
                                     includeTarget = true,
+                                    optionIndex = optionIndex,
+                                )
+                            },
+                            onAcquireAllRanks = { optionIndex ->
+                                acquisitionRequest = DevelopmentAcquisitionRequest.single(
+                                    entryId = entry.id,
+                                    targetRank = entry.maxRank,
                                     optionIndex = optionIndex,
                                 )
                             },
@@ -873,6 +887,7 @@ private fun DevelopmentInspector(
     onOpenEntry: (String) -> Unit,
     onAcquireRequirements: () -> Unit,
     onAcquireAll: (Int) -> Unit,
+    onAcquireAllRanks: (Int) -> Unit,
     onManual: () -> Unit,
     onEditLocal: () -> Unit,
     onResetLocal: () -> Unit,
@@ -963,6 +978,13 @@ private fun DevelopmentInspector(
                 onClick = { onAcquireAll(optionIndex) },
                 modifier = Modifier.fillMaxWidth(),
             ) { Text(primaryActionLabel) }
+
+            if (entry.maxRank - rank > 1) {
+                OutlinedButton(
+                    onClick = { onAcquireAllRanks(optionIndex) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Взять все оставшиеся ранги · до ${entry.maxRank}") }
+            }
 
             if (rank > 0) {
                 OutlinedButton(

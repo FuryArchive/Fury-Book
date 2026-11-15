@@ -811,6 +811,13 @@ fun FeatsScreen(controller: CharacterController, chiPackEnabled: Boolean) {
                         optionIndex = optionIndex,
                     )
                 },
+                onAcquireAllRanks = { optionIndex ->
+                    acquisitionRequest = DevelopmentAcquisitionRequest.single(
+                        entryId = entry.id,
+                        targetRank = entry.maxRank,
+                        optionIndex = optionIndex,
+                    )
+                },
                 onOpenEntry = { targetId -> selectedEntryId = targetId },
                 onIncrease = { optionIndex -> increase(entry, optionIndex) },
                 onDecrease = { decrease(entry) },
@@ -1795,6 +1802,7 @@ private fun DevelopmentDetailSheet(
     onTogglePlanned: () -> Unit,
     onAcquireRequirements: () -> Unit,
     onAcquireAll: (Int) -> Unit,
+    onAcquireAllRanks: (Int) -> Unit,
     onOpenEntry: (String) -> Unit,
     onIncrease: (Int) -> Unit,
     onDecrease: () -> Unit,
@@ -1909,6 +1917,13 @@ private fun DevelopmentDetailSheet(
                 enabled = currentRank < entry.maxRank,
                 modifier = Modifier.fillMaxWidth(),
             ) { Text(primaryActionLabel) }
+
+            if (entry.maxRank - currentRank > 1) {
+                OutlinedButton(
+                    onClick = { onAcquireAllRanks(optionIndex) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Взять все оставшиеся ранги · до ${entry.maxRank}") }
+            }
 
             if (currentRank > 0) {
                 OutlinedButton(onClick = onDecrease, modifier = Modifier.fillMaxWidth()) {

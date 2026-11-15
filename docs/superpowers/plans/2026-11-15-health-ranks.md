@@ -16,3 +16,12 @@ Use the existing `targetRank` acquisition request and existing preview/confirmat
 4. Open a draft PR explicitly distinguishing the delivered convenience action from the unresolved crash. Do not merge or release this follow-up without authorization.
 
 Next evidence needed for the crash: affected `.dubl` character immediately before the failing addition, installed application version, ideally Android `FATAL EXCEPTION`/crash trace. A failing fixture must precede a claim of crash resolution.
+
+## Verification record
+
+- Before UI changes: 3 platform-wiring contracts failed because no bulk callback existed; all 14 shared-runtime scenarios passed. Thus these tests do not reproduce the reported Android crash.
+- After UI changes: all 4 new pytest tests passed, including 14 runtime scenarios on the real 796-entry catalog with JSON round-trip persistence.
+- Combined relevant regression run: `test_automatic_requirements.py`, `test_development_bulk_ranks.py`, `test_compose_development_purchase_parity.py`: 9 pytest tests passed. Existing requirement harness: 38 scenarios; audit remains 796 entries / 28 isolated MANUAL entries.
+- Gradle: `:shared:desktopTest :app:compileDebugKotlin :desktopApp:compileKotlin :webApp:compileKotlinJs` succeeded. Shared test XML reports 177 tests, zero failures/errors/skips.
+- Reviewed all changed callbacks, both Desktop/Web layouts, ordinary single-rank path, default budget enforcement and one-save/one-undo semantics. No separate reviewer agent or Android device UI test is claimed.
+- Original reported crash remains open; no changes were made to health formulas, save formats or prices.
