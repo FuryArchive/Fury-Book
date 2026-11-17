@@ -1,0 +1,43 @@
+package com.furybook.dubl.ui.sheet
+
+import com.furybook.dubl.model.AttributeId
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+class SheetEditModeTest {
+    @Test
+    fun editingResetsOnCharacterChange() {
+        val state = SheetScreenState()
+        state.syncCharacter("a")
+        state.updateEditing(true)
+        state.openDialog(SheetDialog.Identity)
+        state.open(SheetRollSubject.Attribute(AttributeId.STRENGTH))
+        state.syncCharacter("a")
+        assertTrue(state.editing)
+        state.syncCharacter("b")
+        assertFalse(state.editing)
+        assertNull(state.dialog)
+        assertNull(state.request)
+    }
+
+    @Test
+    fun leavingEditModeClosesTheOpenDialog() {
+        val state = SheetScreenState()
+        state.updateEditing(true)
+        state.openDialog(SheetDialog.Groups(SheetGroupKind.SKILLS))
+        state.updateEditing(false)
+        assertNull(state.dialog)
+    }
+
+    @Test
+    fun dialogsOpenAndClose() {
+        val state = SheetScreenState()
+        state.openDialog(SheetDialog.Vital("health"))
+        assertEquals(SheetDialog.Vital("health"), state.dialog)
+        state.closeDialog()
+        assertNull(state.dialog)
+    }
+}

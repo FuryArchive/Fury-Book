@@ -54,17 +54,17 @@ def test_every_platform_uses_the_shell_and_the_shared_sheet():
         text = read(path)
         assert 'FuryShell(' in text, path.name
         assert 'SheetScreen(' in text, path.name
-        assert 'onEdit = { editing = true }' in text, path.name
         assert 'title = "FURY BOOK"' in text, path.name
 
 
-def test_old_sheet_is_kept_behind_the_editing_branch_with_a_done_button():
+def test_old_sheet_is_no_longer_called_and_edit_mode_lives_in_the_shared_sheet():
     for path, old_sheet in OLD_SHEETS.items():
-        branch = editing_branch(read(path))
-        assert old_sheet in branch, path.name
-        assert 'FuryButton(' in branch and '"Готово"' in branch, path.name
-        assert 'FuryButtonStyle.Primary' in branch, path.name
-        assert 'editing = false' in branch, path.name
+        text = read(path)
+        assert old_sheet not in text, path.name
+        assert 'if (editing) {' not in text, path.name
+        assert 'developmentDetails =' in text, path.name
+        assert 'portraitLoader =' in text, path.name
+        assert 'onOpenDevelopment =' in text, path.name
 
 
 def test_new_sheet_changes_still_reach_the_platform_undo_toast():

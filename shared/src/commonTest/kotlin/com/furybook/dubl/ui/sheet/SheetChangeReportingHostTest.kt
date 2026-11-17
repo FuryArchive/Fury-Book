@@ -48,3 +48,21 @@ class SheetChangeReportingHostTest {
         assertEquals(listOf("Добавлено состояние: ${condition.title}", "Убрано состояние: ${condition.title}"), changes)
     }
 }
+
+class SheetChangeReportingEditTest {
+    @kotlin.test.Test
+    fun attributeChangeReportsUndoToast() {
+        val changes = mutableListOf<SheetChange>()
+        val host = SheetChangeReportingHost(FakeSheetHost(com.furybook.dubl.model.DublCharacter(id = "c1", name = "Тест"))) { changes += it }
+        host.changeAttribute(com.furybook.dubl.model.AttributeId.STRENGTH, 1)
+        kotlin.test.assertEquals(listOf("Сила +1"), changes.map { it.text })
+    }
+
+    @kotlin.test.Test
+    fun identityChangeReportsUndoToast() {
+        val changes = mutableListOf<SheetChange>()
+        val host = SheetChangeReportingHost(FakeSheetHost(com.furybook.dubl.model.DublCharacter(id = "c1", name = "Тест"))) { changes += it }
+        host.setIdentity("Шершень", "", 5, 2, false)
+        kotlin.test.assertEquals(listOf("Персонаж изменён"), changes.map { it.text })
+    }
+}

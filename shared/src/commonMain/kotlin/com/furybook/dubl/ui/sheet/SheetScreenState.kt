@@ -8,10 +8,22 @@ import com.furybook.ui.components.FuryRollHistoryEntry
 
 private const val SHEET_HISTORY_LIMIT = 5
 
+/** The one popup the sheet shows at a time. */
+sealed interface SheetDialog {
+    data class Vital(val vitalId: String) : SheetDialog
+    data class Stat(val stat: SheetStatId, val roll: SheetRollSubject?) : SheetDialog
+    data object Conditions : SheetDialog
+    data object Identity : SheetDialog
+    data object Economy : SheetDialog
+    data object Resources : SheetDialog
+    data class Groups(val kind: SheetGroupKind) : SheetDialog
+    data class DevelopmentDetails(val entryId: String) : SheetDialog
+}
+
 /**
- * Roll state owned by [SheetScreen]: the current setup, its result, the last few totals and whether
- * the roll dialog is open (phone and wide layouts; the docked tray ignores [rollOpen]).
- * Keep one instance per character: the screen remembers it keyed on the character id.
+ * State owned by [SheetScreen]: play/edit mode, the open popup, the current roll setup, its result,
+ * the last few totals and whether the roll dialog is open (phone and wide layouts; the docked tray
+ * ignores [rollOpen]). [syncCharacter] resets all of it when the active character changes.
  */
 class SheetScreenState {
     var request: SheetRollRequest? by mutableStateOf(null)
@@ -22,6 +34,40 @@ class SheetScreenState {
         private set
     var rollOpen: Boolean by mutableStateOf(false)
         private set
+    var editing: Boolean by mutableStateOf(false)
+        private set
+    var dialog: SheetDialog? by mutableStateOf(null)
+        private set
+    private var characterId: String? = null
+
+    /** Called with the active character on every composition; a different character starts over in play mode. */
+    fun syncCharacter(id: String) {
+        if (characterId == id) return
+        if (characterId != null) {
+            request = null
+            result = null
+            history = emptyList()
+            rollOpen = false
+            editing = false
+            dialog = null
+        }
+        characterId = id
+    }
+
+    /** Switching between play and edit closes any open popup. */
+    fun updateEditing(value: Boolean) {
+        if (value == editing) return
+        editing = value
+        dialog = null
+    }
+
+    fun openDialog(next: SheetDialog) {
+        dialog = next
+    }
+
+    fun closeDialog() {
+        dialog = null
+    }
 
     /**
      * Starts a fresh setup for [subject]. [dialog] is false for a tap in the docked-tray layout, so a

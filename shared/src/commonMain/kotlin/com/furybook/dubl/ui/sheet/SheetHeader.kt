@@ -58,6 +58,8 @@ fun SheetHeader(
     portrait: (@Composable () -> Unit)? = null,
     onOpenIdentity: (() -> Unit)? = null,
     onOpenEconomy: (() -> Unit)? = null,
+    /** In edit mode the button reads «Готово» and is the filled one. */
+    editing: Boolean = false,
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.md), verticalAlignment = Alignment.Top) {
@@ -83,7 +85,7 @@ fun SheetHeader(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            FuryButton("Правка", onEdit, style = FuryButtonStyle.Secondary)
+            FuryButton(if (editing) "Готово" else "Правка", onEdit, style = if (editing) FuryButtonStyle.Primary else FuryButtonStyle.Secondary)
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
             // Gold fill with near-black text: about 11:1.

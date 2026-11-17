@@ -200,7 +200,6 @@ private fun DesktopContent(
                     state = state,
                     onNavigate = onNavigate,
                     playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
-                    editModifier = animatedPageModifier,
                 )
                 DesktopSection.SKILLS -> SkillsScreen(state, animatedPageModifier)
                 DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
@@ -216,31 +215,15 @@ private fun DesktopContent(
 private data class SheetToast(val text: String, val canUndo: Boolean, val token: Int)
 
 /**
- * The play view, or the old sheet behind «Правка». Changes made on the play view raise the same
- * undo toast the old sheet shows, and «Отменить» calls the same one-step [DesktopAppState.undoLast].
+ * The shared sheet (play and edit). Changes made on it raise the same
+ * undo toast the old sheet showed, and «Отменить» calls the same one-step [DesktopAppState.undoLast].
  */
 @Composable
 private fun DesktopSheet(
     state: DesktopAppState,
     onNavigate: (DesktopSection) -> Unit,
     playModifier: Modifier,
-    editModifier: Modifier,
 ) {
-    var editing by remember { mutableStateOf(false) }
-    if (editing) {
-        Column(editModifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            FuryButton("Готово", onClick = { editing = false }, style = FuryButtonStyle.Primary)
-            CharacterSheetScreen(
-                state = state,
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                onNavigateSkills = { onNavigate(DesktopSection.SKILLS) },
-                onNavigateDevelopment = { onNavigate(DesktopSection.DEVELOPMENT) },
-                onNavigateMagic = { onNavigate(DesktopSection.MAGIC) },
-                onNavigateEquipment = { onNavigate(DesktopSection.EQUIPMENT) },
-            )
-        }
-        return
-    }
     val activeId = state.activeCharacter.id
     var toast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
     // Keeps the last toast on screen while it animates out.
@@ -265,8 +248,8 @@ private fun DesktopSheet(
     Box(playModifier) {
         SheetScreen(
             host,
-            onEdit = { editing = true },
             onOpenSkills = { onNavigate(DesktopSection.SKILLS) },
+            onOpenDevelopment = { onNavigate(DesktopSection.DEVELOPMENT) },
             portraitLoader = { path -> rememberDesktopPortrait(path) },
             developmentDetails = { entryId, close -> DesktopSheetDevelopmentDetails(state, entryId, close) },
             onPickPortrait = { chooseDesktopPortraitFile()?.let(state::importPortrait)?.let(state::setPortrait) },

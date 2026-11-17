@@ -171,6 +171,8 @@ fun DublApp() {
                         controller = controller,
                         chiPackEnabled = chiPackEnabled,
                         onOpenSkills = { selected = AppSection.SKILLS },
+                        // Same loading gate as the tab: the development screen is heavy to compose.
+                        onOpenDevelopment = { if (pendingSection == null) pendingSection = AppSection.FEATS },
                     )
                     AppSection.SKILLS -> SkillsScreen(controller)
                     AppSection.FEATS -> FeatsScreen(controller, chiPackEnabled)
@@ -235,25 +237,9 @@ private fun AndroidSheet(
     controller: CharacterController,
     chiPackEnabled: Boolean,
     onOpenSkills: () -> Unit,
+    onOpenDevelopment: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    var editing by remember { mutableStateOf(false) }
-    // Back from «Правка» returns to the play sheet instead of leaving the app.
-    BackHandler(enabled = editing) { editing = false }
-    if (editing) {
-        Column(Modifier.fillMaxSize()) {
-            FuryButton(
-                text = "Готово",
-                onClick = { editing = false },
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
-                style = FuryButtonStyle.Primary,
-            )
-            Box(Modifier.weight(1f).fillMaxWidth()) {
-                OverviewScreen(controller, chiPackEnabled)
-            }
-        }
-        return
-    }
     val activeId = controller.active.id
     // Same picker as the old sheet: keep read access across restarts, then store the URI.
     val portraitPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -272,7 +258,7 @@ private fun AndroidSheet(
             // Same wording and colour as OverviewScreen's own «Последнее: …» bar.
             val (text, accent) = when (change) {
                 is SheetChange.Resource -> recentResourceChange(change.resource, change.applied, baseHost.resourceMeters())
-                is SheetChange.Condition -> change.text to DublAccent
+                is SheetChange.Condition, is SheetChange.Attribute, SheetChange.Identity -> change.text to DublAccent
             }
             toast = SheetToast(text, accent, controller.canUndo, ++toastCount)
         }
@@ -286,8 +272,10 @@ private fun AndroidSheet(
     Box(Modifier.fillMaxSize()) {
         SheetScreen(
             host,
-            onEdit = { editing = true },
             onOpenSkills = onOpenSkills,
+            onOpenDevelopment = onOpenDevelopment,
+            // Back from edit mode returns to the play sheet instead of leaving the app.
+            backHandler = { enabled, onBack -> BackHandler(enabled = enabled, onBack = onBack) },
             portraitLoader = { uri -> rememberAndroidPortrait(uri) },
             onPickPortrait = { portraitPicker.launch(arrayOf("image/*")) },
             developmentDetails = { entryId, close -> SheetDevelopmentDetailsDialog(host, entryId, close) },

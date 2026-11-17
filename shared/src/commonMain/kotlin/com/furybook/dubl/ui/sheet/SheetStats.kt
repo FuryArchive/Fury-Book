@@ -1,5 +1,9 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.ui.theme.DublText
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import com.furybook.ui.components.FuryIconButton
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,6 +26,8 @@ fun SheetStatGrid(
     onRoll: (SheetRollSubject) -> Unit,
     modifier: Modifier = Modifier,
     onOpenInfo: ((SheetStat) -> Unit)? = null,
+    /** Edit mode: −/+ under each tile (attributes). */
+    onAdjust: ((SheetStat, Int) -> Unit)? = null,
 ) {
     val perRow = columns.coerceAtLeast(1)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
@@ -34,13 +40,27 @@ fun SheetStatGrid(
                         roll != null -> { { onRoll(roll) } }
                         else -> null
                     }
-                    FuryTile(
-                        label = stat.label,
-                        value = stat.valueText,
-                        modifier = Modifier.weight(1f),
-                        onClick = open,
-                        compact = compact,
-                    )
+                    if (onAdjust == null) {
+                        FuryTile(
+                            label = stat.label,
+                            value = stat.valueText,
+                            modifier = Modifier.weight(1f),
+                            onClick = open,
+                            compact = compact,
+                        )
+                    } else {
+                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FurySpacing.xs)) {
+                            FuryTile(label = stat.label, value = stat.valueText, modifier = Modifier.fillMaxWidth(), onClick = open, compact = compact)
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                                FuryIconButton("Уменьшить ${stat.label}", { onAdjust(stat, -1) }) {
+                                    Text("−", color = DublText, style = MaterialTheme.typography.titleLarge)
+                                }
+                                FuryIconButton("Увеличить ${stat.label}", { onAdjust(stat, 1) }) {
+                                    Text("+", color = DublText, style = MaterialTheme.typography.titleLarge)
+                                }
+                            }
+                        }
+                    }
                 }
                 repeat(perRow - row.size) { Spacer(Modifier.weight(1f)) }
             }

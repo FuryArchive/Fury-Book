@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterEconomy
+import com.furybook.dubl.model.displayNotes
+import com.furybook.dubl.model.SheetGroupingRules
 import com.furybook.ui.components.FuryDialogAction
 import com.furybook.ui.components.FuryDialogScaffold
 import com.furybook.ui.components.FuryRollTray
@@ -54,25 +56,32 @@ internal fun sheetMetricColumns(layout: SheetLayout): Int = 3
 internal fun sheetPhoneAttributeLabel(id: AttributeId): String = PHONE_ATTRIBUTE_LABELS[id] ?: id.title
 
 /**
- * The play view of the character sheet: header, vitals, metrics, attributes, skills, combat.
- * Owns roll state; rolls open in a bottom sheet (phone), a centred dialog (wide) or the docked tray.
+ * The character sheet: play view, and the same screen in edit mode behind «Правка». Owns roll state,
+ * the open popup and the mode; rolls open in a bottom sheet (phone), a centred dialog (wide) or the
+ * docked tray. Platform pieces come in as callbacks: portrait loading/picking and development details.
  */
 @Composable
 fun SheetScreen(
-    host: DublSheetHost,
-    onEdit: () -> Unit,
+    host: DublSheetEditHost,
     onOpenSkills: () -> Unit,
+    onOpenDevelopment: () -> Unit,
     modifier: Modifier = Modifier,
     portraitLoader: SheetPortraitLoader? = null,
     onPickPortrait: (() -> Unit)? = null,
     /** Details of an owned development entry; platform-owned until stage 4 rebuilds Навыки. */
     developmentDetails: (@Composable (entryId: String, onDismiss: () -> Unit) -> Unit)? = null,
+    /** Android passes its BackHandler so system Back leaves edit mode instead of the app. */
+    backHandler: @Composable (enabled: Boolean, onBack: () -> Unit) -> Unit = { _, _ -> },
 ) {
-    val state = remember(host.active.id) { SheetScreenState() }
+    val state = remember { SheetScreenState() }
+    state.syncCharacter(host.active.id)
+    backHandler(state.editing) { state.updateEditing(false) }
     BoxWithConstraints(modifier.fillMaxSize()) {
         val layout = sheetLayoutFor(maxWidth.value.toInt())
-        val header: @Composable (Modifier) -> Unit = { headerModifier -> SheetScreenHeader(host, layout, onEdit, headerModifier, portraitLoader, onPickPortrait) }
-        val body: @Composable () -> Unit = { SheetScreenBody(host, layout, state, onOpenSkills) }
+        val header: @Composable (Modifier) -> Unit = { headerModifier ->
+            SheetScreenHeader(host, layout, state, headerModifier, portraitLoader, onPickPortrait)
+        }
+        val body: @Composable () -> Unit = { SheetScreenBody(host, layout, state, onOpenSkills, onOpenDevelopment) }
         when (layout) {
             SheetLayout.PHONE -> Column(Modifier.fillMaxSize()) {
                 // The name stays in view while the rest of the sheet scrolls under it.
@@ -109,6 +118,37 @@ fun SheetScreen(
                 SheetScreenRoll(host, state, Modifier.fillMaxWidth(), inlineRollButton = false)
             }
         }
+        SheetScreenDialog(host, layout, state, developmentDetails)
+    }
+}
+
+/** The popup [SheetScreenState.dialog] names, if any. */
+@Composable
+private fun SheetScreenDialog(
+    host: DublSheetEditHost,
+    layout: SheetLayout,
+    state: SheetScreenState,
+    developmentDetails: (@Composable (String, () -> Unit) -> Unit)?,
+) {
+    val close = state::closeDialog
+    when (val dialog = state.dialog) {
+        null -> Unit
+        is SheetDialog.Vital -> sheetVitals(host).firstOrNull { it.id == dialog.vitalId }
+            ?.let { vital -> SheetVitalDialog(vital, host, close) } ?: close()
+        is SheetDialog.Stat -> SheetStatDialog(
+            breakdown = sheetStatBreakdown(host.active, dialog.stat),
+            onRoll = dialog.roll?.let { subject -> { state.open(subject, dialog = layout != SheetLayout.WIDE_WITH_TRAY) } },
+            sizeLegsEditor = dialog.stat == SheetStatId.SIZE,
+            host = host,
+            onDismiss = close,
+        )
+        SheetDialog.Conditions -> SheetConditionsDialog(host, close)
+        SheetDialog.Identity -> SheetIdentityDialog(host, close)
+        SheetDialog.Economy -> SheetEconomyDialog(sheetEconomyView(host), host, close)
+        SheetDialog.Resources -> SheetResourcesDialog(host, close)
+        is SheetDialog.Groups -> SheetGroupManager(dialog.kind, host, close)
+        is SheetDialog.DevelopmentDetails ->
+            developmentDetails?.invoke(dialog.entryId, close) ?: SheetDevelopmentDetailsDialog(host, dialog.entryId, close)
     }
 }
 
@@ -122,16 +162,17 @@ private fun SheetScrollColumn(modifier: Modifier, content: @Composable () -> Uni
 
 @Composable
 private fun SheetScreenHeader(
-    host: DublSheetHost,
+    host: DublSheetEditHost,
     layout: SheetLayout,
-    onEdit: () -> Unit,
+    state: SheetScreenState,
     modifier: Modifier,
     portraitLoader: SheetPortraitLoader?,
     onPickPortrait: (() -> Unit)?,
 ) {
     val character = host.active
-    // Recomputed only when the character, its extras or the chi pack change, not on every recomposition.
-    val economy = remember(host, character, host.extras, host.chiPackEnabled) {
+    val editing = state.editing
+    // Recomputed only when the character, its extras, the chi pack or the catalog change.
+    val economy = remember(host, character, host.extras, host.chiPackEnabled, host.developmentCatalog) {
         CharacterEconomy.breakdown(
             character,
             host.developmentCatalog,
@@ -154,26 +195,37 @@ private fun SheetScreenHeader(
                 CharacterConditionId.entries.firstOrNull { it.name == chip.key }?.let(host::toggleCondition)
             }
         },
-        onEdit = onEdit,
+        onEdit = { state.updateEditing(!editing) },
         modifier = modifier,
-        portrait = if (portraitLoader == null && onPickPortrait == null) null else {
+        onOpenConditions = { state.openDialog(SheetDialog.Conditions) },
+        portrait = if (portraitLoader == null && onPickPortrait == null && host.extras.portraitUri == null) null else {
             {
                 SheetPortrait(
                     uri = host.extras.portraitUri,
                     name = character.name,
                     loader = portraitLoader,
-                    onPick = onPickPortrait,
-                    onRemove = null,
+                    onPick = onPickPortrait.takeIf { editing },
+                    onRemove = if (editing) ({ host.setPortrait(null) }) else null,
                     size = if (layout == SheetLayout.PHONE) 64.dp else 88.dp,
                 )
             }
         },
+        onOpenIdentity = if (editing) ({ state.openDialog(SheetDialog.Identity) }) else null,
+        onOpenEconomy = { state.openDialog(SheetDialog.Economy) },
+        editing = editing,
     )
 }
 
 @Composable
-private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: SheetScreenState, onOpenSkills: () -> Unit) {
+private fun SheetScreenBody(
+    host: DublSheetEditHost,
+    layout: SheetLayout,
+    state: SheetScreenState,
+    onOpenSkills: () -> Unit,
+    onOpenDevelopment: () -> Unit,
+) {
     val phone = layout == SheetLayout.PHONE
+    val editing = state.editing
     val character = host.active
     // The docked tray shows the roll itself; only taps made without it open the dialog.
     val open: (SheetRollSubject) -> Unit = { subject -> state.open(subject, dialog = layout != SheetLayout.WIDE_WITH_TRAY) }
@@ -186,33 +238,54 @@ private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: She
             if (resource != null) host.changeResource(resource, delta) else if (uid != null) host.changeCustomResource(uid, delta)
         },
         onRestore = { vital -> vital.resource?.let(host::restoreMountedResource) },
+        onOpen = { vital -> state.openDialog(SheetDialog.Vital(vital.id)) },
+        onManageResources = if (editing) ({ state.openDialog(SheetDialog.Resources) }) else null,
     )
-    val metrics = sheetMetrics(character)
     SheetStatGrid(
-        stats = metrics,
+        stats = sheetMetrics(character),
         columns = sheetMetricColumns(layout),
         compact = phone,
         onRoll = open,
+        onOpenInfo = { stat -> stat.info?.let { state.openDialog(SheetDialog.Stat(it, stat.roll)) } },
     )
     SheetSection("Характеристики")
     val attributes = sheetAttributes(character)
     SheetStatGrid(
         // Phone tiles are too narrow for «Телосложение» and «Восприятие».
         stats = if (phone) attributes.map { stat -> stat.copy(label = phoneAttributeLabel(stat)) } else attributes,
-        columns = 4,
+        // Edit mode puts −/+ under each value; two phone columns leave room for both buttons.
+        columns = if (phone && editing) 2 else 4,
         compact = phone,
         onRoll = open,
+        onAdjust = if (editing) ({ stat, delta ->
+            (stat.roll as? SheetRollSubject.Attribute)?.let { host.changeAttribute(it.id, delta) }
+        }) else null,
     )
     SheetSection("Умения")
-    val skillGroups = remember(host, character, host.extras, host.chiPackEnabled) { sheetSkillGroups(host) }
+    val skillGroups = remember(host, character, host.extras, host.chiPackEnabled, host.developmentCatalog, editing) {
+        if (editing) sheetSkillGroupsForEdit(host) else sheetSkillGroups(host)
+    }
     SheetSkills(
         groups = skillGroups,
         columns = if (phone) 1 else 2,
         onRoll = { skillId -> open(SheetRollSubject.Skill(skillId)) },
         onOpenAll = onOpenSkills,
+        onToggleCollapsed = { id -> host.setSkillGroups(SheetGroupingRules.toggleCollapsed(normalizedSkillGroups(host), id)) },
+        onManageGroups = if (editing) ({ state.openDialog(SheetDialog.Groups(SheetGroupKind.SKILLS)) }) else null,
+    )
+    SheetSection("Взятые навыки")
+    val developmentGroups = remember(host, character, host.extras, host.developmentCatalog) { sheetDevelopmentGroups(host) }
+    SheetDevelopment(
+        groups = developmentGroups,
+        onOpenDetails = { id -> state.openDialog(SheetDialog.DevelopmentDetails(id)) },
+        onOpenAll = onOpenDevelopment,
+        onManageGroups = if (editing) ({ state.openDialog(SheetDialog.Groups(SheetGroupKind.DEVELOPMENT)) }) else null,
+        onToggleCollapsed = { id -> host.setDevelopmentGroups(SheetGroupingRules.toggleCollapsed(normalizedDevelopmentGroups(host), id)) },
     )
     SheetSection("Боевые действия")
     SheetCombat(SHEET_COMBAT_CONTEXTS, onRoll = { context -> open(SheetRollSubject.Context(context)) })
+    SheetSection("Заметки")
+    SheetNotes(host.extras.displayNotes(), host = host.takeIf { editing || !phone })
 }
 
 private fun phoneAttributeLabel(stat: SheetStat): String =
@@ -225,7 +298,7 @@ private fun SheetSection(title: String) {
 
 /** The roll panel for the current setup, or the tray's empty state before anything was tapped. */
 @Composable
-private fun SheetScreenRoll(host: DublSheetHost, state: SheetScreenState, modifier: Modifier, inlineRollButton: Boolean = true) {
+private fun SheetScreenRoll(host: DublSheetEditHost, state: SheetScreenState, modifier: Modifier, inlineRollButton: Boolean = true) {
     val request = state.request
     if (request == null) {
         FuryRollTray(view = null, history = state.history, onRollAgain = {}, modifier = modifier)

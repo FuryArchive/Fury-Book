@@ -39,6 +39,9 @@ fun SheetSkills(
     onRoll: (String) -> Unit,
     onOpenAll: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Tapping a group title collapses it (persisted, as on the old desktop sheet). */
+    onToggleCollapsed: ((String) -> Unit)? = null,
+    onManageGroups: (() -> Unit)? = null,
 ) {
     val perRow = columns.coerceAtLeast(1)
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
@@ -47,8 +50,18 @@ fun SheetSkills(
         }
         groups.forEach { group ->
             Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-                Text(group.title.uppercase(), color = DublMuted, style = furyOverlineStyle())
-                group.rows.chunked(perRow).forEach { row ->
+                Row(
+                    Modifier.fillMaxWidth().defaultMinSize(minHeight = FuryMinTouch).then(
+                        if (onToggleCollapsed != null && group.id.isNotEmpty()) {
+                            Modifier.clickable(role = Role.Button, onClickLabel = if (group.collapsed) "Развернуть" else "Свернуть") { onToggleCollapsed(group.id) }
+                        } else Modifier,
+                    ),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(group.title.uppercase(), Modifier.weight(1f), color = DublMuted, style = furyOverlineStyle())
+                    if (onToggleCollapsed != null) Text(if (group.collapsed) "▾ ${group.rows.size}" else "▴", color = DublMuted)
+                }
+                if (!group.collapsed) group.rows.chunked(perRow).forEach { row ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
                         row.forEach { skill -> SkillRow(skill, onRoll, Modifier.weight(1f)) }
                         repeat(perRow - row.size) { Spacer(Modifier.weight(1f)) }
@@ -56,7 +69,10 @@ fun SheetSkills(
                 }
             }
         }
-        FuryButton("Все умения", onOpenAll, style = FuryButtonStyle.Ghost)
+        Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+            onManageGroups?.let { FuryButton("Настроить группы", it, style = FuryButtonStyle.Ghost) }
+            FuryButton("Все умения", onOpenAll, style = FuryButtonStyle.Ghost)
+        }
     }
 }
 
