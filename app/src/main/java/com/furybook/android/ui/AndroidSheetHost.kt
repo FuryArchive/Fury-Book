@@ -10,24 +10,27 @@ import com.furybook.android.data.SkillEffectCatalogRepository
 import com.furybook.android.state.CharacterController
 import com.furybook.content.FcpComposition
 import com.furybook.dubl.content.DublResourceMeterModel
+import com.furybook.dubl.content.DublResourceToggleModel
 import com.furybook.dubl.content.DublUiRenderModels
+import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.CharacterSheetResourceId
 import com.furybook.dubl.model.ConditionCatalog
 import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DublCharacter
+import com.furybook.dubl.model.SheetGroup
 import com.furybook.dubl.model.SkillEffectCatalog
 import com.furybook.dubl.model.effectiveDevelopmentCatalog
 import com.furybook.dubl.model.withoutChiContent
-import com.furybook.dubl.ui.sheet.DublSheetHost
+import com.furybook.dubl.ui.sheet.DublSheetEditHost
 
 /** Android adapter exposing [CharacterController] and the bundled catalogs to the shared sheet. */
 class AndroidSheetHost(
     private val controller: CharacterController,
     private val context: Context,
     override val chiPackEnabled: Boolean,
-) : DublSheetHost {
+) : DublSheetEditHost {
     private val appContext = context.applicationContext
 
     override val active: DublCharacter get() = controller.active
@@ -75,6 +78,46 @@ class AndroidSheetHost(
     }
 
     override fun undoLast(): Boolean = controller.undoLast()
+
+    override fun setIdentity(name: String, concept: String, size: Int, legs: Int, manaEnabled: Boolean) {
+        controller.setIdentity(name, concept, size, legs, manaEnabled)
+    }
+    override fun setEconomy(total: Int, creation: Int, adjustment: Int, abilityPointsOverride: Int?) {
+        controller.setEconomy(total, creation, adjustment, abilityPointsOverride)
+    }
+    override fun completeCreation() { controller.completeCreation() }
+    override fun reopenCreation() { controller.reopenCreation() }
+    override fun changeAttribute(id: AttributeId, delta: Int) { controller.changeAttribute(id, delta) }
+    override fun setHealthMaximumOverride(value: Int?) { controller.setHealthMaximumOverride(value) }
+    override fun setEnduranceMaximumOverride(value: Int?) { controller.setEnduranceMaximumOverride(value) }
+    override fun setManaMaximumOverride(value: Int?) { controller.setManaMaximumOverride(value) }
+    override fun addCustomResource(name: String, maximum: Int, current: Int): String? =
+        controller.addCustomResource(name, maximum, current)
+    override fun updateCustomResource(uid: String, name: String, current: Int, maximum: Int) {
+        controller.updateCustomResource(uid, name, current, maximum)
+    }
+    override fun removeCustomResource(uid: String) { controller.removeCustomResource(uid) }
+    override fun resourceToggleModels(): List<DublResourceToggleModel> =
+        DublUiRenderModels.resourceToggles(composition, controller.active)
+    override fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) {
+        controller.setResourceHidden(resource, hidden)
+    }
+    override fun setConditionOverride(condition: CharacterConditionId, title: String?, description: String?) {
+        controller.setConditionOverride(condition, title, description)
+    }
+    override fun resetConditionOverride(condition: CharacterConditionId) { controller.resetConditionOverride(condition) }
+    override fun addCustomCondition(title: String, description: String, active: Boolean): String? =
+        controller.addCustomCondition(title, description, active)
+    override fun updateCustomCondition(id: String, title: String, description: String, active: Boolean?) {
+        controller.updateCustomCondition(id, title, description, active)
+    }
+    override fun removeCustomCondition(id: String) { controller.removeCustomCondition(id) }
+    override fun setSkillGroups(groups: List<SheetGroup>) { controller.setSkillGroups(groups) }
+    override fun setDevelopmentGroups(groups: List<SheetGroup>) { controller.setDevelopmentGroups(groups) }
+    override fun addNote(title: String, body: String): String? = controller.addNote(title, body)
+    override fun updateNote(id: String, title: String, body: String) { controller.updateNote(id, title, body) }
+    override fun removeNote(id: String) { controller.removeNote(id) }
+    override fun setPortrait(uri: String?) { controller.setPortrait(uri) }
 }
 
 @Composable

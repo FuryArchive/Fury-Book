@@ -75,6 +75,8 @@ class CharacterController(
     fun setCreationExperience(value: Int) = sync { application.character.setCreationExperience(value) }
     fun setXpAdjustment(value: Int) = sync { application.character.setXpAdjustment(value) }
     fun setAbilityPointsOverride(value: Int?) = sync { application.character.setAbilityPointsOverride(value) }
+    fun setEconomy(total: Int, creation: Int, adjustment: Int, abilityPointsOverride: Int?) =
+        sync { application.character.setEconomy(total, creation, adjustment, abilityPointsOverride) }
     fun completeCreation() = sync { application.character.completeCreation() }
     fun reopenCreation() = sync { application.character.reopenCreation() }
     fun changeHp(delta: Int) = sync { application.character.changeHp(delta) }
@@ -162,6 +164,9 @@ class CharacterController(
     fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) = sync { application.sheet.setResourceHidden(resource, hidden) }
     fun setSkillGroups(groups: List<SheetGroup>) = sync { application.sheet.setSkillGroups(groups) }
     fun setDevelopmentGroups(groups: List<SheetGroup>) = sync { application.sheet.setDevelopmentGroups(groups) }
+    fun addNote(title: String, body: String = ""): String? = sync { application.sheet.addNote(title, body) }
+    fun updateNote(id: String, title: String, body: String) = sync { application.sheet.updateNote(id, title, body) }
+    fun removeNote(id: String) = sync { application.sheet.removeNote(id) }
     fun setConditionOverride(condition: CharacterConditionId, title: String?, description: String?) = sync { application.sheet.setConditionOverride(condition, title, description) }
     fun resetConditionOverride(condition: CharacterConditionId) = sync { application.sheet.resetConditionOverride(condition) }
     fun addCustomCondition(title: String, description: String = "", active: Boolean = false): String? = sync { application.sheet.addCustomCondition(title, description, active) }

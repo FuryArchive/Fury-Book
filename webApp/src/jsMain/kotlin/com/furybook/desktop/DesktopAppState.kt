@@ -17,7 +17,7 @@ import com.furybook.dubl.content.DublUiRenderModels
 import com.furybook.dubl.data.mergeDevelopmentCatalogs
 import com.furybook.dubl.data.SnapshotCodec
 import com.furybook.dubl.model.*
-import com.furybook.dubl.ui.sheet.DublSheetHost
+import com.furybook.dubl.ui.sheet.DublSheetEditHost
 import com.furybook.web.BrowserCharacterExtrasStore
 import com.furybook.web.BrowserCharacterStore
 import com.furybook.web.BrowserPackState
@@ -29,7 +29,7 @@ import com.furybook.web.webUuid
 class DesktopAppState(
     resourceTexts: Map<String, String>,
     private val cloudSync: WebCloudSync? = null,
-) : DublSheetHost {
+) : DublSheetEditHost {
     private val characterStore = BrowserCharacterStore()
     private val extrasStore = BrowserCharacterExtrasStore()
     private val application = DublApplication(
@@ -102,7 +102,8 @@ class DesktopAppState(
     fun resourceMeterModels(character: DublCharacter = activeCharacter): List<DublResourceMeterModel> =
         DublUiRenderModels.resourceMeters(contentPackComposition, character)
 
-    fun resourceToggleModels(character: DublCharacter = activeCharacter): List<DublResourceToggleModel> =
+    override fun resourceToggleModels(): List<DublResourceToggleModel> = resourceToggleModels(activeCharacter)
+    fun resourceToggleModels(character: DublCharacter): List<DublResourceToggleModel> =
         DublUiRenderModels.resourceToggles(contentPackComposition, character)
 
     fun canActivateContentPack(manifest: FcpManifest): Boolean =
@@ -147,20 +148,20 @@ class DesktopAppState(
 
     fun setProfile(name: String, concept: String, experience: Int, size: Int, legs: Int, manaEnabled: Boolean) =
         sync { application.character.setProfile(name, concept, experience, size, legs, manaEnabled) }
-    fun setIdentity(name: String, concept: String, size: Int, legs: Int, manaEnabled: Boolean) =
-        sync { application.character.setIdentity(name, concept, size, legs, manaEnabled) }
+    override fun setIdentity(name: String, concept: String, size: Int, legs: Int, manaEnabled: Boolean) {
+        sync { application.character.setIdentity(name, concept, size, legs, manaEnabled) } }
     fun setName(name: String) = sync { application.character.setName(name) }
     fun setSize(size: Int) = sync { application.character.setSize(size) }
     fun setLegs(legs: Int) = sync { application.character.setLegs(legs) }
-    fun changeAttribute(id: AttributeId, delta: Int) = sync { application.character.changeAttribute(id, delta) }
+    override fun changeAttribute(id: AttributeId, delta: Int) { sync { application.character.changeAttribute(id, delta) } }
     fun setExperience(total: Int) = sync { application.character.setExperience(total) }
     fun setCreationExperience(value: Int) = sync { application.character.setCreationExperience(value) }
     fun setXpAdjustment(value: Int) = sync { application.character.setXpAdjustment(value) }
     fun setAbilityPointsOverride(value: Int?) = sync { application.character.setAbilityPointsOverride(value) }
-    fun setEconomy(total: Int, creation: Int, adjustment: Int, abilityPointsOverride: Int?) =
-        sync { application.character.setEconomy(total, creation, adjustment, abilityPointsOverride) }
-    fun completeCreation() = sync { application.character.completeCreation() }
-    fun reopenCreation() = sync { application.character.reopenCreation() }
+    override fun setEconomy(total: Int, creation: Int, adjustment: Int, abilityPointsOverride: Int?) {
+        sync { application.character.setEconomy(total, creation, adjustment, abilityPointsOverride) } }
+    override fun completeCreation() { sync { application.character.completeCreation() } }
+    override fun reopenCreation() { sync { application.character.reopenCreation() } }
     fun changeHp(delta: Int) = sync { application.character.changeHp(delta) }
     fun changeEndurance(delta: Int) = sync { application.character.changeEndurance(delta) }
     fun changeMana(delta: Int) = sync { application.magic.changeMana(delta) }
@@ -182,16 +183,16 @@ class DesktopAppState(
             else -> Unit
         }
     }
-    fun setHealthMaximumOverride(value: Int?) = sync { application.character.setHealthMaximumOverride(value) }
-    fun setEnduranceMaximumOverride(value: Int?) = sync { application.character.setEnduranceMaximumOverride(value) }
-    fun setManaMaximumOverride(value: Int?) = sync { application.character.setManaMaximumOverride(value) }
+    override fun setHealthMaximumOverride(value: Int?) { sync { application.character.setHealthMaximumOverride(value) } }
+    override fun setEnduranceMaximumOverride(value: Int?) { sync { application.character.setEnduranceMaximumOverride(value) } }
+    override fun setManaMaximumOverride(value: Int?) { sync { application.character.setManaMaximumOverride(value) } }
 
-    fun addCustomResource(name: String, maximum: Int, current: Int = maximum): String? =
+    override fun addCustomResource(name: String, maximum: Int, current: Int): String? =
         sync { application.character.addCustomResource(name, maximum, current) }
-    fun updateCustomResource(uid: String, name: String, current: Int, maximum: Int) =
-        sync { application.character.updateCustomResource(uid, name, current, maximum) }
+    override fun updateCustomResource(uid: String, name: String, current: Int, maximum: Int) {
+        sync { application.character.updateCustomResource(uid, name, current, maximum) } }
     override fun changeCustomResource(uid: String, delta: Int) { sync { application.character.changeCustomResource(uid, delta) } }
-    fun removeCustomResource(uid: String) = sync { application.character.removeCustomResource(uid) }
+    override fun removeCustomResource(uid: String) { sync { application.character.removeCustomResource(uid) } }
 
     fun changeSkillRank(skillId: String, delta: Int) = sync { application.skills.changeRank(skillId, delta) }
     fun setSkillAttributes(skillId: String, attributes: List<AttributeId>) = sync { application.skills.setAttributes(skillId, attributes) }
@@ -242,22 +243,22 @@ class DesktopAppState(
     fun setGearItemQuantity(uid: String, quantity: Int) = sync { application.equipment.setItemQuantity(uid, quantity) }
     fun removeGearItem(uid: String) = sync { application.equipment.removeItem(uid) }
 
-    fun setPortrait(uri: String?) = sync { application.sheet.setPortrait(uri) }
+    override fun setPortrait(uri: String?) { sync { application.sheet.setPortrait(uri) } }
     override fun toggleCondition(condition: CharacterConditionId) { sync { application.sheet.toggleCondition(condition) } }
     fun setConditions(conditions: Set<CharacterConditionId>) = sync { application.sheet.setConditions(conditions) }
-    fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) = sync { application.sheet.setResourceHidden(resource, hidden) }
-    fun setSkillGroups(groups: List<SheetGroup>) = sync { application.sheet.setSkillGroups(groups) }
-    fun setDevelopmentGroups(groups: List<SheetGroup>) = sync { application.sheet.setDevelopmentGroups(groups) }
+    override fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) { sync { application.sheet.setResourceHidden(resource, hidden) } }
+    override fun setSkillGroups(groups: List<SheetGroup>) { sync { application.sheet.setSkillGroups(groups) } }
+    override fun setDevelopmentGroups(groups: List<SheetGroup>) { sync { application.sheet.setDevelopmentGroups(groups) } }
     fun setNotes(notes: String) = sync { application.sheet.setNotes(notes) }
-    fun addNote(title: String, body: String = ""): String? = sync { application.sheet.addNote(title, body) }
-    fun updateNote(id: String, title: String, body: String) = sync { application.sheet.updateNote(id, title, body) }
-    fun removeNote(id: String) = sync { application.sheet.removeNote(id) }
-    fun setConditionOverride(condition: CharacterConditionId, title: String?, description: String?) = sync { application.sheet.setConditionOverride(condition, title, description) }
-    fun resetConditionOverride(condition: CharacterConditionId) = sync { application.sheet.resetConditionOverride(condition) }
-    fun addCustomCondition(title: String, description: String = "", active: Boolean = false): String? = sync { application.sheet.addCustomCondition(title, description, active) }
-    fun updateCustomCondition(id: String, title: String, description: String, active: Boolean? = null) = sync { application.sheet.updateCustomCondition(id, title, description, active) }
+    override fun addNote(title: String, body: String): String? = sync { application.sheet.addNote(title, body) }
+    override fun updateNote(id: String, title: String, body: String) { sync { application.sheet.updateNote(id, title, body) } }
+    override fun removeNote(id: String) { sync { application.sheet.removeNote(id) } }
+    override fun setConditionOverride(condition: CharacterConditionId, title: String?, description: String?) { sync { application.sheet.setConditionOverride(condition, title, description) } }
+    override fun resetConditionOverride(condition: CharacterConditionId) { sync { application.sheet.resetConditionOverride(condition) } }
+    override fun addCustomCondition(title: String, description: String, active: Boolean): String? = sync { application.sheet.addCustomCondition(title, description, active) }
+    override fun updateCustomCondition(id: String, title: String, description: String, active: Boolean?) { sync { application.sheet.updateCustomCondition(id, title, description, active) } }
     override fun setCustomConditionActive(id: String, active: Boolean) { sync { application.sheet.setCustomConditionActive(id, active) } }
-    fun removeCustomCondition(id: String) = sync { application.sheet.removeCustomCondition(id) }
+    override fun removeCustomCondition(id: String) { sync { application.sheet.removeCustomCondition(id) } }
 
     fun exportActiveCharacter(): String = application.transfer.exportActive()
     fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) }

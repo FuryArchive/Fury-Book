@@ -28,11 +28,29 @@ def test_desktop_and_web_app_state_implement_host():
         "desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt",
         "webApp/src/jsMain/kotlin/com/furybook/desktop/DesktopAppState.kt",
     ):
-        assert ") : DublSheetHost" in read(rel), rel
+        assert ") : DublSheetEditHost" in read(rel), rel
 
 
 def test_android_sheet_host_implements_host():
     source = read("app/src/main/java/com/furybook/android/ui/AndroidSheetHost.kt")
     assert "class AndroidSheetHost(" in source
-    assert ") : DublSheetHost" in source
+    assert ") : DublSheetEditHost" in source
     assert "fun rememberAndroidSheetHost(" in source
+
+
+EDIT_HOST = "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/DublSheetEditHost.kt"
+EDIT_MEMBERS = [
+    "setIdentity", "setEconomy", "completeCreation", "reopenCreation", "changeAttribute",
+    "setHealthMaximumOverride", "setEnduranceMaximumOverride", "setManaMaximumOverride",
+    "addCustomResource", "updateCustomResource", "removeCustomResource", "resourceToggleModels",
+    "setResourceHidden", "setConditionOverride", "resetConditionOverride", "addCustomCondition",
+    "updateCustomCondition", "removeCustomCondition", "setSkillGroups", "setDevelopmentGroups",
+    "addNote", "updateNote", "removeNote", "setPortrait",
+]
+
+
+def test_edit_host_extends_play_host_and_declares_every_member():
+    source = read(EDIT_HOST)
+    assert "interface DublSheetEditHost : DublSheetHost" in source
+    for name in EDIT_MEMBERS:
+        assert f"fun {name}(" in source, name
