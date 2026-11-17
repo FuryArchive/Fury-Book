@@ -1,5 +1,6 @@
 package com.furybook.desktop.screens
 
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -82,15 +83,15 @@ import com.furybook.ui.theme.DublSurfaceRaised
 import com.furybook.ui.theme.DublText
 
 // Desktop aliases the shared Fury Book palette so Android and desktop stay visually aligned.
-internal val DesktopBackground = DublBackground
-internal val DesktopSurface = DublSurface
-internal val DesktopSurfaceRaised = DublSurfaceRaised
-internal val DesktopSurfaceInset = DublSurfaceInset
-internal val DesktopBorder = DublBorder
-internal val DesktopText = DublText
-internal val DesktopMuted = DublMuted
-internal val DesktopAccent = DublAccent
-internal val DesktopAccentSoft = DublAccentSoft
+internal val DesktopBackground: Color @Composable @ReadOnlyComposable get() = DublBackground
+internal val DesktopSurface: Color @Composable @ReadOnlyComposable get() = DublSurface
+internal val DesktopSurfaceRaised: Color @Composable @ReadOnlyComposable get() = DublSurfaceRaised
+internal val DesktopSurfaceInset: Color @Composable @ReadOnlyComposable get() = DublSurfaceInset
+internal val DesktopBorder: Color @Composable @ReadOnlyComposable get() = DublBorder
+internal val DesktopText: Color @Composable @ReadOnlyComposable get() = DublText
+internal val DesktopMuted: Color @Composable @ReadOnlyComposable get() = DublMuted
+internal val DesktopAccent: Color @Composable @ReadOnlyComposable get() = DublAccent
+internal val DesktopAccentSoft: Color @Composable @ReadOnlyComposable get() = DublAccentSoft
 internal object FuryMotion {
     const val FastMs = 110
     const val StandardMs = 170

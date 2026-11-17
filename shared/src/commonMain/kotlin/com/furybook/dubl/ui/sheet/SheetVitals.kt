@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +41,8 @@ import com.furybook.ui.theme.furyOverlineStyle
 
 internal const val SHEET_NO_VISIBLE_VITALS = "Нет видимых ресурсов"
 
+@Composable
+@ReadOnlyComposable
 internal fun sheetVitalColor(vital: SheetVital): Color = when (vital.color) {
     SheetVitalColor.HEALTH -> DublHealth
     SheetVitalColor.STAMINA -> DublStamina
@@ -49,6 +52,8 @@ internal fun sheetVitalColor(vital: SheetVital): Color = when (vital.color) {
 }
 
 /** Pack accent token → theme colour; every token maps to the crimson accent today (as on the old sheets). */
+@Composable
+@ReadOnlyComposable
 internal fun sheetFcpAccent(token: String?): Color = when (token) {
     FcpUiAccentToken.FURY_ACCENT -> DublAccent
     else -> DublAccent
@@ -183,6 +188,8 @@ internal fun vitalCanDecrease(vital: SheetVital): Boolean =
     vital.resource == CharacterSheetResourceId.HEALTH || vital.current > 0
 
 /** Health text turns crimson at ≤ 25 % and at or below zero (Android critical-health styling). */
+@Composable
+@ReadOnlyComposable
 private fun vitalValueColor(vital: SheetVital): Color =
     if (vital.resource == CharacterSheetResourceId.HEALTH && healthCriticalLevel(vital.current, vital.maximum) >= 2) DublAccentStrong
     else DublText

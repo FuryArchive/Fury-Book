@@ -1,34 +1,37 @@
 package com.furybook.ui.theme
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 
-// Fury HUD palette shared across Android, Desktop and Web.
-// The Dubl* names predate the palette and are kept so existing screens reskin without edits.
-val DublBackground = Color(0xFF08080A)
-val DublSurface = Color(0xFF111114)
-val DublSurfaceInset = Color(0xFF08080A)
-val DublSurfaceRaised = Color(0xFF16161A)
-val DublBorder = Color(0xFF26262C)
-val FuryBorderStrong = Color(0xFF34343A)
+// Legacy names for the active theme's colours (see Palette.kt). They read LocalFuryPalette, so every
+// screen that uses them follows the player's theme; they can only be read inside composition.
+val DublBackground: Color @Composable @ReadOnlyComposable get() = FuryColors.current.bg
+val DublSurface: Color @Composable @ReadOnlyComposable get() = FuryColors.current.panel
+val DublSurfaceInset: Color @Composable @ReadOnlyComposable get() = FuryColors.current.bg
+val DublSurfaceRaised: Color @Composable @ReadOnlyComposable get() = FuryColors.current.panel2
+val DublBorder: Color @Composable @ReadOnlyComposable get() = FuryColors.current.line2
+val FuryBorderStrong: Color @Composable @ReadOnlyComposable get() = FuryColors.current.track
 /** The unfilled part of a resource bar; must stay visible on panels and tiles. */
-val FuryBarTrack = FuryBorderStrong
-val DublText = Color(0xFFF4F1EC)
-val DublMuted = Color(0xFFB4B1AC)
+val FuryBarTrack: Color @Composable @ReadOnlyComposable get() = FuryColors.current.track
+val DublText: Color @Composable @ReadOnlyComposable get() = FuryColors.current.text
+val DublMuted: Color @Composable @ReadOnlyComposable get() = FuryColors.current.muted
 
-// Crimson is for bars, markers and accent text. White text does not pass contrast on it,
-// so filled controls use FuryAccentFill instead.
-val DublAccent = Color(0xFFE5384F)
-val DublAccentStrong = Color(0xFFFF6B7F)
-val DublAccentSoft = Color(0xFF3A1119)
-val DublFocus = Color(0xFFFF95A3)
-val DublGold = Color(0xFFF5C04E)
+// The accent is for bars, markers and accent text. Text does not pass contrast on it,
+// so filled controls use FuryAccentFill (acc2) with FuryOnAccentFill instead.
+val DublAccent: Color @Composable @ReadOnlyComposable get() = FuryColors.current.acc
+val DublAccentStrong: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accText
+val DublAccentSoft: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accSoft
+val DublFocus: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accText
+val DublGold: Color @Composable @ReadOnlyComposable get() = FuryColors.current.gold
 
-val FuryAccentFill = Color(0xFFB82840)
-val FuryAccentFillPressed = Color(0xFF8E1B30)
-val FuryOnAccentFill = Color.White
+val FuryAccentFill: Color @Composable @ReadOnlyComposable get() = FuryColors.current.acc2
+val FuryAccentFillPressed: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accPressed
+val FuryOnAccentFill: Color @Composable @ReadOnlyComposable get() = FuryColors.current.onAcc
 
-val DublHealth = Color(0xFFE5384F)
-val DublStamina = Color(0xFFF5C04E)
+val DublHealth: Color @Composable @ReadOnlyComposable get() = FuryColors.current.acc
+val DublStamina: Color @Composable @ReadOnlyComposable get() = FuryColors.current.gold
+// Mana and custom resources keep their colour in every theme.
 val DublMana = Color(0xFF6F98D6)
 val DublCustomResource = Color(0xFF65B4A4)
-val DublDanger = Color(0xFFFF95A3)
+val DublDanger: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accText

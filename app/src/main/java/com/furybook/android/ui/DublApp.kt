@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
@@ -62,6 +63,7 @@ import com.furybook.ui.components.FuryCharacterPicker
 import com.furybook.ui.components.FuryShell
 import com.furybook.ui.components.FuryShellCharacter
 import com.furybook.ui.components.FuryShellSection
+import com.furybook.ui.theme.FuryColors
 import com.furybook.ui.theme.DublAccent
 import com.furybook.ui.theme.DublGold
 import com.furybook.ui.theme.DublFocus
@@ -253,13 +255,15 @@ private fun AndroidSheet(
     val baseHost = rememberAndroidSheetHost(controller, context, chiPackEnabled)
     // Keyed on the character too: the toast state above is per character, and a host kept from
     // before a switch would keep writing into the previous character's toast.
+    // The toast colours follow the theme the player has on at the moment of the change.
+    val palette by rememberUpdatedState(FuryColors.current)
     val host = remember(baseHost, activeId) {
         SheetChangeReportingHost(baseHost) { change ->
             // Same wording and colour as the old Android sheet's «Последнее: …» bar.
             val (text, accent) = when (change) {
-                is SheetChange.Resource -> recentResourceChange(change.resource, change.applied, baseHost.resourceMeters())
-                is SheetChange.Experience -> change.text to DublGold
-                is SheetChange.Condition, is SheetChange.Attribute, SheetChange.Identity -> change.text to DublAccent
+                is SheetChange.Resource -> recentResourceChange(change.resource, change.applied, baseHost.resourceMeters(), palette)
+                is SheetChange.Experience -> change.text to palette.gold
+                is SheetChange.Condition, is SheetChange.Attribute, SheetChange.Identity -> change.text to palette.acc
             }
             toast = SheetToast(text, accent, controller.canUndo, ++toastCount)
         }

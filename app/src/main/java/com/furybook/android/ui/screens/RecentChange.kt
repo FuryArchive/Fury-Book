@@ -161,13 +161,11 @@ import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublSwitch
 import com.furybook.ui.theme.FuryAccentFill
 import com.furybook.ui.theme.FuryOnAccentFill
-import com.furybook.ui.theme.DublAccent
 import com.furybook.ui.theme.DublAccentSoft
 import com.furybook.ui.theme.DublDanger
 import com.furybook.ui.theme.DublGold
-import com.furybook.ui.theme.DublHealth
+import com.furybook.ui.theme.FuryPalette
 import com.furybook.ui.theme.DublMana
-import com.furybook.ui.theme.DublStamina
 import java.text.DecimalFormat
 import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
@@ -247,20 +245,21 @@ internal fun recentResourceChange(
     resource: CharacterSheetResourceId,
     applied: Int,
     mountedResources: List<DublResourceMeterModel>,
+    palette: FuryPalette,
 ): Pair<String, Color> {
     val mounted = mountedResources.firstOrNull { model -> model.resourceId == resource }
     if (mounted != null) {
-        return resourceChangeText(mounted.presentation.label, applied) to fcpAccentColor(mounted.presentation.accent)
+        return resourceChangeText(mounted.presentation.label, applied) to fcpAccentColor(mounted.presentation.accent, palette)
     }
     return when (resource) {
-        CharacterSheetResourceId.HEALTH -> resourceChangeText("здоровья", applied) to DublHealth
-        CharacterSheetResourceId.ENDURANCE -> resourceChangeText("выносливости", applied) to DublStamina
+        CharacterSheetResourceId.HEALTH -> resourceChangeText("здоровья", applied) to palette.acc
+        CharacterSheetResourceId.ENDURANCE -> resourceChangeText("выносливости", applied) to palette.gold
         CharacterSheetResourceId.MANA -> resourceChangeText("маны", applied) to DublMana
-        else -> resourceChangeText(resource.title, applied) to DublAccent
+        else -> resourceChangeText(resource.title, applied) to palette.acc
     }
 }
 
-private fun fcpAccentColor(token: String?): Color = when (token) {
-    FcpUiAccentToken.FURY_ACCENT -> DublAccent
-    else -> DublAccent
+private fun fcpAccentColor(token: String?, palette: FuryPalette): Color = when (token) {
+    FcpUiAccentToken.FURY_ACCENT -> palette.acc
+    else -> palette.acc
 }
