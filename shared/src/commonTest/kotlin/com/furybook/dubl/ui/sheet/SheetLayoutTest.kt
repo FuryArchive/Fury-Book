@@ -1,5 +1,6 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.dubl.model.AttributeId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -24,9 +25,17 @@ class SheetLayoutTest {
     @Test
     fun phoneMetricLabelsAreAbbreviated() {
         assertEquals(
-            listOf("Защ", "Рефл", "Иниц", "Стойк", "Бег", "Разм"),
+            listOf("Защита", "Рефл.", "Иниц.", "Стойк.", "Бег", "Разм"),
             listOf("Защита", "Рефлексы", "Инициатива", "Стойкость", "Бег", "Размер").map(::sheetPhoneMetricLabel),
         )
         assertEquals("Новое", sheetPhoneMetricLabel("Новое"))
+    }
+
+    @Test
+    fun phoneAttributeLabelsFollowMockup() {
+        assertEquals(
+            listOf("Сила", "Ловкость", "Телосл.", "Скорость", "Интеллект", "Воспр.", "Воля", "Харизма"),
+            AttributeId.entries.map(::sheetPhoneAttributeLabel),
+        )
     }
 }

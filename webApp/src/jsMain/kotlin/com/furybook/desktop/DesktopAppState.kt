@@ -47,7 +47,7 @@ class DesktopAppState(
         addAll(catalogLoader.chiManifest.claims("dubl.development").map { it.id })
     }
 
-    var chiPackEnabled: Boolean by mutableStateOf(BrowserPackState.chiEnabled)
+    override var chiPackEnabled: Boolean by mutableStateOf(BrowserPackState.chiEnabled)
         private set
 
     override val conditionCatalog = catalogLoader.loadConditions()

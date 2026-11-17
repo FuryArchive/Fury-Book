@@ -51,7 +51,7 @@ class DesktopAppState(
         addAll(catalogLoader.chiManifest.claims("dubl.development").map { it.id })
     }
 
-    var chiPackEnabled: Boolean by mutableStateOf(contentPackPreferences.getBoolean(DublChiFcp.PACK_ID, false))
+    override var chiPackEnabled: Boolean by mutableStateOf(contentPackPreferences.getBoolean(DublChiFcp.PACK_ID, false))
         private set
 
     override val conditionCatalog = catalogLoader.loadConditions()

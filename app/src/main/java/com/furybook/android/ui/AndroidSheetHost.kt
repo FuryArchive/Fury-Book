@@ -24,7 +24,7 @@ import com.furybook.dubl.ui.sheet.DublSheetHost
 class AndroidSheetHost(
     private val controller: CharacterController,
     private val context: Context,
-    private val chiPackEnabled: Boolean,
+    override val chiPackEnabled: Boolean,
 ) : DublSheetHost {
     private val appContext = context.applicationContext
 

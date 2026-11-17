@@ -17,6 +17,8 @@ interface DublSheetHost {
     val conditionCatalog: ConditionCatalog
     val developmentCatalog: DevelopmentCatalog
     val skillEffectCatalog: SkillEffectCatalog
+    /** Whether the chi content pack is on; the header counts chi XP only then, as the old headers do. */
+    val chiPackEnabled: Boolean
 
     fun resourceMeters(): List<DublResourceMeterModel>
     fun changeResource(resource: CharacterSheetResourceId, delta: Int)

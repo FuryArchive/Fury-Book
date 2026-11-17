@@ -49,6 +49,7 @@ private val fakePackFiles = mapOf(
 class FakeSheetHost(
     character: DublCharacter,
     extras: CharacterSheetExtras = CharacterSheetExtras(),
+    override val chiPackEnabled: Boolean = false,
 ) : DublSheetHost {
     private val extrasStore = InMemoryExtrasStore().also { it.save(character.id, extras) }
     private val application = DublApplication(

@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterEconomy
 import com.furybook.ui.components.FuryDialogScaffold
@@ -35,16 +36,24 @@ fun sheetLayoutFor(widthDp: Int): SheetLayout = when {
 
 private val TRAY_WIDTH = 340.dp
 
+// Short labels from the B phone mockup.
 private val PHONE_METRIC_LABELS = mapOf(
-    "Защита" to "Защ",
-    "Рефлексы" to "Рефл",
-    "Инициатива" to "Иниц",
-    "Стойкость" to "Стойк",
+    "Рефлексы" to "Рефл.",
+    "Инициатива" to "Иниц.",
+    "Стойкость" to "Стойк.",
     "Размер" to "Разм",
 )
 
-/** Five metric tiles fit a phone row only with short labels. */
+private val PHONE_ATTRIBUTE_LABELS = mapOf(
+    AttributeId.CONSTITUTION to "Телосл.",
+    AttributeId.PERCEPTION to "Воспр.",
+)
+
+/** Six metric tiles fit a phone row only with short labels. */
 internal fun sheetPhoneMetricLabel(label: String): String = PHONE_METRIC_LABELS[label] ?: label
+
+/** Phone attribute tiles: full titles except the two that do not fit. */
+internal fun sheetPhoneAttributeLabel(id: AttributeId): String = PHONE_ATTRIBUTE_LABELS[id] ?: id.title
 
 /**
  * The play view of the character sheet: header, vitals, metrics, attributes, skills, combat.
@@ -100,7 +109,12 @@ private fun SheetScrollColumn(modifier: Modifier, content: @Composable () -> Uni
 @Composable
 private fun SheetScreenHeader(host: DublSheetHost, layout: SheetLayout, onEdit: () -> Unit, modifier: Modifier) {
     val character = host.active
-    val economy = CharacterEconomy.breakdown(character, host.developmentCatalog)
+    val economy = CharacterEconomy.breakdown(
+        character,
+        host.developmentCatalog,
+        // Desktop/Android pass "the chi pack mounts the XP line"; only the chi pack declares that mount.
+        includeChi = host.chiPackEnabled,
+    )
     SheetHeader(
         name = character.name,
         concept = character.concept,
@@ -139,7 +153,7 @@ private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: She
     SheetStatGrid(
         stats = if (phone) metrics.map { it.copy(label = sheetPhoneMetricLabel(it.label)) } else metrics,
         columns = when (layout) {
-            SheetLayout.PHONE -> 5
+            SheetLayout.PHONE -> 6
             SheetLayout.WIDE -> 3
             SheetLayout.WIDE_WITH_TRAY -> 6
         },
@@ -149,8 +163,8 @@ private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: She
     SheetSection("Характеристики")
     val attributes = sheetAttributes(character)
     SheetStatGrid(
-        // Phone tiles are too narrow for «Телосложение»; use the sheet's short titles there.
-        stats = if (phone) attributes.map { stat -> stat.copy(label = shortAttributeLabel(stat)) } else attributes,
+        // Phone tiles are too narrow for «Телосложение» and «Восприятие».
+        stats = if (phone) attributes.map { stat -> stat.copy(label = phoneAttributeLabel(stat)) } else attributes,
         columns = 4,
         compact = phone,
         onRoll = state::open,
@@ -166,8 +180,8 @@ private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: She
     SheetCombat(SHEET_COMBAT_CONTEXTS, onRoll = { context -> state.open(SheetRollSubject.Context(context)) })
 }
 
-private fun shortAttributeLabel(stat: SheetStat): String =
-    (stat.roll as? SheetRollSubject.Attribute)?.id?.shortTitle ?: stat.label
+private fun phoneAttributeLabel(stat: SheetStat): String =
+    (stat.roll as? SheetRollSubject.Attribute)?.id?.let(::sheetPhoneAttributeLabel) ?: stat.label
 
 @Composable
 private fun SheetSection(title: String) {

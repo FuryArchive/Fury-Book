@@ -12,6 +12,7 @@ MEMBERS = [
     "active", "extras", "canUndo", "conditionCatalog", "developmentCatalog",
     "skillEffectCatalog", "resourceMeters", "changeResource", "changeCustomResource",
     "restoreMountedResource", "toggleCondition", "setCustomConditionActive", "undoLast",
+    "chiPackEnabled",
 ]
 
 
