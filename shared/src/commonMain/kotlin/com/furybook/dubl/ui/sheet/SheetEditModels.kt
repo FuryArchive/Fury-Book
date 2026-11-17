@@ -152,3 +152,11 @@ private fun developmentRankLabel(rank: Int): String = when (rank) {
     5 -> "V"
     else -> rank.toString()
 }
+
+/** Owned development entries for the group manager: label and parent per entry id. */
+internal data class SheetDevelopmentTree(val labels: Map<String, String>, val parentById: Map<String, String?>)
+
+internal fun sheetDevelopmentTree(host: DublSheetHost): SheetDevelopmentTree {
+    val items = developmentRules(host).ownedSheetSections().flatMap { it.items }.distinctBy { it.entry.id }
+    return SheetDevelopmentTree(items.associate { it.entry.id to it.entry.name }, items.associate { it.entry.id to it.parentId })
+}
