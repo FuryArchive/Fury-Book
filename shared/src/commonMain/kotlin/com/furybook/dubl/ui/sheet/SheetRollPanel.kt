@@ -29,11 +29,13 @@ import com.furybook.ui.components.FuryButton
 import com.furybook.ui.components.FuryButtonStyle
 import com.furybook.ui.components.FuryChipGroup
 import com.furybook.ui.components.FuryChoice
+import com.furybook.ui.components.FuryIconButton
 import com.furybook.ui.components.FuryMultiChipGroup
 import com.furybook.ui.components.FuryRollHistoryEntry
 import com.furybook.ui.components.FuryRollTray
 import com.furybook.ui.components.FuryStepper
 import com.furybook.ui.components.FuryTextField
+import com.furybook.ui.components.furyStepperState
 import com.furybook.ui.theme.DublMuted
 import com.furybook.ui.theme.DublSurface
 import com.furybook.ui.theme.DublText
@@ -48,9 +50,13 @@ private val MODE_CHOICES = listOf(
     FuryChoice(RollMode.HINDRANCE, "Помеха"),
 )
 
+/** The roll button's label: «Бросить» before the first roll, «Бросить снова» after (as [FuryRollTray] words it). */
+internal fun sheetRollButtonLabel(rolled: Boolean): String = if (rolled) "Бросить снова" else "Бросить"
+
 /**
  * The roll tray for one [request]: result, follow-up die, and every input the desktop roll dialogs offer.
- * Stateless apart from the target field's text buffer; every change goes through [onRequestChange].
+ * Stateless apart from the target and modifier text buffers; every change goes through [onRequestChange].
+ * With [showRollButton] false the caller shows the roll button itself (the dialog's pinned footer).
  * The setup controls sit on a dark inset so the stage 1 chips, steppers and field keep their contrast.
  */
 @Composable
@@ -63,6 +69,7 @@ fun SheetRollPanel(
     onFollowUp: () -> Unit,
     history: List<FuryRollHistoryEntry>,
     modifier: Modifier = Modifier,
+    showRollButton: Boolean = true,
 ) {
     val options = sheetRollOptions(host, request)
     val subject = request.subject
@@ -76,8 +83,9 @@ fun SheetRollPanel(
         onRollAgain = onRoll,
         modifier = modifier,
         emptyText = options.title,
-        emptyRollLabel = "Бросить",
+        emptyRollLabel = sheetRollButtonLabel(rolled = false),
         blockedReason = options.blockedReason,
+        showRollButton = showRollButton,
     ) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
             if (note != null) {
@@ -104,6 +112,8 @@ private fun RollSetup(
     context: RollContext?,
     onRequestChange: (SheetRollRequest) -> Unit,
 ) {
+    // Desktop «Расчёт броска» / Android «Бонус проверки»: what the roll adds before it is made.
+    sheetRollFormulaLine(host, request)?.let { Muted(it) }
     if (options.skillChoices.isNotEmpty()) {
         Section("Умение")
         FuryChipGroup(
@@ -145,7 +155,7 @@ private fun RollSetup(
     if (request.mode == RollMode.ADVANTAGE || request.mode == RollMode.HINDRANCE) {
         LabelledStepper("Доп. костей", request.manualEffectCount, 1, 9) { onRequestChange(request.copy(manualEffectCount = it)) }
     }
-    LabelledStepper("Поправка", request.situational, -99, 99) { onRequestChange(request.copy(situational = it)) }
+    SituationalField(request, onRequestChange)
     TargetField(request, context, onRequestChange)
     if (options.automaticEffects.isNotEmpty()) {
         Muted("Автоматически: " + options.automaticEffects.joinToString())
@@ -183,6 +193,55 @@ private fun TargetField(request: SheetRollRequest, context: RollContext?, onRequ
         label = if (context == RollContext.ATTACK || context == RollContext.FLURRY) "Защита цели" else "Цель / СЛ",
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
     )
+}
+
+/**
+ * The typed modifier: an optional leading "-" and digits, clamped to −99..99 (the text then shows the
+ * clamped number). "" and "-" stay as typed and count as 0.
+ */
+internal fun sheetSituationalInput(raw: String): Pair<String, Int> {
+    val sign = if (raw.startsWith("-")) "-" else ""
+    val cleaned = sign + raw.filter(Char::isDigit).take(3)
+    val parsed = cleaned.toIntOrNull() ?: return cleaned to 0
+    val clamped = parsed.coerceIn(-99, 99)
+    return (if (clamped == parsed) cleaned else clamped.toString()) to clamped
+}
+
+/** The situational modifier: typed like the old dialogs, with −/+ steps beside the field. */
+@Composable
+private fun SituationalField(request: SheetRollRequest, onRequestChange: (SheetRollRequest) -> Unit) {
+    var buffer by remember(request.subject) { mutableStateOf(request.situational.toString()) }
+    val shown = if (sheetSituationalInput(buffer).second == request.situational) buffer else request.situational.toString()
+    val state = furyStepperState(request.situational, -99, 99)
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalAlignment = Alignment.Bottom) {
+        FuryTextField(
+            value = shown,
+            onValueChange = { raw ->
+                val (text, value) = sheetSituationalInput(raw)
+                buffer = text
+                onRequestChange(request.copy(situational = value))
+            },
+            label = "Поправка",
+            modifier = Modifier.weight(1f),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        FuryIconButton(
+            "Уменьшить: Поправка",
+            { onRequestChange(request.copy(situational = (request.situational - 1).coerceIn(-99, 99))) },
+            Modifier.padding(bottom = 6.dp), // centred on the 56dp field
+            enabled = state.canDecrease,
+        ) {
+            Text("−", color = DublText, style = MaterialTheme.typography.titleLarge)
+        }
+        FuryIconButton(
+            "Увеличить: Поправка",
+            { onRequestChange(request.copy(situational = (request.situational + 1).coerceIn(-99, 99))) },
+            Modifier.padding(bottom = 6.dp),
+            enabled = state.canIncrease,
+        ) {
+            Text("+", color = DublText, style = MaterialTheme.typography.titleLarge)
+        }
+    }
 }
 
 @Composable

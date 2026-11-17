@@ -157,7 +157,7 @@ private fun <T> PhoneShell(
         )
     }
     if (menuOpen) {
-        FuryDialogScaffold(title = "Меню", subtitle = characterName, onDismiss = { menuOpen = false }) {
+        FuryDialogScaffold(title = "Меню", subtitle = characterName, onDismiss = { menuOpen = false }, subtitleMaxLines = 1) {
             FuryButton(
                 text = "Сменить персонажа",
                 onClick = { menuOpen = false; onSwitchCharacter() },

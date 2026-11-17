@@ -23,12 +23,9 @@ class SheetLayoutTest {
     }
 
     @Test
-    fun phoneMetricLabelsAreAbbreviated() {
-        assertEquals(
-            listOf("Защита", "Рефл.", "Иниц.", "Стойк.", "Бег", "Разм."),
-            listOf("Защита", "Рефлексы", "Инициатива", "Стойкость", "Бег", "Размер").map(::sheetPhoneMetricLabel),
-        )
-        assertEquals("Новое", sheetPhoneMetricLabel("Новое"))
+    fun metricsAreAThreeByTwoGridInEveryLayout() {
+        // Six columns clipped «10» on a 360dp phone and «7.5» next to the docked tray at 1100dp.
+        SheetLayout.entries.forEach { layout -> assertEquals(3, sheetMetricColumns(layout), layout.name) }
     }
 
     @Test

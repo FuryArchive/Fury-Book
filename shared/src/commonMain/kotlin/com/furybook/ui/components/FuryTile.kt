@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,12 +52,13 @@ fun FuryTile(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
-        Text(
+        // Shrinks rather than clips when a long value ("12.5") meets a narrow tile; never below 16sp.
+        val valueStyle = if (compact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displayLarge
+        BasicText(
             text = value,
-            color = DublText,
-            style = if (compact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displayLarge,
+            style = valueStyle.copy(color = DublText),
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+            autoSize = TextAutoSize.StepBased(minFontSize = 16.sp, maxFontSize = valueStyle.fontSize, stepSize = 2.sp),
         )
     }
 }

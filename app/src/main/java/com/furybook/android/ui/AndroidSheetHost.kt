@@ -8,7 +8,9 @@ import com.furybook.android.data.ConditionCatalogRepository
 import com.furybook.android.data.DevelopmentCatalogRepository
 import com.furybook.android.data.SkillEffectCatalogRepository
 import com.furybook.android.state.CharacterController
+import com.furybook.content.FcpComposition
 import com.furybook.dubl.content.DublResourceMeterModel
+import com.furybook.dubl.content.DublUiRenderModels
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.CharacterSheetResourceId
@@ -40,8 +42,17 @@ class AndroidSheetHost(
             .let { catalog -> if (chiPackEnabled) catalog else catalog.withoutChiContent() }
     override val skillEffectCatalog: SkillEffectCatalog = SkillEffectCatalogRepository(appContext).load()
 
-    override fun resourceMeters(): List<DublResourceMeterModel> =
-        AndroidContentPackState.resourceMeterModels(context, chiPackEnabled, controller.active)
+    // The pack composition reads installed manifests from disk; resolve it once per host (the host is
+    // remembered per chi setting, and the sheet leaves composition while packs are managed elsewhere).
+    private val composition: FcpComposition by lazy { AndroidContentPackState.composition(appContext, chiPackEnabled) }
+    private var meterCache: Pair<DublCharacter, List<DublResourceMeterModel>>? = null
+
+    /** Meters for the current character, recomputed from the cached composition only when it changes. */
+    override fun resourceMeters(): List<DublResourceMeterModel> {
+        val character = controller.active
+        meterCache?.let { (cachedFor, meters) -> if (cachedFor == character) return meters }
+        return DublUiRenderModels.resourceMeters(composition, character).also { meterCache = character to it }
+    }
 
     override fun changeResource(resource: CharacterSheetResourceId, delta: Int) {
         controller.changeResource(resource, delta)

@@ -241,4 +241,79 @@ class SheetRollSessionTest {
         assertEquals(emptyMap<String, String>(), context.effectDescriptions)
         assertEquals(emptyList<String>(), context.automaticEffects)
     }
+
+    @Test
+    fun formulaLineShowsPresetBonusAndFormulaBeforeRolling() {
+        val host = FakeSheetHost(hornet)
+        val request = SheetRollRequest(SheetRollSubject.Attribute(AttributeId.DEXTERITY))
+        val preset = host.active.rollPreset(RollContext.ATTRIBUTE, attribute = AttributeId.DEXTERITY)
+
+        assertEquals("Бонус проверки +${preset.bonus} · ${preset.formulaText}", sheetRollFormulaLine(host, request))
+    }
+
+    @Test
+    fun formulaLineFollowsFlurryProfileAndAttributeChoices() {
+        val host = FakeSheetHost(hornet)
+        val light = SheetRollRequest(SheetRollSubject.Context(RollContext.FLURRY), skillId = "melee_weapon")
+        val heavy = light.copy(flurryProfile = FlurryWeaponProfile.entries.last())
+        val lightBonus = sheetRollOptions(host, light).preset.bonus!!
+        val heavyBonus = sheetRollOptions(host, heavy).preset.bonus!!
+
+        val lightLine = assertNotNull(sheetRollFormulaLine(host, light))
+        assertTrue(lightLine.startsWith("Бонус проверки +$lightBonus · "), lightLine)
+        assertTrue(lightLine.endsWith(" + Шквал атак"), lightLine)
+        assertTrue(assertNotNull(sheetRollFormulaLine(host, heavy)).startsWith("Бонус проверки +$heavyBonus"))
+        assertTrue(assertNotNull(sheetRollFormulaLine(host, light.copy(shortFlurry = true))).endsWith(" + Короткий шквал"))
+
+        val skill = SheetRollRequest(SheetRollSubject.Skill("eloquence"))
+        val withDexterity = assertNotNull(sheetRollFormulaLine(host, skill.copy(attribute = AttributeId.DEXTERITY)))
+        assertTrue(withDexterity != sheetRollFormulaLine(host, skill), withDexterity)
+    }
+
+    @Test
+    fun formulaLineAddsToggledEffectBonus() {
+        val catalog = SkillEffectCatalog(
+            "test",
+            listOf(
+                SkillEffectDefinition(
+                    "talk-bonus", 5, "Косноязычие", "+3 по желанию", "", "", "",
+                    SkillEffectMode.TOGGLE_BONUS, RollContext.SKILL, listOf("Красноречие"), 3, false,
+                    "Подготовка", developmentId = "clumsy",
+                ),
+            ),
+        )
+        val host = EffectHost(FakeSheetHost(hornet), catalog)
+        val request = SheetRollRequest(SheetRollSubject.Skill("eloquence"))
+        val bonus = sheetRollOptions(host, request).preset.bonus!!
+
+        val plain = assertNotNull(sheetRollFormulaLine(host, request))
+        val toggled = assertNotNull(sheetRollFormulaLine(host, request.copy(selectedEffectIds = setOf("talk-bonus"))))
+
+        assertTrue(plain.startsWith("Бонус проверки ${if (bonus >= 0) "+" else ""}$bonus · "), plain)
+        assertTrue(toggled.startsWith("Бонус проверки ${if (bonus + 3 >= 0) "+" else ""}${bonus + 3} · "), toggled)
+        assertTrue(toggled.endsWith(" + Эффекты (+3)"), toggled)
+    }
+
+    @Test
+    fun formulaLineIsAbsentWithoutABonus() {
+        val host = FakeSheetHost(hornet)
+        assertNull(sheetRollFormulaLine(host, SheetRollRequest(SheetRollSubject.Skill("no-such-skill"))))
+    }
+
+    @Test
+    fun situationalInputIsTypeableAndClamped() {
+        assertEquals("" to 0, sheetSituationalInput(""))
+        assertEquals("-" to 0, sheetSituationalInput("-"))
+        assertEquals("-7" to -7, sheetSituationalInput("-7"))
+        assertEquals("99" to 99, sheetSituationalInput("150"))
+        assertEquals("-99" to -99, sheetSituationalInput("-999"))
+        assertEquals("12" to 12, sheetSituationalInput("1a2"))
+        assertEquals("5" to 5, sheetSituationalInput("5-"))
+    }
+
+    @Test
+    fun rollButtonLabelMatchesTray() {
+        assertEquals("Бросить", sheetRollButtonLabel(rolled = false))
+        assertEquals("Бросить снова", sheetRollButtonLabel(rolled = true))
+    }
 }

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterEconomy
+import com.furybook.ui.components.FuryDialogAction
 import com.furybook.ui.components.FuryDialogScaffold
 import com.furybook.ui.components.FuryRollTray
 import com.furybook.ui.theme.DublMuted
@@ -36,21 +37,18 @@ fun sheetLayoutFor(widthDp: Int): SheetLayout = when {
 
 private val TRAY_WIDTH = 340.dp
 
-// Short labels from the B phone mockup.
-private val PHONE_METRIC_LABELS = mapOf(
-    "Рефлексы" to "Рефл.",
-    "Инициатива" to "Иниц.",
-    "Стойкость" to "Стойк.",
-    "Размер" to "Разм.",
-)
-
 private val PHONE_ATTRIBUTE_LABELS = mapOf(
     AttributeId.CONSTITUTION to "Телосл.",
     AttributeId.PERCEPTION to "Воспр.",
 )
 
-/** Six metric tiles fit a phone row only with short labels. */
-internal fun sheetPhoneMetricLabel(label: String): String = PHONE_METRIC_LABELS[label] ?: label
+/**
+ * The six metric tiles always sit in a 3×2 grid: six phone columns leave a 40dp value box at 360dp
+ * («10» is 42dp wide), and six columns next to the docked tray clip «7.5» at 1100dp.
+ * Three columns also leave room for the full labels on phones.
+ */
+@Suppress("UNUSED_PARAMETER")
+internal fun sheetMetricColumns(layout: SheetLayout): Int = 3
 
 /** Phone attribute tiles: full titles except the two that do not fit. */
 internal fun sheetPhoneAttributeLabel(id: AttributeId): String = PHONE_ATTRIBUTE_LABELS[id] ?: id.title
@@ -89,10 +87,17 @@ fun SheetScreen(host: DublSheetHost, onEdit: () -> Unit, onOpenSkills: () -> Uni
                 }
             }
         }
-        if (layout != SheetLayout.WIDE_WITH_TRAY && state.rollOpen && state.request != null) {
-            // FuryDialogScaffold scrolls its content and picks sheet or centred panel by width.
-            FuryDialogScaffold(title = "Бросок", onDismiss = state::dismiss) {
-                SheetScreenRoll(host, state, Modifier.fillMaxWidth())
+        val dialogRequest = state.request
+        if (layout != SheetLayout.WIDE_WITH_TRAY && state.rollOpen && dialogRequest != null) {
+            // FuryDialogScaffold scrolls its content and picks sheet or centred panel by width. The roll
+            // button sits in its pinned footer, so «Бросить снова» stays in view under a long result.
+            val blocked = sheetRollOptions(host, dialogRequest).blockedReason
+            FuryDialogScaffold(
+                title = "Бросок",
+                onDismiss = state::dismiss,
+                primary = FuryDialogAction(sheetRollButtonLabel(state.result != null), { state.roll(host) }, enabled = blocked == null),
+            ) {
+                SheetScreenRoll(host, state, Modifier.fillMaxWidth(), inlineRollButton = false)
             }
         }
     }
@@ -109,12 +114,15 @@ private fun SheetScrollColumn(modifier: Modifier, content: @Composable () -> Uni
 @Composable
 private fun SheetScreenHeader(host: DublSheetHost, layout: SheetLayout, onEdit: () -> Unit, modifier: Modifier) {
     val character = host.active
-    val economy = CharacterEconomy.breakdown(
-        character,
-        host.developmentCatalog,
-        // Desktop/Android pass "the chi pack mounts the XP line"; only the chi pack declares that mount.
-        includeChi = host.chiPackEnabled,
-    )
+    // Recomputed only when the character, its extras or the chi pack change, not on every recomposition.
+    val economy = remember(host, character, host.extras, host.chiPackEnabled) {
+        CharacterEconomy.breakdown(
+            character,
+            host.developmentCatalog,
+            // Desktop/Android pass "the chi pack mounts the XP line"; only the chi pack declares that mount.
+            includeChi = host.chiPackEnabled,
+        )
+    }
     SheetHeader(
         name = character.name,
         concept = character.concept,
@@ -153,12 +161,8 @@ private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: She
     )
     val metrics = sheetMetrics(character)
     SheetStatGrid(
-        stats = if (phone) metrics.map { it.copy(label = sheetPhoneMetricLabel(it.label)) } else metrics,
-        columns = when (layout) {
-            SheetLayout.PHONE -> 6
-            SheetLayout.WIDE -> 3
-            SheetLayout.WIDE_WITH_TRAY -> 6
-        },
+        stats = metrics,
+        columns = sheetMetricColumns(layout),
         compact = phone,
         onRoll = open,
     )
@@ -172,8 +176,9 @@ private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: She
         onRoll = open,
     )
     SheetSection("Умения")
+    val skillGroups = remember(host, character, host.extras, host.chiPackEnabled) { sheetSkillGroups(host) }
     SheetSkills(
-        groups = sheetSkillGroups(host),
+        groups = skillGroups,
         columns = if (phone) 1 else 2,
         onRoll = { skillId -> open(SheetRollSubject.Skill(skillId)) },
         onOpenAll = onOpenSkills,
@@ -192,7 +197,7 @@ private fun SheetSection(title: String) {
 
 /** The roll panel for the current setup, or the tray's empty state before anything was tapped. */
 @Composable
-private fun SheetScreenRoll(host: DublSheetHost, state: SheetScreenState, modifier: Modifier) {
+private fun SheetScreenRoll(host: DublSheetHost, state: SheetScreenState, modifier: Modifier, inlineRollButton: Boolean = true) {
     val request = state.request
     if (request == null) {
         FuryRollTray(view = null, history = state.history, onRollAgain = {}, modifier = modifier)
@@ -207,5 +212,6 @@ private fun SheetScreenRoll(host: DublSheetHost, state: SheetScreenState, modifi
         onFollowUp = { state.followUp() },
         history = state.history,
         modifier = modifier,
+        showRollButton = inlineRollButton,
     )
 }

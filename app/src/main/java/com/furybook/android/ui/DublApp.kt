@@ -1,5 +1,6 @@
 package com.furybook.android.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -233,6 +234,8 @@ private fun AndroidSheet(
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var editing by remember { mutableStateOf(false) }
+    // Back from «Правка» returns to the play sheet instead of leaving the app.
+    BackHandler(enabled = editing) { editing = false }
     if (editing) {
         Column(Modifier.fillMaxSize()) {
             FuryButton(

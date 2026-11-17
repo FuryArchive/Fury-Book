@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -68,7 +70,10 @@ fun furyRollBreakdown(view: FuryRollView): String = buildString {
  * [controls] is where the caller puts advantage, hindrance and modifier buttons.
  * With [emptyRollLabel] set, the controls and a roll button with that label also show before the
  * first roll. With [blockedReason] set, the roll button is disabled and that line shows under it.
+ * With [showRollButton] false the caller puts the roll button elsewhere (a dialog's pinned footer);
+ * the blocked reason still shows here.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FuryRollTray(
     view: FuryRollView?,
@@ -78,6 +83,7 @@ fun FuryRollTray(
     emptyText: String = "Нажмите на характеристику или умение, чтобы бросить",
     emptyRollLabel: String? = null,
     blockedReason: String? = null,
+    showRollButton: Boolean = true,
     controls: @Composable RowScope.() -> Unit = {},
 ) {
     Column(
@@ -99,7 +105,11 @@ fun FuryRollTray(
             if (!view.specialResult.isNullOrBlank()) {
                 Text(view.specialResult, color = FuryOnAccentFill, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalAlignment = Alignment.CenterVertically) {
+            // Up to 2 + 9 dice with advantage/hindrance: wrap instead of squeezing the last ones to zero width.
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm),
+                verticalArrangement = Arrangement.spacedBy(FurySpacing.sm),
+            ) {
                 view.dice.forEachIndexed { index, face ->
                     Box(
                         Modifier.size(44.dp).alpha(if (index in view.keptDice) 1f else DROPPED_DIE_ALPHA)
@@ -124,8 +134,10 @@ fun FuryRollTray(
         }
         if (view != null || emptyRollLabel != null) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), content = controls)
-            val label = if (view == null) emptyRollLabel.orEmpty() else "Бросить снова"
-            FuryButton(label, onRollAgain, Modifier.fillMaxWidth(), style = FuryButtonStyle.OnAccent, enabled = blockedReason == null)
+            if (showRollButton) {
+                val label = if (view == null) emptyRollLabel.orEmpty() else "Бросить снова"
+                FuryButton(label, onRollAgain, Modifier.fillMaxWidth(), style = FuryButtonStyle.OnAccent, enabled = blockedReason == null)
+            }
             if (blockedReason != null) {
                 Text(blockedReason, color = FuryOnAccentFill, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
             }

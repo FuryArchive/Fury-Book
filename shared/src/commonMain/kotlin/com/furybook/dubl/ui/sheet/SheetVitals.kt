@@ -31,6 +31,8 @@ import com.furybook.ui.theme.FuryShapes
 import com.furybook.ui.theme.FurySpacing
 import com.furybook.ui.theme.furyOverlineStyle
 
+internal const val SHEET_NO_VISIBLE_VITALS = "Нет видимых ресурсов"
+
 internal fun sheetVitalColor(color: SheetVitalColor): Color = when (color) {
     SheetVitalColor.HEALTH -> DublHealth
     SheetVitalColor.STAMINA -> DublStamina
@@ -53,6 +55,10 @@ fun SheetVitals(
 ) {
     val perRow = if (compact) 1 else 3
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+        if (vitals.isEmpty()) {
+            // Desktop HeroResources wording, for a sheet whose every resource is hidden.
+            Text(SHEET_NO_VISIBLE_VITALS, color = DublMuted, style = MaterialTheme.typography.bodyMedium)
+        }
         vitals.chunked(perRow).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
                 row.forEach { vital ->

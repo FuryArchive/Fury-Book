@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -75,6 +76,7 @@ fun FuryDialogScaffold(
     secondary: FuryDialogAction? = null,
     destructive: FuryDialogAction? = null,
     maxWidth: Dp = 560.dp,
+    subtitleMaxLines: Int = Int.MAX_VALUE,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
@@ -112,7 +114,10 @@ fun FuryDialogScaffold(
                     Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(title, color = DublText, style = MaterialTheme.typography.titleLarge)
                         if (!subtitle.isNullOrBlank()) {
-                            Text(subtitle, color = DublMuted, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                subtitle, color = DublMuted, style = MaterialTheme.typography.bodyMedium,
+                                maxLines = subtitleMaxLines, overflow = TextOverflow.Ellipsis,
+                            )
                         }
                     }
                     FuryIconButton("Закрыть", onDismiss) {

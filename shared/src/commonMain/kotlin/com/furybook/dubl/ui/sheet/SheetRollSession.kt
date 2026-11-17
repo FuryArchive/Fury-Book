@@ -220,6 +220,24 @@ private fun resolveContextRoll(
 fun sheetRollOptions(host: DublSheetHost, request: SheetRollRequest): SheetRollOptions =
     resolveSheetRoll(host, request).options
 
+/**
+ * The pre-roll line: "Бонус проверки +7 · 2d6 + Ловкость + Атлетика", with toggled/automatic skill
+ * effects added as a term. Null while the roll has no bonus (its blocked reason explains why).
+ */
+fun sheetRollFormulaLine(host: DublSheetHost, request: SheetRollRequest): String? {
+    val resolved = resolveSheetRoll(host, request)
+    val preset = resolved.options.preset
+    val bonus = preset.bonus ?: return null
+    val effects = resolved.effectTerm
+    val formula = preset.formulaText.ifBlank { null }?.let { text ->
+        if (effects != 0) "$text + Эффекты (${signed(effects)})" else text
+    }
+    return buildString {
+        append("Бонус проверки ").append(signed(bonus + effects))
+        if (formula != null) append(" · ").append(formula)
+    }
+}
+
 /** Rolls the request through the shared engine, or returns null when [SheetRollOptions.blockedReason] is set. */
 fun performSheetRoll(
     host: DublSheetHost,
