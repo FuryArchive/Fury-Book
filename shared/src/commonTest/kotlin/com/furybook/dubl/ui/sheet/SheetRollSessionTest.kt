@@ -190,4 +190,32 @@ class SheetRollSessionTest {
         assertEquals(result.specialResult?.title, view.specialResult)
         assertEquals("Красноречие + Харизма", result.checkBonusLabel)
     }
+
+    @Test
+    fun skillAndContextRemindersSurfaceLikeDesktop() {
+        val catalog = SkillEffectCatalog(
+            "test",
+            listOf(
+                SkillEffectDefinition(
+                    "talk-reminder", 2, "Косноязычие", "Можно перебросить 1", "", "", "",
+                    SkillEffectMode.REMINDER, RollContext.SKILL, listOf("Красноречие"), 0, false,
+                    "", developmentId = "clumsy",
+                ),
+                SkillEffectDefinition(
+                    "attack-reminder", 3, "Косноязычие", "Враг отвлечён", "", "", "",
+                    SkillEffectMode.REMINDER, RollContext.ATTACK, emptyList(), 0, false,
+                    "", developmentId = "clumsy",
+                ),
+            ),
+        )
+        val host = EffectHost(FakeSheetHost(hornet), catalog)
+
+        val skill = sheetRollOptions(host, SheetRollRequest(SheetRollSubject.Skill("eloquence")))
+        val flurry = sheetRollOptions(host, SheetRollRequest(SheetRollSubject.Context(RollContext.FLURRY), skillId = "melee_weapon"))
+        val dodge = sheetRollOptions(host, SheetRollRequest(SheetRollSubject.Context(RollContext.DODGE)))
+
+        assertEquals(listOf("Косноязычие: Можно перебросить 1"), skill.reminders)
+        assertEquals(listOf("Косноязычие: Враг отвлечён"), flurry.reminders)
+        assertEquals(emptyList<String>(), dodge.reminders)
+    }
 }

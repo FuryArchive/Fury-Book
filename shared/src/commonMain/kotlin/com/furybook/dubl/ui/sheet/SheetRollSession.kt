@@ -15,6 +15,7 @@ import com.furybook.dubl.model.allowedAttributes
 import com.furybook.dubl.model.allowedSkillIds
 import com.furybook.dubl.model.availableFollowUp
 import com.furybook.dubl.model.compareRollToTarget
+import com.furybook.dubl.model.developmentNormalize
 import com.furybook.dubl.model.resolve
 import com.furybook.dubl.model.resolveAttack
 import com.furybook.dubl.model.resolveSkill
@@ -58,6 +59,7 @@ data class SheetRollOptions(
     val effectToggles: List<Pair<String, String>>, // id to label, from SkillEffectRules
     val preset: CharacterRollPreset,
     val blockedReason: String?, // e.g. preset unavailable, or both advantage and hindrance
+    val reminders: List<String> = emptyList(), // "Источник: текст", as the desktop dialogs list them
 )
 
 private const val BOTH_MODES_REASON = "Нельзя бросать с преимуществом и помехой одновременно"
@@ -138,6 +140,7 @@ private fun resolveSkillRoll(host: DublSheetHost, request: SheetRollRequest, ski
         effectToggles = effects.options.map { it.id to it.label },
         preset = preset,
         blockedReason = blockedReason,
+        reminders = effects.reminders.map { "${it.sourceName}: ${it.effectText}" },
     )
     return ResolvedSheetRoll(
         options = options,
@@ -179,6 +182,11 @@ private fun resolveContextRoll(
     } else {
         basePreset
     }
+    // Desktop ContextRollDialog: flurry uses the attack reminders; effects already in the preset are skipped.
+    val alreadyAppliedLabels = preset.contributions.map { developmentNormalize(it.label) }.toSet()
+    val reminders = SkillEffectRules(character, host.developmentCatalog, host.skillEffectCatalog)
+        .forContext(if (context == RollContext.FLURRY) RollContext.ATTACK else context)
+        .filterNot { developmentNormalize(it.sourceName) in alreadyAppliedLabels }
     val manual = request.manualEffectCount.coerceIn(1, 9)
     val adv = if (request.mode == RollMode.ADVANTAGE) manual else 0
     val hind = if (request.mode == RollMode.HINDRANCE) manual else 0
@@ -194,6 +202,7 @@ private fun resolveContextRoll(
         effectToggles = emptyList(),
         preset = preset,
         blockedReason = if (preset.available) null else preset.unavailableReason.ifBlank { UNAVAILABLE_REASON },
+        reminders = reminders.map { "${it.sourceName}: ${it.effectText}" },
     )
     return ResolvedSheetRoll(
         options = options,
