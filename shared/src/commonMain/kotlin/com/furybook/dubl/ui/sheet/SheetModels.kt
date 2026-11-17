@@ -44,7 +44,20 @@ data class SheetStat(
     val info: SheetStatId? = null,
 )
 
-data class SheetSkillRow(val skillId: String, val name: String, val attributeLabel: String, val rank: Int, val bonus: Int?)
+/**
+ * [perkMark] is «+N» when perks add N automatically, «★» when they only offer roll options or reminders;
+ * [perkTip] names those perks. [breakdown] explains the bonus («… 2d6 + 15 (Ловкость 8 + ранг 7)»).
+ */
+data class SheetSkillRow(
+    val skillId: String,
+    val name: String,
+    val attributeLabel: String,
+    val rank: Int,
+    val bonus: Int?,
+    val perkMark: String? = null,
+    val perkTip: String? = null,
+    val breakdown: String = "",
+)
 
 /** [id] is the persisted [SheetGroup] id; [collapsed] mirrors it (desktop hides a collapsed group's rows). */
 data class SheetSkillGroup(
@@ -64,7 +77,15 @@ data class SheetConditionChip(
     val active: Boolean,
     val custom: Boolean,
     val automatic: Boolean = false,
+    /** What the condition does: the player's override, the catalog text, or the custom condition's own text. */
+    val description: String = "",
+    val kind: SheetConditionKind = SheetConditionKind.HARMFUL,
 )
+
+/** Chip colour family: built-in conditions are harmful except the few that help; custom ones are their own family. */
+enum class SheetConditionKind { HARMFUL, HELPFUL, CUSTOM }
+
+private val HELPFUL_CONDITIONS = setOf(CharacterConditionId.INSPIRED, CharacterConditionId.INVISIBILITY)
 
 /** Same quick checks, same order, as the desktop «Боевые действия» panel. */
 val SHEET_COMBAT_CONTEXTS: List<RollContext> = listOf(
@@ -223,10 +244,16 @@ fun sheetActiveConditions(host: DublSheetHost): List<SheetConditionChip> {
             custom = false,
             // Desktop HeroConditions: only the endurance-driven Слабость the player did not set is automatic.
             automatic = condition == CharacterConditionId.WEAKNESS && condition !in extras.activeConditions,
+            description = extras.conditionOverrides[condition]?.description?.takeIf { it.isNotBlank() }
+                ?: host.conditionCatalog.summary(condition),
+            kind = if (condition in HELPFUL_CONDITIONS) SheetConditionKind.HELPFUL else SheetConditionKind.HARMFUL,
         )
     }
     val custom = extras.customConditions.filter { it.active }.map {
-        SheetConditionChip(key = it.id, title = it.title, active = true, custom = true)
+        SheetConditionChip(
+            key = it.id, title = it.title, active = true, custom = true,
+            description = it.description, kind = SheetConditionKind.CUSTOM,
+        )
     }
     return builtIn + custom
 }

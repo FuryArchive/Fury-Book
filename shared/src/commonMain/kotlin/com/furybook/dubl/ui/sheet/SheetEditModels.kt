@@ -144,7 +144,7 @@ fun healthCriticalLevel(current: Int, maximum: Int): Int {
     return 0
 }
 
-private fun developmentRules(host: DublSheetHost): DevelopmentRules {
+internal fun developmentRules(host: DublSheetHost): DevelopmentRules {
     val character = host.active
     return DevelopmentRules(character, host.developmentCatalog, DevelopmentProgress(character.development))
 }
