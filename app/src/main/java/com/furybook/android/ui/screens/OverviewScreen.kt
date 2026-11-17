@@ -1611,26 +1611,35 @@ private fun ConditionChip(
 private fun RecentChangeBar(
     change: RecentChange,
     onUndo: (() -> Unit)?,
+) = RecentChangeBar(text = change.text, accent = change.accent, onUndo = onUndo)
+
+/** The undo bar; also shown by the shell for changes made on the shared play sheet. */
+@Composable
+internal fun RecentChangeBar(
+    text: String,
+    accent: Color,
+    onUndo: (() -> Unit)?,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(9.dp),
-        color = change.accent.copy(alpha = 0.08f),
-        border = BorderStroke(1.dp, change.accent.copy(alpha = 0.24f)),
+        color = accent.copy(alpha = 0.08f),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.24f)),
     ) {
         Row(
             modifier = Modifier.padding(start = 11.dp, end = 5.dp, top = 4.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Последнее: ${change.text}",
+                text = "Последнее: $text",
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.labelLarge,
-                color = change.accent,
+                color = accent,
             )
             if (onUndo != null) {
                 TextButton(onClick = onUndo) {
-                    Text("Отменить", color = change.accent)
+                    Text("Отменить", color = accent)
                 }
             }
         }

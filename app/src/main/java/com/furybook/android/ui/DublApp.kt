@@ -1,21 +1,15 @@
 package com.furybook.android.ui
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -30,11 +24,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -57,10 +46,21 @@ import com.furybook.android.ui.screens.MagicScreen
 import com.furybook.android.ui.screens.OverviewScreen
 import com.furybook.android.ui.screens.SkillsScreen
 import com.furybook.dubl.content.DublChiFcp
-import com.furybook.ui.theme.DublAccentSoft
+import com.furybook.android.ui.screens.RecentChangeBar
+import com.furybook.dubl.ui.sheet.SheetChangeReportingHost
+import com.furybook.dubl.ui.sheet.SheetScreen
+import com.furybook.ui.components.FuryButton
+import com.furybook.ui.components.FuryButtonStyle
+import com.furybook.ui.components.FuryCharacterPicker
+import com.furybook.ui.components.FuryShell
+import com.furybook.ui.components.FuryShellCharacter
+import com.furybook.ui.components.FuryShellSection
+import com.furybook.ui.theme.DublAccent
 import com.furybook.ui.theme.DublFocus
 import com.furybook.ui.theme.DublMuted
+import com.furybook.ui.theme.DublSurface
 import com.furybook.ui.theme.DublSurfaceInset
+import kotlinx.coroutines.delay
 
 private enum class AppSection(val label: String) {
     OVERVIEW("Лист"),
@@ -131,24 +131,26 @@ fun DublApp() {
         }
     }
 
+    var characterPickerOpen by remember { mutableStateOf(false) }
+
     Scaffold(
         modifier = Modifier.dismissKeyboardOnPointerDown(),
         containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            DublBottomBar(
-                selected = pendingSection ?: selected,
-                onSelected = { target ->
-                    if (pendingSection == null && target != selected) {
-                        when (target) {
-                            AppSection.FEATS -> pendingSection = AppSection.FEATS
-                            else -> selected = target
-                        }
-                    }
-                },
-            )
-        },
     ) { innerPadding ->
-        Box(
+        FuryShell(
+            title = "FURY BOOK",
+            characterName = controller.active.name,
+            sections = AppSection.entries.map { FuryShellSection(it, it.label, primary = it.primary) },
+            selected = pendingSection ?: selected,
+            onSelect = { target ->
+                if (pendingSection == null && target != selected) {
+                    when (target) {
+                        AppSection.FEATS -> pendingSection = AppSection.FEATS
+                        else -> selected = target
+                    }
+                }
+            },
+            onSwitchCharacter = { characterPickerOpen = true },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
@@ -157,7 +159,11 @@ fun DublApp() {
                 DevelopmentNavigationLoadingScreen()
             } else {
                 when (selected) {
-                    AppSection.OVERVIEW -> OverviewScreen(controller, chiPackEnabled)
+                    AppSection.OVERVIEW -> AndroidSheet(
+                        controller = controller,
+                        chiPackEnabled = chiPackEnabled,
+                        onOpenSkills = { selected = AppSection.SKILLS },
+                    )
                     AppSection.SKILLS -> SkillsScreen(controller)
                     AppSection.FEATS -> FeatsScreen(controller, chiPackEnabled)
                     AppSection.MAGIC -> MagicScreen(controller)
@@ -184,6 +190,88 @@ fun DublApp() {
                     )
                 }
             }
+        }
+    }
+
+    if (characterPickerOpen) {
+        FuryCharacterPicker(
+            characters = controller.snapshot.characters.map { FuryShellCharacter(it.id, it.name) },
+            activeId = controller.snapshot.activeCharacterId,
+            onSelect = { id ->
+                controller.selectCharacter(id)
+                pendingSection = null
+                selected = AppSection.OVERVIEW
+            },
+            onManage = {
+                pendingSection = null
+                selected = AppSection.MORE
+            },
+            onDismiss = { characterPickerOpen = false },
+        )
+    }
+}
+
+/** Phones show the five play sections as bottom tabs; campaign and «Ещё» sit behind «Меню». */
+private val AppSection.primary: Boolean
+    get() = this != AppSection.CAMPAIGN && this != AppSection.MORE
+
+private data class SheetToast(val text: String, val canUndo: Boolean, val token: Int)
+
+/**
+ * The shared play sheet, or the old [OverviewScreen] behind «Правка». Changes made on the play
+ * sheet raise the same «Последнее: … / Отменить» bar the old sheet shows, and «Отменить» calls the
+ * same one-step [CharacterController.undoLast].
+ */
+@Composable
+private fun AndroidSheet(
+    controller: CharacterController,
+    chiPackEnabled: Boolean,
+    onOpenSkills: () -> Unit,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var editing by remember { mutableStateOf(false) }
+    if (editing) {
+        Column(Modifier.fillMaxSize()) {
+            FuryButton(
+                text = "Готово",
+                onClick = { editing = false },
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
+                style = FuryButtonStyle.Primary,
+            )
+            Box(Modifier.weight(1f).fillMaxWidth()) {
+                OverviewScreen(controller, chiPackEnabled)
+            }
+        }
+        return
+    }
+    var toast by remember(controller.active.id) { mutableStateOf<SheetToast?>(null) }
+    var toastCount by remember { mutableStateOf(0) }
+    val baseHost = rememberAndroidSheetHost(controller, context, chiPackEnabled)
+    val host = remember(baseHost) {
+        SheetChangeReportingHost(baseHost) { text -> toast = SheetToast(text, controller.canUndo, ++toastCount) }
+    }
+    LaunchedEffect(toast?.token) {
+        if (toast != null) {
+            delay(6000)
+            toast = null
+        }
+    }
+    Box(Modifier.fillMaxSize()) {
+        SheetScreen(host, onEdit = { editing = true }, onOpenSkills = onOpenSkills)
+        toast?.let { shown ->
+            val undoShown: () -> Unit = {
+                controller.undoLast()
+                toast = null
+            }
+            RecentChangeBar(
+                text = shown.text,
+                accent = DublAccent,
+                onUndo = undoShown.takeIf { shown.canUndo },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .background(DublSurface, RoundedCornerShape(9.dp)),
+            )
         }
     }
 }
@@ -223,149 +311,6 @@ private fun DevelopmentNavigationLoadingScreen() {
                     color = DublMuted,
                     textAlign = TextAlign.Center,
                 )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DublBottomBar(
-    selected: AppSection,
-    onSelected: (AppSection) -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(DublSurfaceInset)
-            .navigationBarsPadding(),
-    ) {
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.72f),
-            thickness = 1.dp,
-        )
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = DublSurfaceInset,
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(74.dp)
-                    .padding(horizontal = 4.dp, vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(2.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                AppSection.entries.filter { it != AppSection.CAMPAIGN }.forEach { section ->
-                    val active = selected == section
-                    Surface(
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(64.dp)
-                            .clickable { onSelected(section) },
-                        shape = RoundedCornerShape(13.dp),
-                        color = if (active) DublAccentSoft.copy(alpha = 0.92f) else DublSurfaceInset,
-                        border = if (active) {
-                            BorderStroke(1.dp, DublFocus.copy(alpha = 0.28f))
-                        } else {
-                            null
-                        },
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(horizontal = 2.dp, vertical = 4.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            DublNavIcon(
-                                section = section,
-                                color = if (active) DublFocus else DublMuted,
-                            )
-                            Text(
-                                text = section.label,
-                                fontSize = 9.5.sp,
-                                lineHeight = 12.sp,
-                                fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
-                                color = if (active) MaterialTheme.colorScheme.onSurface else DublMuted,
-                                maxLines = 1,
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-
-@Composable
-private fun DublNavIcon(
-    section: AppSection,
-    color: Color,
-) {
-    Canvas(modifier = Modifier.size(30.dp)) {
-        val w = size.width
-        val h = size.height
-        val stroke = 2.1.dp.toPx()
-        val cap = StrokeCap.Round
-
-        when (section) {
-            AppSection.OVERVIEW -> {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(w * 0.22f, h * 0.14f),
-                    size = androidx.compose.ui.geometry.Size(w * 0.56f, h * 0.72f),
-                    cornerRadius = CornerRadius(w * 0.10f, w * 0.10f),
-                    style = Stroke(width = stroke),
-                )
-                drawLine(color, Offset(w * 0.34f, h * 0.40f), Offset(w * 0.66f, h * 0.40f), stroke, cap)
-                drawLine(color, Offset(w * 0.34f, h * 0.58f), Offset(w * 0.60f, h * 0.58f), stroke, cap)
-            }
-            AppSection.SKILLS -> {
-                listOf(0.28f, 0.50f, 0.72f).forEach { y ->
-                    drawCircle(color, radius = w * 0.055f, center = Offset(w * 0.24f, h * y))
-                    drawLine(color, Offset(w * 0.38f, h * y), Offset(w * 0.78f, h * y), stroke, cap)
-                }
-            }
-            AppSection.FEATS -> {
-                val top = Offset(w * 0.50f, h * 0.22f)
-                val left = Offset(w * 0.28f, h * 0.68f)
-                val right = Offset(w * 0.72f, h * 0.68f)
-                drawLine(color, top, Offset(w * 0.50f, h * 0.47f), stroke, cap)
-                drawLine(color, Offset(w * 0.50f, h * 0.47f), left, stroke, cap)
-                drawLine(color, Offset(w * 0.50f, h * 0.47f), right, stroke, cap)
-                drawCircle(color, radius = w * 0.075f, center = top)
-                drawCircle(color, radius = w * 0.075f, center = left)
-                drawCircle(color, radius = w * 0.075f, center = right)
-            }
-            AppSection.MAGIC -> {
-                drawLine(color, Offset(w * 0.50f, h * 0.14f), Offset(w * 0.50f, h * 0.86f), stroke, cap)
-                drawLine(color, Offset(w * 0.14f, h * 0.50f), Offset(w * 0.86f, h * 0.50f), stroke, cap)
-                drawLine(color, Offset(w * 0.28f, h * 0.28f), Offset(w * 0.72f, h * 0.72f), stroke * 0.8f, cap)
-                drawLine(color, Offset(w * 0.72f, h * 0.28f), Offset(w * 0.28f, h * 0.72f), stroke * 0.8f, cap)
-                drawCircle(color, radius = w * 0.06f, center = Offset(w * 0.50f, h * 0.50f))
-            }
-            AppSection.INVENTORY -> {
-                drawRoundRect(
-                    color = color,
-                    topLeft = Offset(w * 0.18f, h * 0.28f),
-                    size = androidx.compose.ui.geometry.Size(w * 0.64f, h * 0.52f),
-                    cornerRadius = CornerRadius(w * 0.09f, w * 0.09f),
-                    style = Stroke(width = stroke),
-                )
-                drawLine(color, Offset(w * 0.32f, h * 0.28f), Offset(w * 0.40f, h * 0.16f), stroke, cap)
-                drawLine(color, Offset(w * 0.40f, h * 0.16f), Offset(w * 0.60f, h * 0.16f), stroke, cap)
-                drawLine(color, Offset(w * 0.60f, h * 0.16f), Offset(w * 0.68f, h * 0.28f), stroke, cap)
-                drawLine(color, Offset(w * 0.18f, h * 0.47f), Offset(w * 0.82f, h * 0.47f), stroke, cap)
-            }
-            AppSection.CAMPAIGN -> {
-                drawCircle(color, radius = w * 0.10f, center = Offset(w * 0.36f, h * 0.42f), style = Stroke(width = stroke))
-                drawCircle(color, radius = w * 0.10f, center = Offset(w * 0.64f, h * 0.42f), style = Stroke(width = stroke))
-                drawLine(color, Offset(w * 0.24f, h * 0.72f), Offset(w * 0.76f, h * 0.72f), stroke, cap)
-            }
-            AppSection.MORE -> {
-                listOf(0.30f, 0.50f, 0.70f).forEach { x ->
-                    drawCircle(color, radius = w * 0.07f, center = Offset(w * x, h * 0.50f))
-                }
             }
         }
     }

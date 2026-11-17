@@ -1,30 +1,18 @@
 package com.furybook.desktop
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,14 +22,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.zIndex
+import com.furybook.ui.components.FuryButton
+import com.furybook.ui.components.FuryButtonStyle
+import com.furybook.ui.components.FuryCharacterPicker
+import com.furybook.ui.components.FuryShell
+import com.furybook.ui.components.FuryShellCharacter
+import com.furybook.ui.components.FuryShellSection
 import com.furybook.ui.layout.DublLayoutClass
 import com.furybook.ui.layout.layoutClassForWidth
 import com.furybook.ui.theme.DublTheme
@@ -49,20 +42,9 @@ import com.furybook.desktop.screens.CharacterSheetScreen
 import com.furybook.desktop.screens.CampaignScreen
 import com.furybook.desktop.screens.CharactersScreen
 import com.furybook.desktop.screens.DevelopmentScreen
-import com.furybook.desktop.screens.DesktopIcon
-import com.furybook.desktop.screens.DesktopIconKind
-import com.furybook.desktop.screens.DesktopAccent
-import com.furybook.desktop.screens.DesktopAccentSoft
-import com.furybook.desktop.screens.DesktopBackground
-import com.furybook.desktop.screens.DesktopBorder
-import com.furybook.desktop.screens.DesktopGold
-import com.furybook.desktop.screens.DesktopMuted
-import com.furybook.desktop.screens.DesktopSurface
-import com.furybook.desktop.screens.DesktopSurfaceInset
-import com.furybook.desktop.screens.DesktopSurfaceRaised
-import com.furybook.desktop.screens.DesktopText
 import com.furybook.desktop.screens.EquipmentScreen
 import com.furybook.desktop.screens.FuryMotion
+import com.furybook.desktop.screens.FuryUndoToast
 import com.furybook.desktop.screens.MagicScreen
 import com.furybook.desktop.screens.SkillsScreen
 import com.furybook.desktop.cloud.DesktopCloudController
@@ -70,6 +52,9 @@ import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.dubl.data.DesktopCharacterStore
 import com.furybook.dubl.data.DesktopCharacterExtrasStore
+import com.furybook.dubl.ui.sheet.SheetChangeReportingHost
+import com.furybook.dubl.ui.sheet.SheetScreen
+import kotlinx.coroutines.delay
 
 internal enum class DesktopSection(val label: String) {
     SHEET("Лист"),
@@ -131,152 +116,42 @@ private fun DesktopApp() {
         cloudController.updateEnabledPackIds((cloudController.enabledPackIds - availableIds) + activeIds)
     }
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        val layout = layoutClassForWidth(maxWidth.value.toInt())
-        if (layout == DublLayoutClass.COMPACT) {
-            Column(Modifier.fillMaxSize()) {
-                CompactNavigation(selected, { selected = it })
-                DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
-            }
-        } else {
-            Row(Modifier.fillMaxSize()) {
-                DesktopRail(state, selected, { selected = it }, Modifier.width(230.dp).fillMaxHeight())
-                DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-@Composable
-private fun DesktopRail(
-    state: DesktopAppState,
-    selected: DesktopSection,
-    onSelected: (DesktopSection) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var switcherOpen by remember { mutableStateOf(false) }
-    Column(
-        modifier = modifier.background(DesktopSurfaceInset).padding(horizontal = 14.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+    var characterPickerOpen by remember { mutableStateOf(false) }
+    FuryShell(
+        title = "FURY BOOK",
+        characterName = state.activeCharacter.name,
+        sections = DesktopSection.entries.map { FuryShellSection(it, it.shellLabel, primary = it.primary) },
+        selected = selected,
+        onSelect = { selected = it },
+        onSwitchCharacter = { characterPickerOpen = true },
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
     ) {
-        Text(
-            "Fury Book",
-            style = MaterialTheme.typography.headlineMedium,
-            color = DesktopAccent,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-        )
-        Text(
-            "DUBL 3.69",
-            color = DesktopMuted,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(horizontal = 8.dp),
-        )
-        Surface(
-            modifier = Modifier.fillMaxWidth().clickable { switcherOpen = true },
-            color = DesktopSurfaceRaised,
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.52f)),
-        ) {
-            Column(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(state.activeCharacter.name, fontWeight = FontWeight.SemiBold, maxLines = 2)
-                Text("${state.activeCharacter.experience} XP · сменить ▼", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
-            }
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val layout = layoutClassForWidth(maxWidth.value.toInt())
+            DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.fillMaxSize())
         }
-        DropdownMenu(expanded = switcherOpen, onDismissRequest = { switcherOpen = false }) {
-            state.snapshot.characters.forEach { character ->
-                DropdownMenuItem(
-                    text = { Text(if (character.id == state.snapshot.activeCharacterId) "✓ ${character.name}" else character.name) },
-                    onClick = {
-                        state.selectCharacter(character.id)
-                        switcherOpen = false
-                        onSelected(DesktopSection.SHEET)
-                    },
-                )
-            }
-            DropdownMenuItem(
-                text = { Text("Управление персонажами…") },
-                onClick = { switcherOpen = false; onSelected(DesktopSection.CHARACTERS) },
-            )
-        }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
-        DesktopSection.entries.filter { it != DesktopSection.CHARACTERS }.forEach { section ->
-            NavigationItem(section, section == selected, { onSelected(section) }, Modifier.fillMaxWidth())
-        }
-        Spacer(Modifier.weight(1f))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
-        NavigationItem(DesktopSection.CHARACTERS,
-            DesktopSection.CHARACTERS == selected,
-            { onSelected(DesktopSection.CHARACTERS) },
-            Modifier.fillMaxWidth(),
+    }
+    if (characterPickerOpen) {
+        FuryCharacterPicker(
+            characters = state.snapshot.characters.map { FuryShellCharacter(it.id, it.name) },
+            activeId = state.snapshot.activeCharacterId,
+            onSelect = { id ->
+                state.selectCharacter(id)
+                selected = DesktopSection.SHEET
+            },
+            onManage = { selected = DesktopSection.CHARACTERS },
+            onDismiss = { characterPickerOpen = false },
         )
     }
 }
 
-@Composable
-private fun CompactNavigation(selected: DesktopSection, onSelected: (DesktopSection) -> Unit) {
-    Column(Modifier.fillMaxWidth().background(DesktopSurfaceInset).padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        DesktopSection.entries.chunked(3).forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                row.forEach { section -> NavigationItem(section, section == selected, { onSelected(section) }, Modifier.weight(1f)) }
-                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
-            }
-        }
-    }
-}
+/** Phones show the five play sections as bottom tabs; campaign and characters sit behind «Меню». */
+private val DesktopSection.primary: Boolean
+    get() = this != DesktopSection.CAMPAIGN && this != DesktopSection.CHARACTERS
 
-@Composable
-private fun NavigationItem(section: DesktopSection, active: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val background by animateColorAsState(
-        targetValue = if (active) DesktopAccentSoft else Color.Transparent,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "navigation-background",
-    )
-    val iconColor by animateColorAsState(
-        targetValue = if (active) DesktopAccent else DesktopMuted,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "navigation-icon",
-    )
-    val textColor by animateColorAsState(
-        targetValue = if (active) MaterialTheme.colorScheme.onSurface else DesktopMuted,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "navigation-text",
-    )
-    Surface(
-        modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
-        color = background,
-        border = if (active) BorderStroke(1.dp, DesktopAccent.copy(alpha = 0.32f)) else null,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            DesktopIcon(
-                kind = section.iconKind,
-                tint = iconColor,
-                size = 20.dp,
-            )
-            Text(
-                section.label,
-                fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
-                color = textColor,
-            )
-        }
-    }
-}
-
-private val DesktopSection.iconKind: DesktopIconKind
-    get() = when (this) {
-        DesktopSection.SHEET -> DesktopIconKind.SHEET
-        DesktopSection.SKILLS -> DesktopIconKind.SKILLS
-        DesktopSection.DEVELOPMENT -> DesktopIconKind.DEVELOPMENT
-        DesktopSection.MAGIC -> DesktopIconKind.MAGIC
-        DesktopSection.EQUIPMENT -> DesktopIconKind.EQUIPMENT
-        DesktopSection.CAMPAIGN -> DesktopIconKind.CHARACTERS
-        DesktopSection.CHARACTERS -> DesktopIconKind.CHARACTERS
-    }
+/** «Снаряжение» does not fit a fifth of a phone; the shell uses the spec's «Вещи». */
+private val DesktopSection.shellLabel: String
+    get() = if (this == DesktopSection.EQUIPMENT) "Вещи" else label
 
 @Composable
 private fun DesktopContent(
@@ -308,18 +183,18 @@ private fun DesktopContent(
                 animationSpec = tween(FuryMotion.FastMs),
                 label = "desktop-section-enter",
             )
-            val animatedPageModifier = pageModifier.graphicsLayer {
+            val enter = Modifier.graphicsLayer {
                 alpha = pageProgress
                 translationY = (1f - pageProgress) * 6f
             }
+            val animatedPageModifier = pageModifier.then(enter)
             when (section) {
-                DesktopSection.SHEET -> CharacterSheetScreen(
+                // The shared sheet pads itself and picks its layout from the full content width.
+                DesktopSection.SHEET -> DesktopSheet(
                     state = state,
-                    modifier = animatedPageModifier,
-                    onNavigateSkills = { onNavigate(DesktopSection.SKILLS) },
-                    onNavigateDevelopment = { onNavigate(DesktopSection.DEVELOPMENT) },
-                    onNavigateMagic = { onNavigate(DesktopSection.MAGIC) },
-                    onNavigateEquipment = { onNavigate(DesktopSection.EQUIPMENT) },
+                    onNavigate = onNavigate,
+                    playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
+                    editModifier = animatedPageModifier,
                 )
                 DesktopSection.SKILLS -> SkillsScreen(state, animatedPageModifier)
                 DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
@@ -328,6 +203,66 @@ private fun DesktopContent(
                 DesktopSection.CAMPAIGN -> CampaignScreen(state, cloudController, animatedPageModifier)
                 DesktopSection.CHARACTERS -> CharactersScreen(state, cloudController, animatedPageModifier)
             }
+        }
+    }
+}
+
+private data class SheetToast(val text: String, val canUndo: Boolean, val token: Int)
+
+/**
+ * The play view, or the old sheet behind «Правка». Changes made on the play view raise the same
+ * undo toast the old sheet shows, and «Отменить» calls the same one-step [DesktopAppState.undoLast].
+ */
+@Composable
+private fun DesktopSheet(
+    state: DesktopAppState,
+    onNavigate: (DesktopSection) -> Unit,
+    playModifier: Modifier,
+    editModifier: Modifier,
+) {
+    var editing by remember { mutableStateOf(false) }
+    if (editing) {
+        Column(editModifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            FuryButton("Готово", onClick = { editing = false }, style = FuryButtonStyle.Primary)
+            CharacterSheetScreen(
+                state = state,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                onNavigateSkills = { onNavigate(DesktopSection.SKILLS) },
+                onNavigateDevelopment = { onNavigate(DesktopSection.DEVELOPMENT) },
+                onNavigateMagic = { onNavigate(DesktopSection.MAGIC) },
+                onNavigateEquipment = { onNavigate(DesktopSection.EQUIPMENT) },
+            )
+        }
+        return
+    }
+    var toast by remember(state.activeCharacter.id) { mutableStateOf<SheetToast?>(null) }
+    var toastHovered by remember(state.activeCharacter.id) { mutableStateOf(false) }
+    var toastCount by remember { mutableStateOf(0) }
+    val host = remember(state) {
+        SheetChangeReportingHost(state) { text -> toast = SheetToast(text, state.canUndo, ++toastCount) }
+    }
+    LaunchedEffect(toast, toastHovered) {
+        val shown = toast ?: return@LaunchedEffect
+        if (!toastHovered) {
+            delay(FuryMotion.UndoToastDurationMs)
+            if (toast == shown && !toastHovered) toast = null
+        }
+    }
+    Box(playModifier) {
+        SheetScreen(host, onEdit = { editing = true }, onOpenSkills = { onNavigate(DesktopSection.SKILLS) })
+        toast?.let { shown ->
+            FuryUndoToast(
+                text = shown.text,
+                canUndo = shown.canUndo,
+                onUndo = {
+                    if (shown.canUndo) state.undoLast()
+                    toast = null
+                },
+                onDismiss = { toast = null; toastHovered = false },
+                onHoverChange = { toastHovered = it },
+                modifier = Modifier.align(Alignment.TopCenter).padding(horizontal = 18.dp, vertical = 10.dp)
+                    .widthIn(max = 860.dp).fillMaxWidth().zIndex(40f),
+            )
         }
     }
 }
