@@ -16,9 +16,11 @@ def test_desktop_workspace_caps_ultrawide_stretch_and_rail_has_no_prototype_foot
     assert '.widthIn(max = 2160.dp)' in main
     assert 'contentAlignment = Alignment.TopCenter' in main
     assert 'Desktop 0.2 · Compose parity' not in main
-    assert 'Modifier.width(230.dp)' in main
-    assert 'DesktopSection.entries.filter { it != DesktopSection.CHARACTERS }' in main
-    assert 'NavigationItem(DesktopSection.CHARACTERS' in main
+    # The 230dp sidebar rail is gone; the shared FuryShell offers every section, incl. CHARACTERS.
+    assert 'Modifier.width(230.dp)' not in main
+    assert 'FuryShell(' in main
+    assert 'sections = DesktopSection.entries.map { FuryShellSection(' in main
+    assert 'CHARACTERS("Персонажи")' in main
 
 
 def test_desktop_presentation_primitives_exist():

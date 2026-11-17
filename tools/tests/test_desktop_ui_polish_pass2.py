@@ -169,8 +169,8 @@ def test_smoothness_top_level_navigation_enters_without_double_composing_heavy_s
     assert 'animateFloatAsState' in content
     assert '.graphicsLayer' in content
     assert 'FuryMotion.FastMs' in content
-    navigation = section(main, 'private fun NavigationItem', 'private val DesktopSection.iconKind')
-    assert 'animateColorAsState' in navigation
+    # Navigation now lives in the shared FuryShell; the desktop only hands it the sections.
+    assert 'FuryShell(' in main
 
 
 def test_smoothness_skill_roll_presentations_are_memoized_away_from_resource_updates():
