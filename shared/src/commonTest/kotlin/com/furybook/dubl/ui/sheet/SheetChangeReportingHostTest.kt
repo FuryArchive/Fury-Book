@@ -10,7 +10,7 @@ import kotlin.test.assertTrue
 class SheetChangeReportingHostTest {
     private fun host(changes: MutableList<String>, endurance: Int = 2): DublSheetHost {
         val base = DublCharacter(id = "c1", name = "Тест", enduranceCurrent = endurance)
-        return SheetChangeReportingHost(FakeSheetHost(base)) { changes += it }
+        return SheetChangeReportingHost(FakeSheetHost(base)) { changes += it.text }
     }
 
     @Test
@@ -20,6 +20,14 @@ class SheetChangeReportingHostTest {
         host.changeResource(CharacterSheetResourceId.ENDURANCE, -1)
         assertEquals(listOf("Выносливость -1"), changes)
         assertTrue(host.canUndo)
+    }
+
+    @Test
+    fun resourceChangeCarriesTheResourceAndAppliedStep() {
+        val reported = mutableListOf<SheetChange>()
+        val host = SheetChangeReportingHost(FakeSheetHost(DublCharacter(id = "c1", enduranceCurrent = 2))) { reported += it }
+        host.changeResource(CharacterSheetResourceId.ENDURANCE, -1)
+        assertEquals(listOf<SheetChange>(SheetChange.Resource(CharacterSheetResourceId.ENDURANCE, -1)), reported)
     }
 
     @Test

@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -47,6 +48,8 @@ import com.furybook.android.ui.screens.OverviewScreen
 import com.furybook.android.ui.screens.SkillsScreen
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.android.ui.screens.RecentChangeBar
+import com.furybook.android.ui.screens.recentResourceChange
+import com.furybook.dubl.ui.sheet.SheetChange
 import com.furybook.dubl.ui.sheet.SheetChangeReportingHost
 import com.furybook.dubl.ui.sheet.SheetScreen
 import com.furybook.ui.components.FuryButton
@@ -215,7 +218,7 @@ fun DublApp() {
 private val AppSection.primary: Boolean
     get() = this != AppSection.CAMPAIGN && this != AppSection.MORE
 
-private data class SheetToast(val text: String, val canUndo: Boolean, val token: Int)
+private data class SheetToast(val text: String, val accent: Color, val canUndo: Boolean, val token: Int)
 
 /**
  * The shared play sheet, or the old [OverviewScreen] behind «Правка». Changes made on the play
@@ -244,11 +247,21 @@ private fun AndroidSheet(
         }
         return
     }
-    var toast by remember(controller.active.id) { mutableStateOf<SheetToast?>(null) }
+    val activeId = controller.active.id
+    var toast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
     var toastCount by remember { mutableStateOf(0) }
     val baseHost = rememberAndroidSheetHost(controller, context, chiPackEnabled)
-    val host = remember(baseHost) {
-        SheetChangeReportingHost(baseHost) { text -> toast = SheetToast(text, controller.canUndo, ++toastCount) }
+    // Keyed on the character too: the toast state above is per character, and a host kept from
+    // before a switch would keep writing into the previous character's toast.
+    val host = remember(baseHost, activeId) {
+        SheetChangeReportingHost(baseHost) { change ->
+            // Same wording and colour as OverviewScreen's own «Последнее: …» bar.
+            val (text, accent) = when (change) {
+                is SheetChange.Resource -> recentResourceChange(change.resource, change.applied, baseHost.resourceMeters())
+                is SheetChange.Condition -> change.text to DublAccent
+            }
+            toast = SheetToast(text, accent, controller.canUndo, ++toastCount)
+        }
     }
     LaunchedEffect(toast?.token) {
         if (toast != null) {
@@ -265,7 +278,7 @@ private fun AndroidSheet(
             }
             RecentChangeBar(
                 text = shown.text,
-                accent = DublAccent,
+                accent = shown.accent,
                 onUndo = undoShown.takeIf { shown.canUndo },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

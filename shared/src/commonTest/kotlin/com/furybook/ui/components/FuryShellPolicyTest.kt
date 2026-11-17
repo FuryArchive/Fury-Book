@@ -30,6 +30,15 @@ class FuryShellPolicyTest {
     }
 
     @Test
+    fun phoneTabsUseTheShortLabelWideTabsTheFullOne() {
+        val equipment = FuryShellSection("EQUIPMENT", "Снаряжение", primary = true, phoneLabel = "Вещи")
+        val sections = androidSections.take(4) + equipment + androidSections.drop(5)
+        assertEquals(listOf("Лист", "Умения", "Навыки", "Магия", "Вещи"), furyBottomTabs(sections).map { it.bottomTabLabel })
+        assertEquals("Снаряжение", furyBottomTabs(sections).last().label)
+        assertEquals("Кампания", furyMenuSections(sections).first().bottomTabLabel)
+    }
+
+    @Test
     fun phoneShellBelow600dp() {
         assertEquals(true, furyShellIsPhone(599))
         assertEquals(false, furyShellIsPhone(600))

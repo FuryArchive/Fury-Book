@@ -1,6 +1,11 @@
 package com.furybook.desktop
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -120,7 +125,7 @@ private fun DesktopApp() {
     FuryShell(
         title = "FURY BOOK",
         characterName = state.activeCharacter.name,
-        sections = DesktopSection.entries.map { FuryShellSection(it, it.shellLabel, primary = it.primary) },
+        sections = DesktopSection.entries.map { FuryShellSection(it, it.label, primary = it.primary, phoneLabel = it.phoneLabel) },
         selected = selected,
         onSelect = { selected = it },
         onSwitchCharacter = { characterPickerOpen = true },
@@ -149,9 +154,9 @@ private fun DesktopApp() {
 private val DesktopSection.primary: Boolean
     get() = this != DesktopSection.CAMPAIGN && this != DesktopSection.CHARACTERS
 
-/** «Снаряжение» does not fit a fifth of a phone; the shell uses the spec's «Вещи». */
-private val DesktopSection.shellLabel: String
-    get() = if (this == DesktopSection.EQUIPMENT) "Вещи" else label
+/** «Снаряжение» does not fit a fifth of a phone; the phone tab uses the spec's «Вещи». */
+private val DesktopSection.phoneLabel: String?
+    get() = if (this == DesktopSection.EQUIPMENT) "Вещи" else null
 
 @Composable
 private fun DesktopContent(
@@ -235,11 +240,19 @@ private fun DesktopSheet(
         }
         return
     }
-    var toast by remember(state.activeCharacter.id) { mutableStateOf<SheetToast?>(null) }
-    var toastHovered by remember(state.activeCharacter.id) { mutableStateOf(false) }
+    val activeId = state.activeCharacter.id
+    var toast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
+    // Keeps the last toast on screen while it animates out.
+    var displayedToast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
+    var toastHovered by remember(activeId) { mutableStateOf(false) }
     var toastCount by remember { mutableStateOf(0) }
-    val host = remember(state) {
-        SheetChangeReportingHost(state) { text -> toast = SheetToast(text, state.canUndo, ++toastCount) }
+    // Keyed on the character too: the toast state above is per character, and a host kept from
+    // before a switch would keep writing into the previous character's toast.
+    val host = remember(state, activeId) {
+        SheetChangeReportingHost(state) { change -> toast = SheetToast(change.text, state.canUndo, ++toastCount) }
+    }
+    LaunchedEffect(toast) {
+        if (toast != null) displayedToast = toast
     }
     LaunchedEffect(toast, toastHovered) {
         val shown = toast ?: return@LaunchedEffect
@@ -250,19 +263,36 @@ private fun DesktopSheet(
     }
     Box(playModifier) {
         SheetScreen(host, onEdit = { editing = true }, onOpenSkills = { onNavigate(DesktopSection.SKILLS) })
-        toast?.let { shown ->
-            FuryUndoToast(
-                text = shown.text,
-                canUndo = shown.canUndo,
-                onUndo = {
-                    if (shown.canUndo) state.undoLast()
-                    toast = null
-                },
-                onDismiss = { toast = null; toastHovered = false },
-                onHoverChange = { toastHovered = it },
-                modifier = Modifier.align(Alignment.TopCenter).padding(horizontal = 18.dp, vertical = 10.dp)
-                    .widthIn(max = 860.dp).fillMaxWidth().zIndex(40f),
-            )
+        AnimatedVisibility(
+            visible = toast != null,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 18.dp, vertical = 10.dp)
+                .widthIn(max = 860.dp)
+                .fillMaxWidth()
+                .zIndex(40f),
+            enter = slideInVertically(
+                animationSpec = tween(FuryMotion.StandardMs),
+                initialOffsetY = { -it / 2 },
+            ) + fadeIn(tween(FuryMotion.FastMs)),
+            exit = slideOutVertically(
+                animationSpec = tween(FuryMotion.StandardMs),
+                targetOffsetY = { -it / 3 },
+            ) + fadeOut(tween(FuryMotion.FastMs)),
+        ) {
+            displayedToast?.let { shown ->
+                FuryUndoToast(
+                    text = shown.text,
+                    canUndo = shown.canUndo,
+                    onUndo = {
+                        if (shown.canUndo) state.undoLast()
+                        toast = null
+                    },
+                    onDismiss = { toast = null; toastHovered = false },
+                    onHoverChange = { toastHovered = it },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
         }
     }
 }

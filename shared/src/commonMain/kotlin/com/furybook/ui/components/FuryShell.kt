@@ -1,7 +1,6 @@
 package com.furybook.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,7 +8,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,21 +24,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.furybook.ui.theme.DublAccent
 import com.furybook.ui.theme.DublAccentStrong
 import com.furybook.ui.theme.DublBorder
 import com.furybook.ui.theme.DublSurface
 import com.furybook.ui.theme.DublText
-import com.furybook.ui.theme.FuryMinTouch
 import com.furybook.ui.theme.FurySpacing
 import com.furybook.ui.theme.furyOverlineStyle
 
-/** One destination of the app shell. [primary] sections are the phone's bottom tabs. */
-data class FuryShellSection<T>(val value: T, val label: String, val primary: Boolean)
+/**
+ * One destination of the app shell. [primary] sections are the phone's bottom tabs; [phoneLabel]
+ * is a shorter name for a fifth of a phone's width (wide tabs and the menu use [label]).
+ */
+data class FuryShellSection<T>(val value: T, val label: String, val primary: Boolean, val phoneLabel: String? = null) {
+    val bottomTabLabel: String get() = phoneLabel ?: label
+}
 
 private const val MAX_BOTTOM_TABS = 5
 private const val PHONE_MAX_WIDTH_DP = 600
@@ -60,8 +60,8 @@ fun furyShellIsPhone(widthDp: Int): Boolean = widthDp < PHONE_MAX_WIDTH_DP
 
 /**
  * The app frame. Wide: a top bar with the wordmark, tabs for every section and the character
- * button. Phone: a slim top bar (character, «Меню»), the content, and five bottom tabs; the
- * remaining sections open from the menu.
+ * button. Phone: a slim top bar (wordmark, «Меню»), the content, and five bottom tabs; the
+ * menu holds the character switch and the remaining sections.
  */
 @Composable
 fun <T> FuryShell(
@@ -136,26 +136,14 @@ private fun <T> PhoneShell(
     var menuOpen by remember { mutableStateOf(false) }
     val menuSections = furyMenuSections(sections)
     Column(Modifier.fillMaxSize()) {
+        // Wordmark and «Меню» only: the sheet header already names the character (R7).
         Row(
             Modifier.fillMaxWidth().background(DublSurface).padding(horizontal = FurySpacing.lg, vertical = FurySpacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(FurySpacing.md),
         ) {
-            Column(
-                Modifier.weight(1f).defaultMinSize(minHeight = FuryMinTouch)
-                    .clickable(role = Role.Button, onClickLabel = "Сменить персонажа", onClick = onSwitchCharacter),
-                verticalArrangement = Arrangement.Center,
-            ) {
-                // Small text: plain crimson is 4.497:1 on the bar, the strong tint clears 4.5:1.
-                Text(title, color = DublAccentStrong, style = furyOverlineStyle(), maxLines = 1)
-                Text(
-                    "$characterName ▾",
-                    color = DublText,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
+            // Small text: plain crimson is 4.497:1 on the bar, the strong tint clears 4.5:1.
+            Text(title, Modifier.weight(1f), color = DublAccentStrong, style = furyOverlineStyle(), maxLines = 1)
             FuryIconButton("Меню", { menuOpen = true }) {
                 Text("☰", color = DublText, style = MaterialTheme.typography.titleMedium)
             }
@@ -163,13 +151,18 @@ private fun <T> PhoneShell(
         Box(Modifier.fillMaxWidth().height(1.dp).background(DublBorder))
         Box(Modifier.weight(1f).fillMaxWidth()) { content() }
         FuryBottomTabs(
-            tabs = furyBottomTabs(sections).map { FuryTab(it.value, it.label) },
+            tabs = furyBottomTabs(sections).map { FuryTab(it.value, it.bottomTabLabel) },
             selected = selected,
             onSelect = onSelect,
         )
     }
     if (menuOpen) {
         FuryDialogScaffold(title = "Меню", subtitle = characterName, onDismiss = { menuOpen = false }) {
+            FuryButton(
+                text = "Сменить персонажа",
+                onClick = { menuOpen = false; onSwitchCharacter() },
+                modifier = Modifier.fillMaxWidth(),
+            )
             menuSections.forEach { section ->
                 FuryButton(
                     text = section.label,
@@ -178,12 +171,6 @@ private fun <T> PhoneShell(
                     style = if (section.value == selected) FuryButtonStyle.Primary else FuryButtonStyle.Secondary,
                 )
             }
-            FuryButton(
-                text = "Сменить персонажа",
-                onClick = { menuOpen = false; onSwitchCharacter() },
-                modifier = Modifier.fillMaxWidth(),
-                style = FuryButtonStyle.Ghost,
-            )
         }
     }
 }

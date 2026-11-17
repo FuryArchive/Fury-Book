@@ -4992,6 +4992,28 @@ private fun resourceChangeText(label: String, delta: Int): String {
     return "$sign${abs(delta)} $label"
 }
 
+/**
+ * The bar's wording and colour for a resource step, exactly as this screen words its own steps
+ * («−1 здоровья» in the health colour; mounted resources use their pack label and accent).
+ * The shell uses it for steps made on the shared play sheet.
+ */
+internal fun recentResourceChange(
+    resource: CharacterSheetResourceId,
+    applied: Int,
+    mountedResources: List<DublResourceMeterModel>,
+): Pair<String, Color> {
+    val mounted = mountedResources.firstOrNull { model -> model.resourceId == resource }
+    if (mounted != null) {
+        return resourceChangeText(mounted.presentation.label, applied) to fcpAccentColor(mounted.presentation.accent)
+    }
+    return when (resource) {
+        CharacterSheetResourceId.HEALTH -> resourceChangeText("здоровья", applied) to DublHealth
+        CharacterSheetResourceId.ENDURANCE -> resourceChangeText("выносливости", applied) to DublStamina
+        CharacterSheetResourceId.MANA -> resourceChangeText("маны", applied) to DublMana
+        else -> resourceChangeText(resource.title, applied) to DublAccent
+    }
+}
+
 private fun signed(value: Int): String = if (value >= 0) "+$value" else value.toString()
 
 private fun formatNumber(value: Double): String = DecimalFormat("0.##").format(value)

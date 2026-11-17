@@ -40,7 +40,8 @@ internal fun sheetVitalColor(color: SheetVitalColor): Color = when (color) {
 
 /**
  * Resource tiles with −/+ buttons. [onChange] receives the step (−1 or +1); the host clamps.
- * Phones stack one per row; wider layouts put up to three side by side.
+ * Phones get one compact row per vital (− · label, value and bar · +, as in the B phone mockup);
+ * wider layouts put up to three cards side by side.
  */
 @Composable
 fun SheetVitals(
@@ -54,9 +55,50 @@ fun SheetVitals(
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
         vitals.chunked(perRow).forEach { row ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-                row.forEach { vital -> VitalTile(vital, compact, onChange, onRestore, Modifier.weight(1f)) }
+                row.forEach { vital ->
+                    if (compact) {
+                        VitalRow(vital, onChange, onRestore, Modifier.weight(1f))
+                    } else {
+                        VitalTile(vital, compact, onChange, onRestore, Modifier.weight(1f))
+                    }
+                }
                 repeat(perRow - row.size) { Spacer(Modifier.weight(1f)) }
             }
+        }
+    }
+}
+
+/** Phone: `−`, then the label and `current / max` over the bar, then `+`. */
+@Composable
+private fun VitalRow(
+    vital: SheetVital,
+    onChange: (SheetVital, Int) -> Unit,
+    onRestore: (SheetVital) -> Unit,
+    modifier: Modifier,
+) {
+    Row(
+        modifier.clip(FuryShapes.panel).background(DublSurfaceRaised).padding(FurySpacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(FurySpacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        FuryIconButton("Уменьшить ${vital.label}", { onChange(vital, -1) }) {
+            Text("−", color = DublText, style = MaterialTheme.typography.titleLarge)
+        }
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FurySpacing.xs)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    vital.label.uppercase(), Modifier.weight(1f), color = DublMuted, style = furyOverlineStyle(),
+                    maxLines = 1, overflow = TextOverflow.Ellipsis,
+                )
+                Text("${vital.current} / ${vital.maximum}", color = DublText, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+            }
+            FuryBar(vital.current, vital.maximum, sheetVitalColor(vital.color))
+            if (vital.restoreable) {
+                FuryButton("Восстановить", { onRestore(vital) }, Modifier.align(Alignment.End), style = FuryButtonStyle.Ghost)
+            }
+        }
+        FuryIconButton("Увеличить ${vital.label}", { onChange(vital, 1) }) {
+            Text("+", color = DublText, style = MaterialTheme.typography.titleLarge)
         }
     }
 }
