@@ -6,13 +6,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val DublColors = darkColorScheme(
-    primary = DublAccent,
-    onPrimary = Color.White,
+    primary = FuryAccentFill,
+    onPrimary = FuryOnAccentFill,
     primaryContainer = DublAccentSoft,
     onPrimaryContainer = DublText,
     secondary = DublGold,
     onSecondary = Color(0xFF211B13),
-    secondaryContainer = Color(0xFF2D271E),
+    secondaryContainer = Color(0xFF2A2208),
     onSecondaryContainer = DublText,
     background = DublBackground,
     onBackground = DublText,

@@ -65,6 +65,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.furybook.ui.theme.DublAccent
+import com.furybook.ui.theme.FuryAccentFill
+import com.furybook.ui.theme.FuryAccentFillPressed
 import com.furybook.ui.theme.DublAccentSoft
 import com.furybook.ui.theme.DublBackground
 import com.furybook.ui.theme.DublBorder
@@ -327,8 +329,8 @@ internal fun DesktopSmallAction(
     var hovered by remember { mutableStateOf(false) }
     val background by animateColorAsState(
         targetValue = when {
-            emphasized && hovered && enabled -> DesktopAccent.copy(alpha = .88f)
-            emphasized -> DesktopAccent
+            emphasized && hovered && enabled -> FuryAccentFillPressed
+            emphasized -> FuryAccentFill
             hovered && enabled -> DesktopSurfaceRaised
             else -> DesktopSurfaceInset
         },
