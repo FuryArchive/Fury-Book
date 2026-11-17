@@ -218,4 +218,27 @@ class SheetRollSessionTest {
         assertEquals(listOf("Косноязычие: Враг отвлечён"), flurry.reminders)
         assertEquals(emptyList<String>(), dodge.reminders)
     }
+
+    @Test
+    fun skillOptionsCarryEffectDescriptionsAndAutomaticEffects() {
+        val catalog = SkillEffectCatalog(
+            "test",
+            listOf(
+                SkillEffectDefinition(
+                    "talk-auto", 4, "Косноязычие", "Всегда +2", "", "", "",
+                    SkillEffectMode.AUTO_BONUS, RollContext.SKILL, listOf("Красноречие"), 2, false,
+                    "", developmentId = "clumsy",
+                ),
+            ) + hindranceEffects.effects,
+        )
+        val host = EffectHost(FakeSheetHost(hornet), catalog)
+
+        val skill = sheetRollOptions(host, SheetRollRequest(SheetRollSubject.Skill("eloquence")))
+        val context = sheetRollOptions(host, SheetRollRequest(SheetRollSubject.Context(RollContext.DODGE)))
+
+        assertEquals(mapOf("clumsy-talk" to "Помеха на Красноречие"), skill.effectDescriptions)
+        assertEquals(listOf("Косноязычие +2"), skill.automaticEffects)
+        assertEquals(emptyMap<String, String>(), context.effectDescriptions)
+        assertEquals(emptyList<String>(), context.automaticEffects)
+    }
 }

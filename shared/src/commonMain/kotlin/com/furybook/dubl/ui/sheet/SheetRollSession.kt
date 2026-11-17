@@ -60,6 +60,8 @@ data class SheetRollOptions(
     val preset: CharacterRollPreset,
     val blockedReason: String?, // e.g. preset unavailable, or both advantage and hindrance
     val reminders: List<String> = emptyList(), // "Источник: текст", as the desktop dialogs list them
+    val effectDescriptions: Map<String, String> = emptyMap(), // toggle id to its rule text
+    val automaticEffects: List<String> = emptyList(), // "Источник +N", applied without a toggle
 )
 
 private const val BOTH_MODES_REASON = "Нельзя бросать с преимуществом и помехой одновременно"
@@ -138,6 +140,8 @@ private fun resolveSkillRoll(host: DublSheetHost, request: SheetRollRequest, ski
         skillChoices = emptyList(),
         attributeChoices = AttributeId.entries.toList(),
         effectToggles = effects.options.map { it.id to it.label },
+        effectDescriptions = effects.options.associate { it.id to it.description },
+        automaticEffects = effects.automaticContributions.map { "${it.label} ${signed(it.value)}" },
         preset = preset,
         blockedReason = blockedReason,
         reminders = effects.reminders.map { "${it.sourceName}: ${it.effectText}" },

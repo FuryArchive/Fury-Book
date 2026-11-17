@@ -11,7 +11,6 @@ import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.RollContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -112,7 +111,8 @@ class SheetModelsTest {
         assertEquals(listOf("Сбит с ног", "Благословлён"), chips.map { it.title })
         assertTrue(chips.all { it.active })
         assertEquals(listOf(false, true), chips.map { it.custom })
-        assertNotNull(chips.first { it.custom }.key)
+        assertEquals(listOf("PRONE", "k1"), chips.map { it.key })
+        assertTrue(chips.none { it.automatic })
     }
 
     @Test
@@ -120,6 +120,12 @@ class SheetModelsTest {
         val drained = plain.copy(enduranceCurrent = 0)
         val chips = sheetActiveConditions(FakeSheetHost(drained))
         assertEquals(listOf("Слабость"), chips.map { it.title })
+        assertEquals(listOf(true), chips.map { it.automatic })
+
+        val chosen = sheetActiveConditions(
+            FakeSheetHost(drained, CharacterSheetExtras(activeConditions = setOf(CharacterConditionId.WEAKNESS))),
+        )
+        assertEquals(listOf(false), chosen.map { it.automatic })
     }
 
     @Test

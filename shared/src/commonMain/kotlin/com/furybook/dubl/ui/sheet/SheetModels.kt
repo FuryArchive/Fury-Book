@@ -42,8 +42,17 @@ data class SheetSkillRow(val skillId: String, val name: String, val attributeLab
 
 data class SheetSkillGroup(val title: String, val rows: List<SheetSkillRow>)
 
-/** [key] is the [CharacterConditionId] name, or the custom condition id when [custom]. */
-data class SheetConditionChip(val key: String, val title: String, val active: Boolean, val custom: Boolean)
+/**
+ * [key] is the [CharacterConditionId] name, or the custom condition id when [custom]. [automatic] chips
+ * (Слабость at 0 endurance that the player did not set) are shown but cannot be toggled.
+ */
+data class SheetConditionChip(
+    val key: String,
+    val title: String,
+    val active: Boolean,
+    val custom: Boolean,
+    val automatic: Boolean = false,
+)
 
 /** Same quick checks, same order, as the desktop «Боевые действия» panel. */
 val SHEET_COMBAT_CONTEXTS: List<RollContext> = listOf(
@@ -187,6 +196,8 @@ fun sheetActiveConditions(host: DublSheetHost): List<SheetConditionChip> {
             title = extras.conditionOverrides[condition]?.title ?: condition.title,
             active = true,
             custom = false,
+            // Desktop HeroConditions: only the endurance-driven Слабость the player did not set is automatic.
+            automatic = condition == CharacterConditionId.WEAKNESS && condition !in extras.activeConditions,
         )
     }
     val custom = extras.customConditions.filter { it.active }.map {
