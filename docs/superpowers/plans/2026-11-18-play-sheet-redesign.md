@@ -29,6 +29,7 @@
 - Verification commands:
   - Kotlin: `/home/claude/gw.sh :shared:desktopTest :desktopApp:compileKotlin :webApp:compileKotlinJs`.
   - Python: `python3 -m pytest -q -rfE --continue-on-collection-errors tools/tests -p no:cacheprovider > /tmp/now.txt; comm -13 /tmp/pytest-baseline.txt <(grep -E '^(FAILED|ERROR)' /tmp/now.txt | sort)` must print nothing (baseline 37 failed + 6 errors).
+- Dev characters: `rm -rf /tmp/seedhome && SEED_DIR=/tmp/seedhome /home/claude/gw.sh :shared:desktopTest --tests '*SeedDevCharacters*'`, then run the desktop app with `XDG_DATA_HOME=/tmp/seedhome`.
 - Android compiles only in CI. Every task that touches `app/` is confirmed by the CI run in Task 10.
 - Commits end with the session's `Co-Authored-By` / `Claude-Session` lines. Push `ui-revamp` only. No merge to main.
 
