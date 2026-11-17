@@ -23,11 +23,14 @@ class SheetScreenState {
     var rollOpen: Boolean by mutableStateOf(false)
         private set
 
-    /** Starts a fresh setup for [subject] and opens the roll dialog. */
-    fun open(subject: SheetRollSubject) {
+    /**
+     * Starts a fresh setup for [subject]. [dialog] is false for a tap in the docked-tray layout, so a
+     * later shrink of the window does not pop up a dialog nobody asked for.
+     */
+    fun open(subject: SheetRollSubject, dialog: Boolean = true) {
         request = SheetRollRequest(subject)
         result = null
-        rollOpen = true
+        rollOpen = dialog
     }
 
     fun dismiss() {

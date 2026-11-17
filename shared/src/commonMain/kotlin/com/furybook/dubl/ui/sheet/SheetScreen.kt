@@ -41,7 +41,7 @@ private val PHONE_METRIC_LABELS = mapOf(
     "Рефлексы" to "Рефл.",
     "Инициатива" to "Иниц.",
     "Стойкость" to "Стойк.",
-    "Размер" to "Разм",
+    "Размер" to "Разм.",
 )
 
 private val PHONE_ATTRIBUTE_LABELS = mapOf(
@@ -139,6 +139,8 @@ private fun SheetScreenHeader(host: DublSheetHost, layout: SheetLayout, onEdit: 
 private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: SheetScreenState, onOpenSkills: () -> Unit) {
     val phone = layout == SheetLayout.PHONE
     val character = host.active
+    // The docked tray shows the roll itself; only taps made without it open the dialog.
+    val open: (SheetRollSubject) -> Unit = { subject -> state.open(subject, dialog = layout != SheetLayout.WIDE_WITH_TRAY) }
     SheetVitals(
         vitals = sheetVitals(host),
         compact = phone,
@@ -158,7 +160,7 @@ private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: She
             SheetLayout.WIDE_WITH_TRAY -> 6
         },
         compact = phone,
-        onRoll = state::open,
+        onRoll = open,
     )
     SheetSection("Характеристики")
     val attributes = sheetAttributes(character)
@@ -167,17 +169,17 @@ private fun SheetScreenBody(host: DublSheetHost, layout: SheetLayout, state: She
         stats = if (phone) attributes.map { stat -> stat.copy(label = phoneAttributeLabel(stat)) } else attributes,
         columns = 4,
         compact = phone,
-        onRoll = state::open,
+        onRoll = open,
     )
     SheetSection("Умения")
     SheetSkills(
         groups = sheetSkillGroups(host),
         columns = if (phone) 1 else 2,
-        onRoll = { skillId -> state.open(SheetRollSubject.Skill(skillId)) },
+        onRoll = { skillId -> open(SheetRollSubject.Skill(skillId)) },
         onOpenAll = onOpenSkills,
     )
     SheetSection("Боевые действия")
-    SheetCombat(SHEET_COMBAT_CONTEXTS, onRoll = { context -> state.open(SheetRollSubject.Context(context)) })
+    SheetCombat(SHEET_COMBAT_CONTEXTS, onRoll = { context -> open(SheetRollSubject.Context(context)) })
 }
 
 private fun phoneAttributeLabel(stat: SheetStat): String =

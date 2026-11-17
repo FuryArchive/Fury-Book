@@ -61,6 +61,18 @@ class SheetScreenStateTest {
     }
 
     @Test
+    fun trayTapDoesNotOpenDialog() {
+        val state = SheetScreenState()
+        state.open(dexterity, dialog = false)
+        assertEquals(SheetRollRequest(dexterity), state.request)
+        assertEquals(false, state.rollOpen)
+        state.open(dexterity)
+        assertEquals(true, state.rollOpen)
+        state.open(dexterity, dialog = false)
+        assertEquals(false, state.rollOpen)
+    }
+
+    @Test
     fun rollWithoutRequestDoesNothing() {
         val state = SheetScreenState()
         state.roll(host, dice(3, 4))

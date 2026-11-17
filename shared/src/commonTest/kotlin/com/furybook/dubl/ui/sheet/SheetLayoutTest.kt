@@ -25,7 +25,7 @@ class SheetLayoutTest {
     @Test
     fun phoneMetricLabelsAreAbbreviated() {
         assertEquals(
-            listOf("Защита", "Рефл.", "Иниц.", "Стойк.", "Бег", "Разм"),
+            listOf("Защита", "Рефл.", "Иниц.", "Стойк.", "Бег", "Разм."),
             listOf("Защита", "Рефлексы", "Инициатива", "Стойкость", "Бег", "Размер").map(::sheetPhoneMetricLabel),
         )
         assertEquals("Новое", sheetPhoneMetricLabel("Новое"))
