@@ -56,3 +56,10 @@ def test_roll_panel_covers_every_input():
 def test_no_hard_coded_colours_under_sheet():
     for path in SHEET.rglob('*.kt'):
         assert 'Color(0x' not in path.read_text(encoding='utf-8'), path.name
+
+
+def test_blocked_roll_keeps_a_disabled_button_and_shows_the_reason():
+    tray = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/ui/components/FuryRollTray.kt').read_text(encoding='utf-8')
+    assert 'enabled = blockedReason == null' in tray
+    assert 'Text(blockedReason' in tray
+    assert 'blockedReason = options.blockedReason' in read('SheetRollPanel.kt')

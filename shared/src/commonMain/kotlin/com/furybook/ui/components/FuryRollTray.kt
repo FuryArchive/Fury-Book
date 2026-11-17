@@ -67,7 +67,7 @@ fun furyRollBreakdown(view: FuryRollView): String = buildString {
  * The docked roll panel (wide layouts) or the body of the roll sheet (phones).
  * [controls] is where the caller puts advantage, hindrance and modifier buttons.
  * With [emptyRollLabel] set, the controls and a roll button with that label also show before the
- * first roll. With [blockedReason] set, that line replaces the roll button.
+ * first roll. With [blockedReason] set, the roll button is disabled and that line shows under it.
  */
 @Composable
 fun FuryRollTray(
@@ -124,11 +124,10 @@ fun FuryRollTray(
         }
         if (view != null || emptyRollLabel != null) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), content = controls)
+            val label = if (view == null) emptyRollLabel.orEmpty() else "Бросить снова"
+            FuryButton(label, onRollAgain, Modifier.fillMaxWidth(), style = FuryButtonStyle.OnAccent, enabled = blockedReason == null)
             if (blockedReason != null) {
                 Text(blockedReason, color = FuryOnAccentFill, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-            } else {
-                val label = if (view == null) emptyRollLabel.orEmpty() else "Бросить снова"
-                FuryButton(label, onRollAgain, Modifier.fillMaxWidth(), style = FuryButtonStyle.OnAccent)
             }
         }
         if (history.isNotEmpty()) {
