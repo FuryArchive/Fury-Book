@@ -67,6 +67,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.furybook.ui.theme.DublAccent
 import com.furybook.ui.theme.FuryAccentFill
+import com.furybook.ui.theme.FuryOnAccentFill
 import com.furybook.ui.theme.FuryAccentFillPressed
 import com.furybook.ui.theme.DublAccentSoft
 import com.furybook.ui.theme.DublBackground
@@ -341,7 +342,7 @@ internal fun DesktopSmallAction(
             maxLines = 1,
             color = when {
                 !enabled -> DesktopMuted
-                emphasized -> Color.White
+                emphasized -> FuryOnAccentFill
                 else -> DesktopText
             },
             style = MaterialTheme.typography.labelMedium,
