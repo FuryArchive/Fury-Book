@@ -11,6 +11,8 @@ import com.furybook.android.state.CharacterController
 import com.furybook.content.FcpComposition
 import com.furybook.dubl.content.DublResourceMeterModel
 import com.furybook.dubl.content.DublResourceToggleModel
+import com.furybook.dubl.content.DublUiMount
+import com.furybook.dubl.content.DublUiRegistry
 import com.furybook.dubl.content.DublUiRenderModels
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
@@ -56,6 +58,9 @@ class AndroidSheetHost(
         meterCache?.let { (cachedFor, meters) -> if (cachedFor == character) return meters }
         return DublUiRenderModels.resourceMeters(composition, character).also { meterCache = character to it }
     }
+
+    override fun uiMounts(surface: String, component: String): List<DublUiMount> =
+        DublUiRegistry.mounts(composition, surface, component)
 
     override fun changeResource(resource: CharacterSheetResourceId, delta: Int) {
         controller.changeResource(resource, delta)

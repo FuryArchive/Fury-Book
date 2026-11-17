@@ -35,7 +35,9 @@ fun sheetResourceVisibility(host: DublSheetEditHost): List<SheetResourceToggle> 
         CharacterSheetResourceId.MANA to "Мана",
     ).map { (id, label) -> SheetResourceToggle(id, label, id in hidden) }
     val mounted = host.resourceToggleModels().filter { it.available }.map { model ->
-        SheetResourceToggle(model.resourceId, model.presentation.label, model.resourceId in hidden)
+        val presentation = model.presentation
+        val label = sheetFcpIconGlyph(presentation.icon)?.let { "$it ${presentation.label}" } ?: presentation.label
+        SheetResourceToggle(model.resourceId, label, model.resourceId in hidden)
     }
     return builtIn + mounted
 }

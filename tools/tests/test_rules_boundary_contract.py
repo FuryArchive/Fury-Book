@@ -6,7 +6,8 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 SHARED = ROOT / 'shared/src/commonMain/kotlin'
 HARNESS = ROOT / 'tools/tests/kotlin/RulesBoundaryHarness.kt'
-ANDROID_OVERVIEW = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt'
+SHEET_STATS = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetStatBreakdown.kt'
+SHEET_ROLLS = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt'
 ANDROID_FEATS = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt'
 ANDROID_MAGIC = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/MagicScreen.kt'
 DESKTOP_ROLL = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/RollDialog.kt'
@@ -18,20 +19,18 @@ def read(path: Path) -> str:
 
 
 def test_roll_context_choices_are_owned_by_shared_rules():
-    android = read(ANDROID_OVERVIEW)
-    desktop = read(DESKTOP_ROLL)
-    assert 'context.allowedSkillIds()' in android
-    assert 'context.allowedAttributes(' in android
-    assert 'context.allowedSkillIds()' in desktop
-    assert 'context.allowedAttributes(' in desktop
+    # Stage 2b: context rolls on every platform go through the shared SheetRollSession.
+    sheet = read(SHEET_ROLLS)
+    assert 'context.allowedSkillIds()' in sheet
+    assert 'context.allowedAttributes(' in sheet
 
 
 def test_selected_skill_effect_totals_are_owned_by_shared_rules():
-    android = read(ANDROID_OVERVIEW)
+    sheet = read(SHEET_ROLLS)
     desktop = read(DESKTOP_ROLL)
-    assert '.selectedTotals(selectedEffectIds)' in android
+    assert '.selectedTotals(request.selectedEffectIds)' in sheet
     assert '.selectedTotals(selectedEffects)' in desktop
-    for text in (android, desktop):
+    for text in (sheet, desktop):
         assert 'sumOf { it.numericBonus }' not in text
         assert 'sumOf { it.advantageDice }' not in text
         assert 'sumOf { it.hindranceDice }' not in text
@@ -58,20 +57,17 @@ def test_magic_school_rank_xp_display_uses_shared_rule():
 
 
 def test_character_sheet_stat_explanations_use_shared_formula_components():
-    android = read(ANDROID_OVERVIEW)
-    assert 'character.runMultiplier' in android
-    assert 'character.runStormSpeedBonus' in android
-    assert 'character.runRunnerBonus' in android
-    assert 'character.strengthSizeModifier' in android
-    assert 'character.speedSizeModifier' in android
-    assert 'character.quickReflexesBonus' in android
-    assert 'character.improvedInitiativeBonus' in android
-    assert 'character.stormLordBonus' in android
-    assert 'character.stalwartBonus' in android
-    assert 'character.stillMountainBonus' in android
-    assert 'private fun runMultiplier(' not in android
-    assert 'character.size - 5' not in android
-    assert '5 - character.size' not in android
+    # Stage 2b: the shared sheet's formula popup (all platforms) reads the shared bonus properties
+    # inside `with(character)`; it must never recompute them.
+    sheet = read(SHEET_STATS)
+    assert 'with(character)' in sheet
+    for component in ('runMultiplier', 'runStormSpeedBonus', 'runRunnerBonus', 'strengthSizeModifier',
+                      'speedSizeModifier', 'quickReflexesBonus', 'improvedInitiativeBonus', 'stormLordBonus',
+                      'stalwartBonus', 'stillMountainBonus'):
+        assert component in sheet, component
+    assert 'fun runMultiplier(' not in sheet
+    assert 'size - 5' not in sheet
+    assert '5 - size' not in sheet
 
 
 def test_shared_rules_boundary_harness():

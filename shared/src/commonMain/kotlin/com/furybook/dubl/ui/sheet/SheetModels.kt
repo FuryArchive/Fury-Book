@@ -30,6 +30,9 @@ data class SheetVital(
     val resource: CharacterSheetResourceId?,
     val customUid: String?,
     val restoreable: Boolean,
+    /** Pack presentation tokens of a mounted meter (FcpUiIconToken / FcpUiAccentToken); null otherwise. */
+    val iconToken: String? = null,
+    val accentToken: String? = null,
 )
 
 data class SheetStat(
@@ -118,6 +121,7 @@ fun sheetVitals(host: DublSheetHost): List<SheetVital> {
                 SheetVital(
                     "fcp:${model.resourceId.name}", model.presentation.label, model.current, model.maximum,
                     SheetVitalColor.MOUNTED, model.resourceId, null, model.restoreable,
+                    iconToken = model.presentation.icon, accentToken = model.presentation.accent,
                 ),
             )
         }

@@ -112,7 +112,7 @@ class DesktopAppState(
             )
         }
 
-    fun uiMounts(surface: String, component: String): List<DublUiMount> =
+    override fun uiMounts(surface: String, component: String): List<DublUiMount> =
         DublUiRegistry.mounts(contentPackComposition, surface, component)
 
     fun resourceMeterModels(character: DublCharacter = activeCharacter): List<DublResourceMeterModel> =

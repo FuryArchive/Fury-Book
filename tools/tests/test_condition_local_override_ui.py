@@ -1,23 +1,18 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-ANDROID = ROOT / "app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt"
-DESKTOP = ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt"
+SHEET_CONDITIONS = ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetConditionsDialog.kt"
 
 
-def test_android_conditions_expose_local_override_reset_and_custom_creation():
-    text = ANDROID.read_text(encoding="utf-8")
-    assert "Локальная правка состояния" in text
-    assert "Сбросить к рулбуку" in text
-    assert "Добавить своё состояние" in text
+def test_sheet_conditions_expose_local_override_reset_and_custom_creation():
+    # Stage 2b: one shared conditions popup replaces the Android and desktop sheet dialogs.
+    text = SHEET_CONDITIONS.read_text(encoding="utf-8")
+    assert "Своё название и описание для этого персонажа" in text
+    assert "К рулбуку" in text
+    assert "Своё состояние" in text
+    assert "setConditionOverride" in text
+    assert "resetConditionOverride" in text
+    assert "addCustomCondition" in text
     assert "conditionOverrides" in text
     assert "customConditions" in text
 
-
-def test_desktop_conditions_expose_local_override_reset_and_custom_creation():
-    text = DESKTOP.read_text(encoding="utf-8")
-    assert "Локальная правка состояния" in text
-    assert "К рулбуку" in text
-    assert "Добавить своё состояние" in text
-    assert "setConditionOverride" in text
-    assert "addCustomCondition" in text

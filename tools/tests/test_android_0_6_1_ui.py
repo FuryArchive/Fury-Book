@@ -7,34 +7,28 @@ def read(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8")
 
 
-def test_character_sheet_uses_independent_two_column_sections():
-    source = read("app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt")
-    assert "ownedSkillSectionItems(" in source
-    assert "ownedDevelopmentSectionItems(" in source
-    assert source.count("SheetGroupingRules.balancedColumns(") >= 2
-    assert "compactTileWeight" in source
-    assert "compactGridRows(" not in source
-
+def test_character_sheet_shows_skill_and_development_sections():
+    # Stage 2b: the shared sheet renders both sections; the old two-column tile layout is gone.
+    source = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetScreen.kt")
+    assert "sheetSkillGroups(host)" in source
+    assert "sheetDevelopmentGroups(host)" in source
 
 def test_development_sheet_restores_parent_child_hierarchy_inside_user_groups():
-    source = read("app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt")
-    assert "developmentParentById" in source
-    assert "SheetGroupingRules.hierarchicalOrder(group.itemIds, parentById)" in source
-    assert "SheetGroupingRules.localDepth" in source
-    assert '"↳"' in source
-
+    models = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetEditModels.kt")
+    panel = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetDevelopment.kt")
+    assert "SheetGroupingRules.hierarchicalOrder(group.itemIds, parentById)" in models
+    assert "SheetGroupingRules.localDepth" in models
+    assert "row.depth" in panel
 
 def test_group_manager_supports_item_tree_and_group_drag_drop():
-    source = read("app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt")
-    assert "GroupManagerItemCard(" in source
+    source = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetGroupManager.kt") + read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetGroupDrag.kt")
     assert "SheetGroupingRules.moveItems(" in source
     assert "SheetGroupingRules.subtreeBlock(" in source
     assert "SheetGroupingRules.moveGroupToIndex(" in source
-    assert "treeRootIds" in source
+    assert "treeRoots" in source
     assert "≡" in source
     assert "Группа выше" not in source
     assert "Группа ниже" not in source
-
 
 def test_bottom_sheet_does_not_intercept_material_nested_scroll():
     interaction = read("app/src/main/java/com/furybook/android/ui/components/SheetInteraction.kt")
@@ -64,18 +58,17 @@ def test_martial_art_availability_is_prepared_off_main_behind_loading_gate():
 
 
 def test_character_sheet_skill_tap_always_starts_with_stock_attribute_chooser():
-    source = read("app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt")
+    # Stage 2b: the shared roll panel offers every attribute and starts from the stock one.
+    source = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt")
     model = read("shared/src/commonMain/kotlin/com/furybook/dubl/model/SkillModels.kt")
-    assert "SkillAttributeChoiceSheet(" in source
-    assert "mutableStateOf(skill.stockAttribute)" in source
-    assert "AttributeId.entries.chunked(2)" in source
+    assert "request.attribute ?: skill.stockAttribute" in source
+    assert "attributeChoices = AttributeId.entries.toList()" in source
     assert "skillCalculationForRoll" in source
     assert "val stockAttribute: AttributeId" in model
     assert "definition?.defaultAttribute ?: attributes.first()" in model
 
-
 def test_key_bottom_sheets_skip_partial_expansion():
-    overview = read("app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt")
+    rolls = read("app/src/main/java/com/furybook/android/ui/screens/SkillRollSheets.kt")
     feats = read("app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt")
-    assert overview.count("rememberModalBottomSheetState(skipPartiallyExpanded = true)") >= 4
+    assert "rememberModalBottomSheetState(skipPartiallyExpanded = true)" in rolls
     assert "rememberModalBottomSheetState(skipPartiallyExpanded = true)" in feats

@@ -75,22 +75,25 @@ def test_generic_fcp_runtime_does_not_depend_on_dubl():
 def test_fury_book_mounts_chi_from_real_pack_activation_and_ui_contributions():
     android_app = (ROOT / "app/src/main/java/com/furybook/android/ui/DublApp.kt").read_text(encoding="utf-8")
     android_state = (ROOT / "app/src/main/java/com/furybook/android/data/AndroidContentPackState.kt").read_text(encoding="utf-8")
-    android_overview = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt").read_text(encoding="utf-8")
+    android_sheet_host = (ROOT / "app/src/main/java/com/furybook/android/ui/AndroidSheetHost.kt").read_text(encoding="utf-8")
+    shared_sheet = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt").read_text(encoding="utf-8") + (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetResourcesDialog.kt").read_text(encoding="utf-8")
     android_dev = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt").read_text(encoding="utf-8")
     desktop_state = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt").read_text(encoding="utf-8")
-    desktop_sheet = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt").read_text(encoding="utf-8")
     desktop_dev = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt").read_text(encoding="utf-8")
 
     assert "AndroidContentPackState.isChiEnabled" in android_app
     assert "AndroidContentPackState.setPackEnabled" in android_app
-    assert "resourceMeterModels" in android_overview
-    assert "resourceToggleModels" in android_overview
+    # Stage 2b: the shared sheet renders pack meters/toggles from the host's typed models.
+    assert "DublUiRenderModels.resourceMeters" in android_sheet_host
+    assert "DublUiRenderModels.resourceToggles" in android_sheet_host
+    assert "host.resourceMeters()" in shared_sheet
+    assert "host.resourceToggleModels()" in shared_sheet
     assert "FcpUiSurface.DEVELOPMENT_TABS" in android_dev
     assert "FcpUiComponent.DEVELOPMENT_BROWSER" in android_dev
     assert "Preferences.userRoot().node" in desktop_state
     assert "setContentPackActive" in desktop_state
-    assert "resourceMeterModels" in desktop_sheet
-    assert "resourceToggleModels" in desktop_sheet
+    assert "fun resourceMeterModels(" in desktop_state
+    assert "override fun resourceToggleModels(" in desktop_state
     assert "FcpUiSurface.DEVELOPMENT_TABS" in desktop_dev
     assert "FcpUiComponent.DEVELOPMENT_BROWSER" in desktop_dev
 
@@ -184,9 +187,8 @@ def test_chi_ui_mounts_use_generic_fcp_surface_contract():
     chi_loader = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/content/DublChiFcpCatalogLoader.kt").read_text(encoding="utf-8")
     bindings = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/content/DublUiBindings.kt").read_text(encoding="utf-8")
     screens = [
-        ROOT / "app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt",
+        ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetEditModels.kt",
         ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt",
-        ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt",
         ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt",
     ]
 
@@ -207,8 +209,8 @@ def test_chi_ui_mounts_use_generic_fcp_surface_contract():
 
 
 def test_resource_meter_uses_manifest_presentation_tokens_on_both_platforms():
-    android = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt").read_text(encoding="utf-8")
-    desktop = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt").read_text(encoding="utf-8")
+    # Stage 2b: one shared sheet renders meters on every platform.
+    sheet = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt").read_text(encoding="utf-8") + (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetVitals.kt").read_text(encoding="utf-8")
     contract = (ROOT / "shared/src/commonMain/kotlin/com/furybook/content/FcpUiContract.kt").read_text(encoding="utf-8")
 
     models = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/content/DublUiRenderModels.kt").read_text(encoding="utf-8")
@@ -217,53 +219,43 @@ def test_resource_meter_uses_manifest_presentation_tokens_on_both_platforms():
     assert "FcpUiIconToken" in contract
     assert "FcpUiAccentToken" in contract
     assert ".presentation()" in models
-    assert "model.presentation" in android
-    assert "fcpIconGlyph" in android
-    assert "fcpAccentColor" in android
-    assert "model.presentation" in desktop
-    assert "fcpDesktopIcon" in desktop
-    assert "fcpDesktopAccent" in desktop
+    assert "model.presentation" in sheet
+    assert "FcpUiIconToken" in sheet and "sheetFcpIconGlyph" in sheet
+    assert "FcpUiAccentToken" in sheet and "sheetFcpAccent" in sheet
 
 
 def test_fcp_ui_order_controls_host_tab_and_resource_positions():
-    android_overview = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt").read_text(encoding="utf-8")
+    shared_sheet = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt").read_text(encoding="utf-8")
     android_dev = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt").read_text(encoding="utf-8")
-    desktop_sheet = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt").read_text(encoding="utf-8")
     desktop_dev = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt").read_text(encoding="utf-8")
     contract = (ROOT / "shared/src/commonMain/kotlin/com/furybook/content/FcpUiContract.kt").read_text(encoding="utf-8")
 
     assert "object FcpUiHostOrder" in contract
     assert "fun <T> orderedUiItems" in contract
-    assert "model.presentation.order" in android_overview
-    assert "orderedUiItems(" in android_overview
+    assert "model.presentation.order" in shared_sheet
+    assert "orderedUiItems(items)" in shared_sheet
     assert "chiTabUi.order" in android_dev
     assert "items(developmentTabs)" in android_dev
-    assert "FcpOrderedUiItem(presentation.order" in desktop_sheet
-    assert "orderedUiItems(tileItems)" in desktop_sheet
+    assert "FcpUiHostOrder.PRIMARY" in shared_sheet
     assert "chiTabUi.order" in desktop_dev
     assert "developmentTabs.forEach" in desktop_dev
 
 
 def test_resource_toggle_and_development_browser_use_fcp_presentation():
-    android_overview = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt").read_text(encoding="utf-8")
+    shared_sheet = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt").read_text(encoding="utf-8")
     android_dev = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt").read_text(encoding="utf-8")
-    desktop_sheet = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt").read_text(encoding="utf-8")
     desktop_dev = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt").read_text(encoding="utf-8")
 
-    assert "mountedResourceToggles" in android_overview
-    assert "mountedToggles.forEach" in android_overview
-    assert "val presentation = model.presentation" in android_overview
-    assert "fcpIconGlyph(presentation.icon)" in android_overview
+    toggles = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetResourcesDialog.kt").read_text(encoding="utf-8")
+    assert "host.resourceToggleModels()" in toggles
+    assert "val presentation = model.presentation" in toggles
+    assert "sheetFcpIconGlyph(presentation.icon)" in toggles
 
     assert "chiTabPresentation = chiTabUi?.presentation()" in android_dev
     assert "chiTabPresentation?.label" in android_dev
     assert "fcpDevelopmentIcon(chiTabPresentation?.icon)" in android_dev
     assert 'properties?.get("icon")' not in android_dev
 
-    assert "mountedToggles = state.resourceToggleModels()" in desktop_sheet
-    assert "mountedToggles.forEach" in desktop_sheet
-    assert "val presentation = model.presentation" in desktop_sheet
-    assert "fcpDesktopIcon(token)" in desktop_sheet
 
     assert "chiTabPresentation = chiTabUi?.presentation()" in desktop_dev
     assert "chiTabPresentation?.label" in desktop_dev
@@ -275,9 +267,11 @@ def test_raw_fcp_binding_is_confined_to_shared_dubl_registry():
     platform_files = [
         ROOT / "app/src/main/java/com/furybook/android/data/AndroidContentPackState.kt",
         ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt",
-        ROOT / "app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt",
+        ROOT / "app/src/main/java/com/furybook/android/ui/AndroidSheetHost.kt",
+        ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt",
+        ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetEditModels.kt",
+        ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetResourcesDialog.kt",
         ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt",
-        ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt",
         ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt",
     ]
 
@@ -312,10 +306,12 @@ def test_runtime_and_builder_declare_same_current_ui_capability_boundary():
 
 def test_resource_surfaces_render_from_typed_dubl_models_without_chi_special_cases():
     models = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/content/DublUiRenderModels.kt").read_text(encoding="utf-8")
-    android_state = (ROOT / "app/src/main/java/com/furybook/android/data/AndroidContentPackState.kt").read_text(encoding="utf-8")
+    android_state = (ROOT / "app/src/main/java/com/furybook/android/ui/AndroidSheetHost.kt").read_text(encoding="utf-8")
     desktop_state = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt").read_text(encoding="utf-8")
-    android = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/OverviewScreen.kt").read_text(encoding="utf-8")
-    desktop = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt").read_text(encoding="utf-8")
+    # Stage 2b: the shared sheet is the resource surface on every platform.
+    sheet = "".join((ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet" / name).read_text(encoding="utf-8")
+                    for name in ("SheetModels.kt", "SheetVitals.kt", "SheetResourcesDialog.kt", "SheetVitalDialog.kt"))
+    android = desktop = sheet
 
     assert "data class DublResourceMeterModel" in models
     assert "data class DublResourceToggleModel" in models
@@ -324,14 +320,14 @@ def test_resource_surfaces_render_from_typed_dubl_models_without_chi_special_cas
     assert "DublUiRenderModels.resourceMeters" in desktop_state
     assert "DublUiRenderModels.resourceToggles" in desktop_state
 
-    assert "resourceMeterModels" in android
-    assert "resourceToggleModels" in android
+    assert "resourceMeters()" in android
+    assert "resourceToggleModels()" in android
     assert "CharacterSheetResourceId.CHI" not in android
     assert "chiResourcePresentation" not in android
     assert "chiResourceSettingsPresentation" not in android
 
-    assert "resourceMeterModels" in desktop
-    assert "resourceToggleModels" in desktop
+    assert "resourceMeters()" in desktop
+    assert "resourceToggleModels()" in desktop
     assert "CharacterSheetResourceId.CHI" not in desktop
     assert "chiResourcePresentation" not in desktop
     assert "chiTogglePresentation" not in desktop

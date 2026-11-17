@@ -1,5 +1,9 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.content.FcpUiComponent
+import com.furybook.content.FcpUiSurface
+import com.furybook.dubl.content.DublUiFeature
+import com.furybook.dubl.content.forFeature
 import com.furybook.dubl.model.CharacterEconomy
 import com.furybook.dubl.model.DevelopmentProgress
 import com.furybook.dubl.model.DevelopmentRules
@@ -27,15 +31,23 @@ data class SheetEconomyView(
     val creationComplete: Boolean,
 )
 
+/**
+ * Whether chi XP counts: a pack mounts the chi feature on the economy XP line (the old sheets' FCP check,
+ * `uiMounts(CHARACTER_ECONOMY, XP_LINE).forFeature(CHI)`), not a hard-coded pack flag.
+ */
+fun sheetChiEconomyMounted(host: DublSheetHost): Boolean =
+    host.uiMounts(FcpUiSurface.CHARACTER_ECONOMY, FcpUiComponent.XP_LINE).forFeature(DublUiFeature.CHI) != null
+
 fun sheetEconomyView(host: DublSheetHost): SheetEconomyView {
     val character = host.active
-    val economy = CharacterEconomy.breakdown(character, host.developmentCatalog, includeChi = host.chiPackEnabled)
+    val showChi = sheetChiEconomyMounted(host)
+    val economy = CharacterEconomy.breakdown(character, host.developmentCatalog, includeChi = showChi)
     val lines = buildList {
         add("Характеристики" to economy.attributeXp)
         add("Умения" to economy.skillXp)
         add("Навыки" to economy.developmentXp)
         add("Мана" to economy.manaXp)
-        if (host.chiPackEnabled) add("ЦИ" to economy.chiXp)
+        if (showChi) add("ЦИ" to economy.chiXp)
         add("Школы" to economy.magicSchoolXp)
         add("Заклинания" to economy.spellXp)
     }

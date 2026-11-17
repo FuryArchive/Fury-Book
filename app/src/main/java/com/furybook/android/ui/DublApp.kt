@@ -48,7 +48,6 @@ import com.furybook.android.ui.screens.CampaignScreen
 import com.furybook.android.ui.screens.EquipmentScreen
 import com.furybook.android.ui.screens.FeatsScreen
 import com.furybook.android.ui.screens.MagicScreen
-import com.furybook.android.ui.screens.OverviewScreen
 import com.furybook.android.ui.screens.SkillsScreen
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.android.ui.screens.RecentChangeBar
@@ -228,8 +227,8 @@ private val AppSection.primary: Boolean
 private data class SheetToast(val text: String, val accent: Color, val canUndo: Boolean, val token: Int)
 
 /**
- * The shared play sheet, or the old [OverviewScreen] behind «Правка». Changes made on the play
- * sheet raise the same «Последнее: … / Отменить» bar the old sheet shows, and «Отменить» calls the
+ * The shared sheet (play and edit). Changes made on it raise the same «Последнее: … / Отменить»
+ * bar the old sheet showed, and «Отменить» calls the
  * same one-step [CharacterController.undoLast].
  */
 @Composable
@@ -255,7 +254,7 @@ private fun AndroidSheet(
     // before a switch would keep writing into the previous character's toast.
     val host = remember(baseHost, activeId) {
         SheetChangeReportingHost(baseHost) { change ->
-            // Same wording and colour as OverviewScreen's own «Последнее: …» bar.
+            // Same wording and colour as the old Android sheet's «Последнее: …» bar.
             val (text, accent) = when (change) {
                 is SheetChange.Resource -> recentResourceChange(change.resource, change.applied, baseHost.resourceMeters())
                 is SheetChange.Condition, is SheetChange.Attribute, SheetChange.Identity -> change.text to DublAccent

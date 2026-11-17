@@ -1,5 +1,7 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.content.FcpUiIconToken
+import com.furybook.content.FcpUiAccentToken
 import com.furybook.ui.theme.DublAccentStrong
 import com.furybook.dubl.model.CharacterSheetResourceId
 import androidx.compose.ui.semantics.Role
@@ -38,13 +40,28 @@ import com.furybook.ui.theme.furyOverlineStyle
 
 internal const val SHEET_NO_VISIBLE_VITALS = "Нет видимых ресурсов"
 
-internal fun sheetVitalColor(color: SheetVitalColor): Color = when (color) {
+internal fun sheetVitalColor(vital: SheetVital): Color = when (vital.color) {
     SheetVitalColor.HEALTH -> DublHealth
     SheetVitalColor.STAMINA -> DublStamina
     SheetVitalColor.MANA -> DublMana
     SheetVitalColor.CUSTOM -> DublCustomResource
-    SheetVitalColor.MOUNTED -> DublAccent
+    SheetVitalColor.MOUNTED -> sheetFcpAccent(vital.accentToken)
 }
+
+/** Pack accent token → theme colour; every token maps to the crimson accent today (as on the old sheets). */
+internal fun sheetFcpAccent(token: String?): Color = when (token) {
+    FcpUiAccentToken.FURY_ACCENT -> DublAccent
+    else -> DublAccent
+}
+
+/** Pack icon token → a glyph shown before the meter's label (◎ for Ци, as on the old Android sheet). */
+internal fun sheetFcpIconGlyph(token: String?): String? = when (token) {
+    FcpUiIconToken.CHI -> "◎"
+    else -> null
+}
+
+private fun vitalTitle(vital: SheetVital): String =
+    sheetFcpIconGlyph(vital.iconToken)?.let { "$it ${vital.label}" } ?: vital.label
 
 /**
  * Resource tiles with −/+ buttons. [onChange] receives the step (−1 or +1); the host clamps.
@@ -104,12 +121,12 @@ private fun VitalRow(
         Column(Modifier.weight(1f).openable(vital, onOpen), verticalArrangement = Arrangement.spacedBy(FurySpacing.xs)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    vital.label.uppercase(), Modifier.weight(1f), color = DublMuted, style = furyOverlineStyle(),
+                    vitalTitle(vital).uppercase(), Modifier.weight(1f), color = DublMuted, style = furyOverlineStyle(),
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
                 Text("${vital.current} / ${vital.maximum}", color = vitalValueColor(vital), style = MaterialTheme.typography.titleMedium, maxLines = 1)
             }
-            FuryBar(vital.current, vital.maximum, sheetVitalColor(vital.color))
+            FuryBar(vital.current, vital.maximum, sheetVitalColor(vital))
             if (vital.restoreable) {
                 FuryButton("Восстановить", { onRestore(vital) }, Modifier.align(Alignment.End), style = FuryButtonStyle.Ghost)
             }
@@ -135,7 +152,7 @@ private fun VitalTile(
     ) {
         Row(Modifier.fillMaxWidth().openable(vital, onOpen), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                vital.label.uppercase(), Modifier.weight(1f), color = DublMuted, style = furyOverlineStyle(),
+                vitalTitle(vital).uppercase(), Modifier.weight(1f), color = DublMuted, style = furyOverlineStyle(),
                 maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
             Text(
@@ -145,7 +162,7 @@ private fun VitalTile(
                 maxLines = 1,
             )
         }
-        FuryBar(vital.current, vital.maximum, sheetVitalColor(vital.color))
+        FuryBar(vital.current, vital.maximum, sheetVitalColor(vital))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalAlignment = Alignment.CenterVertically) {
             FuryIconButton("Уменьшить ${vital.label}", { onChange(vital, -1) }, enabled = vitalCanDecrease(vital)) {
                 Text("−", color = DublText, style = MaterialTheme.typography.titleLarge)

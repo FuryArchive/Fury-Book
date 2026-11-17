@@ -1,6 +1,7 @@
 package com.furybook.dubl.ui.sheet
 
 import com.furybook.dubl.content.DublResourceMeterModel
+import com.furybook.dubl.content.DublUiMount
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.CharacterSheetResourceId
@@ -21,6 +22,8 @@ interface DublSheetHost {
     val chiPackEnabled: Boolean
 
     fun resourceMeters(): List<DublResourceMeterModel>
+    /** FCP UI mounts of the active content packs for a surface/component (generic FCP contract). */
+    fun uiMounts(surface: String, component: String): List<DublUiMount>
     fun changeResource(resource: CharacterSheetResourceId, delta: Int)
     fun changeCustomResource(uid: String, delta: Int)
     fun restoreMountedResource(resource: CharacterSheetResourceId)

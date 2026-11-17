@@ -1,6 +1,13 @@
 package com.furybook.dubl.ui.sheet
 
 import com.furybook.content.FcpComposition
+import com.furybook.content.FcpUiComponent
+import com.furybook.content.FcpUiContribution
+import com.furybook.content.FcpUiSurface
+import com.furybook.dubl.content.DublUiBinding
+import com.furybook.dubl.content.DublUiFeature
+import com.furybook.dubl.content.DublUiMount
+import com.furybook.dubl.content.DublUiRegistry
 import com.furybook.content.FcpContentPack
 import com.furybook.content.FcpTextSource
 import com.furybook.dubl.application.DublApplication
@@ -81,6 +88,15 @@ class FakeSheetHost(
 
     override fun resourceMeters(): List<DublResourceMeterModel> =
         DublUiRenderModels.resourceMeters(composition, active)
+
+    /** The fake pack has no chi pack; with [chiPackEnabled] it stands in the chi pack's economy XP-line mount. */
+    override fun uiMounts(surface: String, component: String): List<DublUiMount> {
+        val real = DublUiRegistry.mounts(composition, surface, component)
+        val chiXpLine = surface == FcpUiSurface.CHARACTER_ECONOMY && component == FcpUiComponent.XP_LINE
+        return if (chiPackEnabled && chiXpLine) {
+            real + DublUiMount(DublUiFeature.CHI, FcpUiContribution("fake-chi-xp", surface, component, DublUiBinding.CHI, "ЦИ", 0, emptyMap()))
+        } else real
+    }
 
     override fun changeResource(resource: CharacterSheetResourceId, delta: Int) {
         when (resource) {

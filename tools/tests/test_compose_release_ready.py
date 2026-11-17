@@ -2,7 +2,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / '.github/workflows/linux-appimage.yml'
-SHEET = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt'
+SHEET = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/DesktopPortraits.kt'
+SHEET_PORTRAIT = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetPortrait.kt'
 PACKAGER = ROOT / 'packaging/linux/build-appimage.sh'
 
 
@@ -33,7 +34,8 @@ def test_character_sheet_portrait_is_not_embedded_swing_ui():
     assert 'SwingPanel' not in text
     assert 'javax.swing' not in text
     assert 'loadImageBitmap' in text
-    assert 'Image(' in text
+    assert 'Image(' in read(SHEET_PORTRAIT)
+    assert 'SwingPanel' not in read(SHEET_PORTRAIT)
 
 
 def test_appimage_appdir_contains_desktop_icon_and_diricon():

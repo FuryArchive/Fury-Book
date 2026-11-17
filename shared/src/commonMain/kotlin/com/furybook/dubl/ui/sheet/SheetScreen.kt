@@ -172,13 +172,10 @@ private fun SheetScreenHeader(
     val character = host.active
     val editing = state.editing
     // Recomputed only when the character, its extras, the chi pack or the catalog change.
-    val economy = remember(host, character, host.extras, host.chiPackEnabled, host.developmentCatalog) {
-        CharacterEconomy.breakdown(
-            character,
-            host.developmentCatalog,
-            // Desktop/Android pass "the chi pack mounts the XP line"; only the chi pack declares that mount.
-            includeChi = host.chiPackEnabled,
-        )
+    val includeChi = sheetChiEconomyMounted(host)
+    val economy = remember(host, character, host.extras, includeChi, host.developmentCatalog) {
+        // Chi XP counts only when a pack mounts the chi feature on the economy XP line (FCP contract).
+        CharacterEconomy.breakdown(character, host.developmentCatalog, includeChi = includeChi)
     }
     SheetHeader(
         name = character.name,
@@ -262,7 +259,7 @@ private fun SheetScreenBody(
         }) else null,
     )
     SheetSection("Умения")
-    val skillGroups = remember(host, character, host.extras, host.chiPackEnabled, host.developmentCatalog, editing) {
+    val skillGroups = remember(host, character, host.extras, host.developmentCatalog, editing) {
         if (editing) sheetSkillGroupsForEdit(host) else sheetSkillGroups(host)
     }
     SheetSkills(

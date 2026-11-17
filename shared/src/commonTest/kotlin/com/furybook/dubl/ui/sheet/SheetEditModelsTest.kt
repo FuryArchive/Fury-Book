@@ -86,3 +86,12 @@ class SheetEditModelsTest {
         assertTrue(group.rows.isNotEmpty())
     }
 }
+
+class SheetChiMountTest {
+    @Test
+    fun chiXpFollowsTheFcpEconomyMountNotAFlag() {
+        val character = DublCharacter(id = "c1", name = "Тест", experience = 500)
+        assertFalse(sheetChiEconomyMounted(FakeSheetHost(character, chiPackEnabled = false)))
+        assertTrue(sheetChiEconomyMounted(FakeSheetHost(character, chiPackEnabled = true)))
+    }
+}

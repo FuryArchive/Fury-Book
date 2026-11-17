@@ -28,7 +28,6 @@ def test_compose_host_uses_real_shared_sessions_and_file_persistence():
 
 def test_all_parity_screens_exist():
     required = {
-        'CharacterSheetScreen.kt': ['CharacterSheetScreen', 'CharacterSheetExtras', 'RollContext', 'SheetGroupingRules'],
         'CharactersScreen.kt': ['CharactersScreen', 'createCharacter', 'selectCharacter', 'deleteActive'],
         'SkillsScreen.kt': ['SkillsScreen', 'resolvedSkills', 'changeSkillRank', 'SkillRollDialog'],
         'DevelopmentScreen.kt': ['DevelopmentScreen', 'DevelopmentRules', 'ChiRules', 'setDevelopmentRank'],
@@ -40,6 +39,10 @@ def test_all_parity_screens_exist():
         src = text(SCREENS / name)
         for token in tokens:
             assert token in src, f'{name} missing {token}'
+    # Stage 2b: the character sheet is the shared SheetScreen (all platforms).
+    sheet = text(ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetScreen.kt')
+    for token in ['fun SheetScreen(', 'SheetGroupingRules', 'SHEET_COMBAT_CONTEXTS', 'displayNotes()']:
+        assert token in sheet, f'SheetScreen.kt missing {token}'
 
 
 def test_compose_screens_have_no_horizontal_scroll():

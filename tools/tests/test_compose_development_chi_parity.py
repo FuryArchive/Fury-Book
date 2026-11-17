@@ -2,7 +2,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DEV = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt'
-SHEET = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt'
+SHEET = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/SheetDevelopmentDetails.kt'
 WORKFLOW = ROOT / '.github/workflows/linux-appimage.yml'
 
 
@@ -72,4 +72,4 @@ def test_owned_entries_surface_manual_or_failed_requirements_like_android():
 def test_character_sheet_development_details_wires_navigation_callback():
     text = read(SHEET)
     assert 'DevelopmentDetailsDialog(' in text
-    assert 'onOpenEntry = { targetId -> state.developmentCatalog.byId(targetId)?.let { sheetDevelopmentEntry = it } }' in text
+    assert 'onOpenEntry = { targetId -> state.developmentCatalog.byId(targetId)?.let { shown = it } }' in text

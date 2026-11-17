@@ -10,23 +10,6 @@ def read(path: Path) -> str:
     return path.read_text(encoding='utf-8')
 
 
-def test_skill_breakdown_separates_hover_preview_from_click_pin_and_avoids_dropdown_menu():
-    primitives = read(PRIMITIVES)
-    skill_row = primitives.split('internal fun DesktopSkillRow', 1)[1].split('internal fun DesktopResourceTile', 1)[0]
-
-    assert 'breakdownHovered' in skill_row
-    assert 'breakdownPinned' in skill_row
-    assert 'breakdownHovered || breakdownPinned' in skill_row
-    assert 'onEnter = { breakdownHovered = breakdownLines.isNotEmpty(); false }' in skill_row
-    assert 'onExit = { breakdownHovered = false; false }' in skill_row
-    assert 'if (breakdownPinned)' in skill_row
-    assert 'breakdownPinned = false' in skill_row
-    assert 'breakdownHovered = false' in skill_row
-    assert 'breakdownPinned = true' in skill_row
-    assert 'DropdownMenu(' not in skill_row
-    assert 'FuryBreakdownPopover(' in skill_row
-
-
 def test_fury_dialog_primitive_owns_desktop_modal_visual_language():
     primitives = read(PRIMITIVES)
     assert 'internal fun FuryDialog(' in primitives
@@ -58,4 +41,4 @@ def test_all_desktop_feature_dialogs_use_fury_dialog_instead_of_material_alert_d
             users.append(path.name)
 
     assert not offenders, f'legacy Material AlertDialog remains in: {offenders}'
-    assert {'RollDialog.kt', 'CharacterSheetScreen.kt', 'SkillsScreen.kt', 'DevelopmentScreen.kt', 'MagicScreen.kt', 'EquipmentScreen.kt', 'CharactersScreen.kt'} <= set(users)
+    assert {'RollDialog.kt', 'SkillsScreen.kt', 'DevelopmentScreen.kt', 'MagicScreen.kt', 'EquipmentScreen.kt', 'CharactersScreen.kt'} <= set(users)

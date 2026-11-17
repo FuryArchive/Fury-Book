@@ -5,7 +5,7 @@ ANDROID_CONTROLLER = ROOT / "app/src/main/java/com/furybook/android/state/Charac
 ANDROID_SCREEN = ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt"
 DESKTOP_STATE = ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt"
 DESKTOP_SCREEN = ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt"
-DESKTOP_SHEET = ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt"
+DESKTOP_SHEET = ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/SheetDevelopmentDetails.kt"
 WORKFLOW = ROOT / ".github/workflows/linux-appimage.yml"
 
 
