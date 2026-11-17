@@ -1,5 +1,8 @@
 package com.furybook.android.ui
 
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.compose.rememberLauncherForActivityResult
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -251,6 +254,13 @@ private fun AndroidSheet(
         return
     }
     val activeId = controller.active.id
+    // Same picker as the old sheet: keep read access across restarts, then store the URI.
+    val portraitPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            runCatching { context.contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            controller.setPortrait(uri.toString())
+        }
+    }
     var toast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
     var toastCount by remember { mutableStateOf(0) }
     val baseHost = rememberAndroidSheetHost(controller, context, chiPackEnabled)
@@ -273,7 +283,13 @@ private fun AndroidSheet(
         }
     }
     Box(Modifier.fillMaxSize()) {
-        SheetScreen(host, onEdit = { editing = true }, onOpenSkills = onOpenSkills)
+        SheetScreen(
+            host,
+            onEdit = { editing = true },
+            onOpenSkills = onOpenSkills,
+            portraitLoader = { uri -> rememberAndroidPortrait(uri) },
+            onPickPortrait = { portraitPicker.launch(arrayOf("image/*")) },
+        )
         toast?.let { shown ->
             val undoShown: () -> Unit = {
                 controller.undoLast()

@@ -684,7 +684,13 @@ private fun WebSheet(
         }
     }
     Box(playModifier) {
-        SheetScreen(host, onEdit = { editing = true }, onOpenSkills = { onNavigate(DesktopSection.SKILLS) })
+        SheetScreen(
+            host,
+            onEdit = { editing = true },
+            onOpenSkills = { onNavigate(DesktopSection.SKILLS) },
+            portraitLoader = { dataUrl -> rememberWebPortrait(dataUrl) },
+            onPickPortrait = { pickPortraitDataUrl { dataUrl -> state.setPortrait(dataUrl) } },
+        )
         AnimatedVisibility(
             visible = toast != null,
             modifier = Modifier

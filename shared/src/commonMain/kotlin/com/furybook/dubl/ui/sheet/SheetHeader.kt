@@ -55,10 +55,19 @@ fun SheetHeader(
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenConditions: (() -> Unit)? = null,
+    portrait: (@Composable () -> Unit)? = null,
+    onOpenIdentity: (() -> Unit)? = null,
+    onOpenEconomy: (() -> Unit)? = null,
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.md), verticalAlignment = Alignment.Top) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FurySpacing.xs)) {
+            portrait?.invoke()
+            Column(
+                Modifier.weight(1f).then(
+                    onOpenIdentity?.let { open -> Modifier.clickable(role = Role.Button, onClickLabel = "Изменить персонажа") { open() } } ?: Modifier,
+                ),
+                verticalArrangement = Arrangement.spacedBy(FurySpacing.xs),
+            ) {
                 Text(
                     text = name,
                     color = DublText,
@@ -78,7 +87,14 @@ fun SheetHeader(
         }
         FlowRow(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
             // Gold fill with near-black text: about 11:1.
-            HeaderChip("XP $xpTotal · осталось $xpFree", Modifier.background(DublGold), DublBackground, bold = true)
+            HeaderChip(
+                "XP $xpTotal · осталось $xpFree",
+                Modifier.background(DublGold).then(
+                    onOpenEconomy?.let { open -> Modifier.clickable(role = Role.Button, onClickLabel = "Опыт") { open() } } ?: Modifier,
+                ),
+                DublBackground,
+                bold = true,
+            )
             if (abilityText.isNotBlank()) {
                 HeaderChip(abilityText, Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control), DublText)
             }

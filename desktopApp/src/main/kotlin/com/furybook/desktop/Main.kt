@@ -262,7 +262,13 @@ private fun DesktopSheet(
         }
     }
     Box(playModifier) {
-        SheetScreen(host, onEdit = { editing = true }, onOpenSkills = { onNavigate(DesktopSection.SKILLS) })
+        SheetScreen(
+            host,
+            onEdit = { editing = true },
+            onOpenSkills = { onNavigate(DesktopSection.SKILLS) },
+            portraitLoader = { path -> rememberDesktopPortrait(path) },
+            onPickPortrait = { chooseDesktopPortraitFile()?.let(state::importPortrait)?.let(state::setPortrait) },
+        )
         AnimatedVisibility(
             visible = toast != null,
             modifier = Modifier

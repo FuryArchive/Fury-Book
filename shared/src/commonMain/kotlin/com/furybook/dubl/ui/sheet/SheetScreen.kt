@@ -58,11 +58,18 @@ internal fun sheetPhoneAttributeLabel(id: AttributeId): String = PHONE_ATTRIBUTE
  * Owns roll state; rolls open in a bottom sheet (phone), a centred dialog (wide) or the docked tray.
  */
 @Composable
-fun SheetScreen(host: DublSheetHost, onEdit: () -> Unit, onOpenSkills: () -> Unit, modifier: Modifier = Modifier) {
+fun SheetScreen(
+    host: DublSheetHost,
+    onEdit: () -> Unit,
+    onOpenSkills: () -> Unit,
+    modifier: Modifier = Modifier,
+    portraitLoader: SheetPortraitLoader? = null,
+    onPickPortrait: (() -> Unit)? = null,
+) {
     val state = remember(host.active.id) { SheetScreenState() }
     BoxWithConstraints(modifier.fillMaxSize()) {
         val layout = sheetLayoutFor(maxWidth.value.toInt())
-        val header: @Composable (Modifier) -> Unit = { headerModifier -> SheetScreenHeader(host, layout, onEdit, headerModifier) }
+        val header: @Composable (Modifier) -> Unit = { headerModifier -> SheetScreenHeader(host, layout, onEdit, headerModifier, portraitLoader, onPickPortrait) }
         val body: @Composable () -> Unit = { SheetScreenBody(host, layout, state, onOpenSkills) }
         when (layout) {
             SheetLayout.PHONE -> Column(Modifier.fillMaxSize()) {
@@ -112,7 +119,14 @@ private fun SheetScrollColumn(modifier: Modifier, content: @Composable () -> Uni
 }
 
 @Composable
-private fun SheetScreenHeader(host: DublSheetHost, layout: SheetLayout, onEdit: () -> Unit, modifier: Modifier) {
+private fun SheetScreenHeader(
+    host: DublSheetHost,
+    layout: SheetLayout,
+    onEdit: () -> Unit,
+    modifier: Modifier,
+    portraitLoader: SheetPortraitLoader?,
+    onPickPortrait: (() -> Unit)?,
+) {
     val character = host.active
     // Recomputed only when the character, its extras or the chi pack change, not on every recomposition.
     val economy = remember(host, character, host.extras, host.chiPackEnabled) {
@@ -140,6 +154,18 @@ private fun SheetScreenHeader(host: DublSheetHost, layout: SheetLayout, onEdit: 
         },
         onEdit = onEdit,
         modifier = modifier,
+        portrait = if (portraitLoader == null && onPickPortrait == null) null else {
+            {
+                SheetPortrait(
+                    uri = host.extras.portraitUri,
+                    name = character.name,
+                    loader = portraitLoader,
+                    onPick = onPickPortrait,
+                    onRemove = null,
+                    size = if (layout == SheetLayout.PHONE) 64.dp else 88.dp,
+                )
+            }
+        },
     )
 }
 
