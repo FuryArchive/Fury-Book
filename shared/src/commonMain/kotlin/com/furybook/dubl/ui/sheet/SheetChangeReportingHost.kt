@@ -19,6 +19,11 @@ sealed interface SheetChange {
         override val text: String get() = "${attribute.title} ${if (applied > 0) "+$applied" else applied.toString()}"
     }
 
+    /** Total XP changed on its own (Android «Общий опыт: a → b»). */
+    data class Experience(val previous: Int, val next: Int) : SheetChange {
+        override val text: String get() = "Общий опыт: $previous → $next"
+    }
+
     /** Name, concept, size, legs or mana changed (desktop «Персонаж изменён»). */
     data object Identity : SheetChange {
         override val text: String get() = "Персонаж изменён"
@@ -64,5 +69,12 @@ class SheetChangeReportingHost(
         val before = delegate.active
         delegate.setIdentity(name, concept, size, legs, manaEnabled)
         if (delegate.active != before) onChange(SheetChange.Identity)
+    }
+
+    override fun setExperience(total: Int) {
+        val before = delegate.active.experience
+        delegate.setExperience(total)
+        val after = delegate.active.experience
+        if (after != before) onChange(SheetChange.Experience(before, after))
     }
 }

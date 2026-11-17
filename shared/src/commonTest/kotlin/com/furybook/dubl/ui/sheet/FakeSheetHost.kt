@@ -131,6 +131,7 @@ class FakeSheetHost(
     override fun setEconomy(total: Int, creation: Int, adjustment: Int, abilityPointsOverride: Int?) {
         application.character.setEconomy(total, creation, adjustment, abilityPointsOverride)
     }
+    override fun setExperience(total: Int) { application.character.setExperience(total) }
     override fun completeCreation() { application.character.completeCreation() }
     override fun reopenCreation() { application.character.reopenCreation() }
     override fun changeAttribute(id: AttributeId, delta: Int) { application.character.changeAttribute(id, delta) }

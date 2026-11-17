@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterEconomy
+import com.furybook.dubl.model.CharacterEconomyBreakdown
 import com.furybook.dubl.model.displayNotes
 import com.furybook.dubl.model.SheetGroupingRules
 import com.furybook.ui.components.FuryDialogAction
@@ -172,11 +173,7 @@ private fun SheetScreenHeader(
     val character = host.active
     val editing = state.editing
     // Recomputed only when the character, its extras, the chi pack or the catalog change.
-    val includeChi = sheetChiEconomyMounted(host)
-    val economy = remember(host, character, host.extras, includeChi, host.developmentCatalog) {
-        // Chi XP counts only when a pack mounts the chi feature on the economy XP line (FCP contract).
-        CharacterEconomy.breakdown(character, host.developmentCatalog, includeChi = includeChi)
-    }
+    val economy = rememberSheetEconomy(host)
     SheetHeader(
         name = character.name,
         concept = character.concept,
@@ -210,6 +207,35 @@ private fun SheetScreenHeader(
         onOpenIdentity = if (editing) ({ state.openDialog(SheetDialog.Identity) }) else null,
         onOpenEconomy = { state.openDialog(SheetDialog.Economy) },
         editing = editing,
+        showChips = layout != SheetLayout.PHONE,
+    )
+}
+
+/** Chi XP counts only when a pack mounts the chi feature on the economy XP line (FCP contract). */
+@Composable
+private fun rememberSheetEconomy(host: DublSheetEditHost): CharacterEconomyBreakdown {
+    val character = host.active
+    val includeChi = sheetChiEconomyMounted(host)
+    return remember(host, character, host.extras, includeChi, host.developmentCatalog) {
+        CharacterEconomy.breakdown(character, host.developmentCatalog, includeChi = includeChi)
+    }
+}
+
+/** Phone: the chips row scrolls with the body; only the name row stays pinned. */
+@Composable
+private fun SheetScreenChips(host: DublSheetEditHost, state: SheetScreenState) {
+    val economy = rememberSheetEconomy(host)
+    SheetHeaderChips(
+        xpFree = economy.remainingXp,
+        xpTotal = host.active.experience,
+        abilityText = "ОС ${economy.abilityPointsRemaining}/${economy.abilityPointsBudget}",
+        conditions = sheetActiveConditions(host),
+        onToggleCondition = { chip ->
+            if (chip.custom) host.setCustomConditionActive(chip.key, false)
+            else CharacterConditionId.entries.firstOrNull { it.name == chip.key }?.let(host::toggleCondition)
+        },
+        onOpenConditions = { state.openDialog(SheetDialog.Conditions) },
+        onOpenEconomy = { state.openDialog(SheetDialog.Economy) },
     )
 }
 
@@ -226,6 +252,7 @@ private fun SheetScreenBody(
     val character = host.active
     // The docked tray shows the roll itself; only taps made without it open the dialog.
     val open: (SheetRollSubject) -> Unit = { subject -> state.open(subject, dialog = layout != SheetLayout.WIDE_WITH_TRAY) }
+    if (phone) SheetScreenChips(host, state)
     SheetVitals(
         vitals = sheetVitals(host),
         compact = phone,

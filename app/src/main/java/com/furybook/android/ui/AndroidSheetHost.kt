@@ -90,6 +90,7 @@ class AndroidSheetHost(
     override fun setEconomy(total: Int, creation: Int, adjustment: Int, abilityPointsOverride: Int?) {
         controller.setEconomy(total, creation, adjustment, abilityPointsOverride)
     }
+    override fun setExperience(total: Int) { controller.setExperience(total) }
     override fun completeCreation() { controller.completeCreation() }
     override fun reopenCreation() { controller.reopenCreation() }
     override fun changeAttribute(id: AttributeId, delta: Int) { controller.changeAttribute(id, delta) }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -93,6 +94,8 @@ fun FuryDialogScaffold(
             Column(
                 modifier = modifier
                     .align(if (sheet) Alignment.BottomCenter else Alignment.Center)
+                    // A bottom sheet rises above the soft keyboard so focused fields stay visible.
+                    .then(if (sheet) Modifier.imePadding() else Modifier)
                     .then(if (sheet) Modifier.fillMaxWidth() else Modifier.padding(FurySpacing.xl).widthIn(max = maxWidth).fillMaxWidth())
                     .heightIn(max = availableHeight * 0.9f)
                     .clip(shape)

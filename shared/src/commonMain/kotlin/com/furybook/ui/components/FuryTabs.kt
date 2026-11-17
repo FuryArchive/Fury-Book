@@ -1,5 +1,8 @@
 package com.furybook.ui.components
 
+import androidx.compose.runtime.getValue
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +36,9 @@ import com.furybook.ui.theme.FuryShapes
 data class FuryTab<T>(val value: T, val label: String)
 
 /** Section tabs for wide layouts: a row of pills, the current one filled. */
+/** Selected-tab colour change duration (the old desktop rail animated it too). */
+private const val FURY_TAB_MS = 160
+
 @Composable
 fun <T> FuryTopTabs(
     tabs: List<FuryTab<T>>,
@@ -43,18 +49,20 @@ fun <T> FuryTopTabs(
     Row(modifier, horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
         tabs.forEach { tab ->
             val active = tab.value == selected
+            val fill by animateColorAsState(if (active) FuryAccentFill else Color.Transparent, tween(FURY_TAB_MS))
+            val textColor by animateColorAsState(if (active) FuryOnAccentFill else DublMuted, tween(FURY_TAB_MS))
             Box(
                 modifier = Modifier
                     .defaultMinSize(minHeight = FuryMinTouch)
                     .clip(FuryShapes.control)
-                    .background(if (active) FuryAccentFill else Color.Transparent)
+                    .background(fill)
                     .selectable(active, role = Role.Tab) { onSelect(tab.value) }
                     .padding(horizontal = 16.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = tab.label,
-                    color = if (active) FuryOnAccentFill else DublMuted,
+                    color = textColor,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
                     maxLines = 1,
@@ -77,6 +85,8 @@ fun <T> FuryBottomTabs(
         Row(Modifier.fillMaxWidth()) {
             tabs.forEach { tab ->
                 val active = tab.value == selected
+                val marker by animateColorAsState(if (active) DublAccent else Color.Transparent, tween(FURY_TAB_MS))
+                val textColor by animateColorAsState(if (active) DublText else DublMuted, tween(FURY_TAB_MS))
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -86,11 +96,11 @@ fun <T> FuryBottomTabs(
                 ) {
                     Box(
                         Modifier.align(Alignment.TopCenter).fillMaxWidth().height(3.dp)
-                            .background(if (active) DublAccent else Color.Transparent),
+                            .background(marker),
                     )
                     Text(
                         text = tab.label,
-                        color = if (active) DublText else DublMuted,
+                        color = textColor,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (active) FontWeight.Bold else FontWeight.SemiBold,
                         maxLines = 1,

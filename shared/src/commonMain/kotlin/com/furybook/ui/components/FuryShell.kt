@@ -72,13 +72,15 @@ fun <T> FuryShell(
     onSelect: (T) -> Unit,
     onSwitchCharacter: () -> Unit,
     modifier: Modifier = Modifier,
+    /** Account control (web sign-in name / «Выйти»): next to the character button, or in the phone menu. */
+    account: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     BoxWithConstraints(modifier.fillMaxSize()) {
         if (furyShellIsPhone(maxWidth.value.toInt())) {
-            PhoneShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, content)
+            PhoneShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, account, content)
         } else {
-            WideShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, content)
+            WideShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, account, content)
         }
     }
 }
@@ -91,6 +93,7 @@ private fun <T> WideShell(
     selected: T,
     onSelect: (T) -> Unit,
     onSwitchCharacter: () -> Unit,
+    account: (@Composable () -> Unit)?,
     content: @Composable () -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
@@ -116,6 +119,7 @@ private fun <T> WideShell(
                 )
             }
             Spacer(Modifier.width(FurySpacing.md))
+            account?.let { slot -> slot(); Spacer(Modifier.width(FurySpacing.sm)) }
             FuryButton("$characterName ▾", onSwitchCharacter, Modifier.widthIn(max = 280.dp))
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(DublBorder))
@@ -131,6 +135,7 @@ private fun <T> PhoneShell(
     selected: T,
     onSelect: (T) -> Unit,
     onSwitchCharacter: () -> Unit,
+    account: (@Composable () -> Unit)?,
     content: @Composable () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -171,6 +176,7 @@ private fun <T> PhoneShell(
                     style = if (section.value == selected) FuryButtonStyle.Primary else FuryButtonStyle.Secondary,
                 )
             }
+            account?.invoke()
         }
     }
 }

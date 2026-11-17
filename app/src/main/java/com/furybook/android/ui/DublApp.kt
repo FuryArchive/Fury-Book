@@ -63,6 +63,7 @@ import com.furybook.ui.components.FuryShell
 import com.furybook.ui.components.FuryShellCharacter
 import com.furybook.ui.components.FuryShellSection
 import com.furybook.ui.theme.DublAccent
+import com.furybook.ui.theme.DublGold
 import com.furybook.ui.theme.DublFocus
 import com.furybook.ui.theme.DublMuted
 import com.furybook.ui.theme.DublSurface
@@ -257,6 +258,7 @@ private fun AndroidSheet(
             // Same wording and colour as the old Android sheet's «Последнее: …» bar.
             val (text, accent) = when (change) {
                 is SheetChange.Resource -> recentResourceChange(change.resource, change.applied, baseHost.resourceMeters())
+                is SheetChange.Experience -> change.text to DublGold
                 is SheetChange.Condition, is SheetChange.Attribute, SheetChange.Identity -> change.text to DublAccent
             }
             toast = SheetToast(text, accent, controller.canUndo, ++toastCount)

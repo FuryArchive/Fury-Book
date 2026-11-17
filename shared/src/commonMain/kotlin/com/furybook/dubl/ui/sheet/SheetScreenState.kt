@@ -83,9 +83,14 @@ class SheetScreenState {
         rollOpen = false
     }
 
-    /** Any change to the setup drops the shown result, so it is never read against a different setup. */
+    /**
+     * Any change to the setup drops the shown result, so it is never read against a different setup —
+     * except the target: the old desktop dialog let you roll first and type the defence afterwards, and the
+     * outcome (and the superiority-die offer) is recomputed against the current target.
+     */
     fun updateRequest(next: SheetRollRequest) {
-        if (next != request) result = null
+        val current = request
+        if (next != current && (current == null || next != current.copy(target = next.target))) result = null
         request = next
     }
 

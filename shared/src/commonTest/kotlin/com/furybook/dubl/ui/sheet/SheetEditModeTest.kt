@@ -41,3 +41,20 @@ class SheetEditModeTest {
         assertNull(state.dialog)
     }
 }
+
+class SheetTargetChangeTest {
+    @Test
+    fun changingOnlyTheTargetKeepsTheResult() {
+        val state = SheetScreenState()
+        val host = FakeSheetHost(com.furybook.dubl.model.DublCharacter(id = "c1", name = "Тест"))
+        state.open(SheetRollSubject.Context(com.furybook.dubl.model.RollContext.ATTACK))
+        val dice = sequenceOf(3, 4).iterator()
+        state.roll(host) { dice.next() }
+        val rolled = state.result
+        kotlin.test.assertNotNull(rolled)
+        state.updateRequest(state.request!!.copy(target = 15))
+        assertEquals(rolled, state.result)
+        state.updateRequest(state.request!!.copy(situational = 2))
+        assertNull(state.result)
+    }
+}

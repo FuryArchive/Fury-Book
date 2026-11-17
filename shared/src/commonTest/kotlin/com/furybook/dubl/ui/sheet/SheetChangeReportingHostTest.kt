@@ -66,3 +66,18 @@ class SheetChangeReportingEditTest {
         kotlin.test.assertEquals(listOf("Персонаж изменён"), changes.map { it.text })
     }
 }
+
+class SheetExperienceUndoTest {
+    @kotlin.test.Test
+    fun totalXpOnlyChangeIsUndoableAndAnnounced() {
+        val changes = mutableListOf<SheetChange>()
+        val fake = FakeSheetHost(com.furybook.dubl.model.DublCharacter(id = "c1", name = "Тест", experience = 100))
+        val host = SheetChangeReportingHost(fake) { changes += it }
+        val view = sheetEconomyView(host)
+        saveSheetEconomy(host, view, SheetEconomyForm(250, view.creation, view.adjustment, view.abilityPointsOverride))
+        kotlin.test.assertEquals(250, host.active.experience)
+        kotlin.test.assertEquals(listOf("Общий опыт: 100 → 250"), changes.map { it.text })
+        kotlin.test.assertTrue(host.undoLast())
+        kotlin.test.assertEquals(100, host.active.experience)
+    }
+}

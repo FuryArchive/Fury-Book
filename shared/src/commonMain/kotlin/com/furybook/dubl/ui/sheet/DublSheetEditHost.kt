@@ -13,6 +13,8 @@ import com.furybook.dubl.model.SheetGroup
 interface DublSheetEditHost : DublSheetHost {
     fun setIdentity(name: String, concept: String, size: Int, legs: Int, manaEnabled: Boolean)
     fun setEconomy(total: Int, creation: Int, adjustment: Int, abilityPointsOverride: Int?)
+    /** Total XP alone; unlike [setEconomy] the application records it for undo (old Android sheet). */
+    fun setExperience(total: Int)
     fun completeCreation()
     fun reopenCreation()
     fun changeAttribute(id: AttributeId, delta: Int)

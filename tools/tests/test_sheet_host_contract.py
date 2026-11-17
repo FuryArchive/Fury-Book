@@ -45,7 +45,7 @@ EDIT_MEMBERS = [
     "addCustomResource", "updateCustomResource", "removeCustomResource", "resourceToggleModels",
     "setResourceHidden", "setConditionOverride", "resetConditionOverride", "addCustomCondition",
     "updateCustomCondition", "removeCustomCondition", "setSkillGroups", "setDevelopmentGroups",
-    "addNote", "updateNote", "removeNote", "setPortrait",
+    "addNote", "updateNote", "removeNote", "setPortrait", "setExperience",
 ]
 
 

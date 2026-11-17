@@ -154,7 +154,7 @@ class DesktopAppState(
     fun setSize(size: Int) = sync { application.character.setSize(size) }
     fun setLegs(legs: Int) = sync { application.character.setLegs(legs) }
     override fun changeAttribute(id: AttributeId, delta: Int) { sync { application.character.changeAttribute(id, delta) } }
-    fun setExperience(total: Int) = sync { application.character.setExperience(total) }
+    override fun setExperience(total: Int) { sync { application.character.setExperience(total) } }
     fun setCreationExperience(value: Int) = sync { application.character.setCreationExperience(value) }
     fun setXpAdjustment(value: Int) = sync { application.character.setXpAdjustment(value) }
     fun setAbilityPointsOverride(value: Int?) = sync { application.character.setAbilityPointsOverride(value) }

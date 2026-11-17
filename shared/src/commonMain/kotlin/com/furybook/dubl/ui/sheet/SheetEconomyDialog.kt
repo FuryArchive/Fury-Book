@@ -49,7 +49,7 @@ fun SheetEconomyDialog(view: SheetEconomyView, host: DublSheetEditHost, onDismis
         onDismiss = onDismiss,
         primary = FuryDialogAction("Сохранить", {
             form?.let {
-                host.setEconomy(it.total, it.creation, it.adjustment, it.abilityPointsOverride)
+                saveSheetEconomy(host, view, it)
                 onSaved(view.total)
             }
             onDismiss()
@@ -93,5 +93,19 @@ fun SheetEconomyDialog(view: SheetEconomyView, host: DublSheetEditHost, onDismis
         } else {
             FuryButton("Завершить создание", { host.completeCreation() }, Modifier.fillMaxWidth(), style = FuryButtonStyle.Ghost)
         }
+    }
+}
+
+/**
+ * Saves the XP form. A change of the total alone goes through [DublSheetEditHost.setExperience], which the
+ * application records for undo (the old Android sheet's «Общий опыт: a → b»); anything else is one setEconomy.
+ */
+fun saveSheetEconomy(host: DublSheetEditHost, view: SheetEconomyView, form: SheetEconomyForm) {
+    val onlyTotal = form.creation == view.creation && form.adjustment == view.adjustment &&
+        form.abilityPointsOverride == view.abilityPointsOverride
+    when {
+        form.total == view.total && onlyTotal -> Unit
+        onlyTotal -> host.setExperience(form.total)
+        else -> host.setEconomy(form.total, form.creation, form.adjustment, form.abilityPointsOverride)
     }
 }

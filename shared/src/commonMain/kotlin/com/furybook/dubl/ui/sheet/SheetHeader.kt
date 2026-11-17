@@ -60,6 +60,8 @@ fun SheetHeader(
     onOpenEconomy: (() -> Unit)? = null,
     /** In edit mode the button reads «Готово» and is the filled one. */
     editing: Boolean = false,
+    /** False on phones: the chips scroll with the body ([SheetHeaderChips]) so only the name row stays pinned. */
+    showChips: Boolean = true,
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.md), verticalAlignment = Alignment.Top) {
@@ -87,52 +89,70 @@ fun SheetHeader(
             }
             FuryButton(if (editing) "Готово" else "Правка", onEdit, style = if (editing) FuryButtonStyle.Primary else FuryButtonStyle.Secondary)
         }
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-            // Gold fill with near-black text: about 11:1.
-            HeaderChip(
-                "XP $xpTotal · осталось $xpFree",
-                Modifier.background(DublGold).then(
-                    onOpenEconomy?.let { open -> Modifier.clickable(role = Role.Button, onClickLabel = "Опыт") { open() } } ?: Modifier,
-                ),
-                DublBackground,
-                bold = true,
-            )
-            if (abilityText.isNotBlank()) {
-                HeaderChip(abilityText, Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control), DublText)
-            }
-            if (conditions.isEmpty() && onOpenConditions == null) {
-                HeaderChip("Нет активных состояний", Modifier, DublMuted)
-            }
-            conditions.forEach { chip ->
-                if (chip.automatic) {
-                    HeaderChip(
-                        "${chip.title} · авто",
-                        Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control).then(
-                            if (onOpenConditions != null) {
-                                Modifier.clickable(role = Role.Button, onClickLabel = "Состояния") { onOpenConditions() }
-                            } else Modifier,
-                        ),
-                        DublMuted,
-                    )
-                } else {
-                    // With the conditions popup available a chip opens it (desktop HeroConditions); otherwise it toggles.
-                    val action = onOpenConditions?.let { open -> Modifier.clickable(role = Role.Button, onClickLabel = "Состояния") { open() } }
-                        ?: Modifier.clickable(role = Role.Button, onClickLabel = "Снять состояние") { onToggleCondition(chip) }
-                    HeaderChip(
-                        chip.title,
-                        Modifier.background(DublAccentSoft).border(1.dp, DublAccent, FuryShapes.control).then(action),
-                        DublText,
-                    )
-                }
-            }
-            if (onOpenConditions != null) {
+        if (showChips) {
+            SheetHeaderChips(xpFree, xpTotal, abilityText, conditions, onToggleCondition, onOpenConditions, onOpenEconomy)
+        }
+    }
+}
+
+/** XP, ability points and condition chips; phones show them in the scrolling body, under the pinned name row. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun SheetHeaderChips(
+    xpFree: Int,
+    xpTotal: Int,
+    abilityText: String,
+    conditions: List<SheetConditionChip>,
+    onToggleCondition: (SheetConditionChip) -> Unit,
+    onOpenConditions: (() -> Unit)?,
+    onOpenEconomy: (() -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+        // Gold fill with near-black text: about 11:1.
+        HeaderChip(
+            "XP $xpTotal · осталось $xpFree",
+            Modifier.background(DublGold).then(
+                onOpenEconomy?.let { open -> Modifier.clickable(role = Role.Button, onClickLabel = "Опыт") { open() } } ?: Modifier,
+            ),
+            DublBackground,
+            bold = true,
+        )
+        if (abilityText.isNotBlank()) {
+            HeaderChip(abilityText, Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control), DublText)
+        }
+        if (conditions.isEmpty() && onOpenConditions == null) {
+            HeaderChip("Нет активных состояний", Modifier, DublMuted)
+        }
+        conditions.forEach { chip ->
+            if (chip.automatic) {
                 HeaderChip(
-                    "+ Состояние",
-                    Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control)
-                        .clickable(role = Role.Button, onClickLabel = "Добавить состояние") { onOpenConditions() },
+                    "${chip.title} · авто",
+                    Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control).then(
+                        if (onOpenConditions != null) {
+                            Modifier.clickable(role = Role.Button, onClickLabel = "Состояния") { onOpenConditions() }
+                        } else Modifier,
+                    ),
+                    DublMuted,
+                )
+            } else {
+                // With the conditions popup available a chip opens it (desktop HeroConditions); otherwise it toggles.
+                val action = onOpenConditions?.let { open -> Modifier.clickable(role = Role.Button, onClickLabel = "Состояния") { open() } }
+                    ?: Modifier.clickable(role = Role.Button, onClickLabel = "Снять состояние") { onToggleCondition(chip) }
+                HeaderChip(
+                    chip.title,
+                    Modifier.background(DublAccentSoft).border(1.dp, DublAccent, FuryShapes.control).then(action),
                     DublText,
                 )
             }
+        }
+        if (onOpenConditions != null) {
+            HeaderChip(
+                "+ Состояние",
+                Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control)
+                    .clickable(role = Role.Button, onClickLabel = "Добавить состояние") { onOpenConditions() },
+                DublText,
+            )
         }
     }
 }

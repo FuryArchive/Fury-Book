@@ -533,6 +533,10 @@ private fun FuryWebApp(
         onSelect = { selected = it },
         onSwitchCharacter = { characterPickerOpen = true },
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        // «Выйти» stays one click away on every section, as it was in the old rail.
+        account = {
+            FuryButton("Выйти ($accountName)", onSignOut, Modifier.widthIn(max = 240.dp), style = FuryButtonStyle.Ghost)
+        },
     ) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val layout = layoutClassForWidth(maxWidth.value.toInt())
