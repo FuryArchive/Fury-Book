@@ -31,9 +31,14 @@ data class SheetVital(
     val restoreable: Boolean,
 )
 
-data class SheetStat(val label: String, val value: Int, val roll: SheetRollSubject?)
+data class SheetStat(
+    val label: String,
+    val value: Int,
+    val roll: SheetRollSubject?,
+    val valueText: String = value.toString(),
+)
 
-data class SheetSkillRow(val skillId: String, val name: String, val attributeLabel: String, val rank: Int, val bonus: Int)
+data class SheetSkillRow(val skillId: String, val name: String, val attributeLabel: String, val rank: Int, val bonus: Int?)
 
 data class SheetSkillGroup(val title: String, val rows: List<SheetSkillRow>)
 
@@ -110,19 +115,28 @@ fun sheetVitals(host: DublSheetHost): List<SheetVital> {
     return orderedUiItems(items)
 }
 
+/** Desktop formatNumber ("%.2f", trailing zeros trimmed) without String.format, which common code lacks. */
+internal fun formatSheetNumber(value: Double): String {
+    if (value % 1.0 == 0.0) return value.toInt().toString()
+    val hundredths = (value * 100).roundToInt()
+    val whole = hundredths / 100
+    val fraction = (hundredths % 100).toString().padStart(2, '0').trimEnd('0')
+    return if (fraction.isEmpty()) whole.toString() else "$whole.$fraction"
+}
+
 /** All eight characteristics in [AttributeId] order, each rollable. */
 fun sheetAttributes(character: DublCharacter): List<SheetStat> =
     AttributeId.entries.map { id ->
         SheetStat(id.title, character.attribute(id), SheetRollSubject.Attribute(id))
     }
 
-/** Mirrors desktop HeroMetricsStrip. Бег is shown rounded to a whole number. */
+/** Mirrors desktop HeroMetricsStrip; Бег's [SheetStat.valueText] is the desktop formatNumber output. */
 fun sheetMetrics(character: DublCharacter): List<SheetStat> = listOf(
     SheetStat("Защита", character.defense, null),
     SheetStat("Рефлексы", character.reflexes, SheetRollSubject.Context(RollContext.REFLEXES)),
     SheetStat("Инициатива", character.initiative, SheetRollSubject.Context(RollContext.INITIATIVE)),
     SheetStat("Стойкость", character.fortitude, SheetRollSubject.Context(RollContext.FORTITUDE)),
-    SheetStat("Бег", character.runFull.roundToInt(), SheetRollSubject.Context(RollContext.RUN)),
+    SheetStat("Бег", character.runFull.roundToInt(), SheetRollSubject.Context(RollContext.RUN), formatSheetNumber(character.runFull)),
     SheetStat("Размер", character.size, null),
 )
 
@@ -156,7 +170,7 @@ private fun skillRow(character: DublCharacter, effectRules: SkillEffectRules, sk
         name = skill.name,
         attributeLabel = attribute.shortTitle,
         rank = skill.rank,
-        bonus = (calculation.total ?: 0) + automatic,
+        bonus = calculation.total?.plus(automatic),
     )
 }
 

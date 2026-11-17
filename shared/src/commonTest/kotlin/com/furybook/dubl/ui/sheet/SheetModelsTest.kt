@@ -121,4 +121,16 @@ class SheetModelsTest {
         val chips = sheetActiveConditions(FakeSheetHost(drained))
         assertEquals(listOf("Слабость"), chips.map { it.title })
     }
+
+    @Test
+    fun runTextUsesDesktopNumberFormat() {
+        assertEquals("7", formatSheetNumber(7.0))
+        assertEquals("7.5", formatSheetNumber(7.5))
+        assertEquals("7.25", formatSheetNumber(7.25))
+        assertEquals("0.25", formatSheetNumber(0.25))
+        assertEquals("1.05", formatSheetNumber(1.05))
+        val run = sheetMetrics(plain).single { it.label == "Бег" }
+        assertEquals(formatSheetNumber(plain.runFull), run.valueText)
+        assertEquals("5", sheetMetrics(plain).single { it.label == "Размер" }.valueText)
+    }
 }
