@@ -3,7 +3,6 @@ package com.furybook.ui.components
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +22,6 @@ fun DublResourceCard(
 ) {
     val safeMaximum = maximum.coerceAtLeast(0)
     val safeCurrent = current.coerceIn(0, safeMaximum)
-    val progress = if (safeMaximum == 0) 0f else safeCurrent.toFloat() / safeMaximum.toFloat()
 
     DublCard(modifier = modifier) {
         Row(
@@ -42,11 +40,6 @@ fun DublResourceCard(
                 color = accent,
             )
         }
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier.fillMaxWidth(),
-            color = accent,
-            trackColor = MaterialTheme.colorScheme.surfaceVariant,
-        )
+        FuryBar(current = safeCurrent, maximum = safeMaximum, color = accent)
     }
 }
