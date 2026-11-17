@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -32,7 +33,9 @@ data class FuryRollTerm(val label: String, val value: Int)
 
 /**
  * A finished roll as the tray shows it. The tray never rolls dice or applies rules; the caller
- * builds this from the shared roll engine's result.
+ * builds this from the shared roll engine's result. [keptDice] are the indices of [dice] that
+ * count towards the total (advantage/hindrance drop the rest); [specialResult] is a critical
+ * success/failure line shown under the total.
  */
 data class FuryRollView(
     val title: String,
@@ -40,15 +43,18 @@ data class FuryRollView(
     val terms: List<FuryRollTerm>,
     val total: Int,
     val outcome: String? = null,
+    val keptDice: Set<Int> = dice.indices.toSet(),
+    val specialResult: String? = null,
 )
 
 data class FuryRollHistoryEntry(val title: String, val total: Int)
 
 private const val HISTORY_ROWS = 5
+private const val DROPPED_DIE_ALPHA = 0.4f
 
-/** "9 + 8 Ловкость − 2 Поправка": the dice sum, then every non-zero term with its sign. */
+/** "9 + 8 Ловкость − 2 Поправка": the kept dice sum, then every non-zero term with its sign. */
 fun furyRollBreakdown(view: FuryRollView): String = buildString {
-    append(view.dice.sum())
+    append(view.dice.filterIndexed { index, _ -> index in view.keptDice }.sum())
     view.terms.filter { it.value != 0 }.forEach { term ->
         append(if (term.value < 0) " − " else " + ")
         append(kotlin.math.abs(term.value))
@@ -86,10 +92,14 @@ fun FuryRollTray(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(view.total.toString(), color = FuryOnAccentFill, style = MaterialTheme.typography.displayLarge, maxLines = 1)
+            if (!view.specialResult.isNullOrBlank()) {
+                Text(view.specialResult, color = FuryOnAccentFill, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalAlignment = Alignment.CenterVertically) {
-                view.dice.forEach { face ->
+                view.dice.forEachIndexed { index, face ->
                     Box(
-                        Modifier.size(44.dp).clip(FuryShapes.panel).background(FuryOnAccentFill),
+                        Modifier.size(44.dp).alpha(if (index in view.keptDice) 1f else DROPPED_DIE_ALPHA)
+                            .clip(FuryShapes.panel).background(FuryOnAccentFill),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(face.toString(), color = DublBackground, style = MaterialTheme.typography.titleLarge)

@@ -31,4 +31,13 @@ class FuryRollTrayModelTest {
         "0 + 8 Ловкость",
         furyRollBreakdown(base.copy(dice = emptyList(), terms = listOf(FuryRollTerm("Ловкость", 8)))),
     )
+
+    @Test
+    fun droppedDiceAreLeftOutOfTheSum() = assertEquals(
+        "11 + 8 Ловкость + 7 ранг",
+        furyRollBreakdown(base.copy(dice = listOf(1, 6, 2, 5), keptDice = setOf(1, 3))),
+    )
+
+    @Test
+    fun allDiceAreKeptByDefault() = assertEquals(setOf(0, 1), base.keptDice)
 }
