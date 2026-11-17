@@ -175,5 +175,6 @@ class CharacterController(
     fun createCharacter() = sync { application.character.createCharacter() }
     fun selectCharacter(id: String) = sync { application.character.selectCharacter(id) }
     fun deleteActive() = sync { application.character.deleteActive() }
+    val canUndo: Boolean get() = application.canUndo
     fun undoLast(): Boolean = sync { application.undoLast() }
 }

@@ -22,6 +22,7 @@ import com.furybook.dubl.data.CharacterExtrasStore
 import com.furybook.dubl.data.mergeDevelopmentCatalogs
 import com.furybook.dubl.data.DesktopCharacterStore
 import com.furybook.dubl.model.*
+import com.furybook.dubl.ui.sheet.DublSheetHost
 import com.furybook.desktop.data.DesktopCatalogLoader
 import java.nio.file.Files
 import java.nio.file.Path
@@ -32,7 +33,7 @@ import java.util.prefs.Preferences
 class DesktopAppState(
     private val characterStore: CharacterStore = DesktopCharacterStore(),
     private val extrasStore: CharacterExtrasStore = DesktopCharacterExtrasStore(),
-) {
+) : DublSheetHost {
     private val application = DublApplication(
         characterStore = characterStore,
         extrasStore = extrasStore,
@@ -53,9 +54,9 @@ class DesktopAppState(
     var chiPackEnabled: Boolean by mutableStateOf(contentPackPreferences.getBoolean(DublChiFcp.PACK_ID, false))
         private set
 
-    val conditionCatalog = catalogLoader.loadConditions()
+    override val conditionCatalog = catalogLoader.loadConditions()
     private var canonicalDevelopmentCatalog: DevelopmentCatalog by mutableStateOf(composeCanonicalDevelopmentCatalog())
-    val developmentCatalog: DevelopmentCatalog
+    override val developmentCatalog: DevelopmentCatalog
         get() = activeCharacter
             .effectiveDevelopmentCatalog(canonicalDevelopmentCatalog)
             .let { catalog -> if (chiPackEnabled) catalog else catalog.withoutChiContent() }
@@ -64,11 +65,11 @@ class DesktopAppState(
     )
         private set
     val magicEquipmentCatalog = catalogLoader.loadMagicEquipment()
-    val skillEffectCatalog = catalogLoader.loadSkillEffects()
+    override val skillEffectCatalog = catalogLoader.loadSkillEffects()
 
     var snapshot: AppSnapshot by mutableStateOf(application.snapshot)
         private set
-    var extras: CharacterSheetExtras by mutableStateOf(application.activeExtras)
+    override var extras: CharacterSheetExtras by mutableStateOf(application.activeExtras)
         private set
 
     val activeCharacter: DublCharacter
@@ -80,6 +81,10 @@ class DesktopAppState(
                 suppressChiResource = true,
             )
         }
+
+    override val active: DublCharacter get() = activeCharacter
+    override val canUndo: Boolean get() = application.canUndo
+    override fun resourceMeters(): List<DublResourceMeterModel> = resourceMeterModels()
 
     init {
         application.equipment.syncCatalogLoads(magicEquipmentCatalog.gear)
@@ -233,18 +238,22 @@ class DesktopAppState(
     fun changeEndurance(delta: Int) = sync { application.character.changeEndurance(delta) }
     fun changeMana(delta: Int) = sync { application.magic.changeMana(delta) }
     fun changeChi(delta: Int) = sync { application.development.changeChi(delta) }
-    fun changeResource(resource: CharacterSheetResourceId, delta: Int) = when (resource) {
-        CharacterSheetResourceId.HEALTH -> changeHp(delta)
-        CharacterSheetResourceId.ENDURANCE -> changeEndurance(delta)
-        CharacterSheetResourceId.MANA -> changeMana(delta)
-        CharacterSheetResourceId.CHI -> changeChi(delta)
+    override fun changeResource(resource: CharacterSheetResourceId, delta: Int) {
+        when (resource) {
+            CharacterSheetResourceId.HEALTH -> changeHp(delta)
+            CharacterSheetResourceId.ENDURANCE -> changeEndurance(delta)
+            CharacterSheetResourceId.MANA -> changeMana(delta)
+            CharacterSheetResourceId.CHI -> changeChi(delta)
+        }
     }
     fun setChiEnabled(enabled: Boolean) = sync { application.development.setChiEnabled(enabled) }
     fun setChiBonusRanks(rank: Int) = sync { application.development.setChiBonusRanks(rank) }
     fun restoreChi() = sync { application.development.restoreChi() }
-    fun restoreMountedResource(resource: CharacterSheetResourceId) = when (resource) {
-        CharacterSheetResourceId.CHI -> restoreChi()
-        else -> Unit
+    override fun restoreMountedResource(resource: CharacterSheetResourceId) {
+        when (resource) {
+            CharacterSheetResourceId.CHI -> restoreChi()
+            else -> Unit
+        }
     }
     fun setHealthMaximumOverride(value: Int?) = sync { application.character.setHealthMaximumOverride(value) }
     fun setEnduranceMaximumOverride(value: Int?) = sync { application.character.setEnduranceMaximumOverride(value) }
@@ -254,7 +263,7 @@ class DesktopAppState(
         sync { application.character.addCustomResource(name, maximum, current) }
     fun updateCustomResource(uid: String, name: String, current: Int, maximum: Int) =
         sync { application.character.updateCustomResource(uid, name, current, maximum) }
-    fun changeCustomResource(uid: String, delta: Int) = sync { application.character.changeCustomResource(uid, delta) }
+    override fun changeCustomResource(uid: String, delta: Int) { sync { application.character.changeCustomResource(uid, delta) } }
     fun removeCustomResource(uid: String) = sync { application.character.removeCustomResource(uid) }
 
     fun changeSkillRank(skillId: String, delta: Int) = sync { application.skills.changeRank(skillId, delta) }
@@ -307,7 +316,7 @@ class DesktopAppState(
     fun removeGearItem(uid: String) = sync { application.equipment.removeItem(uid) }
 
     fun setPortrait(uri: String?) = sync { application.sheet.setPortrait(uri) }
-    fun toggleCondition(condition: CharacterConditionId) = sync { application.sheet.toggleCondition(condition) }
+    override fun toggleCondition(condition: CharacterConditionId) { sync { application.sheet.toggleCondition(condition) } }
     fun setConditions(conditions: Set<CharacterConditionId>) = sync { application.sheet.setConditions(conditions) }
     fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) = sync { application.sheet.setResourceHidden(resource, hidden) }
     fun setSkillGroups(groups: List<SheetGroup>) = sync { application.sheet.setSkillGroups(groups) }
@@ -320,7 +329,7 @@ class DesktopAppState(
     fun resetConditionOverride(condition: CharacterConditionId) = sync { application.sheet.resetConditionOverride(condition) }
     fun addCustomCondition(title: String, description: String = "", active: Boolean = false): String? = sync { application.sheet.addCustomCondition(title, description, active) }
     fun updateCustomCondition(id: String, title: String, description: String, active: Boolean? = null) = sync { application.sheet.updateCustomCondition(id, title, description, active) }
-    fun setCustomConditionActive(id: String, active: Boolean) = sync { application.sheet.setCustomConditionActive(id, active) }
+    override fun setCustomConditionActive(id: String, active: Boolean) { sync { application.sheet.setCustomConditionActive(id, active) } }
     fun removeCustomCondition(id: String) = sync { application.sheet.removeCustomCondition(id) }
 
     fun exportActiveCharacter(): String = application.transfer.exportActive()
@@ -329,7 +338,7 @@ class DesktopAppState(
     fun createCharacter() = sync { application.character.createCharacter() }
     fun selectCharacter(id: String) = sync { application.character.selectCharacter(id) }
     fun deleteActive() = sync { application.character.deleteActive() }
-    fun undoLast(): Boolean = sync { application.undoLast() }
+    override fun undoLast(): Boolean = sync { application.undoLast() }
 
     fun importPortrait(source: Path): String? = runCatching {
         val ext = source.fileName.toString().substringAfterLast('.', "png").take(8)
