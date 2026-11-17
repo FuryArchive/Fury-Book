@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -94,6 +95,17 @@ internal fun visibleConditions(chips: List<SheetConditionChip>, expanded: Boolea
     if (expanded || chips.size <= CONDITION_INLINE_CAP) chips to 0 else chips.take(CONDITION_INLINE_CAP) to chips.size - CONDITION_INLINE_CAP
 
 private val TabularNumbers = TextStyle(fontFeatureSettings = "tnum")
+
+/** Room the desktop identity row keeps for everything but the six derived tiles: portrait, name (≥160), XP chip, Редактор, gaps. */
+private const val IDENTITY_FIXED_DP = 52 + 160 + 150 + 44 + 4 * 12
+private const val DERIVED_TILE_MAX_DP = 74
+private const val DERIVED_TILE_MIN_DP = 48
+
+/** Width of each derived tile in the desktop identity row, or null when they need a row of their own. */
+internal fun derivedTileWidthDp(rowWidthDp: Int): Int? {
+    val tile = (rowWidthDp - IDENTITY_FIXED_DP - 5 * 4) / 6
+    return if (tile < DERIVED_TILE_MIN_DP) null else tile.coerceAtMost(DERIVED_TILE_MAX_DP)
+}
 private val RESOURCE_CELL_MIN = 178.dp
 
 /** Everything the header shows, gathered once per composition. */
@@ -115,6 +127,10 @@ private fun headerData(host: DublSheetEditHost): HeaderData = HeaderData(
     conditions = sheetActiveConditions(host),
     metrics = sheetMetrics(host.active),
 )
+
+/** Tapping a resource's name or value opens its amount dialog (damage / healing by N, restore, remove). */
+private fun Modifier.openVital(vital: SheetVital, state: SheetScreenState): Modifier =
+    clickable(role = Role.Button, onClickLabel = "Изменить ${vital.label} на несколько") { state.openDialog(SheetDialog.Vital(vital.id)) }
 
 private fun changeVital(host: DublSheetEditHost, vital: SheetVital, delta: Int) {
     val resource = vital.resource
@@ -140,21 +156,31 @@ fun SheetPlayHeaderWide(
     modifier: Modifier = Modifier,
 ) {
     val data = headerData(host)
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+    val tileWidth = derivedTileWidthDp(maxWidth.value.toInt())
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth().heightIn(min = 56.dp), horizontalArrangement = Arrangement.spacedBy(FurySpacing.md), verticalAlignment = Alignment.CenterVertically) {
             portrait?.invoke() ?: InitialBadge(data.name, 52.dp)
             Column(Modifier.weight(1f).widthIn(min = 160.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(data.name, color = FuryColors.current.text, style = MaterialTheme.typography.headlineSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(data.concept.ifBlank { "Без концепта" }, color = FuryColors.current.muted, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                data.metrics.forEach { stat -> DerivedTile(stat, Modifier.width(74.dp).height(48.dp), state) }
+            if (tileWidth != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    data.metrics.forEach { stat -> DerivedTile(stat, Modifier.width(tileWidth.dp).height(48.dp), state) }
+                }
             }
             EconomyChip(data.economy, host.active.experience, Modifier.height(56.dp)) { state.openDialog(SheetDialog.Economy) }
             FuryIconButton("Редактор", onOpenEditor, Modifier.border(1.dp, FuryColors.current.line2, RoundedCornerShape(12.dp))) { PencilGlyph() }
         }
-        ResourceRack(data.vitals, host)
+        if (tileWidth == null) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                data.metrics.forEach { stat -> DerivedTile(stat, Modifier.weight(1f).height(44.dp), state) }
+            }
+        }
+        ResourceRack(data.vitals, host, state)
         ConditionLine(data.conditions, playState, host, state)
+    }
     }
 }
 
@@ -178,7 +204,7 @@ private fun ConditionLine(chips: List<SheetConditionChip>, playState: SheetPlayS
 }
 
 @Composable
-private fun SelectedConditionLine(chips: List<SheetConditionChip>, playState: SheetPlayState, host: DublSheetEditHost) {
+private fun SelectedConditionLine(chips: List<SheetConditionChip>, playState: SheetPlayState, host: DublSheetEditHost, minHeight: Dp = 28.dp) {
     val chip = chips.firstOrNull { it.key == playState.selectedCondition } ?: return
     Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalAlignment = Alignment.CenterVertically) {
         Text(
@@ -186,7 +212,7 @@ private fun SelectedConditionLine(chips: List<SheetConditionChip>, playState: Sh
             Modifier.weight(1f), color = FuryColors.current.text2, style = MaterialTheme.typography.bodySmall,
         )
         if (!chip.automatic) {
-            SmallPill("Снять", dashed = false) {
+            SmallPill("Снять", dashed = false, minHeight) {
                 playState.selectedCondition = null
                 removeCondition(host, chip)
             }
@@ -199,7 +225,7 @@ private fun SheetPlayState.toggleCondition(key: String) {
 }
 
 @Composable
-private fun ResourceRack(vitals: List<SheetVital>, host: DublSheetEditHost) {
+private fun ResourceRack(vitals: List<SheetVital>, host: DublSheetEditHost, state: SheetScreenState) {
     if (vitals.isEmpty()) {
         Text(SHEET_NO_VISIBLE_VITALS, color = FuryColors.current.dim, style = MaterialTheme.typography.bodySmall)
         return
@@ -222,7 +248,7 @@ private fun ResourceRack(vitals: List<SheetVital>, host: DublSheetEditHost) {
         Column(verticalArrangement = Arrangement.spacedBy(gap)) {
             rows.forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
-                    row.forEach { (vital, span) -> ResourceCell(vital, host, Modifier.weight(span.toFloat())) }
+                    row.forEach { (vital, span) -> ResourceCell(vital, host, state, Modifier.weight(span.toFloat())) }
                     val free = columns - row.sumOf { it.second }
                     if (free > 0) Spacer(Modifier.weight(free.toFloat()))
                 }
@@ -232,7 +258,7 @@ private fun ResourceRack(vitals: List<SheetVital>, host: DublSheetEditHost) {
 }
 
 @Composable
-private fun ResourceCell(vital: SheetVital, host: DublSheetEditHost, modifier: Modifier) {
+private fun ResourceCell(vital: SheetVital, host: DublSheetEditHost, state: SheetScreenState, modifier: Modifier) {
     val color = sheetVitalColor(vital)
     Column(
         modifier.clip(RoundedCornerShape(12.dp)).background(FuryColors.current.panel)
@@ -240,7 +266,10 @@ private fun ResourceCell(vital: SheetVital, host: DublSheetEditHost, modifier: M
             .alpha(if (vital.maximum == 0) 0.45f else 1f),
         verticalArrangement = Arrangement.spacedBy(7.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+        Row(
+            Modifier.clip(RoundedCornerShape(6.dp)).openVital(vital, state),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
             Box(Modifier.size(8.dp).clip(CircleShape).background(color))
             Text(
                 vitalTitle(vital).uppercase(), Modifier.weight(1f), color = FuryColors.current.muted, style = furyOverlineStyle(),
@@ -327,7 +356,7 @@ private fun EconomyChip(economy: CharacterEconomyBreakdown, xpTotal: Int, modifi
         verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
     ) {
         Text(
-            "XP ${economy.remainingXp} / $xpTotal", color = p.gold, maxLines = 1, softWrap = false,
+            "XP ${economy.remainingXp} / $xpTotal", color = p.goldText, maxLines = 1, softWrap = false,
             style = MaterialTheme.typography.titleLarge.merge(TabularNumbers).copy(fontSize = 14.sp, lineHeight = 18.sp),
         )
         Text(
@@ -338,7 +367,7 @@ private fun EconomyChip(economy: CharacterEconomyBreakdown, xpTotal: Int, modifi
 }
 
 @Composable
-private fun ConditionChip(chip: SheetConditionChip, selected: Boolean, onClick: () -> Unit) {
+private fun ConditionChip(chip: SheetConditionChip, selected: Boolean, minHeight: Dp = 28.dp, onClick: () -> Unit) {
     val p = FuryColors.current
     val (bg, fg) = when (chip.kind) {
         SheetConditionKind.HARMFUL -> p.accSoft to p.accText
@@ -346,7 +375,7 @@ private fun ConditionChip(chip: SheetConditionChip, selected: Boolean, onClick: 
         SheetConditionKind.CUSTOM -> p.hover to p.text2
     }
     Box(
-        Modifier.heightIn(min = 28.dp).clip(RoundedCornerShape(14.dp)).background(bg)
+        Modifier.heightIn(min = minHeight).clip(RoundedCornerShape(14.dp)).background(bg)
             .border(BorderStroke(1.dp, if (selected) fg else Color.Transparent), RoundedCornerShape(14.dp))
             .clickable(role = Role.Button, onClickLabel = "Что делает «${chip.title}»", onClick = onClick)
             .padding(horizontal = 10.dp, vertical = 5.dp)
@@ -358,10 +387,10 @@ private fun ConditionChip(chip: SheetConditionChip, selected: Boolean, onClick: 
 }
 
 @Composable
-private fun SmallPill(text: String, dashed: Boolean, onClick: () -> Unit) {
+private fun SmallPill(text: String, dashed: Boolean, minHeight: Dp = 28.dp, onClick: () -> Unit) {
     val p = FuryColors.current
     Box(
-        Modifier.heightIn(min = 28.dp).clip(RoundedCornerShape(14.dp))
+        Modifier.heightIn(min = minHeight).clip(RoundedCornerShape(14.dp))
             .border(1.dp, if (dashed) p.line3 else p.line2, RoundedCornerShape(14.dp))
             .background(if (dashed) Color.Transparent else p.panel2)
             .clickable(role = Role.Button, onClick = onClick)
@@ -416,7 +445,7 @@ fun SheetPlayHeaderCompact(
             FuryIconButton("Редактор", onOpenEditor, Modifier.border(1.dp, p.line2, RoundedCornerShape(12.dp))) { PencilGlyph() }
         }
         val health = data.vitals.firstOrNull { it.id == "health" }
-        if (health != null) HealthRow(health, host)
+        if (health != null) HealthRow(health, host, state)
         val rest = data.vitals.filter { it.id != "health" }
         if (rest.isNotEmpty()) {
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -426,13 +455,13 @@ fun SheetPlayHeaderCompact(
                     }
                 }
             }
-            rest.firstOrNull { it.id == playState.selectedResource }?.let { vital -> ResourceAdjuster(vital, host) { playState.selectedResource = null } }
+            rest.firstOrNull { it.id == playState.selectedResource }?.let { vital -> ResourceAdjuster(vital, host, state) { playState.selectedResource = null } }
         }
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            data.conditions.forEach { chip -> ConditionChip(chip, playState.selectedCondition == chip.key) { playState.toggleCondition(chip.key) } }
-            SmallPill("+ состояние", dashed = true) { state.openDialog(SheetDialog.Conditions) }
+            data.conditions.forEach { chip -> ConditionChip(chip, playState.selectedCondition == chip.key, FuryMinTouch) { playState.toggleCondition(chip.key) } }
+            SmallPill("+ состояние", dashed = true, FuryMinTouch) { state.openDialog(SheetDialog.Conditions) }
         }
-        SelectedConditionLine(data.conditions, playState, host)
+        SelectedConditionLine(data.conditions, playState, host, FuryMinTouch)
     }
 }
 
@@ -447,7 +476,7 @@ private fun CompactEconomy(economy: CharacterEconomyBreakdown, onClick: () -> Un
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.clip(RoundedCornerShape(8.dp)).background(p.goldSoft).border(1.dp, p.goldLine, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 5.dp)) {
-            Text("XP ${economy.remainingXp}", color = p.gold, style = MaterialTheme.typography.labelMedium.merge(TabularNumbers), maxLines = 1, softWrap = false)
+            Text("XP ${economy.remainingXp}", color = p.goldText, style = MaterialTheme.typography.labelMedium.merge(TabularNumbers), maxLines = 1, softWrap = false)
         }
         Box(Modifier.clip(RoundedCornerShape(8.dp)).background(if (negative) p.accSoft else p.panel2).padding(horizontal = 8.dp, vertical = 5.dp)) {
             Text(
@@ -459,13 +488,15 @@ private fun CompactEconomy(economy: CharacterEconomyBreakdown, onClick: () -> Un
 }
 
 @Composable
-private fun HealthRow(vital: SheetVital, host: DublSheetEditHost) {
+private fun HealthRow(vital: SheetVital, host: DublSheetEditHost, state: SheetScreenState) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Box(Modifier.size(10.dp).clip(CircleShape).background(sheetVitalColor(vital)))
-        Text(
-            "${vital.current}/${vital.maximum}", Modifier.widthIn(min = 56.dp), color = vitalValueColor(vital), maxLines = 1, softWrap = false,
-            style = MaterialTheme.typography.titleLarge.merge(TabularNumbers).copy(fontSize = 15.sp),
-        )
+        Box(Modifier.heightIn(min = FuryMinTouch).widthIn(min = 56.dp).clip(RoundedCornerShape(6.dp)).openVital(vital, state), contentAlignment = Alignment.CenterStart) {
+            Text(
+                "${vital.current}/${vital.maximum}", color = vitalValueColor(vital), maxLines = 1, softWrap = false,
+                style = MaterialTheme.typography.titleLarge.merge(TabularNumbers).copy(fontSize = 15.sp),
+            )
+        }
         FuryBar(vital.current, vital.maximum, sheetVitalColor(vital), Modifier.weight(1f), height = 10.dp)
         FuryIconButton("Уменьшить ${vital.label}", { changeVital(host, vital, -1) }, enabled = vitalCanDecrease(vital)) {
             Text("−", color = FuryColors.current.text, style = MaterialTheme.typography.titleLarge)
@@ -501,7 +532,7 @@ private fun ResourceChip(vital: SheetVital, selected: Boolean, onClick: () -> Un
 }
 
 @Composable
-private fun ResourceAdjuster(vital: SheetVital, host: DublSheetEditHost, onClose: () -> Unit) {
+private fun ResourceAdjuster(vital: SheetVital, host: DublSheetEditHost, state: SheetScreenState, onClose: () -> Unit) {
     val p = FuryColors.current
     Row(
         Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(p.panel2).padding(horizontal = 8.dp, vertical = 4.dp),
@@ -509,7 +540,9 @@ private fun ResourceAdjuster(vital: SheetVital, host: DublSheetEditHost, onClose
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            "${vitalTitle(vital)} · ${vital.current}/${vital.maximum}", Modifier.weight(1f), color = p.text,
+            "${vitalTitle(vital)} · ${vital.current}/${vital.maximum}",
+            Modifier.weight(1f).heightIn(min = FuryMinTouch).clip(RoundedCornerShape(6.dp)).openVital(vital, state).wrapContentHeight(),
+            color = p.text,
             style = MaterialTheme.typography.labelLarge.merge(TabularNumbers), maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
         if (vital.restoreable) {

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -72,15 +73,15 @@ fun SheetPlayPerks(
                 }
             }
             Box(Modifier.weight(1f))
-            HeaderToggle(if (playState.perksBrief) "Подробно" else "Кратко") { playState.perksBrief = !playState.perksBrief }
+            HeaderToggle(if (playState.perksBrief) "Подробно" else "Кратко", { playState.perksBrief = !playState.perksBrief }, compact)
         }
         if (all.isNotEmpty()) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                FilterChip("Все", playState.perkFilter == SheetPerkFilter.ALL) { playState.perkFilter = SheetPerkFilter.ALL }
-                FilterChip("Активные $active", playState.perkFilter == SheetPerkFilter.ACTIVE) { playState.perkFilter = SheetPerkFilter.ACTIVE }
-                FilterChip("Пассивные ${all.size - active}", playState.perkFilter == SheetPerkFilter.PASSIVE) { playState.perkFilter = SheetPerkFilter.PASSIVE }
+                FilterChip("Все", playState.perkFilter == SheetPerkFilter.ALL, compact) { playState.perkFilter = SheetPerkFilter.ALL }
+                FilterChip("Активные $active", playState.perkFilter == SheetPerkFilter.ACTIVE, compact) { playState.perkFilter = SheetPerkFilter.ACTIVE }
+                FilterChip("Пассивные ${all.size - active}", playState.perkFilter == SheetPerkFilter.PASSIVE, compact) { playState.perkFilter = SheetPerkFilter.PASSIVE }
                 if (all.size > PERK_SEARCH_THRESHOLD) {
-                    SheetSearchField(playState.perkQuery, { playState.perkQuery = it }, "Поиск навыков…", Modifier.widthIn(min = 140.dp).weight(1f))
+                    SheetSearchField(playState.perkQuery, { playState.perkQuery = it }, "Поиск навыков…", Modifier.widthIn(min = 140.dp).weight(1f), compact)
                 }
             }
         }
@@ -93,29 +94,29 @@ fun SheetPlayPerks(
             Text(empty, Modifier.fillMaxWidth().padding(16.dp), color = p.dim, style = MaterialTheme.typography.bodyMedium)
         } else if (scrollable) {
             LazyColumn(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                items(shown, key = { it.id }) { group -> PerkGroup(group, playState, onOpenDetails) }
+                items(shown, key = { it.id }) { group -> PerkGroup(group, playState, onOpenDetails, compact) }
             }
         } else {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { shown.forEach { group -> PerkGroup(group, playState, onOpenDetails) } }
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) { shown.forEach { group -> PerkGroup(group, playState, onOpenDetails, compact) } }
         }
     }
 }
 
 @Composable
-private fun PerkGroup(group: SheetPerkGroup, playState: SheetPlayState, onOpenDetails: (String) -> Unit) {
+private fun PerkGroup(group: SheetPerkGroup, playState: SheetPlayState, onOpenDetails: (String) -> Unit, compact: Boolean) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text("${group.title.uppercase()} · ${group.cards.size}", Modifier.padding(horizontal = 4.dp), color = FuryColors.current.dim, style = furyOverlineStyle())
         group.cards.forEach { card ->
             val open = card.entryId in playState.expandedPerks
             PerkCard(card, open, brief = playState.perksBrief, onToggle = {
                 playState.expandedPerks = if (open) playState.expandedPerks - card.entryId else playState.expandedPerks + card.entryId
-            }, onOpenDetails = onOpenDetails)
+            }, onOpenDetails = onOpenDetails, compact = compact)
         }
     }
 }
 
 @Composable
-private fun PerkCard(card: SheetPerkCard, open: Boolean, brief: Boolean, onToggle: () -> Unit, onOpenDetails: (String) -> Unit) {
+private fun PerkCard(card: SheetPerkCard, open: Boolean, brief: Boolean, onToggle: () -> Unit, onOpenDetails: (String) -> Unit, compact: Boolean) {
     val p = FuryColors.current
     val indent = (18 * card.depth).dp
     val shape = RoundedCornerShape(10.dp)
@@ -155,8 +156,8 @@ private fun PerkCard(card: SheetPerkCard, open: Boolean, brief: Boolean, onToggl
                     )
                     if (card.opensDetails) {
                         Text(
-                            "Подробнее", Modifier.clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button) { onOpenDetails(card.entryId) }
-                                .padding(vertical = 4.dp),
+                            "Подробнее", Modifier.heightIn(min = sheetControlMinHeightDp(compact).dp).clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button) { onOpenDetails(card.entryId) }
+                                .wrapContentHeight().padding(vertical = 4.dp),
                             color = p.goldText, style = MaterialTheme.typography.labelLarge,
                         )
                     }
@@ -183,11 +184,11 @@ private fun WarningGlyph(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun FilterChip(text: String, selected: Boolean, onClick: () -> Unit) {
+private fun FilterChip(text: String, selected: Boolean, compact: Boolean, onClick: () -> Unit) {
     val p = FuryColors.current
     val shape = RoundedCornerShape(8.dp)
     Box(
-        Modifier.heightIn(min = 30.dp).clip(shape).border(1.dp, if (selected) p.acc else p.line2, shape)
+        Modifier.heightIn(min = sheetControlMinHeightDp(compact).dp).clip(shape).border(1.dp, if (selected) p.acc else p.line2, shape)
             .background(if (selected) p.accSoft else p.panel2)
             .clickable(role = Role.Tab, onClick = onClick).padding(horizontal = 11.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center,
@@ -198,7 +199,7 @@ private fun FilterChip(text: String, selected: Boolean, onClick: () -> Unit) {
 
 /** Compact one-line search used by Навыки and Заметки. */
 @Composable
-internal fun SheetSearchField(value: String, onValueChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier) {
+internal fun SheetSearchField(value: String, onValueChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier, compact: Boolean = false) {
     val p = FuryColors.current
     val shape = RoundedCornerShape(8.dp)
     BasicTextField(
@@ -207,7 +208,7 @@ internal fun SheetSearchField(value: String, onValueChange: (String) -> Unit, pl
         singleLine = true,
         textStyle = MaterialTheme.typography.bodyMedium.copy(color = p.text),
         cursorBrush = SolidColor(p.acc),
-        modifier = modifier.heightIn(min = 30.dp).clip(shape).border(1.dp, p.line2, shape).background(p.sunk)
+        modifier = modifier.heightIn(min = sheetControlMinHeightDp(compact).dp).clip(shape).border(1.dp, p.line2, shape).background(p.sunk)
             .semantics { contentDescription = placeholder },
         decorationBox = { inner ->
             Box(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), contentAlignment = Alignment.CenterStart) {

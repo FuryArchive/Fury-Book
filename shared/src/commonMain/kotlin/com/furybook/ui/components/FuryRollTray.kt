@@ -22,7 +22,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.furybook.ui.theme.DublBackground
+import com.furybook.ui.theme.FuryColors
+import com.furybook.ui.theme.furyOnAccentControl
 import com.furybook.ui.theme.FuryAccentFill
 import com.furybook.ui.theme.FuryAccentFillPressed
 import com.furybook.ui.theme.FuryOnAccentFill
@@ -113,10 +114,10 @@ fun FuryRollTray(
                 view.dice.forEachIndexed { index, face ->
                     Box(
                         Modifier.size(44.dp).alpha(if (index in view.keptDice) 1f else DROPPED_DIE_ALPHA)
-                            .clip(FuryShapes.panel).background(FuryOnAccentFill),
+                            .clip(FuryShapes.panel).background(furyOnAccentControl(FuryColors.current).container),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Text(face.toString(), color = DublBackground, style = MaterialTheme.typography.titleLarge)
+                        Text(face.toString(), color = furyOnAccentControl(FuryColors.current).content, style = MaterialTheme.typography.titleLarge)
                     }
                 }
             }

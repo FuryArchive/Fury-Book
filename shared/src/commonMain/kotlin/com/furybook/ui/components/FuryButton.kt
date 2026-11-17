@@ -22,7 +22,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.furybook.ui.theme.DublBackground
+import com.furybook.ui.theme.FuryColors
+import com.furybook.ui.theme.furyOnAccentControl
 import com.furybook.ui.theme.DublDanger
 import com.furybook.ui.theme.DublText
 import com.furybook.ui.theme.FuryAccentFill
@@ -56,13 +57,15 @@ fun FuryButton(
     style: FuryButtonStyle = FuryButtonStyle.Secondary,
     enabled: Boolean = true,
 ) {
+    val onAccent = furyOnAccentControl(FuryColors.current)
     val fill = when (style) {
         FuryButtonStyle.Primary -> FuryAccentFill
-        FuryButtonStyle.OnAccent -> DublBackground
+        FuryButtonStyle.OnAccent -> onAccent.container
         else -> Color.Transparent
     }
     val content = when (style) {
-        FuryButtonStyle.Primary, FuryButtonStyle.OnAccent -> FuryOnAccentFill
+        FuryButtonStyle.Primary -> FuryOnAccentFill
+        FuryButtonStyle.OnAccent -> onAccent.content
         FuryButtonStyle.Danger -> DublDanger
         else -> DublText
     }

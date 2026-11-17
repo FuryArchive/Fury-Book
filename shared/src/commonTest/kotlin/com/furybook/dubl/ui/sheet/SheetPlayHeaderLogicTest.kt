@@ -61,3 +61,26 @@ class SheetPlayHeaderLogicTest {
         assertTrue(state.perksBrief)
     }
 }
+
+class SheetIdentityRowTest {
+    @Test
+    fun derivedTilesKeepTheirWidthWhenThereIsRoom() = assertEquals(74, derivedTileWidthDp(1392 - 340))
+
+    @Test
+    fun derivedTilesShrinkBeforeTheNameDoes() {
+        val width = derivedTileWidthDp(900)
+        kotlin.test.assertNotNull(width)
+        kotlin.test.assertTrue(width in 48..73)
+    }
+
+    @Test
+    fun narrowDesktopMovesDerivedTilesToTheirOwnRow() = kotlin.test.assertNull(derivedTileWidthDp(720))
+}
+
+class SheetTouchTargetTest {
+    @Test
+    fun touchLayoutsGetFullSizeControls() {
+        assertEquals(44, sheetControlMinHeightDp(compact = true))
+        assertEquals(30, sheetControlMinHeightDp(compact = false))
+    }
+}

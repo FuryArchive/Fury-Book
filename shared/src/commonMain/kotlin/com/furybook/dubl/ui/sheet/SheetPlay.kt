@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.furybook.ui.theme.FuryMinTouch
 import com.furybook.dubl.model.CharacterNote
 import com.furybook.dubl.model.displayNotes
 import com.furybook.ui.theme.FuryColors
@@ -93,7 +95,7 @@ internal fun SheetPlayBody(
         }
     }
     val notes: @Composable (Modifier, Boolean) -> Unit = { modifier, scrollable ->
-        SheetPlayNotes(host.extras.displayNotes(), playState, host, scrollable, modifier)
+        SheetPlayNotes(host.extras.displayNotes(), playState, host, scrollable, modifier, compact)
     }
     val editor = { state.updateEditing(true) }
     when (layout) {
@@ -105,13 +107,15 @@ internal fun SheetPlayBody(
                     perksColumn(Modifier.weight(1.35f).fillMaxHeight(), true)
                 }
             }
+            // The roll panel grows with setup, result and history, so the tray scrolls as a whole (as in 2b);
+            // combat actions and notes stay reachable under an open roll.
             Column(
-                Modifier.width(trayWidth).fillMaxHeight().padding(top = 14.dp, end = 16.dp, bottom = 20.dp),
+                Modifier.width(trayWidth).fillMaxHeight().verticalScroll(rememberScrollState()).padding(top = 14.dp, end = 16.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 roll(Modifier.fillMaxWidth())
                 combat(Modifier.fillMaxWidth())
-                notes(Modifier.fillMaxWidth().weight(1f), true)
+                notes(Modifier.fillMaxWidth(), false)
             }
         }
         else -> Column(Modifier.fillMaxSize()) {
@@ -164,7 +168,7 @@ private fun PlayDerivedGrid(stats: List<SheetStat>, columns: Int, state: SheetSc
                     val info = stat.info
                     val shape = RoundedCornerShape(8.dp)
                     Row(
-                        Modifier.weight(1f).heightIn(min = 34.dp).clip(shape).background(p.dBg).border(1.dp, p.dLine, shape)
+                        Modifier.weight(1f).heightIn(min = FuryMinTouch).clip(shape).background(p.dBg).border(1.dp, p.dLine, shape)
                             .then(if (info != null) Modifier.clickable(role = Role.Button, onClickLabel = "Формула ${stat.label}") { state.openDialog(SheetDialog.Stat(info, stat.roll)) } else Modifier)
                             .padding(horizontal = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -188,6 +192,7 @@ fun SheetPlayNotes(
     host: DublSheetEditHost,
     scrollable: Boolean,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     val p = FuryColors.current
     var editing by remember { mutableStateOf<CharacterNote?>(null) }
@@ -200,12 +205,12 @@ fun SheetPlayNotes(
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("ЗАМЕТКИ", color = p.muted, style = furyOverlineStyle())
             Text("${notes.size}", Modifier.weight(1f), color = p.dim, style = MaterialTheme.typography.bodySmall)
-            HeaderToggle("+ заметка") { adding = true }
+            HeaderToggle("+ заметка", { adding = true }, compact)
         }
         if (notes.size > NOTE_SEARCH_THRESHOLD) {
-            SheetSearchField(playState.noteQuery, { playState.noteQuery = it }, "Поиск по заметкам…", Modifier.fillMaxWidth())
+            SheetSearchField(playState.noteQuery, { playState.noteQuery = it }, "Поиск по заметкам…", Modifier.fillMaxWidth(), compact)
         }
-        val row: @Composable (CharacterNote) -> Unit = { note -> NoteRow(note, playState) { editing = note } }
+        val row: @Composable (CharacterNote) -> Unit = { note -> NoteRow(note, playState, compact) { editing = note } }
         when {
             notes.isEmpty() -> Text("Заметок пока нет", color = p.dim, style = MaterialTheme.typography.bodyMedium)
             shown.isEmpty() -> Text("Ничего не найдено", color = p.dim, style = MaterialTheme.typography.bodyMedium)
@@ -229,7 +234,7 @@ fun SheetPlayNotes(
 }
 
 @Composable
-private fun NoteRow(note: CharacterNote, playState: SheetPlayState, onEdit: () -> Unit) {
+private fun NoteRow(note: CharacterNote, playState: SheetPlayState, compact: Boolean, onEdit: () -> Unit) {
     val p = FuryColors.current
     val open = note.id in playState.expandedNotes
     Column(
@@ -247,7 +252,7 @@ private fun NoteRow(note: CharacterNote, playState: SheetPlayState, onEdit: () -
         if (open) {
             Box(Modifier.height(4.dp))
             Text(
-                "Изменить", Modifier.clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button, onClick = onEdit).padding(vertical = 4.dp),
+                "Изменить", Modifier.heightIn(min = sheetControlMinHeightDp(compact).dp).clip(RoundedCornerShape(6.dp)).clickable(role = Role.Button, onClick = onEdit).wrapContentHeight().padding(vertical = 4.dp),
                 color = p.goldText, style = MaterialTheme.typography.labelLarge,
             )
         }

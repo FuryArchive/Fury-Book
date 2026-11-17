@@ -1,31 +1,49 @@
 package com.furybook.dubl.ui.sheet
 
-private val COST = Regex("""(\d+)\s*(?:пункт\S*\s*)?(ОД|маны|выносливост\S*)""")
-private val COST_LEAD = Regex("За|за|трат|затрач")
-private val REACTION = Regex("(тратя|затрачивая|тратить действие) реакци", RegexOption.IGNORE_CASE)
+private const val LETTER = "А-Яа-яЁё"
+
+/** A spending verb or «за» (as a word) right before the amount: «За 1 ОД», «тратите 1 пункт выносливости». */
+private val SPEND = Regex("""(?<![$LETTER])(?:[Зз]а|[Тт]рат\S*|[Зз]атрачивая|[Пп]отрат\S*)\s+""")
+private val AMOUNT = Regex("""(\d+)\s*(?:пункт\S*\s*)?(ОД|маны|выносливост\S*)""")
+private val AND_MORE = Regex("""^\s+и\s+""")
+private val NOT_OURS = Regex("""(Цель|цель|противник|Противник)\s+может""")
+private val NOT_A_COST_AFTER = Regex("""^\s*(и\s+больше|больше|меньше)""")
+private val REACTION = Regex(
+    """(?<![$LETTER])(?:(?:по)?трат\S*|за|затрачивая)\s+(?:действие\s+)?реакци|реакцией|действием реакции|как реакци""",
+    RegexOption.IGNORE_CASE,
+)
 
 /** Entries the wording heuristic gets wrong, by entry id; these tags win over the parser. */
 internal val PERK_COST_OVERRIDES: Map<String, List<String>> = emptyMap()
 
 /**
  * What using a perk costs, read from its rules text: «N ОД», «N маны», «N вын.» or «реакция».
- * Only spending phrases count («За 1 ОД…», «тратите 1 пункт выносливости»), not discounts («на 1 ОД меньше»).
+ * Only the owner spending counts («За 1 ОД…», «тратите 1 пункт выносливости», «за реакцию»): not discounts or
+ * extra time («на 1 ОД меньше/больше»), thresholds («тратите 2 ОД и больше»), or what a target may pay.
  */
 fun perkCostTags(entryId: String, benefit: String): List<String> {
     PERK_COST_OVERRIDES[entryId]?.let { return it }
     val tags = mutableListOf<String>()
-    COST.findAll(benefit).forEach { match ->
-        val before = benefit.substring((match.range.first - 25).coerceAtLeast(0), match.range.first)
-        val after = benefit.substring(match.range.last + 1, (match.range.last + 11).coerceAtMost(benefit.length))
-        if (!COST_LEAD.containsMatchIn(before) || "меньше" in after) return@forEach
-        val (amount, unit) = match.destructured
-        val tag = when (unit) {
-            "ОД" -> "$amount ОД"
-            "маны" -> "$amount маны"
-            else -> "$amount вын."
+    SPEND.findAll(benefit).forEach { spend ->
+        // «Цель может потратить … или потратить 2 ОД»: the whole sentence is about what someone else pays.
+        val sentenceStart = maxOf(benefit.lastIndexOf('.', spend.range.first), benefit.lastIndexOf('\n', spend.range.first)) + 1
+        if (NOT_OURS.containsMatchIn(benefit.substring(sentenceStart, spend.range.first))) return@forEach
+        var at = spend.range.last + 1
+        while (true) {
+            val amount = AMOUNT.matchAt(benefit, at) ?: break
+            val after = benefit.substring(amount.range.last + 1)
+            if (NOT_A_COST_AFTER.containsMatchIn(after)) break
+            val (count, unit) = amount.destructured
+            val tag = when (unit) {
+                "ОД" -> "$count ОД"
+                "маны" -> "$count маны"
+                else -> "$count вын."
+            }
+            if (tag !in tags) tags += tag
+            val joiner = AND_MORE.find(after) ?: break
+            at = amount.range.last + 1 + joiner.range.last + 1
         }
-        if (tag !in tags) tags += tag
     }
-    if (tags.isEmpty() && REACTION.containsMatchIn(benefit)) tags += "реакция"
+    if (REACTION.containsMatchIn(benefit) && "реакция" !in tags) tags += "реакция"
     return tags
 }

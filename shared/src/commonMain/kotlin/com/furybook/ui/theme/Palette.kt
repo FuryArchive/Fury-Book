@@ -134,3 +134,9 @@ object FuryColors {
     val current: FuryPalette
         @Composable @ReadOnlyComposable get() = LocalFuryPalette.current
 }
+
+/** Container and content colours of a control drawn on the accent panel (roll button, dice). */
+data class FuryColorPair(val container: Color, val content: Color)
+
+/** On the acc2 panel a control inverts it: onAcc container, acc2 content — readable in light and dark themes alike. */
+fun furyOnAccentControl(p: FuryPalette): FuryColorPair = FuryColorPair(container = p.onAcc, content = p.acc2)

@@ -41,6 +41,9 @@ import com.furybook.ui.theme.FuryColors
 import com.furybook.ui.theme.furyOverlineStyle
 
 private val TabularNumbers = TextStyle(fontFeatureSettings = "tnum")
+
+/** Minimum height of the play sheet's small controls: full touch size on phone/tablet, compact on desktop. */
+internal fun sheetControlMinHeightDp(compact: Boolean): Int = if (compact) 44 else 30
 private const val RANK_BARS = 10
 private const val STRONG_BONUS = 12
 
@@ -71,7 +74,7 @@ fun SheetPlaySkills(
                 if (rankedOnly) "${totals.first} из ${totals.second}" else "${totals.second}",
                 Modifier.weight(1f), color = p.dim, style = MaterialTheme.typography.bodySmall, maxLines = 1,
             )
-            HeaderToggle(if (rankedOnly) "Показать все" else "Только с рангами", onToggleRanked)
+            HeaderToggle(if (rankedOnly) "Показать все" else "Только с рангами", onToggleRanked, compact)
         }
         if (scrollable) {
             LazyColumn(Modifier.weight(1f, fill = false), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -86,10 +89,10 @@ fun SheetPlaySkills(
 }
 
 @Composable
-internal fun HeaderToggle(text: String, onClick: () -> Unit) {
+internal fun HeaderToggle(text: String, onClick: () -> Unit, compact: Boolean = false) {
     val p = FuryColors.current
     Box(
-        Modifier.heightIn(min = 30.dp).clip(RoundedCornerShape(8.dp)).border(1.dp, p.line2, RoundedCornerShape(8.dp))
+        Modifier.heightIn(min = sheetControlMinHeightDp(compact).dp).clip(RoundedCornerShape(8.dp)).border(1.dp, p.line2, RoundedCornerShape(8.dp))
             .background(p.panel2).clickable(role = Role.Button, onClick = onClick).padding(horizontal = 10.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center,
     ) {
@@ -113,7 +116,7 @@ private fun AttributeGroup(
             .semantics { contentDescription = "${group.attribute.title} ${group.value}, бросок" }
             .clickable(role = Role.Button) { onRollAttribute(group.attribute) }
         if (empty) {
-            Row(tile.heightIn(min = 34.dp), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
+            Row(tile.heightIn(min = if (compact) 44.dp else 34.dp), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally), verticalAlignment = Alignment.CenterVertically) {
                 Text(group.label, color = p.muted, style = furyOverlineStyle())
                 Text(group.value.toString(), color = p.text2, style = MaterialTheme.typography.labelLarge.merge(TabularNumbers))
             }
@@ -160,7 +163,7 @@ private fun SkillRow(row: SheetSkillRow, compact: Boolean, onRollSkill: (String)
                     Modifier.clip(RoundedCornerShape(5.dp)).background(p.goldSoft).padding(horizontal = 5.dp, vertical = 1.dp)
                         .semantics { contentDescription = "От навыков: ${row.perkTip.orEmpty()}" },
                 ) {
-                    Text(mark, color = p.gold, style = MaterialTheme.typography.labelSmall)
+                    Text(mark, color = p.goldText, style = MaterialTheme.typography.labelSmall)
                 }
             }
             RankBars(row.rank, strong, Modifier.width(56.dp))

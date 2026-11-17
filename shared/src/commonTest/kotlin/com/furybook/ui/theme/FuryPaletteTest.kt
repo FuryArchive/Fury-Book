@@ -46,4 +46,19 @@ class FuryPaletteTest {
         assertEquals(FuryThemeId.FURY, FuryThemeId.fromKey(null))
         assertEquals(FuryThemeId.NEON, FuryThemeId.fromKey("neon"))
     }
+
+    @Test
+    fun controlsOnTheAccentPanelAreReadableInEveryTheme() = FuryThemeId.entries.forEach { id ->
+        val p = furyPalette(id)
+        val control = furyOnAccentControl(p)
+        // The control sits on the accent panel (acc2) and carries its own text.
+        assertTrue(contrastRatio(control.content, control.container) >= 4.5, "$id control text")
+        assertTrue(contrastRatio(control.container, p.acc2) >= 3.0, "$id control vs panel")
+    }
+
+    @Test
+    fun goldTextIsReadableOnGoldChips() = FuryThemeId.entries.forEach { id ->
+        val p = furyPalette(id)
+        assertTrue(contrastRatio(p.goldText, p.goldSoft) >= 4.5, "$id goldText")
+    }
 }
