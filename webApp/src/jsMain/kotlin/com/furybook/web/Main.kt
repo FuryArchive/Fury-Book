@@ -26,6 +26,7 @@ import com.furybook.desktop.screens.*
 import com.furybook.ui.layout.DublLayoutClass
 import com.furybook.ui.layout.layoutClassForWidth
 import com.furybook.ui.theme.DublTheme
+import com.furybook.ui.theme.furyFontsReady
 import kotlinx.coroutines.launch
 
 internal enum class DesktopSection(val label: String) {
@@ -91,9 +92,10 @@ private fun WebRoot() {
         booting = false
     }
 
+    val fontsReady = furyFontsReady()
     when {
         fatalError != null -> FatalScreen(fatalError!!)
-        booting || resources == null -> LoadingScreen("Загружаем Fury Book")
+        booting || resources == null || !fontsReady -> LoadingScreen("Загружаем Fury Book")
         session == null -> LoginScreen(
             cloud = cloud,
             onAuthenticated = { authenticated ->
@@ -486,37 +488,8 @@ private fun formatWebTime(value: String): String = runCatching {
 
 @Composable
 private fun DesktopVisualTheme(content: @Composable () -> Unit) {
-    val colors = MaterialTheme.colorScheme
-    val typography = MaterialTheme.typography
-    MaterialTheme(
-        colorScheme = colors.copy(
-            primary = DesktopAccent,
-            onPrimary = Color.White,
-            primaryContainer = DesktopAccentSoft,
-            onPrimaryContainer = DesktopText,
-            secondary = DesktopGold,
-            background = DesktopBackground,
-            onBackground = DesktopText,
-            surface = DesktopSurface,
-            onSurface = DesktopText,
-            surfaceVariant = DesktopSurfaceRaised,
-            onSurfaceVariant = DesktopMuted,
-            outline = DesktopBorder,
-            outlineVariant = DesktopBorder,
-        ),
-        typography = typography.copy(
-            headlineMedium = typography.headlineMedium.copy(fontSize = 30.sp, lineHeight = 36.sp),
-            headlineSmall = typography.headlineSmall.copy(fontSize = 28.sp, lineHeight = 34.sp),
-            titleLarge = typography.titleLarge.copy(fontSize = 20.sp, lineHeight = 25.sp),
-            titleMedium = typography.titleMedium.copy(fontSize = 17.sp, lineHeight = 22.sp),
-            bodyLarge = typography.bodyLarge.copy(fontSize = 16.sp, lineHeight = 22.sp),
-            bodyMedium = typography.bodyMedium.copy(fontSize = 15.sp, lineHeight = 20.sp),
-            bodySmall = typography.bodySmall.copy(fontSize = 14.sp, lineHeight = 18.sp),
-            labelLarge = typography.labelLarge.copy(fontSize = 14.sp, lineHeight = 18.sp),
-            labelMedium = typography.labelMedium.copy(fontSize = 14.sp, lineHeight = 18.sp),
-        ),
-        content = content,
-    )
+    // Colours and type now come entirely from the shared DublTheme.
+    content()
 }
 
 @Composable

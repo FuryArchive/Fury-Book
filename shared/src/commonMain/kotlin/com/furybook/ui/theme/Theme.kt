@@ -29,7 +29,7 @@ private val DublColors = darkColorScheme(
 fun DublTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = DublColors,
-        typography = DublTypography,
+        typography = furyTypography(),
         content = content,
     )
 }
