@@ -65,6 +65,8 @@ fun SheetScreen(
     modifier: Modifier = Modifier,
     portraitLoader: SheetPortraitLoader? = null,
     onPickPortrait: (() -> Unit)? = null,
+    /** Details of an owned development entry; platform-owned until stage 4 rebuilds Навыки. */
+    developmentDetails: (@Composable (entryId: String, onDismiss: () -> Unit) -> Unit)? = null,
 ) {
     val state = remember(host.active.id) { SheetScreenState() }
     BoxWithConstraints(modifier.fillMaxSize()) {

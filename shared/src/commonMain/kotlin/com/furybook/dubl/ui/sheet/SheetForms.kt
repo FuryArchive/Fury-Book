@@ -36,3 +36,10 @@ fun sheetEconomyForm(totalText: String, creationText: String, adjustmentText: St
     }
     return SheetEconomyForm(total, creation, adjustment, override)
 }
+
+/** Note limits from the old desktop NoteEditorDialog. */
+const val SHEET_NOTE_TITLE_MAX = 120
+const val SHEET_NOTE_BODY_MAX = 12_000
+
+fun noteTitleInput(text: String): String = text.take(SHEET_NOTE_TITLE_MAX)
+fun noteBodyInput(text: String): String = text.take(SHEET_NOTE_BODY_MAX)

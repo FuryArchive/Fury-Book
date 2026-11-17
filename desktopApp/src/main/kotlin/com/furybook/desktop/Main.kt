@@ -44,6 +44,7 @@ import com.furybook.ui.layout.DublLayoutClass
 import com.furybook.ui.layout.layoutClassForWidth
 import com.furybook.ui.theme.DublTheme
 import com.furybook.desktop.screens.CharacterSheetScreen
+import com.furybook.desktop.screens.DesktopSheetDevelopmentDetails
 import com.furybook.desktop.screens.CampaignScreen
 import com.furybook.desktop.screens.CharactersScreen
 import com.furybook.desktop.screens.DevelopmentScreen
@@ -267,6 +268,7 @@ private fun DesktopSheet(
             onEdit = { editing = true },
             onOpenSkills = { onNavigate(DesktopSection.SKILLS) },
             portraitLoader = { path -> rememberDesktopPortrait(path) },
+            developmentDetails = { entryId, close -> DesktopSheetDevelopmentDetails(state, entryId, close) },
             onPickPortrait = { chooseDesktopPortraitFile()?.let(state::importPortrait)?.let(state::setPortrait) },
         )
         AnimatedVisibility(

@@ -689,6 +689,7 @@ private fun WebSheet(
             onEdit = { editing = true },
             onOpenSkills = { onNavigate(DesktopSection.SKILLS) },
             portraitLoader = { dataUrl -> rememberWebPortrait(dataUrl) },
+            developmentDetails = { entryId, close -> DesktopSheetDevelopmentDetails(state, entryId, close) },
             onPickPortrait = { pickPortraitDataUrl { dataUrl -> state.setPortrait(dataUrl) } },
         )
         AnimatedVisibility(
