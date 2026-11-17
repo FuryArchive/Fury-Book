@@ -16,6 +16,8 @@ import com.furybook.dubl.model.ConditionCatalog
 import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.SkillEffectCatalog
+import com.furybook.dubl.model.effectiveDevelopmentCatalog
+import com.furybook.dubl.model.withoutChiContent
 import com.furybook.dubl.ui.sheet.DublSheetHost
 
 /** Android adapter exposing [CharacterController] and the bundled catalogs to the shared sheet. */
@@ -30,8 +32,12 @@ class AndroidSheetHost(
     override val extras: CharacterSheetExtras get() = controller.extras
     override val canUndo: Boolean get() = controller.canUndo
     override val conditionCatalog: ConditionCatalog = ConditionCatalogRepository(appContext).load()
-    override val developmentCatalog: DevelopmentCatalog =
+    private val canonicalDevelopmentCatalog: DevelopmentCatalog =
         DevelopmentCatalogRepository(appContext).load(includeChi = chiPackEnabled)
+    override val developmentCatalog: DevelopmentCatalog
+        get() = controller.active
+            .effectiveDevelopmentCatalog(canonicalDevelopmentCatalog)
+            .let { catalog -> if (chiPackEnabled) catalog else catalog.withoutChiContent() }
     override val skillEffectCatalog: SkillEffectCatalog = SkillEffectCatalogRepository(appContext).load()
 
     override fun resourceMeters(): List<DublResourceMeterModel> =
