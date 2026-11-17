@@ -64,6 +64,7 @@ import com.furybook.ui.components.FuryShell
 import com.furybook.ui.components.FuryShellCharacter
 import com.furybook.ui.components.FuryShellSection
 import com.furybook.ui.theme.FuryColors
+import com.furybook.ui.components.FuryThemeButton
 import com.furybook.ui.theme.DublAccent
 import com.furybook.ui.theme.DublGold
 import com.furybook.ui.theme.DublFocus
@@ -164,6 +165,7 @@ fun DublApp() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
+            account = { FuryThemeButton() },
         ) {
             if (pendingSection == AppSection.FEATS) {
                 DevelopmentNavigationLoadingScreen()

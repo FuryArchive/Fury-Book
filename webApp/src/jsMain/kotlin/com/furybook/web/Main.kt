@@ -38,7 +38,8 @@ import com.furybook.ui.components.FuryShellCharacter
 import com.furybook.ui.components.FuryShellSection
 import com.furybook.ui.layout.DublLayoutClass
 import com.furybook.ui.layout.layoutClassForWidth
-import com.furybook.ui.theme.DublTheme
+import com.furybook.ui.theme.FuryThemedApp
+import com.furybook.ui.components.FuryThemeButton
 import com.furybook.ui.theme.furyFontsReady
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -56,7 +57,7 @@ internal enum class DesktopSection(val label: String) {
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     ComposeViewport(viewportContainerId = "furybook-app") {
-        DublTheme {
+        FuryThemedApp(remember { WebThemeStore() }) {
             DesktopVisualTheme {
                 WebRoot()
             }
@@ -535,6 +536,7 @@ private fun FuryWebApp(
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         // «Выйти» stays one click away on every section, as it was in the old rail.
         account = {
+            FuryThemeButton()
             FuryButton("Выйти ($accountName)", onSignOut, Modifier.widthIn(max = 240.dp), style = FuryButtonStyle.Ghost)
         },
     ) {

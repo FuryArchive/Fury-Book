@@ -42,7 +42,9 @@ import com.furybook.ui.components.FuryShellCharacter
 import com.furybook.ui.components.FuryShellSection
 import com.furybook.ui.layout.DublLayoutClass
 import com.furybook.ui.layout.layoutClassForWidth
-import com.furybook.ui.theme.DublTheme
+import com.furybook.ui.theme.FuryThemedApp
+import com.furybook.dubl.data.DesktopThemeStore
+import com.furybook.ui.components.FuryThemeButton
 import com.furybook.desktop.screens.DesktopSheetDevelopmentDetails
 import com.furybook.desktop.screens.CampaignScreen
 import com.furybook.desktop.screens.CharactersScreen
@@ -77,7 +79,8 @@ fun main() = application {
         title = "Fury Book — DUBL 3.69",
         icon = painterResource("fury-icon.png"),
     ) {
-        DublTheme { DesktopVisualTheme { DesktopApp() } }
+        val themeStore = remember { DesktopThemeStore() }
+        FuryThemedApp(themeStore) { DesktopVisualTheme { DesktopApp() } }
     }
 }
 
@@ -130,6 +133,7 @@ private fun DesktopApp() {
         onSelect = { selected = it },
         onSwitchCharacter = { characterPickerOpen = true },
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        account = { FuryThemeButton() },
     ) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val layout = layoutClassForWidth(maxWidth.value.toInt())
