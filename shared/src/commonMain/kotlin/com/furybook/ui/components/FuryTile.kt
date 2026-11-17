@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.furybook.ui.theme.DublMuted
 import com.furybook.ui.theme.DublSurfaceRaised
 import com.furybook.ui.theme.DublText
@@ -22,7 +23,7 @@ import com.furybook.ui.theme.furyOverlineStyle
 
 /**
  * A stat tile: small label on top, big number underneath. Pass [onClick] to make it rollable.
- * [compact] is the phone size.
+ * [compact] is the phone size: tighter padding and a mixed-case 11sp label instead of the overline.
  */
 @Composable
 fun FuryTile(
@@ -38,13 +39,14 @@ fun FuryTile(
             .clip(FuryShapes.panel)
             .background(DublSurfaceRaised)
             .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
-            .padding(if (compact) 8.dp else 12.dp),
+            .then(if (compact) Modifier.padding(horizontal = 4.dp, vertical = 8.dp) else Modifier.padding(12.dp)),
         verticalArrangement = Arrangement.SpaceBetween,
     ) {
+        // Phone tiles are narrow: the label is mixed-case 11sp body text (B phone mockup), not the overline.
         Text(
-            text = label.uppercase(),
+            text = if (compact) label else label.uppercase(),
             color = DublMuted,
-            style = furyOverlineStyle(),
+            style = if (compact) MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 14.sp) else furyOverlineStyle(),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
