@@ -65,7 +65,7 @@ internal fun sheetFcpIconGlyph(token: String?): String? = when (token) {
     else -> null
 }
 
-private fun vitalTitle(vital: SheetVital): String =
+internal fun vitalTitle(vital: SheetVital): String =
     sheetFcpIconGlyph(vital.iconToken)?.let { "$it ${vital.label}" } ?: vital.label
 
 /**
@@ -190,7 +190,7 @@ internal fun vitalCanDecrease(vital: SheetVital): Boolean =
 /** Health text turns crimson at ≤ 25 % and at or below zero (Android critical-health styling). */
 @Composable
 @ReadOnlyComposable
-private fun vitalValueColor(vital: SheetVital): Color =
+internal fun vitalValueColor(vital: SheetVital): Color =
     if (vital.resource == CharacterSheetResourceId.HEALTH && healthCriticalLevel(vital.current, vital.maximum) >= 2) DublAccentStrong
     else DublText
 

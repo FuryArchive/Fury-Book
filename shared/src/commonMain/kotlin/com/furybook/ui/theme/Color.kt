@@ -34,4 +34,7 @@ val DublStamina: Color @Composable @ReadOnlyComposable get() = FuryColors.curren
 // Mana and custom resources keep their colour in every theme.
 val DublMana = Color(0xFF6F98D6)
 val DublCustomResource = Color(0xFF65B4A4)
+// Helpful conditions (Воодушевление, Невидимость) keep one green chip in every theme.
+val FuryHelpfulChip = Color(0xFF14302A)
+val FuryHelpfulChipText = Color(0xFF7FE0C4)
 val DublDanger: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accText

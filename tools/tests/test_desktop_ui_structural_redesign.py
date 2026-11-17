@@ -45,7 +45,9 @@ def test_character_sheet_preserves_shared_application_callbacks():
     ):
         assert token in sheet, token
     assert 'state.undoLast()' in read(MAIN)
-    assert 'horizontalScroll' not in sheet
+    # Only the phone/tablet resource and condition strips scroll sideways (play sheet redesign, 2026-11-18).
+    sideways = [path.name for path in sorted(SHEET_DIR.glob('*.kt')) if 'horizontalScroll' in path.read_text(encoding='utf-8')]
+    assert sideways in ([], ['SheetPlayHeader.kt']), sideways
 
 
 def test_character_sheet_keeps_notes():

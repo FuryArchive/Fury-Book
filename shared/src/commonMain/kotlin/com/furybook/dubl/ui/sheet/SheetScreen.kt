@@ -213,7 +213,7 @@ private fun SheetScreenHeader(
 
 /** Chi XP counts only when a pack mounts the chi feature on the economy XP line (FCP contract). */
 @Composable
-private fun rememberSheetEconomy(host: DublSheetEditHost): CharacterEconomyBreakdown {
+internal fun rememberSheetEconomy(host: DublSheetEditHost): CharacterEconomyBreakdown {
     val character = host.active
     val includeChi = sheetChiEconomyMounted(host)
     return remember(host, character, host.extras, includeChi, host.developmentCatalog) {
