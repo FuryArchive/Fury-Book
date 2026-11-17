@@ -14,7 +14,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.furybook.ui.theme.DublSurfaceRaised
+import com.furybook.ui.theme.FuryBarTrack
 
 /**
  * How a resource bar should be drawn. [segments] is 0 for one continuous bar filled to [fraction];
@@ -45,12 +45,12 @@ fun FuryBar(
             repeat(model.segments) { index ->
                 Box(
                     Modifier.weight(1f).fillMaxHeight().clip(shape)
-                        .background(if (index < model.filledSegments) color else DublSurfaceRaised),
+                        .background(if (index < model.filledSegments) color else FuryBarTrack),
                 )
             }
         }
     } else {
-        Box(modifier.fillMaxWidth().height(height).clip(shape).background(DublSurfaceRaised)) {
+        Box(modifier.fillMaxWidth().height(height).clip(shape).background(FuryBarTrack)) {
             Box(Modifier.fillMaxWidth(model.fraction).fillMaxHeight().clip(shape).background(color))
         }
     }

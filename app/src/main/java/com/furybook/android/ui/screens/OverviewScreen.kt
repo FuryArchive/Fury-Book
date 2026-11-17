@@ -160,6 +160,7 @@ import com.furybook.android.ui.components.containSheetOverscroll
 import com.furybook.ui.components.DublCard
 import com.furybook.android.ui.components.DublSwitch
 import com.furybook.ui.theme.FuryAccentFill
+import com.furybook.ui.theme.FuryOnAccentFill
 import com.furybook.ui.theme.DublAccent
 import com.furybook.ui.theme.DublAccentSoft
 import com.furybook.ui.theme.DublDanger
@@ -4540,7 +4541,7 @@ private fun HealthControlSheet(
                     },
                     enabled = amount > 0,
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = FuryAccentFill),
+                    colors = ButtonDefaults.buttonColors(containerColor = FuryAccentFill, contentColor = FuryOnAccentFill),
                     shape = RoundedCornerShape(10.dp),
                 ) { Text("Получить урон") }
                 OutlinedButton(

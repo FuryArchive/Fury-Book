@@ -278,13 +278,11 @@ def test_sheet_skill_bonus_exposes_hover_breakdown_with_automatic_effect_sources
     assert 'Итоговый бонус' in skill_row
 
 
-def test_desktop_typography_comes_from_shared_theme_and_inline_actions_are_neutral():
-    # The type scale is owned by the shared Fury theme (see test_fury_typography.py);
-    # the desktop shell must not re-size it.
+def test_secondary_desktop_typography_is_readable_and_inline_actions_are_neutral():
     main = read(MAIN)
     primitives = read(PRIMITIVES)
-    assert 'typography.bodySmall.copy(' not in main
-    assert 'typography.labelMedium.copy(' not in main
+    assert 'bodySmall = typography.bodySmall.copy(fontSize = 14.sp' in main
+    assert 'labelMedium = typography.labelMedium.copy(fontSize = 14.sp' in main
     assert 'internal fun DesktopInlineAction' in primitives
     inline = primitives.split('internal fun DesktopInlineAction', 1)[1].split('@Composable', 1)[0]
     assert 'DesktopMuted' in inline

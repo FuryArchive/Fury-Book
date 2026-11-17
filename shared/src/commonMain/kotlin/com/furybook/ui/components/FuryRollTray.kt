@@ -24,6 +24,7 @@ import com.furybook.ui.theme.FuryAccentFill
 import com.furybook.ui.theme.FuryAccentFillPressed
 import com.furybook.ui.theme.FuryOnAccentFill
 import com.furybook.ui.theme.FuryShapes
+import com.furybook.ui.theme.furyOverlineStyle
 import com.furybook.ui.theme.FurySpacing
 
 /** One addend of a roll, for display only: "+ 8 Ловкость". */
@@ -74,13 +75,13 @@ fun FuryRollTray(
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         if (view == null) {
-            Text("БРОСОК", color = FuryOnAccentFill, style = MaterialTheme.typography.labelSmall)
+            Text("БРОСОК", color = FuryOnAccentFill, style = furyOverlineStyle())
             Text(emptyText, color = FuryOnAccentFill, style = MaterialTheme.typography.bodyMedium)
         } else {
             Text(
                 text = "БРОСОК · ${view.title}".uppercase(),
                 color = FuryOnAccentFill,
-                style = MaterialTheme.typography.labelSmall,
+                style = furyOverlineStyle(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )

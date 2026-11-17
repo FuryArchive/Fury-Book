@@ -62,8 +62,18 @@ fun furyTypography(): Typography {
             bodySmall = body(FontWeight.Normal, 12, 16),
             labelLarge = body(FontWeight.SemiBold, 14, 18),
             labelMedium = body(FontWeight.SemiBold, 12, 16),
-            labelSmall = display(FontWeight.Bold, 10, 14).copy(letterSpacing = 0.06.em),
+            // Existing screens set whole sentences in labelSmall, so it stays a reading face.
+            labelSmall = body(FontWeight.SemiBold, 11, 14),
         )
+    }
+}
+
+/** Tiny uppercase Unbounded caption used above tiles, fields and the roll total. */
+@Composable
+fun furyOverlineStyle(): TextStyle {
+    val display = furyDisplayFamily()
+    return remember(display) {
+        TextStyle(fontFamily = display, fontWeight = FontWeight.Bold, fontSize = 10.sp, lineHeight = 14.sp, letterSpacing = 0.06.em)
     }
 }
 

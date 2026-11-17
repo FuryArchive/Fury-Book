@@ -93,8 +93,16 @@ fun main() = application {
 
 @Composable
 private fun DesktopVisualTheme(content: @Composable () -> Unit) {
-    // Colours and type now come entirely from the shared DublTheme.
-    content()
+    // Colours and fonts come from the shared DublTheme. The dense desktop screens were laid out
+    // around 14sp secondary text, so that size is kept until those screens are rebuilt.
+    val typography = MaterialTheme.typography
+    MaterialTheme(
+        typography = typography.copy(
+            bodySmall = typography.bodySmall.copy(fontSize = 14.sp, lineHeight = 18.sp),
+            labelMedium = typography.labelMedium.copy(fontSize = 14.sp, lineHeight = 18.sp),
+        ),
+        content = content,
+    )
 }
 
 @Composable

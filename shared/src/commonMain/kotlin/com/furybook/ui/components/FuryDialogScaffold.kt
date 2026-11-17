@@ -2,8 +2,7 @@ package com.furybook.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,11 +23,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -54,6 +53,10 @@ private const val BOTTOM_SHEET_MAX_WIDTH_DP = 600
 @Suppress("UNUSED_PARAMETER")
 fun furyDialogPresentation(layout: DublLayoutClass, widthDp: Int): FuryDialogPresentation =
     if (widthDp < BOTTOM_SHEET_MAX_WIDTH_DP) FuryDialogPresentation.BottomSheet else FuryDialogPresentation.Centered
+
+/** On a phone-width sheet three buttons do not fit on one line, so they stack with the primary on top. */
+fun furyDialogStacksActions(presentation: FuryDialogPresentation): Boolean =
+    presentation == FuryDialogPresentation.BottomSheet
 
 data class FuryDialogAction(val label: String, val onClick: () -> Unit, val enabled: Boolean = true)
 
@@ -82,7 +85,7 @@ fun FuryDialogScaffold(
             // Scrim: tapping outside the panel dismisses.
             Box(
                 Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.6f))
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onDismiss),
+                    .pointerInput(onDismiss) { detectTapGestures(onTap = { onDismiss() }) },
             )
             val shape = if (sheet) FuryShapes.sheet else FuryShapes.panel
             Column(
@@ -93,8 +96,9 @@ fun FuryDialogScaffold(
                     .clip(shape)
                     .background(DublSurface)
                     .border(1.dp, FuryBorderStrong, shape)
-                    // Swallow clicks so they do not reach the scrim underneath.
-                    .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = {})
+                    // Swallow taps so they do not reach the scrim, without merging the panel's
+                    // content into a single clickable node for screen readers.
+                    .pointerInput(Unit) { detectTapGestures(onTap = {}) }
                     .padding(FurySpacing.xl),
                 verticalArrangement = Arrangement.spacedBy(FurySpacing.lg),
             ) {
@@ -121,16 +125,34 @@ fun FuryDialogScaffold(
                     content = content,
                 )
                 if (primary != null || secondary != null || destructive != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-                        if (destructive != null) {
-                            FuryButton(destructive.label, destructive.onClick, style = FuryButtonStyle.Danger, enabled = destructive.enabled)
+                    val presentation = if (sheet) FuryDialogPresentation.BottomSheet else FuryDialogPresentation.Centered
+                    if (furyDialogStacksActions(presentation)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                            if (primary != null) {
+                                FuryButton(primary.label, primary.onClick, Modifier.fillMaxWidth(), FuryButtonStyle.Primary, primary.enabled)
+                            }
+                            if (secondary != null) {
+                                FuryButton(secondary.label, secondary.onClick, Modifier.fillMaxWidth(), FuryButtonStyle.Secondary, secondary.enabled)
+                            }
+                            if (destructive != null) {
+                                FuryButton(destructive.label, destructive.onClick, Modifier.fillMaxWidth(), FuryButtonStyle.Danger, destructive.enabled)
+                            }
                         }
-                        Spacer(Modifier.weight(1f))
-                        if (secondary != null) {
-                            FuryButton(secondary.label, secondary.onClick, style = FuryButtonStyle.Secondary, enabled = secondary.enabled)
-                        }
-                        if (primary != null) {
-                            FuryButton(primary.label, primary.onClick, style = FuryButtonStyle.Primary, enabled = primary.enabled)
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                            // The left slot takes whatever width the right-hand buttons leave, so a long
+                            // destructive label is the one that ellipsizes, never the primary button.
+                            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
+                                if (destructive != null) {
+                                    FuryButton(destructive.label, destructive.onClick, style = FuryButtonStyle.Danger, enabled = destructive.enabled)
+                                }
+                            }
+                            if (secondary != null) {
+                                FuryButton(secondary.label, secondary.onClick, style = FuryButtonStyle.Secondary, enabled = secondary.enabled)
+                            }
+                            if (primary != null) {
+                                FuryButton(primary.label, primary.onClick, style = FuryButtonStyle.Primary, enabled = primary.enabled)
+                            }
                         }
                     }
                 }

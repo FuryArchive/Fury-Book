@@ -18,6 +18,7 @@ import com.furybook.ui.theme.DublMuted
 import com.furybook.ui.theme.DublSurfaceRaised
 import com.furybook.ui.theme.DublText
 import com.furybook.ui.theme.FuryShapes
+import com.furybook.ui.theme.furyOverlineStyle
 
 /**
  * A stat tile: small label on top, big number underneath. Pass [onClick] to make it rollable.
@@ -43,7 +44,7 @@ fun FuryTile(
         Text(
             text = label.uppercase(),
             color = DublMuted,
-            style = MaterialTheme.typography.labelSmall,
+            style = furyOverlineStyle(),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )

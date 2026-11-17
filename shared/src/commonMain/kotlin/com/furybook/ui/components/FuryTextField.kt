@@ -19,6 +19,7 @@ import com.furybook.ui.theme.DublMuted
 import com.furybook.ui.theme.DublText
 import com.furybook.ui.theme.FuryBorderStrong
 import com.furybook.ui.theme.FuryShapes
+import com.furybook.ui.theme.furyOverlineStyle
 
 /** A full-width field with its label above it and an optional error line below. */
 @Composable
@@ -33,7 +34,7 @@ fun FuryTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(label.uppercase(), color = DublMuted, style = MaterialTheme.typography.labelSmall)
+        Text(label.uppercase(), color = DublMuted, style = furyOverlineStyle())
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,

@@ -10,6 +10,8 @@ val DublSurfaceInset = Color(0xFF08080A)
 val DublSurfaceRaised = Color(0xFF16161A)
 val DublBorder = Color(0xFF26262C)
 val FuryBorderStrong = Color(0xFF34343A)
+/** The unfilled part of a resource bar; must stay visible on panels and tiles. */
+val FuryBarTrack = FuryBorderStrong
 val DublText = Color(0xFFF4F1EC)
 val DublMuted = Color(0xFFB4B1AC)
 

@@ -5,9 +5,14 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-private val DublColors = darkColorScheme(
-    primary = FuryAccentFill,
-    onPrimary = FuryOnAccentFill,
+/**
+ * Material roles for screens that still use stock Material components. `primary` doubles as the
+ * label colour of TextButton and OutlinedButton, so it has to be readable as text on every
+ * surface; new Fury components take their fills from FuryAccentFill directly instead.
+ */
+val FuryColorScheme = darkColorScheme(
+    primary = DublAccentStrong,
+    onPrimary = DublBackground,
     primaryContainer = DublAccentSoft,
     onPrimaryContainer = DublText,
     secondary = DublGold,
@@ -19,6 +24,13 @@ private val DublColors = darkColorScheme(
     surface = DublSurface,
     onSurface = DublText,
     surfaceVariant = DublSurfaceRaised,
+    surfaceDim = DublBackground,
+    surfaceBright = DublSurfaceRaised,
+    surfaceContainerLowest = DublBackground,
+    surfaceContainerLow = DublSurface,
+    surfaceContainer = DublSurface,
+    surfaceContainerHigh = DublSurfaceRaised,
+    surfaceContainerHighest = DublSurfaceRaised,
     onSurfaceVariant = DublMuted,
     outline = DublBorder,
     outlineVariant = DublBorder,
@@ -28,7 +40,7 @@ private val DublColors = darkColorScheme(
 @Composable
 fun DublTheme(content: @Composable () -> Unit) {
     MaterialTheme(
-        colorScheme = DublColors,
+        colorScheme = FuryColorScheme,
         typography = furyTypography(),
         content = content,
     )

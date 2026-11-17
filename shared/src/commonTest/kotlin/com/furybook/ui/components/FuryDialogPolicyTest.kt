@@ -16,4 +16,10 @@ class FuryDialogPolicyTest {
     @Test
     fun wideUsesCentered() =
         assertEquals(FuryDialogPresentation.Centered, furyDialogPresentation(DublLayoutClass.WIDE, 1400))
+
+    @Test
+    fun sheetStacksItsActionsSoThePrimaryButtonIsNeverTruncated() {
+        assertEquals(true, furyDialogStacksActions(FuryDialogPresentation.BottomSheet))
+        assertEquals(false, furyDialogStacksActions(FuryDialogPresentation.Centered))
+    }
 }
