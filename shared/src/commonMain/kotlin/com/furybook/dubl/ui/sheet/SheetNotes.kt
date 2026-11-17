@@ -84,7 +84,7 @@ fun SheetNotes(notes: List<CharacterNote>, host: DublSheetEditHost?, modifier: M
 }
 
 @Composable
-private fun NoteEditor(note: CharacterNote?, onSave: (String, String) -> Unit, onDelete: (() -> Unit)?, onDismiss: () -> Unit) {
+internal fun NoteEditor(note: CharacterNote?, onSave: (String, String) -> Unit, onDelete: (() -> Unit)?, onDismiss: () -> Unit) {
     var title by remember(note?.id) { mutableStateOf(note?.title.orEmpty()) }
     var body by remember(note?.id) { mutableStateOf(note?.body.orEmpty()) }
     FuryDialogScaffold(

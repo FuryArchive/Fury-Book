@@ -63,7 +63,9 @@ fun FuryThemePicker(selected: FuryThemeId, onSelect: (FuryThemeId) -> Unit, modi
 fun FuryThemeButton(modifier: Modifier = Modifier) {
     val choice = LocalFuryThemeChoice.current ?: return
     var open by remember { mutableStateOf(false) }
-    FuryButton("Тема", { open = true }, modifier)
+    FuryIconButton("Тема оформления", { open = true }, modifier) {
+        Text("◐", color = FuryColors.current.text, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+    }
     if (open) {
         FuryDialogScaffold(title = "Тема оформления", onDismiss = { open = false }, maxWidth = 420.dp) {
             FuryThemePicker(choice.selected, choice.select)

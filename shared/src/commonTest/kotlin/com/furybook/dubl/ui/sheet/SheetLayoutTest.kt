@@ -35,4 +35,17 @@ class SheetLayoutTest {
             AttributeId.entries.map(::sheetPhoneAttributeLabel),
         )
     }
+
+    @Test
+    fun playSheetColumns() {
+        assertEquals(1, sheetPlayColumns(SheetLayout.PHONE))
+        assertEquals(2, sheetPlayColumns(SheetLayout.WIDE))
+        assertEquals(2, sheetPlayColumns(SheetLayout.WIDE_WITH_TRAY))
+    }
+
+    @Test
+    fun playDerivedRowIsSixWideAndThreeOnPhones() {
+        assertEquals(3, sheetPlayDerivedColumns(SheetLayout.PHONE))
+        assertEquals(6, sheetPlayDerivedColumns(SheetLayout.WIDE))
+    }
 }

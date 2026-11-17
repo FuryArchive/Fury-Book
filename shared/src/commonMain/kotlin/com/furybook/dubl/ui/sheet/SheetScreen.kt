@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
@@ -76,9 +77,21 @@ fun SheetScreen(
 ) {
     val state = remember { SheetScreenState() }
     state.syncCharacter(host.active.id)
+    val playState = remember { SheetPlayState() }
+    playState.syncCharacter(host.active.id)
     backHandler(state.editing) { state.updateEditing(false) }
     BoxWithConstraints(modifier.fillMaxSize()) {
         val layout = sheetLayoutFor(maxWidth.value.toInt())
+        if (!state.editing) {
+            val portrait: (@Composable (Dp) -> Unit)? =
+                if (portraitLoader == null && host.extras.portraitUri == null) null else { size ->
+                    SheetPortrait(uri = host.extras.portraitUri, name = host.active.name, loader = portraitLoader, onPick = null, onRemove = null, size = size)
+                }
+            SheetPlayBody(host, layout, state, playState, portrait, TRAY_WIDTH) { rollModifier -> SheetScreenRoll(host, state, rollModifier) }
+            SheetScreenRollDialog(host, layout, state)
+            SheetScreenDialog(host, layout, state, developmentDetails)
+            return@BoxWithConstraints
+        }
         val header: @Composable (Modifier) -> Unit = { headerModifier ->
             SheetScreenHeader(host, layout, state, headerModifier, portraitLoader, onPickPortrait)
         }
@@ -106,20 +119,26 @@ fun SheetScreen(
                 }
             }
         }
-        val dialogRequest = state.request
-        if (layout != SheetLayout.WIDE_WITH_TRAY && state.rollOpen && dialogRequest != null) {
-            // FuryDialogScaffold scrolls its content and picks sheet or centred panel by width. The roll
-            // button sits in its pinned footer, so «Бросить снова» stays in view under a long result.
-            val blocked = sheetRollOptions(host, dialogRequest).blockedReason
-            FuryDialogScaffold(
-                title = "Бросок",
-                onDismiss = state::dismiss,
-                primary = FuryDialogAction(sheetRollButtonLabel(state.result != null), { state.roll(host) }, enabled = blocked == null),
-            ) {
-                SheetScreenRoll(host, state, Modifier.fillMaxWidth(), inlineRollButton = false)
-            }
-        }
+        SheetScreenRollDialog(host, layout, state)
         SheetScreenDialog(host, layout, state, developmentDetails)
+    }
+}
+
+/** Phone and tablet roll: the dialog with the roll options; desktop shows the same panel in its tray. */
+@Composable
+private fun SheetScreenRollDialog(host: DublSheetEditHost, layout: SheetLayout, state: SheetScreenState) {
+    val dialogRequest = state.request
+    if (layout != SheetLayout.WIDE_WITH_TRAY && state.rollOpen && dialogRequest != null) {
+        // FuryDialogScaffold scrolls its content and picks sheet or centred panel by width. The roll
+        // button sits in its pinned footer, so «Бросить снова» stays in view under a long result.
+        val blocked = sheetRollOptions(host, dialogRequest).blockedReason
+        FuryDialogScaffold(
+            title = "Бросок",
+            onDismiss = state::dismiss,
+            primary = FuryDialogAction(sheetRollButtonLabel(state.result != null), { state.roll(host) }, enabled = blocked == null),
+        ) {
+            SheetScreenRoll(host, state, Modifier.fillMaxWidth(), inlineRollButton = false)
+        }
     }
 }
 
