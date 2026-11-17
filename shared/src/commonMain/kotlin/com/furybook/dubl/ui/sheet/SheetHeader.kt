@@ -54,6 +54,7 @@ fun SheetHeader(
     onToggleCondition: (SheetConditionChip) -> Unit,
     onEdit: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenConditions: (() -> Unit)? = null,
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.md), verticalAlignment = Alignment.Top) {
@@ -81,24 +82,38 @@ fun SheetHeader(
             if (abilityText.isNotBlank()) {
                 HeaderChip(abilityText, Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control), DublText)
             }
-            if (conditions.isEmpty()) {
+            if (conditions.isEmpty() && onOpenConditions == null) {
                 HeaderChip("Нет активных состояний", Modifier, DublMuted)
             }
             conditions.forEach { chip ->
                 if (chip.automatic) {
                     HeaderChip(
                         "${chip.title} · авто",
-                        Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control),
+                        Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control).then(
+                            if (onOpenConditions != null) {
+                                Modifier.clickable(role = Role.Button, onClickLabel = "Состояния") { onOpenConditions() }
+                            } else Modifier,
+                        ),
                         DublMuted,
                     )
                 } else {
+                    // With the conditions popup available a chip opens it (desktop HeroConditions); otherwise it toggles.
+                    val action = onOpenConditions?.let { open -> Modifier.clickable(role = Role.Button, onClickLabel = "Состояния") { open() } }
+                        ?: Modifier.clickable(role = Role.Button, onClickLabel = "Снять состояние") { onToggleCondition(chip) }
                     HeaderChip(
                         chip.title,
-                        Modifier.background(DublAccentSoft).border(1.dp, DublAccent, FuryShapes.control)
-                            .clickable(role = Role.Button, onClickLabel = "Снять состояние") { onToggleCondition(chip) },
+                        Modifier.background(DublAccentSoft).border(1.dp, DublAccent, FuryShapes.control).then(action),
                         DublText,
                     )
                 }
+            }
+            if (onOpenConditions != null) {
+                HeaderChip(
+                    "+ Состояние",
+                    Modifier.border(1.dp, FuryBorderStrong, FuryShapes.control)
+                        .clickable(role = Role.Button, onClickLabel = "Добавить состояние") { onOpenConditions() },
+                    DublText,
+                )
             }
         }
     }

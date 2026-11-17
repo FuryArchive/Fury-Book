@@ -37,6 +37,8 @@ data class SheetStat(
     val value: Int,
     val roll: SheetRollSubject?,
     val valueText: String = value.toString(),
+    /** Set for metrics: tapping the tile opens the formula popup (which has the roll button) instead of rolling. */
+    val info: SheetStatId? = null,
 )
 
 data class SheetSkillRow(val skillId: String, val name: String, val attributeLabel: String, val rank: Int, val bonus: Int?)
@@ -148,12 +150,15 @@ fun sheetAttributes(character: DublCharacter): List<SheetStat> =
 
 /** Mirrors desktop HeroMetricsStrip; Бег's [SheetStat.valueText] is the desktop formatNumber output. */
 fun sheetMetrics(character: DublCharacter): List<SheetStat> = listOf(
-    SheetStat("Защита", character.defense, null),
-    SheetStat("Рефлексы", character.reflexes, SheetRollSubject.Context(RollContext.REFLEXES)),
-    SheetStat("Инициатива", character.initiative, SheetRollSubject.Context(RollContext.INITIATIVE)),
-    SheetStat("Стойкость", character.fortitude, SheetRollSubject.Context(RollContext.FORTITUDE)),
-    SheetStat("Бег", character.runFull.roundToInt(), SheetRollSubject.Context(RollContext.RUN), formatSheetNumber(character.runFull)),
-    SheetStat("Размер", character.size, null),
+    SheetStat("Защита", character.defense, null, info = SheetStatId.DEFENSE),
+    SheetStat("Рефлексы", character.reflexes, SheetRollSubject.Context(RollContext.REFLEXES), info = SheetStatId.REFLEXES),
+    SheetStat("Инициатива", character.initiative, SheetRollSubject.Context(RollContext.INITIATIVE), info = SheetStatId.INITIATIVE),
+    SheetStat("Стойкость", character.fortitude, SheetRollSubject.Context(RollContext.FORTITUDE), info = SheetStatId.FORTITUDE),
+    SheetStat(
+        "Бег", character.runFull.roundToInt(), SheetRollSubject.Context(RollContext.RUN), formatSheetNumber(character.runFull),
+        info = SheetStatId.RUN,
+    ),
+    SheetStat("Размер", character.size, null, info = SheetStatId.SIZE),
 )
 
 /**
