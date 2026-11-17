@@ -67,7 +67,7 @@ data class SheetRollOptions(
 private const val BOTH_MODES_REASON = "Нельзя бросать с преимуществом и помехой одновременно"
 private const val UNAVAILABLE_REASON = "Бросок недоступен"
 
-private fun sheetRollD6(): Int = Random.nextInt(1, 7)
+internal fun sheetRollD6(): Int = Random.nextInt(1, 7)
 
 /** Fully resolved inputs for one roll: what [rollCheck] needs plus what the view shows. */
 private class ResolvedSheetRoll(
