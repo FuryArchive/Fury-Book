@@ -20,6 +20,7 @@ import com.furybook.ui.components.FuryBar
 import com.furybook.ui.components.FuryButton
 import com.furybook.ui.components.FuryButtonStyle
 import com.furybook.ui.components.FuryIconButton
+import com.furybook.ui.theme.DublAccent
 import com.furybook.ui.theme.DublCustomResource
 import com.furybook.ui.theme.DublHealth
 import com.furybook.ui.theme.DublMana
@@ -38,6 +39,7 @@ internal fun sheetVitalColor(color: SheetVitalColor): Color = when (color) {
     SheetVitalColor.STAMINA -> DublStamina
     SheetVitalColor.MANA -> DublMana
     SheetVitalColor.CUSTOM -> DublCustomResource
+    SheetVitalColor.MOUNTED -> DublAccent
 }
 
 /**

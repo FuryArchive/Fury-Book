@@ -16,6 +16,7 @@ import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.CharacterSheetResourceId
+import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.SheetGroup
 
@@ -53,6 +54,7 @@ class FakeSheetHost(
     character: DublCharacter,
     extras: CharacterSheetExtras = CharacterSheetExtras(),
     override val chiPackEnabled: Boolean = false,
+    developmentCatalogOverride: DevelopmentCatalog? = null,
 ) : DublSheetEditHost {
     private val extrasStore = InMemoryExtrasStore().also { it.save(character.id, extras) }
     private val application = DublApplication(
@@ -74,7 +76,7 @@ class FakeSheetHost(
     override val extras get() = application.activeExtras
     override val canUndo get() = application.canUndo
     override val conditionCatalog = loader.loadConditions()
-    override val developmentCatalog = loader.loadDevelopment()
+    override val developmentCatalog = developmentCatalogOverride ?: loader.loadDevelopment()
     override val skillEffectCatalog = loader.loadSkillEffects()
 
     override fun resourceMeters(): List<DublResourceMeterModel> =

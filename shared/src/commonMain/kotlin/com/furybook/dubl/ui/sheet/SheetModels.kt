@@ -17,7 +17,8 @@ import com.furybook.dubl.model.resolvedSkills
 import com.furybook.dubl.model.skillCalculationForRoll
 import kotlin.math.roundToInt
 
-enum class SheetVitalColor { HEALTH, STAMINA, MANA, CUSTOM }
+/** [MOUNTED] = a content-pack meter (Ци); its accent comes from the pack presentation, which maps to the crimson accent today. */
+enum class SheetVitalColor { HEALTH, STAMINA, MANA, CUSTOM, MOUNTED }
 
 /** One resource tile. [resource] is set for built-in and mounted meters, [customUid] for custom resources. */
 data class SheetVital(
@@ -40,7 +41,13 @@ data class SheetStat(
 
 data class SheetSkillRow(val skillId: String, val name: String, val attributeLabel: String, val rank: Int, val bonus: Int?)
 
-data class SheetSkillGroup(val title: String, val rows: List<SheetSkillRow>)
+/** [id] is the persisted [SheetGroup] id; [collapsed] mirrors it (desktop hides a collapsed group's rows). */
+data class SheetSkillGroup(
+    val title: String,
+    val rows: List<SheetSkillRow>,
+    val id: String = "",
+    val collapsed: Boolean = false,
+)
 
 /**
  * [key] is the [CharacterConditionId] name, or the custom condition id when [custom]. [automatic] chips
@@ -108,7 +115,7 @@ fun sheetVitals(host: DublSheetHost): List<SheetVital> {
                 model.presentation.order, "fcp:${model.resourceId.name}",
                 SheetVital(
                     "fcp:${model.resourceId.name}", model.presentation.label, model.current, model.maximum,
-                    SheetVitalColor.CUSTOM, model.resourceId, null, model.restoreable,
+                    SheetVitalColor.MOUNTED, model.resourceId, null, model.restoreable,
                 ),
             )
         }
@@ -153,20 +160,29 @@ fun sheetMetrics(character: DublCharacter): List<SheetStat> = listOf(
  * Mirrors desktop SheetSkillsPanel grouping (saved groups normalised against category defaults, hidden
  * skills dropped, empty groups removed), keeping only trained skills (rank above zero).
  */
-fun sheetSkillGroups(host: DublSheetHost): List<SheetSkillGroup> {
-    val character = host.active
-    val allSkills = character.resolvedSkills(includeHidden = true)
-    val visibleById = character.resolvedSkills().filter { it.rank > 0 }.associateBy { it.id }
-    if (visibleById.isEmpty()) return emptyList()
+fun sheetSkillGroups(host: DublSheetHost): List<SheetSkillGroup> = skillGroups(host) { it.rank > 0 }
+
+/** Edit mode: every visible skill, rank 0 included (desktop sheet); hidden skills keep their group membership. */
+fun sheetSkillGroupsForEdit(host: DublSheetHost): List<SheetSkillGroup> = skillGroups(host) { true }
+
+/** The persisted skill groups normalised against the default category groups, as the old sheets did. */
+fun normalizedSkillGroups(host: DublSheetHost): List<SheetGroup> {
+    val allSkills = host.active.resolvedSkills(includeHidden = true)
     val defaults = SkillCategory.entries.mapNotNull { category ->
         allSkills.filter { it.category == category }.map { it.id }.takeIf { it.isNotEmpty() }
             ?.let { SheetGroup("skills:${category.name}", category.title, it) }
     }
-    val groups = SheetGroupingRules.normalize(host.extras.skillGroups, defaults, allSkills.map { it.id }, "skills:ungrouped")
+    return SheetGroupingRules.normalize(host.extras.skillGroups, defaults, allSkills.map { it.id }, "skills:ungrouped")
+}
+
+private fun skillGroups(host: DublSheetHost, include: (ResolvedSkill) -> Boolean): List<SheetSkillGroup> {
+    val character = host.active
+    val visibleById = character.resolvedSkills().filter(include).associateBy { it.id }
+    if (visibleById.isEmpty()) return emptyList()
     val effectRules = SkillEffectRules(character, host.developmentCatalog, host.skillEffectCatalog)
-    return groups.mapNotNull { group ->
+    return normalizedSkillGroups(host).mapNotNull { group ->
         val rows = group.itemIds.mapNotNull(visibleById::get).map { skill -> skillRow(character, effectRules, skill) }
-        if (rows.isEmpty()) null else SheetSkillGroup(group.title, rows)
+        if (rows.isEmpty()) null else SheetSkillGroup(group.title, rows, group.id, group.collapsed)
     }
 }
 
