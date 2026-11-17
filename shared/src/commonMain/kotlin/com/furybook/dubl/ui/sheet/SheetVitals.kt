@@ -59,9 +59,12 @@ fun SheetVitals(
     onRestore: (SheetVital) -> Unit,
     modifier: Modifier = Modifier,
     onOpen: ((SheetVital) -> Unit)? = null,
+    onManageResources: (() -> Unit)? = null,
 ) {
     val perRow = if (compact) 1 else 3
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+        // Edit mode: one entry point for adding custom resources and choosing what the sheet shows.
+        onManageResources?.let { FuryButton("Ресурсы: добавить / скрыть", it, style = FuryButtonStyle.Ghost) }
         if (vitals.isEmpty()) {
             // Desktop HeroResources wording, for a sheet whose every resource is hidden.
             Text(SHEET_NO_VISIBLE_VITALS, color = DublMuted, style = MaterialTheme.typography.bodyMedium)
