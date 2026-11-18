@@ -4,6 +4,7 @@ import com.furybook.dubl.application.CharacterRestorePoint
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.DevelopmentAcquisitionRequest
 import com.furybook.dubl.model.DevelopmentAcquisitionResult
+import com.furybook.dubl.model.SkillCategory
 import com.furybook.dubl.model.UntrainedRule
 import com.furybook.dubl.ui.sheet.DublSheetEditHost
 
@@ -19,4 +20,21 @@ interface DublEditorHost : DublSheetEditHost {
     fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int = 0)
     fun restorePoint(): CharacterRestorePoint
     fun restore(point: CharacterRestorePoint): Boolean
+
+    // Per-skill settings (the old Умения tab's inspector), now in the editor's skill panel.
+    fun setSkillAttributes(skillId: String, attributes: List<AttributeId>)
+    fun setSkillModifier(skillId: String, modifier: Int)
+    fun setSkillFormulaNote(skillId: String, note: String)
+    fun setSkillNameOverride(skillId: String, name: String)
+    fun setSkillDescriptionOverride(skillId: String, description: String)
+    fun setSkillCategoryOverride(skillId: String, category: SkillCategory?)
+    fun setSkillUntrainedOverride(skillId: String, rule: UntrainedRule?)
+    fun setSkillAutoOverrides(skillId: String, auto6: String?, auto12: String?)
+    fun resetSkillDefinitionOverrides(skillId: String)
+    fun hideSkill(skillId: String)
+    fun restoreSkill(skillId: String)
+    fun restoreAllSkills()
+    fun setSkillEffectEnabled(effectId: String, enabled: Boolean)
+    fun deleteDynamicSkill(skillId: String)
+    fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?)
 }

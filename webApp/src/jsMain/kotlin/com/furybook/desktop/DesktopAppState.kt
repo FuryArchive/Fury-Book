@@ -197,25 +197,24 @@ class DesktopAppState(
     override fun removeCustomResource(uid: String) { sync { application.character.removeCustomResource(uid) } }
 
     override fun changeSkillRank(skillId: String, delta: Int) = sync { application.skills.changeRank(skillId, delta) }
-    fun setSkillAttributes(skillId: String, attributes: List<AttributeId>) = sync { application.skills.setAttributes(skillId, attributes) }
-    fun setSkillModifier(skillId: String, modifier: Int) = sync { application.skills.setModifier(skillId, modifier) }
-    fun setSkillFormulaNote(skillId: String, note: String) = sync { application.skills.setFormulaNote(skillId, note) }
-    fun setSkillNameOverride(skillId: String, name: String) = sync { application.skills.setNameOverride(skillId, name) }
-    fun setSkillDescriptionOverride(skillId: String, description: String) = sync { application.skills.setDescriptionOverride(skillId, description) }
-    fun setSkillCategoryOverride(skillId: String, category: SkillCategory?) = sync { application.skills.setCategoryOverride(skillId, category) }
-    fun setSkillUntrainedOverride(skillId: String, rule: UntrainedRule?) = sync { application.skills.setUntrainedOverride(skillId, rule) }
-    fun setSkillAutoOverrides(skillId: String, auto6: String?, auto12: String?) = sync { application.skills.setAutoOverrides(skillId, auto6, auto12) }
-    fun resetSkillDefinitionOverrides(skillId: String) = sync { application.skills.resetDefinitionOverrides(skillId) }
-    fun hideSkill(skillId: String) = sync { application.skills.hide(skillId) }
-    fun restoreSkill(skillId: String) = sync { application.skills.restore(skillId) }
-    fun restoreAllSkills() = sync { application.skills.restoreAll() }
-    fun setSkillEffectEnabled(effectId: String, enabled: Boolean) = sync { application.skills.setEffectEnabled(effectId, enabled) }
+    override fun setSkillAttributes(skillId: String, attributes: List<AttributeId>) { sync { application.skills.setAttributes(skillId, attributes) } }
+    override fun setSkillModifier(skillId: String, modifier: Int) { sync { application.skills.setModifier(skillId, modifier) } }
+    override fun setSkillFormulaNote(skillId: String, note: String) { sync { application.skills.setFormulaNote(skillId, note) } }
+    override fun setSkillNameOverride(skillId: String, name: String) { sync { application.skills.setNameOverride(skillId, name) } }
+    override fun setSkillDescriptionOverride(skillId: String, description: String) { sync { application.skills.setDescriptionOverride(skillId, description) } }
+    override fun setSkillCategoryOverride(skillId: String, category: SkillCategory?) { sync { application.skills.setCategoryOverride(skillId, category) } }
+    override fun setSkillUntrainedOverride(skillId: String, rule: UntrainedRule?) { sync { application.skills.setUntrainedOverride(skillId, rule) } }
+    override fun setSkillAutoOverrides(skillId: String, auto6: String?, auto12: String?) { sync { application.skills.setAutoOverrides(skillId, auto6, auto12) } }
+    override fun resetSkillDefinitionOverrides(skillId: String) { sync { application.skills.resetDefinitionOverrides(skillId) } }
+    override fun hideSkill(skillId: String) { sync { application.skills.hide(skillId) } }
+    override fun restoreSkill(skillId: String) { sync { application.skills.restore(skillId) } }
+    override fun restoreAllSkills() { sync { application.skills.restoreAll() } }
+    override fun setSkillEffectEnabled(effectId: String, enabled: Boolean) { sync { application.skills.setEffectEnabled(effectId, enabled) } }
     override fun addSpecializedSkill(templateId: String, specialization: String): String? = sync { application.skills.addSpecialized(templateId, specialization) }
     override fun addCustomSkill(name: String, description: String, attributes: List<AttributeId>, untrained: UntrainedRule): String? =
         sync { application.skills.addCustom(name, description, attributes, untrained) }
-    fun deleteDynamicSkill(skillId: String) = sync { application.skills.deleteDynamic(skillId) }
-    fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) = sync { application.skills.setPreferredAttribute(skillId, attribute) }
-
+    override fun deleteDynamicSkill(skillId: String) { sync { application.skills.deleteDynamic(skillId) } }
+    override fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) { sync { application.skills.setPreferredAttribute(skillId, attribute) } }
     override fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int) = sync { application.development.setRank(entryId, rank, optionIndex) }
     override fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult = sync { application.development.acquire(developmentCatalog, request) }
     override fun restorePoint(): CharacterRestorePoint = application.restorePoint()

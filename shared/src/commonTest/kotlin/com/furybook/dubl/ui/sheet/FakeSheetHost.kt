@@ -1,5 +1,7 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.dubl.model.SkillCategory
+
 import com.furybook.content.FcpComposition
 import com.furybook.content.FcpUiComponent
 import com.furybook.content.FcpUiContribution
@@ -182,6 +184,21 @@ class FakeSheetHost(
     override fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int) { application.development.setRank(entryId, rank, optionIndex) }
     override fun restorePoint(): CharacterRestorePoint = application.restorePoint()
     override fun restore(point: CharacterRestorePoint): Boolean = application.restore(point)
+    override fun setSkillAttributes(skillId: String, attributes: List<AttributeId>) { application.skills.setAttributes(skillId, attributes) }
+    override fun setSkillModifier(skillId: String, modifier: Int) { application.skills.setModifier(skillId, modifier) }
+    override fun setSkillFormulaNote(skillId: String, note: String) { application.skills.setFormulaNote(skillId, note) }
+    override fun setSkillNameOverride(skillId: String, name: String) { application.skills.setNameOverride(skillId, name) }
+    override fun setSkillDescriptionOverride(skillId: String, description: String) { application.skills.setDescriptionOverride(skillId, description) }
+    override fun setSkillCategoryOverride(skillId: String, category: SkillCategory?) { application.skills.setCategoryOverride(skillId, category) }
+    override fun setSkillUntrainedOverride(skillId: String, rule: UntrainedRule?) { application.skills.setUntrainedOverride(skillId, rule) }
+    override fun setSkillAutoOverrides(skillId: String, auto6: String?, auto12: String?) { application.skills.setAutoOverrides(skillId, auto6, auto12) }
+    override fun resetSkillDefinitionOverrides(skillId: String) { application.skills.resetDefinitionOverrides(skillId) }
+    override fun hideSkill(skillId: String) { application.skills.hide(skillId) }
+    override fun restoreSkill(skillId: String) { application.skills.restore(skillId) }
+    override fun restoreAllSkills() { application.skills.restoreAll() }
+    override fun setSkillEffectEnabled(effectId: String, enabled: Boolean) { application.skills.setEffectEnabled(effectId, enabled) }
+    override fun deleteDynamicSkill(skillId: String) { application.skills.deleteDynamic(skillId) }
+    override fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) { application.skills.setPreferredAttribute(skillId, attribute) }
 
     /** Test helper: creates a new character and makes it active, as the character list does. */
     fun createCharacter() { application.character.createCharacter() }

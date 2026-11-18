@@ -22,6 +22,7 @@ import com.furybook.dubl.model.ConditionCatalog
 import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.SheetGroup
+import com.furybook.dubl.model.SkillCategory
 import com.furybook.dubl.model.SkillEffectCatalog
 import com.furybook.dubl.model.effectiveDevelopmentCatalog
 import com.furybook.dubl.model.withoutChiContent
@@ -138,6 +139,21 @@ class AndroidSheetHost(
     override fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int) { controller.setDevelopmentRank(entryId, rank, optionIndex) }
     override fun restorePoint(): CharacterRestorePoint = controller.restorePoint()
     override fun restore(point: CharacterRestorePoint): Boolean = controller.restore(point)
+    override fun setSkillAttributes(skillId: String, attributes: List<AttributeId>) { controller.setSkillAttributes(skillId, attributes) }
+    override fun setSkillModifier(skillId: String, modifier: Int) { controller.setSkillModifier(skillId, modifier) }
+    override fun setSkillFormulaNote(skillId: String, note: String) { controller.setSkillFormulaNote(skillId, note) }
+    override fun setSkillNameOverride(skillId: String, name: String) { controller.setSkillNameOverride(skillId, name) }
+    override fun setSkillDescriptionOverride(skillId: String, description: String) { controller.setSkillDescriptionOverride(skillId, description) }
+    override fun setSkillCategoryOverride(skillId: String, category: SkillCategory?) { controller.setSkillCategoryOverride(skillId, category) }
+    override fun setSkillUntrainedOverride(skillId: String, rule: UntrainedRule?) { controller.setSkillUntrainedOverride(skillId, rule) }
+    override fun setSkillAutoOverrides(skillId: String, auto6: String?, auto12: String?) { controller.setSkillAutoOverrides(skillId, auto6, auto12) }
+    override fun resetSkillDefinitionOverrides(skillId: String) { controller.resetSkillDefinitionOverrides(skillId) }
+    override fun hideSkill(skillId: String) { controller.hideSkill(skillId) }
+    override fun restoreSkill(skillId: String) { controller.restoreSkill(skillId) }
+    override fun restoreAllSkills() { controller.restoreAllSkills() }
+    override fun setSkillEffectEnabled(effectId: String, enabled: Boolean) { controller.setSkillEffectEnabled(effectId, enabled) }
+    override fun deleteDynamicSkill(skillId: String) { controller.deleteDynamicSkill(skillId) }
+    override fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) { controller.setPreferredSkillAttribute(skillId, attribute) }
 }
 
 @Composable
