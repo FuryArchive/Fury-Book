@@ -25,14 +25,18 @@ import com.furybook.dubl.model.SheetGroup
 import com.furybook.dubl.model.SkillEffectCatalog
 import com.furybook.dubl.model.effectiveDevelopmentCatalog
 import com.furybook.dubl.model.withoutChiContent
-import com.furybook.dubl.ui.sheet.DublSheetEditHost
+import com.furybook.dubl.application.CharacterRestorePoint
+import com.furybook.dubl.model.DevelopmentAcquisitionRequest
+import com.furybook.dubl.model.DevelopmentAcquisitionResult
+import com.furybook.dubl.model.UntrainedRule
+import com.furybook.dubl.ui.editor.DublEditorHost
 
 /** Android adapter exposing [CharacterController] and the bundled catalogs to the shared sheet. */
 class AndroidSheetHost(
     private val controller: CharacterController,
     private val context: Context,
     override val chiPackEnabled: Boolean,
-) : DublSheetEditHost {
+) : DublEditorHost {
     private val appContext = context.applicationContext
 
     override val active: DublCharacter get() = controller.active
@@ -133,4 +137,15 @@ fun rememberAndroidSheetHost(
     chiPackEnabled: Boolean,
 ): AndroidSheetHost = remember(controller, context, chiPackEnabled) {
     AndroidSheetHost(controller, context, chiPackEnabled)
+
+    override fun changeSkillRank(skillId: String, delta: Int) { controller.changeSkillRank(skillId, delta) }
+    override fun addSpecializedSkill(templateId: String, specialization: String): String? =
+        controller.addSpecializedSkill(templateId, specialization)
+    override fun addCustomSkill(name: String, description: String, attributes: List<AttributeId>, untrained: UntrainedRule): String? =
+        controller.addCustomSkill(name, description, attributes, untrained)
+    override fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult =
+        controller.acquireDevelopment(developmentCatalog, request)
+    override fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int) { controller.setDevelopmentRank(entryId, rank, optionIndex) }
+    override fun restorePoint(): CharacterRestorePoint = controller.restorePoint()
+    override fun restore(point: CharacterRestorePoint): Boolean = controller.restore(point)
 }

@@ -27,6 +27,11 @@ import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.SheetGroup
 import com.furybook.dubl.model.SkillEffectCatalog
+import com.furybook.dubl.application.CharacterRestorePoint
+import com.furybook.dubl.model.DevelopmentAcquisitionRequest
+import com.furybook.dubl.model.DevelopmentAcquisitionResult
+import com.furybook.dubl.model.UntrainedRule
+import com.furybook.dubl.ui.editor.DublEditorHost
 
 private class InMemoryExtrasStore : CharacterExtrasStore {
     private val values = linkedMapOf<String, CharacterSheetExtras>()
@@ -64,7 +69,7 @@ class FakeSheetHost(
     override val chiPackEnabled: Boolean = false,
     developmentCatalogOverride: DevelopmentCatalog? = null,
     skillEffectCatalogOverride: SkillEffectCatalog? = null,
-) : DublSheetEditHost {
+) : DublEditorHost {
     private val extrasStore = InMemoryExtrasStore().also { it.save(character.id, extras) }
     private val application = DublApplication(
         characterStore = InMemoryCharacterStore(AppSnapshot(listOf(character), character.id)),
@@ -166,4 +171,15 @@ class FakeSheetHost(
     override fun updateNote(id: String, title: String, body: String) { application.sheet.updateNote(id, title, body) }
     override fun removeNote(id: String) { application.sheet.removeNote(id) }
     override fun setPortrait(uri: String?) { application.sheet.setPortrait(uri) }
+
+    override fun changeSkillRank(skillId: String, delta: Int) { application.skills.changeRank(skillId, delta) }
+    override fun addSpecializedSkill(templateId: String, specialization: String): String? =
+        application.skills.addSpecialized(templateId, specialization)
+    override fun addCustomSkill(name: String, description: String, attributes: List<AttributeId>, untrained: UntrainedRule): String? =
+        application.skills.addCustom(name, description, attributes, untrained)
+    override fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult =
+        application.development.acquire(developmentCatalog, request)
+    override fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int) { application.development.setRank(entryId, rank, optionIndex) }
+    override fun restorePoint(): CharacterRestorePoint = application.restorePoint()
+    override fun restore(point: CharacterRestorePoint): Boolean = application.restore(point)
 }

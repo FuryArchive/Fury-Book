@@ -17,6 +17,8 @@ import com.furybook.dubl.content.DublUiRenderModels
 import com.furybook.dubl.data.mergeDevelopmentCatalogs
 import com.furybook.dubl.data.SnapshotCodec
 import com.furybook.dubl.model.*
+import com.furybook.dubl.application.CharacterRestorePoint
+import com.furybook.dubl.ui.editor.DublEditorHost
 import com.furybook.dubl.ui.sheet.DublSheetEditHost
 import com.furybook.web.BrowserCharacterExtrasStore
 import com.furybook.web.BrowserCharacterStore
@@ -29,7 +31,7 @@ import com.furybook.web.webUuid
 class DesktopAppState(
     resourceTexts: Map<String, String>,
     private val cloudSync: WebCloudSync? = null,
-) : DublSheetEditHost {
+) : DublEditorHost {
     private val characterStore = BrowserCharacterStore()
     private val extrasStore = BrowserCharacterExtrasStore()
     private val application = DublApplication(
@@ -194,7 +196,7 @@ class DesktopAppState(
     override fun changeCustomResource(uid: String, delta: Int) { sync { application.character.changeCustomResource(uid, delta) } }
     override fun removeCustomResource(uid: String) { sync { application.character.removeCustomResource(uid) } }
 
-    fun changeSkillRank(skillId: String, delta: Int) = sync { application.skills.changeRank(skillId, delta) }
+    override fun changeSkillRank(skillId: String, delta: Int) = sync { application.skills.changeRank(skillId, delta) }
     fun setSkillAttributes(skillId: String, attributes: List<AttributeId>) = sync { application.skills.setAttributes(skillId, attributes) }
     fun setSkillModifier(skillId: String, modifier: Int) = sync { application.skills.setModifier(skillId, modifier) }
     fun setSkillFormulaNote(skillId: String, note: String) = sync { application.skills.setFormulaNote(skillId, note) }
@@ -208,14 +210,16 @@ class DesktopAppState(
     fun restoreSkill(skillId: String) = sync { application.skills.restore(skillId) }
     fun restoreAllSkills() = sync { application.skills.restoreAll() }
     fun setSkillEffectEnabled(effectId: String, enabled: Boolean) = sync { application.skills.setEffectEnabled(effectId, enabled) }
-    fun addSpecializedSkill(templateId: String, specialization: String): String? = sync { application.skills.addSpecialized(templateId, specialization) }
-    fun addCustomSkill(name: String, description: String, attributes: List<AttributeId>, untrained: UntrainedRule): String? =
+    override fun addSpecializedSkill(templateId: String, specialization: String): String? = sync { application.skills.addSpecialized(templateId, specialization) }
+    override fun addCustomSkill(name: String, description: String, attributes: List<AttributeId>, untrained: UntrainedRule): String? =
         sync { application.skills.addCustom(name, description, attributes, untrained) }
     fun deleteDynamicSkill(skillId: String) = sync { application.skills.deleteDynamic(skillId) }
     fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) = sync { application.skills.setPreferredAttribute(skillId, attribute) }
 
-    fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int = 0) = sync { application.development.setRank(entryId, rank, optionIndex) }
-    fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult = sync { application.development.acquire(developmentCatalog, request) }
+    override fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int) = sync { application.development.setRank(entryId, rank, optionIndex) }
+    override fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult = sync { application.development.acquire(developmentCatalog, request) }
+    override fun restorePoint(): CharacterRestorePoint = application.restorePoint()
+    override fun restore(point: CharacterRestorePoint): Boolean = sync { application.restore(point) }
     fun setDevelopmentOverride(entry: DevelopmentEntry) = sync { application.development.setOverride(entry) }
     fun resetDevelopmentOverride(entryId: String) = sync { application.development.resetOverride(entryId) }
     fun addCustomDevelopment(entry: DevelopmentEntry): String? = sync { application.development.addCustom(entry) }

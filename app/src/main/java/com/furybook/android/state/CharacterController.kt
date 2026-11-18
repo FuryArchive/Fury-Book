@@ -1,5 +1,6 @@
 package com.furybook.android.state
 
+import com.furybook.dubl.application.CharacterRestorePoint
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -182,4 +183,6 @@ class CharacterController(
     fun deleteActive() = sync { application.character.deleteActive() }
     val canUndo: Boolean get() = application.canUndo
     fun undoLast(): Boolean = sync { application.undoLast() }
+    fun restorePoint(): CharacterRestorePoint = application.restorePoint()
+    fun restore(point: CharacterRestorePoint): Boolean = sync { application.restore(point) }
 }
