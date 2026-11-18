@@ -72,4 +72,11 @@ class EditorStateTest {
         state.flash("Ещё что-то")
         assertFalse(state.toastUndoable)
     }
+
+    @Test
+    fun perkDetailSitsBesideTheListOnlyWhenTheListKeepsRoom() {
+        // 1440 window: 896dp of content; 1100 window: 556dp, too narrow for a 360dp pane plus a readable list.
+        assertTrue(editorPerksSplit(contentWidthDp = 896))
+        assertFalse(editorPerksSplit(contentWidthDp = 556))
+    }
 }

@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -48,6 +49,10 @@ import com.furybook.ui.theme.FuryHelpfulChipText
 import com.furybook.ui.theme.FurySpacing
 
 private val DETAIL_WIDTH = 360.dp
+private const val SPLIT_MIN_CONTENT_DP = 760
+
+/** The detail pane sits beside the list only when the list keeps ~350dp next to its 360dp; otherwise it opens over it. */
+internal fun editorPerksSplit(contentWidthDp: Int): Boolean = contentWidthDp >= SPLIT_MIN_CONTENT_DP
 
 private val KIND_TITLES = mapOf(
     EditorPerkKind.REGULAR to "Обычные",
@@ -75,7 +80,9 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
     }
     val padding = editorContentPadding(layout)
     val header: @Composable () -> Unit = { PerksHeader(state, kinds, kindCounts, counts, layout) }
-    if (wide) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+    val split = wide && editorPerksSplit(maxWidth.value.toInt())
+    if (split) {
         Column(Modifier.fillMaxSize().padding(start = padding, end = padding, top = padding), verticalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
             header()
             Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
@@ -103,6 +110,7 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
             item { Box(Modifier.padding(bottom = FurySpacing.sm)) { header() } }
             perkList(groups, state, layout)
         }
+    }
     }
 }
 
