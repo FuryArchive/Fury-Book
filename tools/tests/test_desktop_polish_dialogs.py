@@ -41,4 +41,4 @@ def test_all_desktop_feature_dialogs_use_fury_dialog_instead_of_material_alert_d
             users.append(path.name)
 
     assert not offenders, f'legacy Material AlertDialog remains in: {offenders}'
-    assert {'RollDialog.kt', 'SkillsScreen.kt', 'DevelopmentScreen.kt', 'MagicScreen.kt', 'EquipmentScreen.kt', 'CharactersScreen.kt'} <= set(users)
+    assert {'DevelopmentScreen.kt', 'MagicScreen.kt', 'EquipmentScreen.kt', 'CharactersScreen.kt'} <= set(users)

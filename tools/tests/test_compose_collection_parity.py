@@ -1,15 +1,16 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-SKILLS = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/SkillsScreen.kt').read_text(encoding='utf-8')
+SKILLS = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorSkillsStep.kt').read_text(encoding='utf-8')
+SKILL_MODELS = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorModels.kt').read_text(encoding='utf-8')
 DEV = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt').read_text(encoding='utf-8')
 
 
 def test_skills_expose_all_categories_and_group_results():
-    assert 'SkillCategory.entries.take(4)' not in SKILLS
-    assert 'SkillCategory.entries.chunked' in SKILLS
-    assert 'skills.groupBy { it.category }' in SKILLS
-
+    # Stage 3: the editor's Умения step filters by every category and groups by attribute.
+    assert 'SkillCategory.entries.forEach' in SKILLS
+    assert 'category: SkillCategory? = null' in SKILL_MODELS
+    assert 'sheetSkillsByAttribute(host' in SKILL_MODELS
 
 def test_development_has_available_filter_and_android_grouping_semantics():
     assert 'availableOnly' in DEV

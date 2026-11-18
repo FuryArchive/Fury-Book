@@ -50,7 +50,6 @@ import com.furybook.android.ui.screens.CampaignScreen
 import com.furybook.android.ui.screens.EquipmentScreen
 import com.furybook.android.ui.screens.FeatsScreen
 import com.furybook.android.ui.screens.MagicScreen
-import com.furybook.android.ui.screens.SkillsScreen
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.android.ui.screens.RecentChangeBar
 import com.furybook.android.ui.screens.recentResourceChange
@@ -76,7 +75,6 @@ import kotlinx.coroutines.delay
 
 private enum class AppSection(val label: String) {
     OVERVIEW("Лист"),
-    SKILLS("Умения"),
     FEATS("Навыки"),
     MAGIC("Магия"),
     INVENTORY("Вещи"),
@@ -185,7 +183,6 @@ fun DublApp() {
                         onOpenMagic = { selected = AppSection.MAGIC },
                         onOpenGear = { selected = AppSection.INVENTORY },
                     )
-                    AppSection.SKILLS -> SkillsScreen(controller)
                     AppSection.FEATS -> FeatsScreen(controller, chiPackEnabled)
                     AppSection.MAGIC -> MagicScreen(controller)
                     AppSection.INVENTORY -> EquipmentScreen(controller)

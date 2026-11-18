@@ -6,10 +6,8 @@ APPLICATION = SHARED / 'application'
 STATE = SHARED / 'state'
 ANDROID_CONTROLLER = ROOT / 'app/src/main/java/com/furybook/android/state/CharacterController.kt'
 ANDROID_SHEET_HOST = ROOT / 'app/src/main/java/com/furybook/android/ui/AndroidSheetHost.kt'
-ANDROID_ROLL_SHEETS = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/SkillRollSheets.kt'
 ANDROID_APP = ROOT / 'app/src/main/java/com/furybook/android/ui/DublApp.kt'
 DESKTOP_MAIN = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/Main.kt'
-ANDROID_SKILLS = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/SkillsScreen.kt'
 DESKTOP_STATE = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt'
 DESKTOP_SCREENS = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens'
 
@@ -56,7 +54,7 @@ def test_android_adapter_has_no_raw_session_or_transform_escape_hatch():
     assert 'DublApplication' in controller
     assert 'CharacterSession' not in controller
     assert 'fun updateActive(' not in controller
-    for screen in (ANDROID_SHEET_HOST, ANDROID_ROLL_SHEETS, ANDROID_SKILLS):
+    for screen in (ANDROID_SHEET_HOST,):
         text = read(screen)
         assert 'CharacterSheetExtrasRepository' not in text
         assert 'extrasRepository.save' not in text

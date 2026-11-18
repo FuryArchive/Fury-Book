@@ -18,15 +18,10 @@ def section(src: str, start: str, end: str) -> str:
 
 
 def test_roll_flow_uses_fury_segmented_mode_control_and_selected_attribute_buttons():
-    # Stage 2b: the sheet's attribute choice is the shared roll panel's chips; the Skills screen keeps SkillRollDialog.
-    primitives = read(PRIMITIVES)
-    roll = read(ROLL)
-    assert 'internal fun FurySegmentedControl(' in primitives
-    assert 'internal fun FuryChoiceButton(' in primitives
-    skill_roll = roll.split('fun SkillRollDialog', 1)[1]
-    assert 'FurySegmentedControl(' in skill_roll
-    assert 'RadioButton(' not in skill_roll
-
+    # Stage 3: every skill roll is the shared roll panel: chip groups for attribute and mode, no radio buttons.
+    panel = read(SHEET_DIR / 'SheetRollPanel.kt')
+    assert 'FuryChipGroup(' in panel
+    assert 'RadioButton(' not in panel
 
 def test_economy_dialog_uses_user_facing_russian_labels_and_summary_cards():
     economy = read(SHEET_DIR / 'SheetEconomyDialog.kt')

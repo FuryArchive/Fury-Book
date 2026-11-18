@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Умения tab removed (revamp stage 3)
+
+- The separate Умения tab is gone on Android, Desktop and Web; the phone bottom bar is now Лист, Навыки, Магия, Вещи.
+- Each skill's rules and settings open from the editor's Умения step: bonus breakdown, allowed attributes, permanent modifier, special rule note, local edits with «К рулбуку», rules-automation switches, hide and delete (with «Вернуть»). Hidden skills: «Скрытые · N».
+- Skill search also matches descriptions; category chips filter the list.
+- Skill rolls offer the skill's allowed attributes plus «другая…» for a one-off GM call; the last allowed pick is remembered. «Об умении» in the roll panel shows the rules and opens the editor on that skill.
+
 ### Character editor («Редактор»)
 
 - New shared step-by-step editor (Android, Desktop, Web) replaces the old sheet edit mode: Развитие (quick rank-ups and perks for an existing character), Основа, Характеристики, Умения, Навыки, Итог.

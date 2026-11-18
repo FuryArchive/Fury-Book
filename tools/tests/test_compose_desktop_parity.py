@@ -29,11 +29,9 @@ def test_compose_host_uses_real_shared_sessions_and_file_persistence():
 def test_all_parity_screens_exist():
     required = {
         'CharactersScreen.kt': ['CharactersScreen', 'createCharacter', 'selectCharacter', 'deleteActive'],
-        'SkillsScreen.kt': ['SkillsScreen', 'resolvedSkills', 'changeSkillRank', 'SkillRollDialog'],
         'DevelopmentScreen.kt': ['DevelopmentScreen', 'DevelopmentRules', 'ChiRules', 'setDevelopmentRank'],
         'MagicScreen.kt': ['MagicScreen', 'setMagicManaRank', 'setMagicSchoolPower', 'addCatalogSpell'],
         'EquipmentScreen.kt': ['EquipmentScreen', 'equipmentLoad', 'setGearLoadAutomatic', 'addCatalogGear'],
-        'RollDialog.kt': ['SkillRollDialog', 'RollMode', 'rollPreset'],
     }
     for name, tokens in required.items():
         src = text(SCREENS / name)

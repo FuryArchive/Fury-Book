@@ -10,7 +10,6 @@ SHEET_STATS = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/Sh
 SHEET_ROLLS = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt'
 ANDROID_FEATS = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt'
 ANDROID_MAGIC = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/MagicScreen.kt'
-DESKTOP_ROLL = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/RollDialog.kt'
 DESKTOP_DEVELOPMENT = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt'
 
 
@@ -26,15 +25,12 @@ def test_roll_context_choices_are_owned_by_shared_rules():
 
 
 def test_selected_skill_effect_totals_are_owned_by_shared_rules():
+    # Stage 3: the desktop skill roll dialog went with the Умения tab; the shared roll session is the only one.
     sheet = read(SHEET_ROLLS)
-    desktop = read(DESKTOP_ROLL)
     assert '.selectedTotals(request.selectedEffectIds)' in sheet
-    assert '.selectedTotals(selectedEffects)' in desktop
-    for text in (sheet, desktop):
-        assert 'sumOf { it.numericBonus }' not in text
-        assert 'sumOf { it.advantageDice }' not in text
-        assert 'sumOf { it.hindranceDice }' not in text
-
+    assert 'sumOf { it.numericBonus }' not in sheet
+    assert 'sumOf { it.advantageDice }' not in sheet
+    assert 'sumOf { it.hindranceDice }' not in sheet
 
 def test_chi_breakdown_and_cost_constants_are_owned_by_shared_rules():
     android = read(ANDROID_FEATS)

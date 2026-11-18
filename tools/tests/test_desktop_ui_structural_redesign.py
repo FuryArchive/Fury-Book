@@ -104,15 +104,15 @@ def test_sheet_development_panel_restores_grouped_hierarchy_from_shared_parent_i
 
 
 def test_desktop_skills_screen_keeps_all_visible_default_and_hidden_restore_entrypoint():
-    skills = read(ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/SkillsScreen.kt')
-    assert 'val skills = character.resolvedSkills().filter { skill ->' in skills
-    assert '(!learnedOnly || skill.rank > 0)' in skills
-    assert 'character.hiddenSkillIds.size' in skills
-    assert 'HiddenSkillsDialog' in skills
-    assert 'state.hideSkill(skill.id)' in skills
-    assert 'state.restoreSkill(skill.id)' in skills
-    assert 'state.restoreAllSkills()' in skills
-
+    # Stage 3: the Умения tab is gone; the editor's Умения step keeps the hidden list and its restore actions.
+    editor = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor'
+    step = read(editor / 'EditorSkillsStep.kt')
+    panel = read(editor / 'EditorSkillPanel.kt')
+    assert 'host.active.hiddenSkillIds.size' in step
+    assert 'EditorHiddenSkillsDialog' in step
+    assert 'host.hideSkill(id)' in panel
+    assert 'host.restoreSkill(skill.id)' in panel
+    assert 'host.restoreAllSkills()' in panel
 
 def test_sheet_actions_use_clear_user_facing_copy_instead_of_service_labels():
     sheet = sheet_source()

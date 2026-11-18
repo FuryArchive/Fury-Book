@@ -48,17 +48,16 @@ def test_martial_art_availability_is_prepared_off_main_behind_loading_gate():
 
 
 def test_character_sheet_skill_tap_always_starts_with_stock_attribute_chooser():
-    # Stage 2b: the shared roll panel offers every attribute and starts from the stock one.
+    # Stage 3: the roll offers the allowed attributes (+ «другая…») and starts on the remembered allowed one, else stock.
     source = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt")
     model = read("shared/src/commonMain/kotlin/com/furybook/dubl/model/SkillModels.kt")
-    assert "request.attribute ?: skill.stockAttribute" in source
-    assert "attributeChoices = AttributeId.entries.toList()" in source
+    assert "?.takeIf { it in skill.attributes } ?: skill.stockAttribute" in source
+    assert "attributeChoices = skill.attributes" in source
     assert "skillCalculationForRoll" in source
     assert "val stockAttribute: AttributeId" in model
     assert "definition?.defaultAttribute ?: attributes.first()" in model
 
 def test_key_bottom_sheets_skip_partial_expansion():
-    rolls = read("app/src/main/java/com/furybook/android/ui/screens/SkillRollSheets.kt")
+    # Stage 3: the Android skill roll sheets went with the Умения tab; FeatsScreen keeps the rule.
     feats = read("app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt")
-    assert "rememberModalBottomSheetState(skipPartiallyExpanded = true)" in rolls
     assert "rememberModalBottomSheetState(skipPartiallyExpanded = true)" in feats

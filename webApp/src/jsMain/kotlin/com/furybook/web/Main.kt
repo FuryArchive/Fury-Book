@@ -46,7 +46,6 @@ import kotlinx.coroutines.launch
 
 internal enum class DesktopSection(val label: String) {
     SHEET("Лист"),
-    SKILLS("Умения"),
     DEVELOPMENT("Навыки"),
     MAGIC("Магия"),
     EQUIPMENT("Снаряжение"),
@@ -643,7 +642,6 @@ private fun DesktopContent(
                     playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
                     hooks = sheetHooks,
                 )
-                DesktopSection.SKILLS -> SkillsScreen(state, animatedPageModifier)
                 DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
                 DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
                 DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)

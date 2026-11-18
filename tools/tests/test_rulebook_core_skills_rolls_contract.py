@@ -12,7 +12,6 @@ RULES = MODEL / 'SkillCheckRules.kt'
 SHEET_SESSION = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt').read_text(encoding='utf-8')
 SHEET_VITAL = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetVitalDialog.kt').read_text(encoding='utf-8')
 HARNESS = ROOT / 'tools/tests/kotlin/SkillCheckRulesHarness.kt'
-DESKTOP_ROLL = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/RollDialog.kt').read_text(encoding='utf-8')
 ROLL_RULES = (MODEL / 'RollRules.kt').read_text(encoding='utf-8')
 
 
@@ -80,6 +79,4 @@ def test_target_comparison_respects_universal_critical_failure_and_platforms_use
     assert 'RollSpecialResult.CRITICAL_FAILURE' in ROLL_RULES
     assert 'RollSpecialResult.CONFIRMED_CRITICAL_FAILURE' in ROLL_RULES
     assert 'compareRollToTarget(roll.total, target)' not in SHEET_SESSION
-    assert 'compareRollToTarget(roll.total, target)' not in DESKTOP_ROLL
     assert 'compareRollToTarget(result, target)' in SHEET_SESSION
-    assert 'compareRollToTarget(roll, target)' in DESKTOP_ROLL
