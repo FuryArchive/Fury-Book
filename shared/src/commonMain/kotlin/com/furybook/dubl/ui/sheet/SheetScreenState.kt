@@ -13,15 +13,13 @@ sealed interface SheetDialog {
     data class Vital(val vitalId: String) : SheetDialog
     data class Stat(val stat: SheetStatId, val roll: SheetRollSubject?) : SheetDialog
     data object Conditions : SheetDialog
-    data object Identity : SheetDialog
     data object Economy : SheetDialog
     data object Resources : SheetDialog
-    data class Groups(val kind: SheetGroupKind) : SheetDialog
     data class DevelopmentDetails(val entryId: String) : SheetDialog
 }
 
 /**
- * State owned by [SheetScreen]: play/edit mode, the open popup, the current roll setup, its result,
+ * State owned by [SheetScreen]: play or editor, the open popup, the current roll setup, its result,
  * the last few totals and whether the roll dialog is open (phone and wide layouts; the docked tray
  * ignores [rollOpen]). [syncCharacter] resets all of it when the active character changes.
  */

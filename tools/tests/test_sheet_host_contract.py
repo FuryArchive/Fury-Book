@@ -28,13 +28,13 @@ def test_desktop_and_web_app_state_implement_host():
         "desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt",
         "webApp/src/jsMain/kotlin/com/furybook/desktop/DesktopAppState.kt",
     ):
-        assert ") : DublSheetEditHost" in read(rel), rel
+        assert ") : DublEditorHost" in read(rel), rel
 
 
 def test_android_sheet_host_implements_host():
     source = read("app/src/main/java/com/furybook/android/ui/AndroidSheetHost.kt")
     assert "class AndroidSheetHost(" in source
-    assert ") : DublSheetEditHost" in source
+    assert ") : DublEditorHost" in source
     assert "fun rememberAndroidSheetHost(" in source
 
 

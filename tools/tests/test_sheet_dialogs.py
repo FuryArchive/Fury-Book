@@ -36,6 +36,7 @@ def test_stat_dialog_shows_breakdown_and_edits_size_and_legs():
 
 
 def test_sheet_opens_the_dialogs():
-    assert "onOpen" in read("SheetVitals.kt")
-    assert "onOpenInfo" in read("SheetStats.kt")
-    assert "onOpenConditions" in read("SheetHeader.kt")
+    header = read("SheetPlayHeader.kt")
+    assert "openVital(" in header
+    assert "SheetDialog.Stat(" in header
+    assert "SheetDialog.Conditions" in header

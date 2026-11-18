@@ -17,14 +17,6 @@ def section(src: str, start: str, end: str) -> str:
     return src.split(start, 1)[1].split(end, 1)[0]
 
 
-def test_grouping_editor_uses_clear_drag_handles_and_explicit_create_action():
-    grouping = read(SHEET_DIR / 'SheetGroupManager.kt')
-    assert 'DragHandle(' in grouping
-    assert 'Text("тянуть"' not in grouping
-    assert '"Новая группа"' in grouping
-    assert 'Перетащите строку, чтобы поменять порядок' in grouping
-
-
 def test_roll_flow_uses_fury_segmented_mode_control_and_selected_attribute_buttons():
     # Stage 2b: the sheet's attribute choice is the shared roll panel's chips; the Skills screen keeps SkillRollDialog.
     primitives = read(PRIMITIVES)

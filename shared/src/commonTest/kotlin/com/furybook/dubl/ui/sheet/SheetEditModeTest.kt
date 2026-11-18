@@ -12,8 +12,8 @@ class SheetEditModeTest {
     fun editingResetsOnCharacterChange() {
         val state = SheetScreenState()
         state.syncCharacter("a")
-        state.updateEditing(true)
-        state.openDialog(SheetDialog.Identity)
+        state.openEditor(forceBasics = false)
+        state.openDialog(SheetDialog.Economy)
         state.open(SheetRollSubject.Attribute(AttributeId.STRENGTH))
         state.syncCharacter("a")
         assertTrue(state.editing)
@@ -24,10 +24,10 @@ class SheetEditModeTest {
     }
 
     @Test
-    fun leavingEditModeClosesTheOpenDialog() {
+    fun leavingTheEditorClosesTheOpenDialog() {
         val state = SheetScreenState()
-        state.updateEditing(true)
-        state.openDialog(SheetDialog.Groups(SheetGroupKind.SKILLS))
+        state.openEditor(forceBasics = false)
+        state.openDialog(SheetDialog.Economy)
         state.updateEditing(false)
         assertNull(state.dialog)
     }

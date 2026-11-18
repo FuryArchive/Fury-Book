@@ -8,27 +8,17 @@ def read(rel: str) -> str:
 
 
 def test_character_sheet_shows_skill_and_development_sections():
-    # Stage 2b: the shared sheet renders both sections; the old two-column tile layout is gone.
-    source = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetScreen.kt")
-    assert "sheetSkillGroups(host)" in source
-    assert "sheetDevelopmentGroups(host)" in source
+    # Play sheet redesign: skills by attribute and owned perks, both on the play body.
+    source = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetPlay.kt")
+    assert "sheetSkillsByAttribute(" in source
+    assert "sheetPerkGroups(" in source
 
 def test_development_sheet_restores_parent_child_hierarchy_inside_user_groups():
-    models = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetEditModels.kt")
-    panel = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetDevelopment.kt")
+    models = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetPlayModels.kt")
+    panel = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetPlayPerks.kt")
     assert "SheetGroupingRules.hierarchicalOrder(group.itemIds, parentById)" in models
     assert "SheetGroupingRules.localDepth" in models
-    assert "row.depth" in panel
-
-def test_group_manager_supports_item_tree_and_group_drag_drop():
-    source = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetGroupManager.kt") + read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetGroupDrag.kt")
-    assert "SheetGroupingRules.moveItems(" in source
-    assert "SheetGroupingRules.subtreeBlock(" in source
-    assert "SheetGroupingRules.moveGroupToIndex(" in source
-    assert "treeRoots" in source
-    assert "≡" in source
-    assert "Группа выше" not in source
-    assert "Группа ниже" not in source
+    assert "card.depth" in panel
 
 def test_bottom_sheet_does_not_intercept_material_nested_scroll():
     interaction = read("app/src/main/java/com/furybook/android/ui/components/SheetInteraction.kt")

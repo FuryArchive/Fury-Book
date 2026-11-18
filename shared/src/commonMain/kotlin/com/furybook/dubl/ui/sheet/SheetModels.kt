@@ -59,14 +59,6 @@ data class SheetSkillRow(
     val breakdown: String = "",
 )
 
-/** [id] is the persisted [SheetGroup] id; [collapsed] mirrors it (desktop hides a collapsed group's rows). */
-data class SheetSkillGroup(
-    val title: String,
-    val rows: List<SheetSkillRow>,
-    val id: String = "",
-    val collapsed: Boolean = false,
-)
-
 /**
  * [key] is the [CharacterConditionId] name, or the custom condition id when [custom]. [automatic] chips
  * (Слабость at 0 endurance that the player did not set) are shown but cannot be toggled.
@@ -167,12 +159,6 @@ internal fun formatSheetNumber(value: Double): String {
     return if (fraction.isEmpty()) whole.toString() else "$whole.$fraction"
 }
 
-/** All eight characteristics in [AttributeId] order, each rollable. */
-fun sheetAttributes(character: DublCharacter): List<SheetStat> =
-    AttributeId.entries.map { id ->
-        SheetStat(id.title, character.attribute(id), SheetRollSubject.Attribute(id))
-    }
-
 /** Mirrors desktop HeroMetricsStrip; Бег's [SheetStat.valueText] is the desktop formatNumber output. */
 fun sheetMetrics(character: DublCharacter): List<SheetStat> = listOf(
     SheetStat("Защита", character.defense, null, info = SheetStatId.DEFENSE),
@@ -185,49 +171,6 @@ fun sheetMetrics(character: DublCharacter): List<SheetStat> = listOf(
     ),
     SheetStat("Размер", character.size, null, info = SheetStatId.SIZE),
 )
-
-/**
- * Mirrors desktop SheetSkillsPanel grouping (saved groups normalised against category defaults, hidden
- * skills dropped, empty groups removed), keeping only trained skills (rank above zero).
- */
-fun sheetSkillGroups(host: DublSheetHost): List<SheetSkillGroup> = skillGroups(host) { it.rank > 0 }
-
-/** Edit mode: every visible skill, rank 0 included (desktop sheet); hidden skills keep their group membership. */
-fun sheetSkillGroupsForEdit(host: DublSheetHost): List<SheetSkillGroup> = skillGroups(host) { true }
-
-/** The persisted skill groups normalised against the default category groups, as the old sheets did. */
-fun normalizedSkillGroups(host: DublSheetHost): List<SheetGroup> {
-    val allSkills = host.active.resolvedSkills(includeHidden = true)
-    val defaults = SkillCategory.entries.mapNotNull { category ->
-        allSkills.filter { it.category == category }.map { it.id }.takeIf { it.isNotEmpty() }
-            ?.let { SheetGroup("skills:${category.name}", category.title, it) }
-    }
-    return SheetGroupingRules.normalize(host.extras.skillGroups, defaults, allSkills.map { it.id }, "skills:ungrouped")
-}
-
-private fun skillGroups(host: DublSheetHost, include: (ResolvedSkill) -> Boolean): List<SheetSkillGroup> {
-    val character = host.active
-    val visibleById = character.resolvedSkills().filter(include).associateBy { it.id }
-    if (visibleById.isEmpty()) return emptyList()
-    val effectRules = SkillEffectRules(character, host.developmentCatalog, host.skillEffectCatalog)
-    return normalizedSkillGroups(host).mapNotNull { group ->
-        val rows = group.itemIds.mapNotNull(visibleById::get).map { skill -> skillRow(character, effectRules, skill) }
-        if (rows.isEmpty()) null else SheetSkillGroup(group.title, rows, group.id, group.collapsed)
-    }
-}
-
-private fun skillRow(character: DublCharacter, effectRules: SkillEffectRules, skill: ResolvedSkill): SheetSkillRow {
-    val attribute = skill.stockAttribute
-    val calculation = character.skillCalculationForRoll(skill, attribute)
-    val automatic = effectRules.forSkill(skill).automaticBonus
-    return SheetSkillRow(
-        skillId = skill.id,
-        name = skill.name,
-        attributeLabel = attribute.shortTitle,
-        rank = skill.rank,
-        bonus = calculation.total?.plus(automatic),
-    )
-}
 
 /** Mirrors desktop HeroConditions: active conditions (plus automatic Слабость at 0 endurance), then active custom ones. */
 fun sheetActiveConditions(host: DublSheetHost): List<SheetConditionChip> {

@@ -23,20 +23,6 @@ class SheetLayoutTest {
     }
 
     @Test
-    fun metricsAreAThreeByTwoGridInEveryLayout() {
-        // Six columns clipped «10» on a 360dp phone and «7.5» next to the docked tray at 1100dp.
-        SheetLayout.entries.forEach { layout -> assertEquals(3, sheetMetricColumns(layout), layout.name) }
-    }
-
-    @Test
-    fun phoneAttributeLabelsFollowMockup() {
-        assertEquals(
-            listOf("Сила", "Ловкость", "Телосл.", "Скорость", "Интеллект", "Воспр.", "Воля", "Харизма"),
-            AttributeId.entries.map(::sheetPhoneAttributeLabel),
-        )
-    }
-
-    @Test
     fun playSheetColumns() {
         assertEquals(1, sheetPlayColumns(SheetLayout.PHONE))
         assertEquals(2, sheetPlayColumns(SheetLayout.WIDE))

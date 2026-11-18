@@ -14,9 +14,9 @@ def read(path: Path) -> str:
 
 
 def test_identity_and_economy_dialogs_use_the_edit_host():
-    identity = read(SHEET / "SheetIdentityDialog.kt")
+    basics = read(SHEET.parent / "editor" / "EditorBasicsStep.kt")
     economy = read(SHEET / "SheetEconomyDialog.kt")
-    assert "FuryDialogScaffold(" in identity and "setIdentity(" in identity
+    assert "setIdentity(" in basics and "SheetEconomyDialog(" in basics
     for text in ("FuryDialogScaffold(", "setEconomy(", "completeCreation()", "reopenCreation()", "sheetEconomyForm("):
         assert text in economy, text
 

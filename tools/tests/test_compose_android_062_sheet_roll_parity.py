@@ -3,7 +3,7 @@ from pathlib import Path
 # Stage 2b: the sheet's roll flow is the shared SheetRollSession; the desktop Skills screen keeps SkillRollDialog.
 ROOT = Path(__file__).resolve().parents[2]
 SESSION = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt').read_text(encoding='utf-8')
-MODELS = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt').read_text(encoding='utf-8')
+MODELS = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetPlayModels.kt').read_text(encoding='utf-8')
 ROLL = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/RollDialog.kt').read_text(encoding='utf-8')
 
 

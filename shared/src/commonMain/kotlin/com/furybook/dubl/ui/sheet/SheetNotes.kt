@@ -33,56 +33,6 @@ import com.furybook.ui.theme.FuryMinTouch
 import com.furybook.ui.theme.FuryShapes
 import com.furybook.ui.theme.FurySpacing
 
-/**
- * Titled notes, each collapsible. With [host] set (edit mode or any time on wide screens) notes can be
- * added, edited and deleted in a dialog; title ≤ 120 and body ≤ 12 000 characters, as on the old desktop sheet.
- */
-@Composable
-fun SheetNotes(notes: List<CharacterNote>, host: DublSheetEditHost?, modifier: Modifier = Modifier) {
-    var expanded by remember { mutableStateOf(setOf<String>()) }
-    var editing by remember { mutableStateOf<CharacterNote?>(null) }
-    var adding by remember { mutableStateOf(false) }
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-        if (notes.isEmpty()) Text("Заметок пока нет", color = DublMuted, style = MaterialTheme.typography.bodyMedium)
-        notes.forEach { note ->
-            val open = note.id in expanded
-            Column(
-                Modifier.fillMaxWidth().clip(FuryShapes.panel).background(DublSurfaceRaised).padding(FurySpacing.md),
-                verticalArrangement = Arrangement.spacedBy(FurySpacing.xs),
-            ) {
-                Row(
-                    Modifier.fillMaxWidth().defaultMinSize(minHeight = FuryMinTouch)
-                        .clickable(role = Role.Button, onClickLabel = if (open) "Свернуть" else "Развернуть") {
-                            expanded = if (open) expanded - note.id else expanded + note.id
-                        },
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(note.title.ifBlank { "Без названия" }, Modifier.weight(1f), color = DublText, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text(if (open) "▴" else "▾", color = DublMuted)
-                }
-                if (open) {
-                    Text(note.body, color = DublText, style = MaterialTheme.typography.bodyMedium)
-                    host?.let { FuryButton("Изменить", { editing = note }, style = FuryButtonStyle.Ghost) }
-                } else if (note.body.isNotBlank()) {
-                    Text(note.body, color = DublMuted, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                }
-            }
-        }
-        host?.let { FuryButton("Добавить заметку", { adding = true }, style = FuryButtonStyle.Ghost) }
-    }
-    if (host != null && (adding || editing != null)) {
-        NoteEditor(
-            note = editing,
-            onSave = { title, body ->
-                val current = editing
-                if (current == null) host.addNote(title, body) else host.updateNote(current.id, title, body)
-            },
-            onDelete = editing?.let { note -> { host.removeNote(note.id) } },
-            onDismiss = { adding = false; editing = null },
-        )
-    }
-}
-
 @Composable
 internal fun NoteEditor(note: CharacterNote?, onSave: (String, String) -> Unit, onDelete: (() -> Unit)?, onDismiss: () -> Unit) {
     var title by remember(note?.id) { mutableStateOf(note?.title.orEmpty()) }

@@ -76,18 +76,6 @@ fun sheetEconomyView(host: DublSheetHost): SheetEconomyView {
     )
 }
 
-/** One owned development entry on the sheet. [depth] is the depth inside its group (desktop localDepth). */
-data class SheetDevelopmentRow(
-    val entryId: String,
-    val name: String,
-    val rankLabel: String,
-    val depth: Int,
-    val requirementsUnmet: Boolean,
-    val opensDetails: Boolean,
-)
-
-data class SheetDevelopmentGroup(val id: String, val title: String, val collapsed: Boolean, val rows: List<SheetDevelopmentRow>)
-
 /** Persisted development groups normalised against the default section groups, as desktop SheetDevelopmentPanel did. */
 fun normalizedDevelopmentGroups(host: DublSheetHost): List<SheetGroup> {
     val rules = developmentRules(host)
@@ -96,42 +84,6 @@ fun normalizedDevelopmentGroups(host: DublSheetHost): List<SheetGroup> {
         SheetGroup("development:${section.type.name}", developmentSectionTitle(section.type), section.items.map { it.entry.id }.distinct())
     }
     return SheetGroupingRules.normalize(host.extras.developmentGroups, defaults, items.map { it.entry.id }, "development:ungrouped")
-}
-
-fun sheetDevelopmentGroups(host: DublSheetHost): List<SheetDevelopmentGroup> {
-    val rules = developmentRules(host)
-    val items = rules.ownedSheetSections().flatMap { it.items }.distinctBy { it.entry.id }
-    if (items.isEmpty()) return emptyList()
-    val byId = items.associateBy { it.entry.id }
-    val parentById = items.associate { it.entry.id to it.parentId }
-    return normalizedDevelopmentGroups(host).mapNotNull { group ->
-        val ordered = SheetGroupingRules.hierarchicalOrder(group.itemIds, parentById).mapNotNull(byId::get)
-        if (ordered.isEmpty()) return@mapNotNull null
-        val groupIds = ordered.map { it.entry.id }
-        SheetDevelopmentGroup(
-            id = group.id,
-            title = group.title,
-            collapsed = group.collapsed,
-            rows = ordered.map { item ->
-                SheetDevelopmentRow(
-                    entryId = item.entry.id,
-                    name = item.entry.name,
-                    rankLabel = developmentRankLabel(item.rank),
-                    depth = SheetGroupingRules.localDepth(item.entry.id, groupIds, parentById),
-                    requirementsUnmet = rules.requirements(item.entry).any { it.status != RequirementStatus.OK },
-                    opensDetails = item.source == DevelopmentSheetItemSource.DEVELOPMENT,
-                )
-            },
-        )
-    }
-}
-
-/** Ids of entries that start a draggable tree in the group manager (Android: special or martial-art parents). */
-fun developmentTreeRootIds(host: DublSheetHost): Set<String> {
-    val items = developmentRules(host).ownedSheetSections().flatMap { it.items }.distinctBy { it.entry.id }
-    val parentIds = items.mapNotNull { it.parentId }.toSet()
-    return items.filter { it.entry.id in parentIds && it.parentId == null && (it.entry.isSpecialDevelopment || it.entry.isMartialArt) }
-        .map { it.entry.id }.toSet()
 }
 
 /** Desktop/Android critical-health styling level: 0 normal, 1 ≤ 50 %, 2 ≤ 25 %, 3 at or below zero. */
@@ -154,21 +106,4 @@ private fun developmentSectionTitle(type: DevelopmentSheetSectionType): String =
     DevelopmentSheetSectionType.SPECIAL -> "Спец. навыки"
     DevelopmentSheetSectionType.MARTIAL_ARTS -> "Боевые искусства"
     DevelopmentSheetSectionType.CHI -> "ЦИ"
-}
-
-private fun developmentRankLabel(rank: Int): String = when (rank) {
-    1 -> "I"
-    2 -> "II"
-    3 -> "III"
-    4 -> "IV"
-    5 -> "V"
-    else -> rank.toString()
-}
-
-/** Owned development entries for the group manager: label and parent per entry id. */
-internal data class SheetDevelopmentTree(val labels: Map<String, String>, val parentById: Map<String, String?>)
-
-internal fun sheetDevelopmentTree(host: DublSheetHost): SheetDevelopmentTree {
-    val items = developmentRules(host).ownedSheetSections().flatMap { it.items }.distinctBy { it.entry.id }
-    return SheetDevelopmentTree(items.associate { it.entry.id to it.entry.name }, items.associate { it.entry.id to it.parentId })
 }

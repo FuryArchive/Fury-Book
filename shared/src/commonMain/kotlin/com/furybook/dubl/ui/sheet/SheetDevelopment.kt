@@ -35,58 +35,6 @@ import com.furybook.ui.theme.FurySpacing
 import com.furybook.ui.theme.furyOverlineStyle
 
 /**
- * «Взятые навыки»: owned development grouped as on the old sheets, children indented under their parent.
- * Rows with unmet requirements are marked with «!» and crimson text (not colour alone).
- */
-@Composable
-fun SheetDevelopment(
-    groups: List<SheetDevelopmentGroup>,
-    onOpenDetails: (String) -> Unit,
-    onOpenAll: () -> Unit,
-    onManageGroups: (() -> Unit)?,
-    onToggleCollapsed: ((String) -> Unit)?,
-    modifier: Modifier = Modifier,
-) {
-    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-        if (groups.isEmpty()) Text("Нет взятых навыков", color = DublMuted, style = MaterialTheme.typography.bodyMedium)
-        groups.forEach { group ->
-            Row(
-                Modifier.fillMaxWidth().defaultMinSize(minHeight = FuryMinTouch).then(
-                    onToggleCollapsed?.let { toggle -> Modifier.clickable(role = Role.Button, onClickLabel = if (group.collapsed) "Развернуть" else "Свернуть") { toggle(group.id) } } ?: Modifier,
-                ),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("${group.title.uppercase()} · ${group.rows.size}", Modifier.weight(1f), color = DublMuted, style = furyOverlineStyle())
-                if (onToggleCollapsed != null) Text(if (group.collapsed) "▾" else "▴", color = DublMuted)
-            }
-            if (!group.collapsed) group.rows.forEach { row -> DevelopmentRow(row, onOpenDetails) }
-        }
-        Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-            onManageGroups?.let { FuryButton("Настроить группы", it, style = FuryButtonStyle.Ghost) }
-            FuryButton("Все навыки", onOpenAll, style = FuryButtonStyle.Ghost)
-        }
-    }
-}
-
-@Composable
-private fun DevelopmentRow(row: SheetDevelopmentRow, onOpenDetails: (String) -> Unit) {
-    Row(
-        Modifier.fillMaxWidth().padding(start = (row.depth * 18).dp).clip(FuryShapes.control).background(DublSurfaceRaised)
-            .then(if (row.opensDetails) Modifier.clickable(role = Role.Button, onClickLabel = "Подробнее") { onOpenDetails(row.entryId) } else Modifier)
-            .defaultMinSize(minHeight = FuryMinTouch).padding(horizontal = FurySpacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm),
-    ) {
-        if (row.requirementsUnmet) Text("!", color = DublAccentStrong, style = MaterialTheme.typography.titleMedium)
-        Text(
-            row.name, Modifier.weight(1f), color = if (row.requirementsUnmet) DublAccentStrong else DublText,
-            style = MaterialTheme.typography.bodyLarge, maxLines = 1, overflow = TextOverflow.Ellipsis,
-        )
-        Text(row.rankLabel, color = DublGold, style = MaterialTheme.typography.titleSmall)
-    }
-}
-
-/**
  * Read-only details of an owned entry (Android OwnedDevelopmentDetailSheet): effect, notes, requirement
  * checks (✓ / ✕ / ?), cost and book conflict. Desktop and web keep their richer dialog until stage 4.
  */

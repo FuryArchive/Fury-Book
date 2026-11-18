@@ -2,7 +2,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SHEET = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet'
-FILES = ['SheetHeader.kt', 'SheetVitals.kt', 'SheetStats.kt', 'SheetSkills.kt', 'SheetCombat.kt', 'SheetRollPanel.kt']
+# 2a header/vitals/stats/skills components left with 2b edit mode (character editor stage); the play sheet replaced them.
+FILES = ['SheetPlay.kt', 'SheetPlayHeader.kt', 'SheetPlaySkills.kt', 'SheetPlayPerks.kt', 'SheetCombat.kt', 'SheetRollPanel.kt']
 
 
 def read(name: str) -> str:
@@ -16,33 +17,13 @@ def test_every_play_component_file_exists():
 
 def test_component_signatures():
     expected = {
-        'SheetHeader.kt': 'fun SheetHeader(',
-        'SheetVitals.kt': 'fun SheetVitals(',
-        'SheetStats.kt': 'fun SheetStatGrid(',
-        'SheetSkills.kt': 'fun SheetSkills(',
+        'SheetPlay.kt': 'fun SheetPlayBody(',
+        'SheetPlayHeader.kt': 'fun SheetPlayHeaderWide(',
         'SheetCombat.kt': 'fun SheetCombat(',
         'SheetRollPanel.kt': 'fun SheetRollPanel(',
     }
     for name, signature in expected.items():
         assert signature in read(name), name
-
-
-def test_header_caps_long_names_at_two_lines():
-    header = read('SheetHeader.kt')
-    assert 'maxLines = 2' in header
-    assert 'TextOverflow.Ellipsis' in header
-    assert '"Правка"' in header
-    assert 'automatic' in header
-
-
-def test_vitals_label_their_buttons():
-    vitals = read('SheetVitals.kt')
-    for token in ['"Уменьшить ', '"Увеличить ', '"Восстановить"', 'FuryBar(', 'restoreable']:
-        assert token in vitals, token
-
-
-def test_skills_have_an_empty_state():
-    assert '"Нет изученных умений"' in read('SheetSkills.kt')
 
 
 def test_roll_panel_covers_every_input():

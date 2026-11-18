@@ -14,14 +14,14 @@ def read(path: Path) -> str:
 
 
 def test_notes_support_add_edit_delete():
-    source = read(SHEET / "SheetNotes.kt")
+    source = read(SHEET / "SheetNotes.kt") + read(SHEET / "SheetPlay.kt")
     for text in ("addNote(", "updateNote(", "removeNote(", "noteTitleInput(", "noteBodyInput(", "FuryDialogScaffold("):
         assert text in source, text
 
 
 def test_development_panel_and_shared_details():
     source = read(SHEET / "SheetDevelopment.kt")
-    for text in ("Нет взятых навыков", "requirementsUnmet", "onOpenDetails", "fun SheetDevelopmentDetailsDialog(", "requirements("):
+    for text in ("fun SheetDevelopmentDetailsDialog(", "requirements("):
         assert text in source, text
     assert "Color(0x" not in source
 

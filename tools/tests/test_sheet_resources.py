@@ -13,4 +13,5 @@ def test_resources_dialog_covers_visibility_and_custom_resources():
 
 
 def test_vitals_offer_the_resources_dialog_in_edit_mode():
-    assert "onManageResources" in (SHEET / "SheetVitals.kt").read_text(encoding="utf-8")
+    # The play sheet opens it («Настроить ресурсы») since the editor replaced edit mode.
+    assert "SheetDialog.Resources" in (SHEET / "SheetPlayHeader.kt").read_text(encoding="utf-8")

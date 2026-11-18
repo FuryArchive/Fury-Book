@@ -46,22 +46,6 @@ fun sheetLayoutFor(widthDp: Int): SheetLayout = when {
 
 private val TRAY_WIDTH = 340.dp
 
-private val PHONE_ATTRIBUTE_LABELS = mapOf(
-    AttributeId.CONSTITUTION to "Телосл.",
-    AttributeId.PERCEPTION to "Воспр.",
-)
-
-/**
- * The six metric tiles always sit in a 3×2 grid: six phone columns leave a 40dp value box at 360dp
- * («10» is 42dp wide), and six columns next to the docked tray clip «7.5» at 1100dp.
- * Three columns also leave room for the full labels on phones.
- */
-@Suppress("UNUSED_PARAMETER")
-internal fun sheetMetricColumns(layout: SheetLayout): Int = 3
-
-/** Phone attribute tiles: full titles except the two that do not fit. */
-internal fun sheetPhoneAttributeLabel(id: AttributeId): String = PHONE_ATTRIBUTE_LABELS[id] ?: id.title
-
 /**
  * The character sheet: play view, and the same screen in edit mode behind «Правка». Owns roll state,
  * the open popup and the mode; rolls open in a bottom sheet (phone), a centred dialog (wide) or the
@@ -162,71 +146,11 @@ private fun SheetScreenDialog(
             onDismiss = close,
         )
         SheetDialog.Conditions -> SheetConditionsDialog(host, close)
-        SheetDialog.Identity -> SheetIdentityDialog(host, close)
         SheetDialog.Economy -> SheetEconomyDialog(sheetEconomyView(host), host, close)
         SheetDialog.Resources -> SheetResourcesDialog(host, close)
-        is SheetDialog.Groups -> SheetGroupManager(dialog.kind, host, close)
         is SheetDialog.DevelopmentDetails ->
             developmentDetails?.invoke(dialog.entryId, close) ?: SheetDevelopmentDetailsDialog(host, dialog.entryId, close)
     }
-}
-
-@Composable
-private fun SheetScrollColumn(modifier: Modifier, content: @Composable () -> Unit) {
-    Column(
-        modifier.verticalScroll(rememberScrollState()).padding(FurySpacing.lg),
-        verticalArrangement = Arrangement.spacedBy(FurySpacing.lg),
-    ) { content() }
-}
-
-@Composable
-private fun SheetScreenHeader(
-    host: DublSheetEditHost,
-    layout: SheetLayout,
-    state: SheetScreenState,
-    modifier: Modifier,
-    portraitLoader: SheetPortraitLoader?,
-    onPickPortrait: (() -> Unit)?,
-) {
-    val character = host.active
-    val editing = state.editing
-    // Recomputed only when the character, its extras, the chi pack or the catalog change.
-    val economy = rememberSheetEconomy(host)
-    SheetHeader(
-        name = character.name,
-        concept = character.concept,
-        xpFree = economy.remainingXp,
-        xpTotal = character.experience,
-        abilityText = "ОС ${economy.abilityPointsRemaining}/${economy.abilityPointsBudget}",
-        conditions = sheetActiveConditions(host),
-        compact = layout == SheetLayout.PHONE,
-        onToggleCondition = { chip ->
-            if (chip.custom) {
-                host.setCustomConditionActive(chip.key, false)
-            } else {
-                CharacterConditionId.entries.firstOrNull { it.name == chip.key }?.let(host::toggleCondition)
-            }
-        },
-        onEdit = { state.updateEditing(!editing) },
-        modifier = modifier,
-        onOpenConditions = { state.openDialog(SheetDialog.Conditions) },
-        portrait = if (portraitLoader == null && onPickPortrait == null && host.extras.portraitUri == null) null else {
-            {
-                SheetPortrait(
-                    uri = host.extras.portraitUri,
-                    name = character.name,
-                    loader = portraitLoader,
-                    onPick = onPickPortrait.takeIf { editing },
-                    onRemove = if (editing) ({ host.setPortrait(null) }) else null,
-                    size = if (layout == SheetLayout.PHONE) 64.dp else 88.dp,
-                )
-            }
-        },
-        onOpenIdentity = if (editing) ({ state.openDialog(SheetDialog.Identity) }) else null,
-        onOpenEconomy = { state.openDialog(SheetDialog.Economy) },
-        editing = editing,
-        showChips = layout != SheetLayout.PHONE,
-    )
 }
 
 /** Chi XP counts only when a pack mounts the chi feature on the economy XP line (FCP contract). */
@@ -237,105 +161,6 @@ internal fun rememberSheetEconomy(host: DublSheetEditHost): CharacterEconomyBrea
     return remember(host, character, host.extras, includeChi, host.developmentCatalog) {
         CharacterEconomy.breakdown(character, host.developmentCatalog, includeChi = includeChi)
     }
-}
-
-/** Phone: the chips row scrolls with the body; only the name row stays pinned. */
-@Composable
-private fun SheetScreenChips(host: DublSheetEditHost, state: SheetScreenState) {
-    val economy = rememberSheetEconomy(host)
-    SheetHeaderChips(
-        xpFree = economy.remainingXp,
-        xpTotal = host.active.experience,
-        abilityText = "ОС ${economy.abilityPointsRemaining}/${economy.abilityPointsBudget}",
-        conditions = sheetActiveConditions(host),
-        onToggleCondition = { chip ->
-            if (chip.custom) host.setCustomConditionActive(chip.key, false)
-            else CharacterConditionId.entries.firstOrNull { it.name == chip.key }?.let(host::toggleCondition)
-        },
-        onOpenConditions = { state.openDialog(SheetDialog.Conditions) },
-        onOpenEconomy = { state.openDialog(SheetDialog.Economy) },
-    )
-}
-
-@Composable
-private fun SheetScreenBody(
-    host: DublSheetEditHost,
-    layout: SheetLayout,
-    state: SheetScreenState,
-    onOpenSkills: () -> Unit,
-    onOpenDevelopment: () -> Unit,
-) {
-    val phone = layout == SheetLayout.PHONE
-    val editing = state.editing
-    val character = host.active
-    // The docked tray shows the roll itself; only taps made without it open the dialog.
-    val open: (SheetRollSubject) -> Unit = { subject -> state.open(subject, dialog = layout != SheetLayout.WIDE_WITH_TRAY) }
-    if (phone) SheetScreenChips(host, state)
-    SheetVitals(
-        vitals = sheetVitals(host),
-        compact = phone,
-        onChange = { vital, delta ->
-            val resource = vital.resource
-            val uid = vital.customUid
-            if (resource != null) host.changeResource(resource, delta) else if (uid != null) host.changeCustomResource(uid, delta)
-        },
-        onRestore = { vital -> vital.resource?.let(host::restoreMountedResource) },
-        onOpen = { vital -> state.openDialog(SheetDialog.Vital(vital.id)) },
-        onManageResources = if (editing) ({ state.openDialog(SheetDialog.Resources) }) else null,
-    )
-    SheetStatGrid(
-        stats = sheetMetrics(character),
-        columns = sheetMetricColumns(layout),
-        compact = phone,
-        onRoll = open,
-        onOpenInfo = { stat -> stat.info?.let { state.openDialog(SheetDialog.Stat(it, stat.roll)) } },
-    )
-    SheetSection("Характеристики")
-    val attributes = sheetAttributes(character)
-    SheetStatGrid(
-        // Phone tiles are too narrow for «Телосложение» and «Восприятие».
-        stats = if (phone) attributes.map { stat -> stat.copy(label = phoneAttributeLabel(stat)) } else attributes,
-        // Edit mode puts −/+ under each value; two phone columns leave room for both buttons.
-        columns = if (phone && editing) 2 else 4,
-        compact = phone,
-        onRoll = open,
-        onAdjust = if (editing) ({ stat, delta ->
-            (stat.roll as? SheetRollSubject.Attribute)?.let { host.changeAttribute(it.id, delta) }
-        }) else null,
-    )
-    SheetSection("Умения")
-    val skillGroups = remember(host, character, host.extras, host.developmentCatalog, editing) {
-        if (editing) sheetSkillGroupsForEdit(host) else sheetSkillGroups(host)
-    }
-    SheetSkills(
-        groups = skillGroups,
-        columns = if (phone) 1 else 2,
-        onRoll = { skillId -> open(SheetRollSubject.Skill(skillId)) },
-        onOpenAll = onOpenSkills,
-        onToggleCollapsed = { id -> host.setSkillGroups(SheetGroupingRules.toggleCollapsed(normalizedSkillGroups(host), id)) },
-        onManageGroups = if (editing) ({ state.openDialog(SheetDialog.Groups(SheetGroupKind.SKILLS)) }) else null,
-    )
-    SheetSection("Взятые навыки")
-    val developmentGroups = remember(host, character, host.extras, host.developmentCatalog) { sheetDevelopmentGroups(host) }
-    SheetDevelopment(
-        groups = developmentGroups,
-        onOpenDetails = { id -> state.openDialog(SheetDialog.DevelopmentDetails(id)) },
-        onOpenAll = onOpenDevelopment,
-        onManageGroups = if (editing) ({ state.openDialog(SheetDialog.Groups(SheetGroupKind.DEVELOPMENT)) }) else null,
-        onToggleCollapsed = { id -> host.setDevelopmentGroups(SheetGroupingRules.toggleCollapsed(normalizedDevelopmentGroups(host), id)) },
-    )
-    SheetSection("Боевые действия")
-    SheetCombat(SHEET_COMBAT_CONTEXTS, onRoll = { context -> open(SheetRollSubject.Context(context)) })
-    SheetSection("Заметки")
-    SheetNotes(host.extras.displayNotes(), host = host.takeIf { editing || !phone })
-}
-
-private fun phoneAttributeLabel(stat: SheetStat): String =
-    (stat.roll as? SheetRollSubject.Attribute)?.id?.let(::sheetPhoneAttributeLabel) ?: stat.label
-
-@Composable
-private fun SheetSection(title: String) {
-    Text(title.uppercase(), Modifier.padding(top = FurySpacing.sm), color = DublMuted, style = furyOverlineStyle())
 }
 
 /** The roll panel for the current setup, or the tray's empty state before anything was tapped. */

@@ -52,39 +52,6 @@ class SheetEditModelsTest {
         assertEquals(expected, sheetEconomyView(host).recommendedAbilityPoints)
     }
 
-    @Test
-    fun developmentRowsKeepParentChildDepth() {
-        val rows = sheetDevelopmentGroups(devHost()).flatMap { it.rows }
-        assertEquals(0, rows.first { it.entryId == access.id }.depth)
-        assertEquals(1, rows.first { it.entryId == child.id }.depth)
-    }
-
-    @Test
-    fun unmetRequirementFlagsRow() {
-        // No Скрытность 4 and no Ловкость 4: both requirements fail.
-        val rows = sheetDevelopmentGroups(devHost()).flatMap { it.rows }
-        assertTrue(rows.first { it.entryId == access.id }.requirementsUnmet)
-    }
-
-    @Test
-    fun editSkillGroupsIncludeRankZero() {
-        val host = FakeSheetHost(DublCharacter(id = "c1", name = "Тест"))
-        assertTrue(sheetSkillGroups(host).isEmpty())
-        val rows = sheetSkillGroupsForEdit(host).flatMap { it.rows }
-        assertTrue(rows.isNotEmpty())
-        assertTrue(rows.all { it.rank == 0 })
-    }
-
-    @Test
-    fun collapsedGroupKeepsRowsButFlagsCollapsed() {
-        val host = FakeSheetHost(DublCharacter(id = "c1", name = "Тест"))
-        val groups = normalizedSkillGroups(host)
-        val target = groups.first().id
-        host.setSkillGroups(SheetGroupingRules.toggleCollapsed(groups, target))
-        val group = sheetSkillGroupsForEdit(host).first { it.id == target }
-        assertTrue(group.collapsed)
-        assertTrue(group.rows.isNotEmpty())
-    }
 }
 
 class SheetChiMountTest {

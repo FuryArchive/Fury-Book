@@ -35,13 +35,12 @@ def test_desktop_presentation_primitives_exist():
 
 
 def test_character_sheet_preserves_shared_application_callbacks():
-    sheet = sheet_source()
+    # Attribute and portrait edits moved into the character editor; custom groups are no longer edited.
+    sheet = sheet_source() + ''.join(path.read_text(encoding='utf-8') for path in sorted((SHEET_DIR.parent / 'editor').glob('*.kt')))
     for token in (
         'host.changeResource(',
         'host.changeAttribute(',
         'host.setPortrait(',
-        'host.setSkillGroups(',
-        'host.setDevelopmentGroups(',
     ):
         assert token in sheet, token
     assert 'state.undoLast()' in read(MAIN)
@@ -51,8 +50,8 @@ def test_character_sheet_preserves_shared_application_callbacks():
 
 
 def test_character_sheet_keeps_notes():
-    screen = read(SHEET_DIR / 'SheetScreen.kt')
-    assert 'SheetNotes(host.extras.displayNotes()' in screen
+    play = read(SHEET_DIR / 'SheetPlay.kt')
+    assert 'SheetPlayNotes(host.extras.displayNotes()' in play
 
 
 def test_hero_metrics_expose_only_requested_quick_rolls():
@@ -85,36 +84,23 @@ def test_notes_flow_through_shared_application_boundary_and_persistence():
 
 
 def test_sheet_keeps_grouping_and_development_details_reachable():
-    screen = read(SHEET_DIR / 'SheetScreen.kt')
-    assert 'SheetDialog.Groups(SheetGroupKind.SKILLS)' in screen
-    assert 'SheetDialog.Groups(SheetGroupKind.DEVELOPMENT)' in screen
-    assert 'SheetDialog.DevelopmentDetails(id)' in screen
+    # Custom groups: the manager UI is retired, the data stays (owner ruling, character editor stage).
+    play = read(SHEET_DIR / 'SheetPlay.kt')
+    assert 'SheetDialog.DevelopmentDetails(id)' in play
     assert 'DesktopSheetDevelopmentDetails(state, entryId, close)' in read(MAIN)
 
 
-def test_sheet_skills_show_all_visible_ranks_and_preserve_hidden_group_membership():
-    models = read(SHEET_DIR / 'SheetModels.kt')
-    assert 'fun sheetSkillGroupsForEdit(' in models
-    assert 'resolvedSkills(includeHidden = true)' in models
-    assert 'SheetGroupingRules.normalize(' in models
 def test_narrow_skills_column_falls_back_to_one_internal_column():
-    screen = read(SHEET_DIR / 'SheetScreen.kt')
-    assert 'columns = if (phone) 1 else 2' in screen
+    play = read(SHEET_DIR / 'SheetPlay.kt')
+    assert 'if (layout == SheetLayout.PHONE) 1 else 2' in play
 
 
 def test_sheet_development_panel_restores_grouped_hierarchy_from_shared_parent_ids():
-    models = read(SHEET_DIR / 'SheetEditModels.kt')
+    models = read(SHEET_DIR / 'SheetPlayModels.kt')
     assert 'ownedSheetSections()' in models
     assert 'it.entry.id to it.parentId' in models
     assert 'SheetGroupingRules.hierarchicalOrder(' in models
     assert 'SheetGroupingRules.localDepth(' in models
-
-
-def test_grouping_manager_includes_rank_zero_visible_skills_and_keeps_tree_drag_contract():
-    manager = read(SHEET_DIR / 'SheetGroupManager.kt')
-    assert 'resolvedSkills(includeHidden = true)' in manager
-    assert 'SheetGroupingRules.subtreeBlock(' in manager
-    assert 'treeRoots' in manager
 
 
 def test_desktop_skills_screen_keeps_all_visible_default_and_hidden_restore_entrypoint():
@@ -130,19 +116,17 @@ def test_desktop_skills_screen_keeps_all_visible_default_and_hidden_restore_entr
 
 def test_sheet_actions_use_clear_user_facing_copy_instead_of_service_labels():
     sheet = sheet_source()
-    for token in ('Добавить ресурс', 'Ресурсы: добавить / скрыть', 'Настроить группы', '"Все умения"', '"Все навыки"', '"Опыт"'):
-        assert token in sheet, token
+    editor = ''.join(path.read_text(encoding='utf-8') for path in sorted((SHEET_DIR.parent / 'editor').glob('*.kt')))
+    assert 'Настроить ресурсы' in sheet
+    for token in ('"Все умения →"', '"Все навыки →"', '"Опыт"', '"Отменить всё"'):
+        assert token in editor, token
     assert 'Text("+ ресурс"' not in sheet
     assert 'Text("Видимость"' not in sheet
-    assert 'Text("Группы")' not in sheet
     assert 'Text("Открыть все →")' not in sheet
 
 
 def test_notes_panel_supports_multiple_titled_collapsible_notes_and_grows_with_content():
-    notes = read(SHEET_DIR / 'SheetNotes.kt')
-    assert 'notes: List<CharacterNote>' in notes
-    assert 'Добавить заметку' in notes
-    assert 'expanded' in notes
+    notes = read(SHEET_DIR / 'SheetPlay.kt')
     assert 'note.title' in notes
     assert 'note.body' in notes
     assert 'host.removeNote(note.id)' in notes

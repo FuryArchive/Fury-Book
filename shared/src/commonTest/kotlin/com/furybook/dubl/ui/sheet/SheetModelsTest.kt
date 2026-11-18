@@ -18,22 +18,6 @@ class SheetModelsTest {
     private val plain = DublCharacter(id = "c", name = "Тест", hpCurrent = 5, enduranceCurrent = 5)
 
     @Test
-    fun noTrainedSkillsGivesNoGroups() {
-        assertTrue(sheetSkillGroups(FakeSheetHost(plain)).isEmpty())
-    }
-
-    @Test
-    fun trainedSkillsAreGroupedWithRankAndBonus() {
-        val trained = plain.copy(
-            skills = mapOf("melee_weapon" to CharacterSkill(id = "melee_weapon", definitionId = "melee_weapon", rank = 3)),
-        )
-        val groups = sheetSkillGroups(FakeSheetHost(trained))
-        val row = groups.flatMap { it.rows }.single()
-        assertEquals("melee_weapon", row.skillId)
-        assertEquals(3, row.rank)
-    }
-
-    @Test
     fun manaHiddenWhenDisabled() {
         val ids = sheetVitals(FakeSheetHost(plain)).map { it.id }
         assertEquals(listOf("health", "endurance"), ids)
@@ -59,18 +43,6 @@ class SheetModelsTest {
         val extras = CharacterSheetExtras(hiddenResourceIds = setOf(CharacterSheetResourceId.HEALTH))
         val ids = sheetVitals(FakeSheetHost(plain, extras)).map { it.id }
         assertEquals(listOf("endurance"), ids)
-    }
-
-    @Test
-    fun attributesInSheetOrder() {
-        val stats = sheetAttributes(plain)
-        assertEquals(
-            listOf("Сила", "Ловкость", "Телосложение", "Скорость", "Интеллект", "Восприятие", "Воля", "Харизма"),
-            stats.map { it.label },
-        )
-        stats.forEachIndexed { index, stat ->
-            assertEquals(SheetRollSubject.Attribute(AttributeId.entries[index]), stat.roll)
-        }
     }
 
     @Test

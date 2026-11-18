@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 SHEET_DIR = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet'
 VITAL = (SHEET_DIR / 'SheetVitalDialog.kt').read_text(encoding='utf-8')
-SCREEN = (SHEET_DIR / 'SheetScreen.kt').read_text(encoding='utf-8')
+SCREEN = (SHEET_DIR / 'SheetScreen.kt').read_text(encoding='utf-8') + (SHEET_DIR / 'SheetPlay.kt').read_text(encoding='utf-8')
 PORTRAIT = (SHEET_DIR / 'SheetPortrait.kt').read_text(encoding='utf-8')
 DESKTOP_DETAILS = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/SheetDevelopmentDetails.kt').read_text(encoding='utf-8')
 DESKTOP_PORTRAITS = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/DesktopPortraits.kt').read_text(encoding='utf-8')

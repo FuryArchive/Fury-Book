@@ -26,10 +26,3 @@ def test_shell_has_an_account_slot_and_web_uses_it_for_sign_out():
     assert "account = {" in web
     assert "onSignOut" in web.split("account = {", 1)[1][:600]
 
-
-def test_phone_pins_only_the_name_row():
-    screen = read(SHEET / "SheetScreen.kt")
-    header = read(SHEET / "SheetHeader.kt")
-    assert "fun SheetHeaderChips(" in header
-    assert "showChips = layout != SheetLayout.PHONE" in screen
-    assert "SheetHeaderChips(" in screen

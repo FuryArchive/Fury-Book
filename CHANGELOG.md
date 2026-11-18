@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Character editor («Редактор»)
+
+- New shared step-by-step editor (Android, Desktop, Web) replaces the old sheet edit mode: Развитие (quick rank-ups and perks for an existing character), Основа, Характеристики, Умения, Навыки, Итог.
+- Skill ranks and perks are bought inside the editor through the existing rules; missing prerequisites are taken as one chain with its total cost.
+- Every change saves at once; «Отменить всё» returns the character to how it was when the editor opened (one undoable step).
+- «Новый персонаж» opens the editor at Основа; the play sheet's «Настроить ресурсы» opens resource visibility and custom resources.
+- The custom skill/perk group manager is retired; saved groups stay in the data, sync and transfer files.
+
 ### Fury Book rebrand
 
 - Promoted **Fury Book** to the product/platform name while keeping DUBL 3.69 as the current ruleset identity.
