@@ -59,7 +59,10 @@ internal fun EditorSummaryStep(
             EditorOverline(if (ok) "Всё в порядке" else "Замечания · ${data.problems.size}", color = if (ok) p.dLabel else p.goldText)
             data.problems.forEach { problem ->
                 Row(
-                    Modifier.fillMaxWidth().heightIn(min = 36.dp).clickable(role = Role.Button) { state.step = problem.step },
+                    Modifier.fillMaxWidth().heightIn(min = 36.dp).clickable(role = Role.Button) {
+                        val entry = problem.entryId
+                        if (entry != null) state.openPerk(data.context, entry) else state.step = problem.step
+                    },
                     verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     EditorWarnMark("Замечание")

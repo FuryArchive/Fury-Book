@@ -86,5 +86,6 @@ class EditorModelsTest {
         val line = problems.first { it.text.startsWith("Атлетичность") }
         assertEquals("Атлетичность: требования больше не выполнены", line.text)
         assertEquals(EditorStep.PERKS, line.step)
+        assertEquals(EditorFixtures.athleticism.id, line.entryId)
     }
 }

@@ -111,7 +111,7 @@ internal fun EditorBasicsStep(
                 }, min = 0, decreaseLabel = "Меньше очков способностей", increaseLabel = "Больше очков способностей")
                 Text(
                     if (character.abilityPointsOverride != null) "задано вручную (по правилам ${data.economy.recommendedAbilityPoints})"
-                    else "по правилам: 1 за каждые полные 1000 XP",
+                    else "по правилам: 1 за каждые полные 1000 XP опыта создания",
                     color = p.goldText, style = MaterialTheme.typography.bodySmall,
                 )
                 if (character.abilityPointsOverride != null) {

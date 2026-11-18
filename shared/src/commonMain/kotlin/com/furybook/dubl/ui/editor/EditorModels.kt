@@ -133,7 +133,8 @@ fun EditorPerkContext.developmentView(host: DublEditorHost): EditorDevelopmentVi
     return EditorDevelopmentView(skills, attributes, perks, almost)
 }
 
-data class EditorProblem(val text: String, val step: EditorStep)
+/** One Итог remark; [entryId] names the perk to open when the fix is on one entry. */
+data class EditorProblem(val text: String, val step: EditorStep, val entryId: String? = null)
 
 fun editorProblems(host: DublEditorHost): List<EditorProblem> = EditorPerkContext(host).problems()
 
@@ -148,7 +149,7 @@ fun EditorPerkContext.problems(): List<EditorProblem> = buildList {
     character.development.keys.filter { it != MagicEquipmentRules.BASE_MANA_ENTRY_ID }.forEach { id ->
         val entry = catalog.byId(id) ?: return@forEach
         val unmet = rules.requirements(entry).any { it.status == RequirementStatus.FAIL && CREATION_CLOSED_MARK !in it.text }
-        if (unmet) add(EditorProblem("${entry.name}: требования больше не выполнены", EditorStep.PERKS))
+        if (unmet) add(EditorProblem("${entry.name}: требования больше не выполнены", EditorStep.PERKS, entry.id))
     }
     if (economy.unpricedLearnedSpells > 0) add(EditorProblem("Заклинания без цены: ${economy.unpricedLearnedSpells}", EditorStep.SUMMARY))
 }
