@@ -114,4 +114,16 @@ class EditorPerkModelsTest {
         val found = editorPerkGroups(host, EditorPerkKind.REGULAR, EditorPerkFilter.ALL, "слух").flatMap { it.cards }
         assertEquals(listOf(keenHearing.id), found.map { it.entryId })
     }
+
+    @Test
+    fun overspentAbilityPointsDoNotBlockXpPerks() {
+        // The rules treat the ОС budget as a recommendation; a build already over it can still buy XP-only perks.
+        val host = host(hornet.copy(abilityPointsOverride = 0))
+        assertEquals(EditorPerkStatus.AVAILABLE, status(host, keenHearing.id))
+        val detail = editorPerkDetail(host, keenHearing.id, emptyMap(), null)!!
+        val action = detail.action as EditorPerkAction.Acquire
+        assertTrue(host.acquireDevelopment(action.request).applied)
+        val chain = editorPerkDetail(host, ranger.id, emptyMap(), null)!!.action as EditorPerkAction.Acquire
+        assertTrue(host.acquireDevelopment(chain.request).applied)
+    }
 }

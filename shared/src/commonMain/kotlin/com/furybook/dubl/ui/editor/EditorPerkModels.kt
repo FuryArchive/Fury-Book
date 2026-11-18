@@ -119,6 +119,12 @@ class EditorPerkContext(host: DublEditorHost) {
 
     fun rank(entry: DevelopmentEntry): Int = progress.rank(entry.id)
 
+    /**
+     * Free XP covers [xp], and free ОС covers [os] when the step costs any. The rules call the ОС budget a
+     * recommendation, so a build already over it can still take XP-only steps.
+     */
+    fun affordable(xp: Int, os: Int): Boolean = xp <= economy.remainingXp && (os <= 0 || os <= economy.abilityPointsRemaining)
+
     fun defaultOption(entry: DevelopmentEntry): Int = when {
         progress.rank(entry.id) > 0 -> progress.optionIndex(entry.id)
         !entry.isAbility || entry.abilityOptions.isEmpty() -> 0
@@ -141,7 +147,7 @@ class EditorPerkContext(host: DublEditorHost) {
             rank >= max -> EditorPerkStatus.OWNED
             creationClosed -> EditorPerkStatus.CREATION_ONLY
             entry.incomplete -> EditorPerkStatus.REQUIREMENTS
-            !failed -> if (directXp <= economy.remainingXp && directOs <= economy.abilityPointsRemaining) {
+            !failed -> if (affordable(directXp, directOs)) {
                 if (rank > 0) EditorPerkStatus.UPGRADABLE else EditorPerkStatus.AVAILABLE
             } else EditorPerkStatus.LOW_XP
             else -> {
@@ -250,6 +256,13 @@ fun EditorPerkContext.perkCounts(kind: EditorPerkKind): Map<EditorPerkFilter, In
 internal fun EditorPerkContext.allCards(): List<EditorPerkCard> =
     listOf(EditorPerkKind.REGULAR, EditorPerkKind.SPECIAL, EditorPerkKind.MARTIAL, EditorPerkKind.CHI).flatMap { kind -> cardsFor(kind, "").map { it.second } }
 
+/**
+ * The planner's own budget check also refuses XP-only steps once ОС is overspent; the editor checks the
+ * budget itself ([EditorPerkContext.affordable]) before offering the action, so the request skips it.
+ */
+private fun editorRequest(entryId: String, rank: Int, option: Int, choices: Map<String, Int>) =
+    DevelopmentAcquisitionRequest.single(entryId, targetRank = rank, optionIndex = option, choiceSelections = choices, enforceBudget = false)
+
 private fun stepLabel(step: DevelopmentAcquisitionStep): String = when (step) {
     is DevelopmentAcquisitionStep.Attribute -> "${step.attribute.title} ${step.fromBase} → ${step.toBase}"
     is DevelopmentAcquisitionStep.Skill -> "${step.name} ${step.fromRank} → ${step.toRank}"
@@ -282,7 +295,7 @@ fun EditorPerkContext.perkDetail(entryId: String, choiceSelections: Map<String, 
         EditorPerkStatus.CREATION_ONLY -> block = "Только при создании персонажа — создание уже завершено."
         EditorPerkStatus.AVAILABLE, EditorPerkStatus.UPGRADABLE -> {
             action = if (manual) EditorPerkAction.SetRank(target, eval.option)
-            else EditorPerkAction.Acquire(DevelopmentAcquisitionRequest.single(entry.id, targetRank = target, optionIndex = eval.option))
+            else EditorPerkAction.Acquire(editorRequest(entry.id, target, eval.option, emptyMap()))
             actionLabel = "$verb · ${costLabel(eval.directXp, eval.directOs)}"
         }
         EditorPerkStatus.LOW_XP -> block = if (eval.directXp > economy.remainingXp) {
@@ -292,11 +305,9 @@ fun EditorPerkContext.perkDetail(entryId: String, choiceSelections: Map<String, 
             entry.incomplete -> block = "Запись книги не завершена."
             plan == null || plan.unresolvedRequirements.isNotEmpty() -> block = "Не все требования можно закрыть автоматически."
             plan.xpCost > economy.remainingXp -> block = "Не хватает опыта: нужно ${plan.xpCost} XP, свободно ${economy.remainingXp}."
-            !plan.canAfford -> block = "Не хватает очков способностей."
+            !affordable(plan.xpCost, plan.abilityCost) -> block = "Не хватает очков способностей."
             else -> {
-                action = EditorPerkAction.Acquire(
-                    DevelopmentAcquisitionRequest.single(entry.id, targetRank = target, optionIndex = eval.option, choiceSelections = choiceSelections),
-                )
+                action = EditorPerkAction.Acquire(editorRequest(entry.id, target, eval.option, choiceSelections))
                 actionLabel = "$verb с цепочкой · ${costLabel(plan.xpCost, plan.abilityCost)}"
             }
         }
