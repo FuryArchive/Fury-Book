@@ -161,6 +161,7 @@ internal fun EditorStepContent(
         EditorStep.BASICS -> EditorBasicsStep(host, state, data, layout, portraitLoader, onPickPortrait)
         EditorStep.ATTRIBUTES -> EditorAttributesStep(host, data, layout)
         EditorStep.SKILLS -> EditorSkillsStep(host, state, data, layout)
+        EditorStep.PERKS -> EditorPerksStep(host, state, data, layout)
         else -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(editorContentPadding(layout))) {
             EditorStepTitle(state.step.title, "")
         }
