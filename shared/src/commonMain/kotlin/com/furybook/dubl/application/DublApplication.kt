@@ -38,4 +38,20 @@ class DublApplication(
     val canUndo: Boolean get() = undoManager.canUndo
 
     fun undoLast(): Boolean = undoManager.undoLast()
+
+    fun restorePoint(): CharacterRestorePoint = CharacterRestorePoint(active, activeExtras)
+
+    /**
+     * Writes [point] back over the active character and its extras, as one undoable step.
+     * Refuses (false) when another character is active, so a stale point never lands on the wrong one.
+     */
+    fun restore(point: CharacterRestorePoint): Boolean {
+        val id = characterSession.active.id
+        if (point.character.id != id) return false
+        val before = restorePoint()
+        characterSession.updateActive { point.character }
+        extrasSession.replace(id, point.extras)
+        undoManager.record { restore(before) }
+        return true
+    }
 }
