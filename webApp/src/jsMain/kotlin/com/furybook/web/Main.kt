@@ -700,8 +700,6 @@ private fun WebSheet(
     Box(playModifier) {
         SheetScreen(
             host,
-            onOpenSkills = { onNavigate(DesktopSection.SKILLS) },
-            onOpenDevelopment = { onNavigate(DesktopSection.DEVELOPMENT) },
             portraitLoader = { dataUrl -> rememberWebPortrait(dataUrl) },
             developmentDetails = { entryId, close -> DesktopSheetDevelopmentDetails(state, entryId, close) },
             onPickPortrait = { pickPortraitDataUrl { dataUrl -> state.setPortrait(dataUrl) } },

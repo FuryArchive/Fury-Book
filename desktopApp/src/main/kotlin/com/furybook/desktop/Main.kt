@@ -277,8 +277,6 @@ private fun DesktopSheet(
     Box(playModifier) {
         SheetScreen(
             host,
-            onOpenSkills = { onNavigate(DesktopSection.SKILLS) },
-            onOpenDevelopment = { onNavigate(DesktopSection.DEVELOPMENT) },
             portraitLoader = { path -> rememberDesktopPortrait(path) },
             developmentDetails = { entryId, close -> DesktopSheetDevelopmentDetails(state, entryId, close) },
             onPickPortrait = { chooseDesktopPortraitFile()?.let(state::importPortrait)?.let(state::setPortrait) },

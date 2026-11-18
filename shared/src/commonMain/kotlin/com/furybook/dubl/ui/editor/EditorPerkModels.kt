@@ -54,7 +54,8 @@ data class EditorPerkGroup(val title: String, val cards: List<EditorPerkCard>)
 
 data class EditorRequirementLine(val text: String, val status: RequirementStatus)
 
-data class EditorChainStep(val label: String, val costText: String)
+/** One step of a chain; [isTarget] marks the perk itself, the rest are prerequisites bought first. */
+data class EditorChainStep(val label: String, val costText: String, val isTarget: Boolean = false)
 
 data class EditorChoice(val id: String, val label: String, val options: List<String>, val selected: Int)
 
@@ -269,6 +270,8 @@ private fun stepLabel(step: DevelopmentAcquisitionStep): String = when (step) {
     is DevelopmentAcquisitionStep.Development -> if (step.toRank > 1) "${step.name} — ранг ${step.toRank}" else step.name
 }
 
+private fun overspentReason(remaining: Int) = "Перерасход опыта: свободно $remaining XP. Верните часть опыта или добавьте XP на «Основе»."
+
 private fun costLabel(xp: Int, os: Int): String = listOfNotNull(xp.takeIf { it > 0 }?.let { "$it XP" }, os.takeIf { it > 0 }?.let { "$it ОС" })
     .joinToString(" + ").ifEmpty { "0 XP" }
 
@@ -298,12 +301,15 @@ fun EditorPerkContext.perkDetail(entryId: String, choiceSelections: Map<String, 
             else EditorPerkAction.Acquire(editorRequest(entry.id, target, eval.option, emptyMap()))
             actionLabel = "$verb · ${costLabel(eval.directXp, eval.directOs)}"
         }
-        EditorPerkStatus.LOW_XP -> block = if (eval.directXp > economy.remainingXp) {
-            "Не хватает опыта: нужно ${eval.directXp} XP, свободно ${economy.remainingXp}."
-        } else "Не хватает очков способностей."
+        EditorPerkStatus.LOW_XP -> block = when {
+            economy.remainingXp < 0 -> overspentReason(economy.remainingXp)
+            eval.directXp > economy.remainingXp -> "Не хватает опыта: нужно ${eval.directXp} XP, свободно ${economy.remainingXp}."
+            else -> "Не хватает очков способностей."
+        }
         EditorPerkStatus.ALMOST, EditorPerkStatus.REQUIREMENTS -> when {
             entry.incomplete -> block = "Запись книги не завершена."
             plan == null || plan.unresolvedRequirements.isNotEmpty() -> block = "Не все требования можно закрыть автоматически."
+            economy.remainingXp < 0 && plan.xpCost > 0 -> block = overspentReason(economy.remainingXp)
             plan.xpCost > economy.remainingXp -> block = "Не хватает опыта: нужно ${plan.xpCost} XP, свободно ${economy.remainingXp}."
             !affordable(plan.xpCost, plan.abilityCost) -> block = "Не хватает очков способностей."
             else -> {
@@ -345,7 +351,9 @@ fun EditorPerkContext.perkDetail(entryId: String, choiceSelections: Map<String, 
         benefitMissing = benefitMissing,
         requirements = eval.availability.checks.map { EditorRequirementLine(it.text, it.status) },
         unlocks = planner.unlocks(entry.id).map { it.name },
-        chain = chain.map { EditorChainStep(stepLabel(it), costLabel(it.xpCost, it.abilityCost)) },
+        chain = chain.map {
+            EditorChainStep(stepLabel(it), costLabel(it.xpCost, it.abilityCost), it is DevelopmentAcquisitionStep.Development && it.entryId == entry.id)
+        },
         chainCost = if (chain.isEmpty()) "" else costLabel(plan!!.xpCost, plan.abilityCost),
         choices = choices,
         action = action,

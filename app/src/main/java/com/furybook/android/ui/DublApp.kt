@@ -179,9 +179,6 @@ fun DublApp() {
                     AppSection.OVERVIEW -> AndroidSheet(
                         controller = controller,
                         chiPackEnabled = chiPackEnabled,
-                        onOpenSkills = { selected = AppSection.SKILLS },
-                        // Same loading gate as the tab: the development screen is heavy to compose.
-                        onOpenDevelopment = { if (pendingSection == null) pendingSection = AppSection.FEATS },
                         openEditorAtBasics = openEditorAtBasics,
                         onOpenEditorConsumed = { openEditorAtBasics = false },
                         onEditorShown = { editorShown = it },
@@ -251,8 +248,6 @@ private data class SheetToast(val text: String, val accent: Color, val canUndo: 
 private fun AndroidSheet(
     controller: CharacterController,
     chiPackEnabled: Boolean,
-    onOpenSkills: () -> Unit,
-    onOpenDevelopment: () -> Unit,
     openEditorAtBasics: Boolean = false,
     onOpenEditorConsumed: () -> Unit = {},
     onEditorShown: (Boolean) -> Unit = {},
@@ -297,8 +292,6 @@ private fun AndroidSheet(
     Box(Modifier.fillMaxSize()) {
         SheetScreen(
             host,
-            onOpenSkills = onOpenSkills,
-            onOpenDevelopment = onOpenDevelopment,
             // Back from the editor returns to the play sheet instead of leaving the app.
             backHandler = { enabled, onBack -> BackHandler(enabled = enabled, onBack = onBack) },
             portraitLoader = { uri -> rememberAndroidPortrait(uri) },

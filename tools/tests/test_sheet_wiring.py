@@ -64,7 +64,7 @@ def test_old_sheet_is_no_longer_called_and_edit_mode_lives_in_the_shared_sheet()
         assert 'if (editing) {' not in text, path.name
         assert 'developmentDetails =' in text, path.name
         assert 'portraitLoader =' in text, path.name
-        assert 'onOpenDevelopment =' in text, path.name
+        assert 'onOpenMagic =' in text, path.name
 
 
 def test_new_sheet_changes_still_reach_the_platform_undo_toast():

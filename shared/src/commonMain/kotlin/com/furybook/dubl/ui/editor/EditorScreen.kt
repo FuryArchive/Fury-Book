@@ -26,7 +26,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -94,6 +101,7 @@ fun EditorScreen(
     }
     val before = state.snapshot ?: host.restorePoint()
     val data = remember(host, host.active, host.extras, host.developmentCatalog, before) { EditorFrameData(host, before) }
+    SideEffect { state.dropStaleUndo(data.now) }
     val p = FuryColors.current
     BoxWithConstraints(modifier.fillMaxSize().background(p.bg)) {
         val layout = sheetLayoutFor(maxWidth.value.toInt())
@@ -151,7 +159,7 @@ private fun undoAll(host: DublEditorHost, state: EditorState) {
     if (host.restore(point)) {
         state.markRestored()
         state.changesOpen = false
-        state.flash("Персонаж возвращён к тому, каким был при открытии редактора", undoable = true)
+        state.flash("Персонаж возвращён к тому, каким был при открытии редактора", undoableAt = host.restorePoint())
     }
 }
 
@@ -281,14 +289,24 @@ private fun EditorRail(steps: List<EditorStep>, state: EditorState, data: Editor
 @Composable
 private fun EditorStepTabs(steps: List<EditorStep>, state: EditorState, data: EditorFrameData, layout: SheetLayout) {
     val p = FuryColors.current
+    val scroll = rememberScrollState()
+    var viewport by remember { mutableStateOf(0) }
+    // Where the current tab sits in the strip; the strip scrolls so it is never hidden off the edge.
+    var currentTab by remember { mutableStateOf<Pair<Int, Int>?>(null) }
+    LaunchedEffect(state.step, currentTab, viewport) {
+        val (start, width) = currentTab ?: return@LaunchedEffect
+        if (viewport > 0) scroll.animateScrollTo(editorTabScrollTarget(start, width, viewport, scroll.maxValue))
+    }
     Row(
-        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(horizontal = 12.dp, vertical = 8.dp),
+        Modifier.fillMaxWidth().onSizeChanged { viewport = it.width }.horizontalScroll(scroll).padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         steps.forEach { step ->
             val current = state.step == step
             Row(
-                Modifier.heightIn(min = editorControl(layout)).clip(RoundedCornerShape(10.dp))
+                Modifier
+                    .then(if (current) Modifier.onPlaced { currentTab = it.positionInParent().x.toInt() to it.size.width } else Modifier)
+                    .heightIn(min = editorControl(layout)).clip(RoundedCornerShape(10.dp))
                     .background(if (current) p.accSoft else p.panel)
                     .border(1.dp, if (current) p.accLine else p.line, RoundedCornerShape(10.dp))
                     .clickable(role = Role.Tab, onClick = { state.step = step }).padding(start = 8.dp, end = 12.dp),

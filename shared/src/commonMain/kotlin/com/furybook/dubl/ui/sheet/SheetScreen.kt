@@ -16,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import com.furybook.dubl.ui.editor.DublEditorHost
 import com.furybook.dubl.ui.editor.EditorScreen
 import com.furybook.dubl.ui.editor.EditorState
@@ -47,15 +49,13 @@ fun sheetLayoutFor(widthDp: Int): SheetLayout = when {
 private val TRAY_WIDTH = 340.dp
 
 /**
- * The character sheet: play view, and the same screen in edit mode behind «Правка». Owns roll state,
+ * The character sheet: the play view, or the character editor while ✎ is on. Owns roll state,
  * the open popup and the mode; rolls open in a bottom sheet (phone), a centred dialog (wide) or the
  * docked tray. Platform pieces come in as callbacks: portrait loading/picking and development details.
  */
 @Composable
 fun SheetScreen(
     host: DublEditorHost,
-    onOpenSkills: () -> Unit,
-    onOpenDevelopment: () -> Unit,
     modifier: Modifier = Modifier,
     portraitLoader: SheetPortraitLoader? = null,
     onPickPortrait: (() -> Unit)? = null,
@@ -78,6 +78,9 @@ fun SheetScreen(
     playState.syncCharacter(host.active.id)
     val editorState = remember { EditorState() }
     backHandler(state.editing) { state.updateEditing(false) }
+    // A fresh snapshot each time the editor opens, taken in the click/effect that opens it.
+    val currentHost by rememberUpdatedState(host)
+    SideEffect { state.onEditorOpening = { forceBasics -> editorState.open(currentHost, forceBasics) } }
     LaunchedEffect(openEditorAtBasics) {
         if (openEditorAtBasics) {
             state.openEditor(forceBasics = true)
@@ -87,8 +90,6 @@ fun SheetScreen(
     LaunchedEffect(state.editing) { onEditorShown(state.editing) }
     // The editor reports its own changes; the platform's undo toasts stay quiet while it is open.
     SideEffect { (host as? SheetChangeReportingHost)?.muted = state.editing }
-    // A fresh snapshot each time the editor opens; computed before the editor's first frame reads it.
-    remember(state.editorSession) { if (state.editing) editorState.open(host, state.editorForceBasics) }
     BoxWithConstraints(modifier.fillMaxSize()) {
         val layout = sheetLayoutFor(maxWidth.value.toInt())
         if (state.editing) {

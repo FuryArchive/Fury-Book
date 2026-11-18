@@ -65,6 +65,17 @@ class EditorPerkModelsTest {
         val second = editorPerkDetail(host, quickAim.id, mapOf(choice.id to 1 - choice.selected), null)!!
         assertNotEquals(first.chain.first().label, second.chain.first().label)
         assertNotEquals(first.chainCost, second.chainCost)
+        val throwing = choice.options.indexOfFirst { it.startsWith("Метание") }
+        val picked = editorPerkDetail(host, quickAim.id, mapOf(choice.id to throwing), null)!!
+        assertTrue(host.acquireDevelopment((picked.action as EditorPerkAction.Acquire).request).applied)
+        assertEquals(5, host.active.skills.values.single { it.definitionId == "throwing" || it.id == "throwing" }.rank)
+        assertEquals(4, host.active.skills.getValue("shooting").rank)
+    }
+
+    @Test
+    fun chainMarksWhichStepIsThePerkItself() {
+        val chain = editorPerkDetail(host(), ranger.id, emptyMap(), null)!!.chain
+        assertEquals(listOf(false, true), chain.map { it.isTarget })
     }
 
     @Test
@@ -72,7 +83,7 @@ class EditorPerkModelsTest {
         val host = host(hornet.copy(experience = 2000))
         val detail = editorPerkDetail(host, keenHearing.id, emptyMap(), null)!!
         assertNull(detail.action)
-        assertTrue(detail.blockReason!!.startsWith("Не хватает опыта"), detail.blockReason)
+        assertTrue(detail.blockReason!!.startsWith("Перерасход опыта: свободно -"), detail.blockReason)
         assertNotNull(detail.forceAction)
         assertEquals(EditorPerkStatus.LOW_XP, status(host, keenHearing.id))
     }

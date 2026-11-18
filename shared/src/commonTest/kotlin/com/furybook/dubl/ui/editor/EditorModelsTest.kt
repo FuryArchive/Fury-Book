@@ -90,6 +90,15 @@ class EditorModelsTest {
     }
 
     @Test
+    fun removingPrerequisitePerkKeepsDependentAndFlagsIt() {
+        val host = host()
+        host.setDevelopmentRank(EditorFixtures.access.id, 0)
+        assertEquals(1, host.active.development.getValue(EditorFixtures.branch.id).rank)
+        val line = editorProblems(host).single { it.entryId == EditorFixtures.branch.id }
+        assertEquals("Разметать: требования больше не выполнены", line.text)
+    }
+
+    @Test
     fun newCharacterNameFieldStartsEmpty() {
         assertEquals("", editorNameFieldInitial(DublCharacter(id = "n", name = "Новый персонаж")))
         assertEquals("Шершень", editorNameFieldInitial(hornet))

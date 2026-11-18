@@ -107,7 +107,7 @@ private fun Muted(text: String) {
 private fun PerkRow(host: DublEditorHost, state: EditorState, context: EditorPerkContext, card: EditorPerkCard, control: Dp, almost: Boolean) {
     val p = FuryColors.current
     val detail = remember(context, card.entryId) { context.perkDetail(card.entryId, emptyMap(), null) } ?: return
-    val prerequisite = detail.chain.firstOrNull { !it.label.startsWith(card.name) }
+    val prerequisite = detail.chain.firstOrNull { !it.isTarget }
     EditorRow {
         Column(Modifier.weight(1f).clickable(role = Role.Button, onClickLabel = "Подробнее о «${card.name}»") { state.openPerk(context, card.entryId) }) {
             Text(

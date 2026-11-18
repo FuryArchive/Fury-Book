@@ -1,10 +1,8 @@
 from pathlib import Path
 
-# Stage 2b: the sheet's group manager and roll flow are the shared ones in shared/.../ui/sheet.
+# The sheet's roll flow is the shared one in shared/.../ui/sheet.
 ROOT = Path(__file__).resolve().parents[2]
 SHEET_DIR = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet'
-MANAGER = SHEET_DIR / 'SheetGroupManager.kt'
-DRAG = SHEET_DIR / 'SheetGroupDrag.kt'
 SESSION = SHEET_DIR / 'SheetRollSession.kt'
 SCREEN = SHEET_DIR / 'SheetPlay.kt'
 

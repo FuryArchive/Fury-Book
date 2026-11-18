@@ -104,4 +104,17 @@ class SheetScreenStateTest {
         state.syncHost(Any())
         kotlin.test.assertFalse(state.editing)
     }
+
+    @Test
+    fun openingTheEditorTakesOneSnapshotPerVisit() {
+        val state = SheetScreenState()
+        val opened = mutableListOf<Boolean>()
+        state.onEditorOpening = { forceBasics -> opened += forceBasics }
+        state.openEditor(forceBasics = true)
+        state.openEditor(forceBasics = false)
+        kotlin.test.assertEquals(listOf(true), opened)
+        state.updateEditing(false)
+        state.openEditor(forceBasics = false)
+        kotlin.test.assertEquals(listOf(true, false), opened)
+    }
 }

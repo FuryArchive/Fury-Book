@@ -79,9 +79,15 @@ class SheetScreenState {
         host = next
     }
 
+    /** Set by the screen: takes the editor's snapshot when a visit starts, outside composition. */
+    var onEditorOpening: ((forceBasics: Boolean) -> Unit)? = null
+
     fun openEditor(forceBasics: Boolean) {
         editorForceBasics = forceBasics
-        if (!editing) editorSession++
+        if (!editing) {
+            editorSession++
+            onEditorOpening?.invoke(forceBasics)
+        }
         updateEditing(true)
     }
 

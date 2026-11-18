@@ -74,13 +74,26 @@ class EditorState {
         optionIndex = null
     }
 
-    /** The toast offers «Вернуть» (one-step undo): set for «Отменить всё», which the application records as one undo step. */
+    /**
+     * The toast offers «Вернуть» (one-step undo) only right after «Отменить всё», which the application records
+     * as one undo step, and only while the character is still exactly as the restore left it: any later change
+     * takes that undo slot, so «Вернуть» would undo the wrong thing.
+     */
     var toastUndoable: Boolean by mutableStateOf(false)
         private set
+    private var undoableAt: CharacterRestorePoint? = null
 
-    fun flash(text: String, undoable: Boolean = false) {
+    fun flash(text: String, undoableAt: CharacterRestorePoint? = null) {
         toast = text
-        toastUndoable = undoable
+        this.undoableAt = undoableAt
+        toastUndoable = undoableAt != null
+    }
+
+    fun dropStaleUndo(current: CharacterRestorePoint) {
+        if (toastUndoable && current != undoableAt) {
+            toastUndoable = false
+            undoableAt = null
+        }
     }
 
     fun next(host: DublEditorHost) = move(host, +1)
@@ -93,3 +106,7 @@ class EditorState {
         step = steps[(index + delta).coerceIn(0, steps.lastIndex)]
     }
 }
+
+/** Scroll position (px) that centres the current step tab in the tab strip, clamped to the scroll range. */
+fun editorTabScrollTarget(tabStart: Int, tabWidth: Int, viewport: Int, maxScroll: Int): Int =
+    (tabStart + tabWidth / 2 - viewport / 2).coerceIn(0, maxScroll.coerceAtLeast(0))

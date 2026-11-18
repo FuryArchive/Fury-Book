@@ -87,10 +87,10 @@ class SheetPlayState {
     }
 }
 
-/** Small resources (max 1–10, not health) show one pip per point; the rest a bar. */
 /** Opens the resources dialog (hide/show meters, add custom resources) from the play sheet. */
 internal const val SHEET_RESOURCES_SETUP = "Настроить ресурсы"
 
+/** Small resources (max 1–10, not health) show one pip per point; the rest a bar. */
 internal fun resourceUsesPips(vital: SheetVital): Boolean = vital.id != "health" && vital.maximum in 1..10
 
 /** Chips shown on the desktop condition line and how many hide behind «+N». */
