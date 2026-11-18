@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterEconomy
+import com.furybook.dubl.model.resolveSkill
 import com.furybook.dubl.model.CharacterEconomyBreakdown
 import com.furybook.dubl.model.displayNotes
 import com.furybook.dubl.model.SheetGroupingRules
@@ -111,7 +112,7 @@ fun SheetScreen(
 
 /** Phone and tablet roll: the dialog with the roll options; desktop shows the same panel in its tray. */
 @Composable
-private fun SheetScreenRollDialog(host: DublSheetEditHost, layout: SheetLayout, state: SheetScreenState) {
+private fun SheetScreenRollDialog(host: DublEditorHost, layout: SheetLayout, state: SheetScreenState) {
     val dialogRequest = state.request
     if (layout != SheetLayout.WIDE_WITH_TRAY && state.rollOpen && dialogRequest != null) {
         // FuryDialogScaffold scrolls its content and picks sheet or centred panel by width. The roll
@@ -167,7 +168,7 @@ internal fun rememberSheetEconomy(host: DublSheetEditHost): CharacterEconomyBrea
 
 /** The roll panel for the current setup, or the tray's empty state before anything was tapped. */
 @Composable
-private fun SheetScreenRoll(host: DublSheetEditHost, state: SheetScreenState, modifier: Modifier, inlineRollButton: Boolean = true) {
+private fun SheetScreenRoll(host: DublEditorHost, state: SheetScreenState, modifier: Modifier, inlineRollButton: Boolean = true) {
     val request = state.request
     if (request == null) {
         FuryRollTray(view = null, history = state.history, onRollAgain = {}, modifier = modifier)
@@ -183,5 +184,9 @@ private fun SheetScreenRoll(host: DublSheetEditHost, state: SheetScreenState, mo
         history = state.history,
         modifier = modifier,
         showRollButton = inlineRollButton,
+        onAttributePicked = { skillId, attribute ->
+            val skill = host.active.resolveSkill(skillId)
+            if (skill != null && sheetRemembersAttribute(skill, attribute)) host.setPreferredSkillAttribute(skillId, attribute)
+        },
     )
 }

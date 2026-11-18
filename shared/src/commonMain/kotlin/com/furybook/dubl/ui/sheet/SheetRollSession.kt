@@ -1,6 +1,8 @@
 package com.furybook.dubl.ui.sheet
 
 import com.furybook.dubl.model.AttributeId
+import com.furybook.dubl.model.CharacterSheetExtras
+import com.furybook.dubl.model.ResolvedSkill
 import com.furybook.dubl.model.CharacterRollPreset
 import com.furybook.dubl.model.FlurryWeaponProfile
 import com.furybook.dubl.model.RollContext
@@ -62,6 +64,7 @@ data class SheetRollOptions(
     val reminders: List<String> = emptyList(), // "Источник: текст", as the desktop dialogs list them
     val effectDescriptions: Map<String, String> = emptyMap(), // toggle id to its rule text
     val automaticEffects: List<String> = emptyList(), // "Источник +N", applied without a toggle
+    val otherAttributeChoices: List<AttributeId> = emptyList(), // behind «другая…»: one-off GM calls for a skill roll
 )
 
 private const val BOTH_MODES_REASON = "Нельзя бросать с преимуществом и помехой одновременно"
@@ -101,9 +104,9 @@ private fun resolveSkillRoll(host: DublSheetHost, request: SheetRollRequest, ski
         )
         return ResolvedSheetRoll(options, preset.title, 0, RollMode.NORMAL, 0)
     }
-    // The sheet lets the player pick any characteristic for a single skill roll (desktop
-    // SkillAttributeChoiceDialog), starting from the skill's stock one.
-    val attribute = request.attribute ?: skill.stockAttribute
+    // Owner ruling: the skill's allowed characteristics, plus «другая…» for a one-off GM call. It starts on
+    // the remembered choice when that is still allowed, otherwise on the stock one.
+    val attribute = request.attribute ?: sheetRememberedAttribute(skill, host.extras)
     val calculation = character.skillCalculationForRoll(skill, attribute)
     val preset = CharacterRollPreset(
         context = RollContext.SKILL,
@@ -138,7 +141,8 @@ private fun resolveSkillRoll(host: DublSheetHost, request: SheetRollRequest, ski
     val options = SheetRollOptions(
         title = skill.name,
         skillChoices = emptyList(),
-        attributeChoices = AttributeId.entries.toList(),
+        attributeChoices = skill.attributes,
+        otherAttributeChoices = AttributeId.entries.filter { it !in skill.attributes },
         effectToggles = effects.options.map { it.id to it.label },
         effectDescriptions = effects.options.associate { it.id to it.description },
         automaticEffects = effects.automaticContributions.map { "${it.label} ${signed(it.value)}" },
@@ -216,6 +220,13 @@ private fun resolveContextRoll(
         effectCount = if (mode == RollMode.ADVANTAGE) adv else if (mode == RollMode.HINDRANCE) hind else 0,
     )
 }
+
+/** Where a skill roll starts: the remembered characteristic if the skill still allows it, else its stock one. */
+fun sheetRememberedAttribute(skill: ResolvedSkill, extras: CharacterSheetExtras): AttributeId =
+    extras.preferredSkillAttributes[skill.id]?.takeIf { it in skill.attributes } ?: skill.stockAttribute
+
+/** Only allowed picks become the remembered choice; a one-off «другая…» pick is not saved. */
+fun sheetRemembersAttribute(skill: ResolvedSkill, attribute: AttributeId): Boolean = attribute in skill.attributes
 
 fun sheetRollOptions(host: DublSheetHost, request: SheetRollRequest): SheetRollOptions =
     resolveSheetRoll(host, request).options

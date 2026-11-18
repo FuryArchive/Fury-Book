@@ -14,6 +14,7 @@ import com.furybook.dubl.model.SkillEffectDefinition
 import com.furybook.dubl.model.SkillEffectMode
 import com.furybook.dubl.model.resolve
 import com.furybook.dubl.model.resolveAttack
+import com.furybook.dubl.model.resolveSkill
 import com.furybook.dubl.model.rollPreset
 import com.furybook.dubl.model.rule
 import com.furybook.dubl.model.summary
@@ -315,5 +316,40 @@ class SheetRollSessionTest {
     fun rollButtonLabelMatchesTray() {
         assertEquals("Бросить", sheetRollButtonLabel(rolled = false))
         assertEquals("Бросить снова", sheetRollButtonLabel(rolled = true))
+    }
+
+    private val sneaky = hornet.copy(
+        skills = hornet.skills + ("stealth" to CharacterSkill(id = "stealth", definitionId = "stealth", rank = 3, attributes = listOf(AttributeId.DEXTERITY, AttributeId.PERCEPTION))),
+    )
+
+    @Test
+    fun skillRollOffersAllowedThenOthers() {
+        val options = sheetRollOptions(FakeSheetHost(sneaky), SheetRollRequest(SheetRollSubject.Skill("stealth")))
+        assertEquals(listOf(AttributeId.DEXTERITY, AttributeId.PERCEPTION), options.attributeChoices)
+        assertEquals(AttributeId.entries - setOf(AttributeId.DEXTERITY, AttributeId.PERCEPTION), options.otherAttributeChoices)
+    }
+
+    @Test
+    fun rollStartsOnAllowedPreferredOrStock() {
+        val skill = sneaky.resolveSkill("stealth")!!
+        val preferred = com.furybook.dubl.model.CharacterSheetExtras(preferredSkillAttributes = mapOf("stealth" to AttributeId.PERCEPTION))
+        assertEquals(AttributeId.PERCEPTION, sheetRememberedAttribute(skill, preferred))
+        val stale = com.furybook.dubl.model.CharacterSheetExtras(preferredSkillAttributes = mapOf("stealth" to AttributeId.STRENGTH))
+        assertEquals(skill.stockAttribute, sheetRememberedAttribute(skill, stale))
+        val host = FakeSheetHost(sneaky, preferred)
+        assertTrue(sheetRollFormulaLine(host, SheetRollRequest(SheetRollSubject.Skill("stealth")))!!.contains("Восприятие"))
+    }
+
+    @Test
+    fun onlyAllowedPicksAreRemembered() {
+        val skill = sneaky.resolveSkill("stealth")!!
+        assertTrue(sheetRemembersAttribute(skill, AttributeId.PERCEPTION))
+        assertEquals(false, sheetRemembersAttribute(skill, AttributeId.STRENGTH))
+    }
+
+    @Test
+    fun oneOffAttributeStillRolls() {
+        val line = sheetRollFormulaLine(FakeSheetHost(sneaky), SheetRollRequest(SheetRollSubject.Skill("stealth"), attribute = AttributeId.STRENGTH))!!
+        assertTrue("Сила" in line, line)
     }
 }

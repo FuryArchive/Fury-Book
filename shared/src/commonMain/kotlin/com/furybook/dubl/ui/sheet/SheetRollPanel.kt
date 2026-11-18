@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.furybook.dubl.model.AttributeId
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -70,6 +71,8 @@ fun SheetRollPanel(
     history: List<FuryRollHistoryEntry>,
     modifier: Modifier = Modifier,
     showRollButton: Boolean = true,
+    /** A characteristic picked for a skill roll; the screen saves it as the remembered one when it is allowed. */
+    onAttributePicked: (skillId: String, attribute: AttributeId) -> Unit = { _, _ -> },
 ) {
     val options = sheetRollOptions(host, request)
     val subject = request.subject
@@ -98,7 +101,7 @@ fun SheetRollPanel(
                 Modifier.fillMaxWidth().clip(FuryShapes.panel).background(DublSurface).padding(FurySpacing.md),
                 verticalArrangement = Arrangement.spacedBy(FurySpacing.md),
             ) {
-                RollSetup(host, request, options, context, onRequestChange)
+                RollSetup(host, request, options, context, onRequestChange, onAttributePicked)
             }
         }
     }
@@ -111,6 +114,7 @@ private fun RollSetup(
     options: SheetRollOptions,
     context: RollContext?,
     onRequestChange: (SheetRollRequest) -> Unit,
+    onAttributePicked: (skillId: String, attribute: AttributeId) -> Unit,
 ) {
     // Desktop «Расчёт броска» / Android «Бонус проверки»: what the roll adds before it is made.
     sheetRollFormulaLine(host, request)?.let { Muted(it) }
@@ -125,14 +129,35 @@ private fun RollSetup(
     }
     if (options.attributeChoices.isNotEmpty()) {
         val subject = request.subject
-        val fallback = if (subject is SheetRollSubject.Skill) host.active.resolveSkill(subject.skillId)?.stockAttribute else null
+        val skill = (subject as? SheetRollSubject.Skill)?.let { host.active.resolveSkill(it.skillId) }
+        val fallback = skill?.let { sheetRememberedAttribute(it, host.extras) }
+        val pick: (AttributeId) -> Unit = { attribute ->
+            onRequestChange(request.copy(attribute = attribute))
+            if (skill != null) onAttributePicked(skill.id, attribute)
+        }
         Section("Характеристика")
+        val others = options.otherAttributeChoices
+        var showOthers by remember(subject) { mutableStateOf(false) }
+        val oneOff = request.attribute != null && request.attribute in others
         FuryChipGroup(
             choices = options.attributeChoices.map { FuryChoice(it, it.shortTitle) },
-            selected = request.attribute?.takeIf { it in options.attributeChoices } ?: fallback ?: options.attributeChoices.first(),
-            onSelect = { onRequestChange(request.copy(attribute = it)) },
+            selected = request.attribute?.takeIf { it in options.attributeChoices } ?: if (oneOff) null else fallback ?: options.attributeChoices.first(),
+            onSelect = pick,
             columns = 4,
         )
+        if (others.isNotEmpty()) {
+            if (showOthers || oneOff) {
+                Muted("Другая характеристика — разово, по решению мастера:")
+                FuryChipGroup(
+                    choices = others.map { FuryChoice(it, it.shortTitle) },
+                    selected = request.attribute?.takeIf { it in others },
+                    onSelect = pick,
+                    columns = 4,
+                )
+            } else {
+                FuryButton("другая…", { showOthers = true }, style = FuryButtonStyle.Secondary)
+            }
+        }
     }
     if (context == RollContext.FLURRY) {
         Section("Оружие")
