@@ -61,4 +61,15 @@ class EditorStateTest {
         assertEquals(EditorStep.BASICS, state.step)
         assertEquals(null, state.selectedEntryId)
     }
+
+    @Test
+    fun undoableToastOffersReturnOnlyAfterRestore() {
+        val state = EditorState()
+        state.flash("Взято: Острый слух")
+        assertFalse(state.toastUndoable)
+        state.flash("Персонаж возвращён", undoable = true)
+        assertTrue(state.toastUndoable)
+        state.flash("Ещё что-то")
+        assertFalse(state.toastUndoable)
+    }
 }

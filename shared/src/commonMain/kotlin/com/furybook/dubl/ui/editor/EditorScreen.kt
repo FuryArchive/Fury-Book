@@ -125,12 +125,22 @@ fun EditorScreen(
         }
         toast?.let { text ->
             Box(Modifier.fillMaxSize().padding(bottom = if (wide) 72.dp else 84.dp), contentAlignment = Alignment.BottomCenter) {
-                Text(
-                    text,
-                    Modifier.widthIn(max = 520.dp).padding(horizontal = FurySpacing.lg).clip(RoundedCornerShape(12.dp)).background(p.text)
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
-                    color = p.bg, style = MaterialTheme.typography.labelLarge,
-                )
+                Row(
+                    Modifier.widthIn(max = 560.dp).padding(horizontal = FurySpacing.lg).clip(RoundedCornerShape(12.dp)).background(p.text)
+                        .padding(start = 14.dp, end = if (state.toastUndoable) 4.dp else 14.dp, top = 4.dp, bottom = 4.dp).heightIn(min = 40.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(text, Modifier.weight(1f, fill = false), color = p.bg, style = MaterialTheme.typography.labelLarge)
+                    if (state.toastUndoable) {
+                        Box(
+                            Modifier.heightIn(min = 40.dp).clip(RoundedCornerShape(8.dp))
+                                .clickable(role = Role.Button) { if (host.undoLast()) state.flash("Изменения возвращены") else state.toast = null }
+                                .padding(horizontal = 12.dp),
+                            contentAlignment = Alignment.Center,
+                        ) { Text("Вернуть", color = if (p.isLight) p.goldSoft else p.acc2, style = MaterialTheme.typography.labelLarge) }
+                    }
+                }
             }
         }
     }
@@ -140,7 +150,7 @@ private fun undoAll(host: DublEditorHost, state: EditorState) {
     val point = state.snapshot ?: return
     if (host.restore(point)) {
         state.changesOpen = false
-        state.flash("Персонаж возвращён к тому, каким был при открытии редактора")
+        state.flash("Персонаж возвращён к тому, каким был при открытии редактора", undoable = true)
     }
 }
 

@@ -69,7 +69,14 @@ class EditorState {
         optionIndex = null
     }
 
-    fun flash(text: String) { toast = text }
+    /** The toast offers «Вернуть» (one-step undo): set for «Отменить всё», which the application records as one undo step. */
+    var toastUndoable: Boolean by mutableStateOf(false)
+        private set
+
+    fun flash(text: String, undoable: Boolean = false) {
+        toast = text
+        toastUndoable = undoable
+    }
 
     fun next(host: DublEditorHost) = move(host, +1)
 
