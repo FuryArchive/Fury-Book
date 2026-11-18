@@ -141,4 +141,12 @@ class EditorStateTest {
         assertTrue(editorToastMs(undoable = true) >= 5000)
         assertTrue(editorToastMs(undoable = false) < editorToastMs(undoable = true))
     }
+
+    @Test
+    fun skillColumnsFollowTheRoomNotTheWindowClass() {
+        // 1440 window: ~896dp of content → two columns; 1100 window: ~556dp → one, or the names vanish.
+        assertEquals(2, editorSkillColumns(896))
+        assertEquals(1, editorSkillColumns(556))
+        assertEquals(1, editorSkillColumns(360))
+    }
 }

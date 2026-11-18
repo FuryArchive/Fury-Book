@@ -46,6 +46,9 @@ import com.furybook.ui.theme.FurySpacing
 
 private val SKILL_PANEL_WIDTH = 380.dp
 
+/** Two group columns only when each keeps room for names next to the ±/bonus controls (~380dp each). */
+internal fun editorSkillColumns(contentWidthDp: Int): Int = if (contentWidthDp >= 760) 2 else 1
+
 /**
  * Умения: ranks by attribute group, the next rank's price, adding specializations or custom skills — and, since
  * the Умения tab is gone, each skill's settings in a panel (click the name), plus the hidden list.
@@ -82,7 +85,8 @@ internal fun EditorSkillsStep(host: DublEditorHost, state: EditorState, data: Ed
         }
     }
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val split = wide && editorPerksSplit(maxWidth.value.toInt())
+        val contentWidth = maxWidth.value.toInt()
+        val split = wide && editorPerksSplit(contentWidth)
         when {
             split && detail != null -> Row(Modifier.fillMaxSize().padding(start = padding, end = padding, top = padding), horizontalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
                 Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(bottom = padding)) { list(1) }
@@ -93,7 +97,9 @@ internal fun EditorSkillsStep(host: DublEditorHost, state: EditorState, data: Ed
             detail != null -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)) {
                 EditorSkillPanel(host, state, detail, layout, showBack = true)
             }
-            else -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)) { list(if (wide) 2 else 1) }
+            else -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)) {
+                list(editorSkillColumns(contentWidth - 2 * padding.value.toInt()))
+            }
         }
     }
     if (formOpen) {
