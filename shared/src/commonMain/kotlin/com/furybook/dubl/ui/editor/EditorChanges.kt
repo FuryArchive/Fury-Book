@@ -10,7 +10,8 @@ import com.furybook.dubl.model.resolvedSkills
 /** One line of «Изменения за этот заход»; [xpSpent] > 0 means free XP went down. */
 data class EditorChangeLine(val text: String, val xpSpent: Int)
 
-data class EditorChanges(val lines: List<EditorChangeLine>, val netSpent: Int)
+/** [netSpent]: how much free XP went down; [spent]: how much more XP is spent on the build (GM XP is neither). */
+data class EditorChanges(val lines: List<EditorChangeLine>, val netSpent: Int, val spent: Int = 0)
 
 /**
  * What changed since the editor opened, one line per field. Each line's XP is what the economy says
@@ -82,15 +83,23 @@ fun editorChanges(
     // Whatever else differs is still reverted by «Отменить всё», so the list (and the button) must not look empty.
     if (lines.isEmpty() && before != after) add("Другие изменения")
 
-    val net = CharacterEconomy.breakdown(b, catalog, includeChi).remainingXp - CharacterEconomy.breakdown(a, catalog, includeChi).remainingXp
-    return EditorChanges(lines, net)
+    val beforeEconomy = CharacterEconomy.breakdown(b, catalog, includeChi)
+    val afterEconomy = CharacterEconomy.breakdown(a, catalog, includeChi)
+    return EditorChanges(lines, beforeEconomy.remainingXp - afterEconomy.remainingXp, afterEconomy.spentXp - beforeEconomy.spentXp)
 }
 
-fun editorNetText(netSpent: Int): String = when {
-    netSpent > 0 -> "Потрачено $netSpent XP"
-    netSpent < 0 -> "Возвращено ${-netSpent} XP"
-    else -> "Опыт не изменился"
+fun editorNetText(spent: Int, freeDelta: Int): String {
+    val spentText = if (spent > 0) "Потрачено $spent XP" else "Возвращено ${-spent} XP"
+    val freeText = "свободно " + (if (freeDelta > 0) "+" else "") + freeDelta
+    return when {
+        spent == 0 && freeDelta == 0 -> "Опыт не изменился"
+        spent == 0 -> "Свободно " + (if (freeDelta > 0) "+" else "") + "$freeDelta XP"
+        freeDelta == -spent -> spentText
+        else -> "$spentText · $freeText"
+    }
 }
+
+fun editorNetText(changes: EditorChanges): String = editorNetText(changes.spent, -changes.netSpent)
 
 fun editorXpText(spent: Int): String = when {
     spent > 0 -> "−$spent XP"

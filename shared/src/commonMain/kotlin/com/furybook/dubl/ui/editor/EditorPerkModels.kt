@@ -238,11 +238,12 @@ private fun EditorPerkContext.cardsFor(kind: EditorPerkKind, query: String): Lis
         .toList()
 }
 
-fun editorPerkGroups(host: DublEditorHost, kind: EditorPerkKind, filter: EditorPerkFilter, query: String): List<EditorPerkGroup> =
-    EditorPerkContext(host).perkGroups(kind, filter, query)
+fun editorPerkGroups(host: DublEditorHost, kind: EditorPerkKind, filter: EditorPerkFilter, query: String, keep: String? = null): List<EditorPerkGroup> =
+    EditorPerkContext(host).perkGroups(kind, filter, query, keep)
 
-fun EditorPerkContext.perkGroups(kind: EditorPerkKind, filter: EditorPerkFilter, query: String): List<EditorPerkGroup> =
-    cardsFor(kind, query).filter { it.second.status.matches(filter) }
+/** [keep]: the open perk stays listed even once it no longer matches the filter (just taken, removed). */
+fun EditorPerkContext.perkGroups(kind: EditorPerkKind, filter: EditorPerkFilter, query: String, keep: String? = null): List<EditorPerkGroup> =
+    cardsFor(kind, query).filter { it.second.entryId == keep || it.second.status.matches(filter) }
         .groupBy({ it.first }, { it.second })
         .map { (title, cards) -> EditorPerkGroup(title, cards) }
 

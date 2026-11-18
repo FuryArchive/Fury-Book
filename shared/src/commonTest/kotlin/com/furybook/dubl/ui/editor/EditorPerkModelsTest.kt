@@ -137,4 +137,16 @@ class EditorPerkModelsTest {
         val chain = editorPerkDetail(host, ranger.id, emptyMap(), null)!!.action as EditorPerkAction.Acquire
         assertTrue(host.acquireDevelopment(chain.request).applied)
     }
+
+    @Test
+    fun takenPerkStaysListedWhileItIsOpen() {
+        // Taking an open perk under «Доступно» must not make the row vanish and the list slide under the cursor.
+        val single = entry("feat_once", "Разовый", "Общие", 10, 1, "", "Один ранг.")
+        val host = host(devCatalog = DevelopmentCatalog("test", catalog.entries + single))
+        val detail = editorPerkDetail(host, single.id, emptyMap(), null)!!
+        assertTrue(host.acquireDevelopment((detail.action as EditorPerkAction.Acquire).request).applied)
+        fun listed(keep: String?) = editorPerkGroups(host, EditorPerkKind.REGULAR, EditorPerkFilter.AVAILABLE, "", keep).flatMap { g -> g.cards.map { it.entryId } }
+        assertTrue(single.id in listed(keep = single.id))
+        assertFalse(single.id in listed(keep = null))
+    }
 }

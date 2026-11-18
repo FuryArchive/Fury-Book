@@ -76,7 +76,8 @@ fun editorSkillGroups(host: DublEditorHost, before: DublCharacter, rankedOnly: B
         val rows = group.rows
             .filter { row -> !rankedOnly || row.rank > 0 || (before.skills[row.skillId]?.rank ?: 0) > 0 }
             .filter { row -> needle.isBlank() || needle in developmentNormalize(row.name) }
-            .sortedWith(compareByDescending<com.furybook.dubl.ui.sheet.SheetSkillRow> { it.rank }.thenBy { developmentNormalize(it.name) })
+            // Ordered by the rank at the start of the visit, so a row never moves under the cursor while you click it.
+            .sortedWith(compareByDescending<com.furybook.dubl.ui.sheet.SheetSkillRow> { before.skills[it.skillId]?.rank ?: 0 }.thenBy { developmentNormalize(it.name) })
             .map { row ->
                 val next = character.skillNextRankCost(row.rank)
                 EditorSkillRow(
@@ -94,42 +95,66 @@ fun editorSkillGroups(host: DublEditorHost, before: DublCharacter, rankedOnly: B
     }
 }
 
-data class EditorDevSkill(val skillId: String, val name: String, val attrShort: String, val from: Int, val cost: Int, val bonusAfter: Int)
+/** [affordable] false: the row stays (lists never shift mid-visit) but its button is off — no XP left, or maxed. */
+data class EditorDevSkill(val skillId: String, val name: String, val attrShort: String, val from: Int, val cost: Int, val bonusAfter: Int, val affordable: Boolean = true)
 
-data class EditorDevAttr(val id: AttributeId, val short: String, val from: Int, val cost: Int)
+data class EditorDevAttr(val id: AttributeId, val short: String, val from: Int, val cost: Int, val affordable: Boolean = true)
+
+/** Which rows Развитие shows, in order; fixed for the rest of the visit once first computed. */
+data class EditorDevelopmentPins(val skills: List<String>, val attributes: List<AttributeId>, val perks: List<String>, val almost: List<String>)
 
 data class EditorDevelopmentView(
     val skills: List<EditorDevSkill>,
     val attributes: List<EditorDevAttr>,
     val perks: List<EditorPerkCard>,
     val almost: List<EditorPerkCard>,
-)
+) {
+    val pins: EditorDevelopmentPins
+        get() = EditorDevelopmentPins(skills.map { it.skillId }, attributes.map { it.id }, perks.map { it.entryId }, almost.map { it.entryId })
+}
 
-/** The Развитие landing: what fits in free XP right now, cheapest or strongest first. */
-fun editorDevelopmentView(host: DublEditorHost): EditorDevelopmentView = EditorPerkContext(host).developmentView(host)
+/**
+ * The Развитие landing: what fits in free XP right now, cheapest or strongest first. With [pins] (from the first
+ * view of this visit) the same rows come back in the same order with their current state, so nothing moves while
+ * the player taps; new options show on the next visit to the step.
+ */
+fun editorDevelopmentView(host: DublEditorHost, pins: EditorDevelopmentPins? = null): EditorDevelopmentView =
+    EditorPerkContext(host).developmentView(host, pins)
 
-fun EditorPerkContext.developmentView(host: DublEditorHost): EditorDevelopmentView {
+fun EditorPerkContext.developmentView(host: DublEditorHost, pins: EditorDevelopmentPins? = null): EditorDevelopmentView {
     val free = economy.remainingXp
-    val skills = sheetSkillsByAttribute(host, rankedOnly = true).flatMap { group -> group.rows.map { group.attribute to it } }
-        .mapNotNull { (attribute, row) ->
-            val cost = character.skillNextRankCost(row.rank) ?: return@mapNotNull null
-            if (cost > free) return@mapNotNull null
-            EditorDevSkill(row.skillId, row.name, attribute.shortTitle, row.rank, cost, (row.bonus ?: 0) + 1)
-        }
+    val skillRows = sheetSkillsByAttribute(host, rankedOnly = true).flatMap { group -> group.rows.map { group.attribute to it } }
+    fun devSkill(attribute: AttributeId, row: com.furybook.dubl.ui.sheet.SheetSkillRow): EditorDevSkill {
+        val cost = character.skillNextRankCost(row.rank)
+        return EditorDevSkill(row.skillId, row.name, attribute.shortTitle, row.rank, cost ?: 0, (row.bonus ?: 0) + 1, cost != null && cost <= free)
+    }
+    fun devAttr(id: AttributeId): EditorDevAttr {
+        val from = character.base(id)
+        val cost = CharacterEconomy.nextAttributeCost(from)
+        return EditorDevAttr(id, id.shortTitle, from, cost ?: 0, cost != null && cost <= free)
+    }
+    val cards = allCards()
+    if (pins != null) {
+        val byId = cards.associateBy { it.entryId }
+        val rowsById = skillRows.associateBy { it.second.skillId }
+        return EditorDevelopmentView(
+            skills = pins.skills.mapNotNull { id -> rowsById[id]?.let { (attribute, row) -> devSkill(attribute, row) } },
+            attributes = pins.attributes.map(::devAttr),
+            perks = pins.perks.mapNotNull(byId::get),
+            almost = pins.almost.mapNotNull(byId::get),
+        )
+    }
+    val skills = skillRows.map { (attribute, row) -> devSkill(attribute, row) }.filter { it.affordable }
         .sortedByDescending { it.bonusAfter }
         .take(6)
-    val attributes = AttributeId.entries.mapNotNull { id ->
-        val from = character.base(id)
-        val cost = CharacterEconomy.nextAttributeCost(from) ?: return@mapNotNull null
-        if (cost > free) null else EditorDevAttr(id, id.shortTitle, from, cost)
-    }.sortedBy { it.cost }.take(8)
-    val cards = allCards().filter { it.nextCost <= free }
-    val perks = cards
+    val attributes = AttributeId.entries.map(::devAttr).filter { it.affordable }.sortedBy { it.cost }.take(8)
+    val fitting = cards.filter { it.nextCost <= free }
+    val perks = fitting
         .filter { it.status == EditorPerkStatus.AVAILABLE || it.status == EditorPerkStatus.UPGRADABLE }
         .filter { catalog.byId(it.entryId)?.isAbility != true }
         .sortedBy { it.nextCost }
         .take(6)
-    val almost = cards.filter { it.status == EditorPerkStatus.ALMOST }.sortedBy { it.nextCost }.take(4)
+    val almost = fitting.filter { it.status == EditorPerkStatus.ALMOST }.sortedBy { it.nextCost }.take(4)
     return EditorDevelopmentView(skills, attributes, perks, almost)
 }
 
@@ -162,4 +187,29 @@ fun editorNameFieldInitial(character: DublCharacter): String =
 fun editorSpentFraction(spent: Int, total: Int): Float = when {
     total <= 0 -> if (spent > 0) 1f else 0f
     else -> (spent.toFloat() / total).coerceIn(0f, 1f)
+}
+
+/**
+ * Splits skill groups (given as row counts, in attribute order) into [columns] independent columns, each group
+ * going to the currently shorter column. Order is kept within a column; an empty group still takes one line.
+ */
+fun editorBalancedColumns(rowCounts: List<Int>, columns: Int): List<List<Int>> {
+    val result = List(columns.coerceAtLeast(1)) { mutableListOf<Int>() }
+    val heights = IntArray(result.size)
+    rowCounts.forEachIndexed { index, rows ->
+        val target = heights.indices.minBy { heights[it] }
+        result[target] += index
+        heights[target] += rows.coerceAtLeast(1) + 1
+    }
+    return result
+}
+
+/** Развитие's subtitle; an overspent budget is said in words, never as "-5 ОС". */
+fun editorDevelopmentSubtitle(freeXp: Int, freeAbilityPoints: Int): String {
+    val tail = " Что можно взять прямо сейчас, одним нажатием."
+    return when {
+        freeXp < 0 -> "Перерасход опыта: ${-freeXp} XP. Верните часть опыта или добавьте XP на «Основе»."
+        freeAbilityPoints < 0 -> "Свободно $freeXp XP; очков способностей потрачено на ${-freeAbilityPoints} больше бюджета.$tail"
+        else -> "Свободно $freeXp XP и $freeAbilityPoints ОС.$tail"
+    }
 }

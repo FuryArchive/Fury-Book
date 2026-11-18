@@ -3,7 +3,6 @@ package com.furybook.dubl.ui.editor
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -71,8 +70,8 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
     if (state.perkKind !in kinds) state.perkKind = EditorPerkKind.REGULAR
     val kindCounts = remember(data) { kinds.associateWith { context.perkCounts(it).getValue(EditorPerkFilter.ALL) } }
     val counts = remember(data, state.perkKind) { context.perkCounts(state.perkKind) }
-    val groups = remember(data, state.perkKind, state.perkFilter, state.perkQuery) {
-        context.perkGroups(state.perkKind, state.perkFilter, state.perkQuery)
+    val groups = remember(data, state.perkKind, state.perkFilter, state.perkQuery, state.selectedEntryId) {
+        context.perkGroups(state.perkKind, state.perkFilter, state.perkQuery, keep = state.selectedEntryId)
     }
     val selected = state.selectedEntryId
     val detail = remember(data, selected, state.choiceSelections, state.optionIndex) {
@@ -126,7 +125,8 @@ private fun PerksHeader(
     val control = editorControl(layout)
     Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
         EditorStepTitle("Навыки", "Нажмите навык — откроются правила, требования и кнопка «Взять». Недостающие ступени берутся цепочкой.")
-        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        // Wraps rather than scrolls: «Взятые» must never hide off the edge of a phone.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             kinds.forEach { kind ->
                 EditorChip("${KIND_TITLES.getValue(kind)} ${kindCounts[kind] ?: 0}", state.perkKind == kind, {
                     state.perkKind = kind
@@ -206,8 +206,9 @@ private fun PerkDetail(host: DublEditorHost, state: EditorState, detail: EditorP
         }
         if (detail.maxRank > 1) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                EditorPips(detail.rank, detail.maxRank, p.gold, pipWidth = 14.dp, height = 6.dp)
-                Text("ранг ${detail.rank} из ${detail.maxRank}", color = p.muted, style = MaterialTheme.typography.labelSmall)
+                // Long rank ladders (Невероятное здоровье has 20) read better as text than as a row of pips.
+                if (detail.maxRank <= 10) EditorPips(detail.rank, detail.maxRank, p.gold, pipWidth = 14.dp, height = 6.dp)
+                Text("ранг ${detail.rank} из ${detail.maxRank}", color = p.muted, style = MaterialTheme.typography.labelSmall, maxLines = 1, softWrap = false)
             }
         }
         Text(

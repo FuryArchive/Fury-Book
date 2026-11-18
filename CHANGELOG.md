@@ -9,6 +9,9 @@
 - Every change saves at once; «Отменить всё» returns the character to how it was when the editor opened (one undoable step).
 - «Новый персонаж» opens the editor at Основа; the play sheet's «Настроить ресурсы» opens resource visibility and custom resources.
 - The custom skill/perk group manager is retired; saved groups stay in the data, sync and transfer files.
+- Lists in the editor no longer move under the cursor: skills keep their order for the visit, Развитие keeps its rows (taken ones show «Взят»), and an open perk stays listed after it is taken.
+- The XP summary tells GM XP apart from refunds («Свободно +3500 XP», «Потрачено 545 XP · свободно +2955»); overspent XP and ability points are said in words.
+- Tablets and narrow windows: the section tabs move to their own row when they don't fit beside the title; perk names on the sheet use the free room; long rank ladders show «1/20» instead of twenty pips.
 
 ### Fury Book rebrand
 

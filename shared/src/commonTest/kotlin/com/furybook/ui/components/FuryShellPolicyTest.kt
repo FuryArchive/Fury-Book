@@ -2,6 +2,8 @@ package com.furybook.ui.components
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class FuryShellPolicyTest {
     private val androidSections = listOf(
@@ -42,5 +44,13 @@ class FuryShellPolicyTest {
     fun phoneShellBelow600dp() {
         assertEquals(true, furyShellIsPhone(599))
         assertEquals(false, furyShellIsPhone(600))
+    }
+
+    @Test
+    fun tabsGetTheirOwnRowOnlyWhenTheyDoNotFitBesideTheTitle() {
+        // Natural tab width vs the room left beside the wordmark and the character button (px).
+        assertTrue(furyShellTabsOnOwnRow(tabsWidth = 680, room = 420))
+        assertFalse(furyShellTabsOnOwnRow(tabsWidth = 680, room = 700))
+        assertFalse(furyShellTabsOnOwnRow(tabsWidth = 0, room = 420))
     }
 }

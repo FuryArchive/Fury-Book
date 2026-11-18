@@ -474,16 +474,17 @@ fun SheetPlayHeaderCompact(
 private fun CompactEconomy(economy: CharacterEconomyBreakdown, onClick: () -> Unit) {
     val p = FuryColors.current
     val negative = economy.abilityPointsRemaining < 0
-    Row(
+    // Stacked, so on a 360dp phone the character's name keeps the room (side by side they took ~140dp).
+    Column(
         Modifier.heightIn(min = FuryMinTouch).clip(RoundedCornerShape(10.dp))
             .clickable(role = Role.Button, onClickLabel = "Опыт и очки способностей", onClick = onClick),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterVertically),
+        horizontalAlignment = Alignment.End,
     ) {
-        Box(Modifier.clip(RoundedCornerShape(8.dp)).background(p.goldSoft).border(1.dp, p.goldLine, RoundedCornerShape(8.dp)).padding(horizontal = 8.dp, vertical = 5.dp)) {
+        Box(Modifier.clip(RoundedCornerShape(7.dp)).background(p.goldSoft).border(1.dp, p.goldLine, RoundedCornerShape(7.dp)).padding(horizontal = 7.dp, vertical = 2.dp)) {
             Text("XP ${economy.remainingXp}", color = p.goldText, style = MaterialTheme.typography.labelMedium.merge(TabularNumbers), maxLines = 1, softWrap = false)
         }
-        Box(Modifier.clip(RoundedCornerShape(8.dp)).background(if (negative) p.accSoft else p.panel2).padding(horizontal = 8.dp, vertical = 5.dp)) {
+        Box(Modifier.clip(RoundedCornerShape(7.dp)).background(if (negative) p.accSoft else p.panel2).padding(horizontal = 7.dp, vertical = 2.dp)) {
             Text(
                 "ОС ${economy.abilityPointsRemaining}/${economy.abilityPointsBudget}", color = if (negative) p.accText else p.text,
                 style = MaterialTheme.typography.labelMedium.merge(TabularNumbers), maxLines = 1, softWrap = false,

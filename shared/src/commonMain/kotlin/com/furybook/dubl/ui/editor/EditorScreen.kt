@@ -127,7 +127,7 @@ fun EditorScreen(
             FuryDialogScaffold(
                 title = "Изменения за этот заход",
                 onDismiss = { state.changesOpen = false },
-                subtitle = editorNetText(data.changes.netSpent),
+                subtitle = editorNetText(data.changes),
                 destructive = if (data.changes.lines.isEmpty()) null else FuryDialogAction("Отменить всё", { undoAll(host, state) }),
             ) { EditorChangeList(data.changes) }
         }
@@ -417,7 +417,7 @@ private fun EditorSummary(host: DublEditorHost, state: EditorState, data: Editor
                 if (data.changes.lines.isNotEmpty()) {
                     Box(Modifier.fillMaxWidth().height(1.dp).background(p.line))
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(editorNetText(data.changes.netSpent), Modifier.weight(1f), color = p.muted, style = MaterialTheme.typography.labelSmall)
+                        Text(editorNetText(data.changes), Modifier.weight(1f), color = p.muted, style = MaterialTheme.typography.labelSmall)
                         EditorOutlineButton("Отменить всё", { undoAll(host, state) }, 38.dp, accent = true)
                     }
                 }

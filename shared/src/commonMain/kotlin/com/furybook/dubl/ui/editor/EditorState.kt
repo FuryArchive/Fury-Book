@@ -46,6 +46,8 @@ class EditorState {
     /** Bumped by «Отменить всё» and «Вернуть», so typed-but-unsaved field text is dropped instead of written back. */
     var restoreGeneration: Int by mutableStateOf(0)
         private set
+    /** Rows Развитие pinned on its first view of this visit; cleared when the visit or the step changes. */
+    var developmentPins: EditorDevelopmentPins? = null
 
     fun markRestored() { restoreGeneration++ }
 
@@ -60,6 +62,7 @@ class EditorState {
         skillsRankedOnly = complete
         selectChoices(null)
         changesOpen = false
+        developmentPins = null
     }
 
     /** Another character became active (picker, cloud pull): start over, so no snapshot ever crosses characters. */

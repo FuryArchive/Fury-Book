@@ -129,13 +129,15 @@ private fun PerkCard(card: SheetPerkCard, open: Boolean, brief: Boolean, onToggl
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(card.name, Modifier.weight(1f, fill = false), color = p.text, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                card.costTags.forEach { tag ->
-                    Box(Modifier.clip(RoundedCornerShape(5.dp)).background(p.accSoft).padding(horizontal = 6.dp, vertical = 2.dp)) {
-                        Text(tag, color = p.accText, style = MaterialTheme.typography.labelSmall, maxLines = 1, softWrap = false)
+                // Name and cost tags share all the free room; the name only shortens when it truly has to.
+                Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(card.name, Modifier.weight(1f, fill = false), color = p.text, style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    card.costTags.forEach { tag ->
+                        Box(Modifier.clip(RoundedCornerShape(5.dp)).background(p.accSoft).padding(horizontal = 6.dp, vertical = 2.dp)) {
+                            Text(tag, color = p.accText, style = MaterialTheme.typography.labelSmall, maxLines = 1, softWrap = false)
+                        }
                     }
                 }
-                Box(Modifier.weight(1f, fill = true))
                 if (card.requirementsUnmet) WarningGlyph(Modifier.semantics { contentDescription = "Требования не выполнены" })
                 Text(card.category, Modifier.widthIn(max = 140.dp), color = p.dim, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 RankPips(card.rank, card.maxRank)
@@ -170,6 +172,11 @@ private fun PerkCard(card: SheetPerkCard, open: Boolean, brief: Boolean, onToggl
 @Composable
 private fun RankPips(rank: Int, maxRank: Int) {
     val p = FuryColors.current
+    // Long ladders (Невероятное здоровье: 20 ranks) would eat the name's room as pips; show the count instead.
+    if (maxRank > 10) {
+        Text("$rank/$maxRank", color = p.goldText, style = MaterialTheme.typography.labelSmall, maxLines = 1, softWrap = false)
+        return
+    }
     val width = if (maxRank > 5) 6.dp else 12.dp
     Row(Modifier.semantics { contentDescription = "ранг $rank из $maxRank" }, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
         repeat(maxRank) { index ->

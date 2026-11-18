@@ -14,6 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -30,13 +32,16 @@ import com.furybook.ui.theme.FurySpacing
 internal fun EditorDevelopmentStep(host: DublEditorHost, state: EditorState, data: EditorFrameData, layout: SheetLayout) {
     val p = FuryColors.current
     val context = data.context
-    val view = remember(data) { context.developmentView(host) }
+    val view = remember(data) { context.developmentView(host, state.developmentPins) }
+    // The first view of this visit pins the rows, so nothing reorders or disappears while the player taps.
+    SideEffect { if (state.developmentPins == null) state.developmentPins = view.pins }
+    DisposableEffect(Unit) { onDispose { state.developmentPins = null } }
     val control = editorControl(layout)
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(editorContentPadding(layout)),
         verticalArrangement = Arrangement.spacedBy(FurySpacing.md),
     ) {
-        EditorStepTitle("Развитие", "Свободно ${data.economy.remainingXp} XP и ${data.economy.abilityPointsRemaining} ОС. Что можно взять прямо сейчас, одним нажатием.")
+        EditorStepTitle("Развитие", editorDevelopmentSubtitle(data.economy.remainingXp, data.economy.abilityPointsRemaining))
         EditorCard(Modifier.editorReadableWidth()) {
             SectionHeader("Повысить умение", "Все умения →") { state.step = EditorStep.SKILLS }
             if (view.skills.isEmpty()) Muted("Не хватает опыта на следующий ранг ни одного умения.")
@@ -50,7 +55,7 @@ internal fun EditorDevelopmentStep(host: DublEditorHost, state: EditorState, dat
                         )
                     }
                     Text("${skill.cost} XP", color = p.goldText, style = MaterialTheme.typography.labelLarge.merge(EditorTabular), maxLines = 1, softWrap = false)
-                    EditorSquareButton("+", "Повысить ${skill.name} до ранга ${skill.from + 1}", true, control) {
+                    EditorSquareButton("+", "Повысить ${skill.name} до ранга ${skill.from + 1}", skill.affordable, control) {
                         host.changeSkillRank(skill.skillId, 1)
                         state.flash("${skill.name}: ранг ${skill.from + 1}")
                     }
@@ -65,7 +70,7 @@ internal fun EditorDevelopmentStep(host: DublEditorHost, state: EditorState, dat
                     EditorOutlineButton("${attr.short} ${attr.from}→${attr.from + 1} · ${attr.cost}", {
                         host.changeAttribute(attr.id, 1)
                         state.flash("${attr.id.title} ${attr.from + 1}")
-                    }, control)
+                    }, control, enabled = attr.affordable)
                 }
             }
         }
@@ -111,7 +116,7 @@ private fun PerkRow(host: DublEditorHost, state: EditorState, context: EditorPer
     EditorRow {
         Column(Modifier.weight(1f).clickable(role = Role.Button, onClickLabel = "Подробнее о «${card.name}»") { state.openPerk(context, card.entryId) }) {
             Text(
-                card.name + if (card.rank > 0) " → ${card.rank + 1}" else "",
+                card.name + if (card.rank > 0 && card.status != EditorPerkStatus.OWNED) " → ${card.rank + 1}" else "",
                 color = p.text, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
             Text(
@@ -120,9 +125,10 @@ private fun PerkRow(host: DublEditorHost, state: EditorState, context: EditorPer
                 color = p.muted, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis,
             )
         }
-        if (!almost) Text("${card.nextCost} XP", color = p.goldText, style = MaterialTheme.typography.labelLarge.merge(EditorTabular), maxLines = 1, softWrap = false)
+        if (!almost && card.status != EditorPerkStatus.OWNED) Text("${card.nextCost} XP", color = p.goldText, style = MaterialTheme.typography.labelLarge.merge(EditorTabular), maxLines = 1, softWrap = false)
         val action = detail.action
         val label = when {
+            card.status == EditorPerkStatus.OWNED -> "Взят"
             almost -> "С цепочкой · ${detail.chainCost}"
             card.rank > 0 -> "Повысить"
             else -> "Взять"

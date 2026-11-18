@@ -42,9 +42,15 @@ class EditorChangesTest {
         val lines = changes(hornet.copy(experience = 4680, creationComplete = false)).lines.map { it.text }
         assertTrue("Опыт 4580 → 4680" in lines, lines.toString())
         assertTrue("Создание открыто снова" in lines, lines.toString())
-        assertEquals("Потрачено 110 XP", editorNetText(110))
-        assertEquals("Возвращено 10 XP", editorNetText(-10))
-        assertEquals("Опыт не изменился", editorNetText(0))
+        assertEquals("Потрачено 110 XP", editorNetText(spent = 110, freeDelta = -110))
+        assertEquals("Возвращено 10 XP", editorNetText(spent = -10, freeDelta = 10))
+        assertEquals("Опыт не изменился", editorNetText(spent = 0, freeDelta = 0))
+        // GM XP is not a refund: it raises free XP without anything being returned.
+        assertEquals("Свободно +3500 XP", editorNetText(spent = 0, freeDelta = 3500))
+        assertEquals("Потрачено 545 XP · свободно +2955", editorNetText(spent = 545, freeDelta = 2955))
+        val gm = changes(hornet.copy(experience = hornet.experience + 100))
+        assertEquals(0, gm.spent)
+        assertEquals(-100, gm.netSpent)
         assertEquals("−95 XP", editorXpText(95))
         assertEquals("+10 XP", editorXpText(-10))
         assertEquals("", editorXpText(0))

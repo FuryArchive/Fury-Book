@@ -2,6 +2,10 @@ package com.furybook.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.Layout
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -58,6 +62,19 @@ fun <T> furyMenuSections(sections: List<FuryShellSection<T>>): List<FuryShellSec
 /** Same breakpoint as the sheet: below 600dp the shell is a phone shell. */
 fun furyShellIsPhone(widthDp: Int): Boolean = widthDp < PHONE_MAX_WIDTH_DP
 
+/** The tabs drop to a row of their own only when their natural width exceeds the [room] beside the title. */
+fun furyShellTabsOnOwnRow(tabsWidth: Int, room: Int): Boolean = tabsWidth > room
+
+/** Reports [content]'s natural width without placing it (nothing drawn, nothing clickable). */
+@Composable
+private fun NaturalWidth(onWidth: (Int) -> Unit, content: @Composable () -> Unit) {
+    val report by rememberUpdatedState(onWidth)
+    Layout(content) { measurables, _ ->
+        report(measurables.maxOfOrNull { it.maxIntrinsicWidth(Constraints.Infinity) } ?: 0)
+        layout(0, 0) {}
+    }
+}
+
 /**
  * The app frame. Wide: a top bar with the wordmark, tabs for every section and the character
  * button. Phone: a slim top bar (wordmark, «Меню»), the content, and five bottom tabs; the
@@ -99,6 +116,17 @@ private fun <T> WideShell(
     content: @Composable () -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
+        var tabsWidth by remember { mutableStateOf(0) }
+        var room by remember { mutableStateOf(Int.MAX_VALUE) }
+        val tabsOnOwnRow = furyShellTabsOnOwnRow(tabsWidth, room)
+        val tabs: @Composable (Modifier) -> Unit = { m ->
+            FuryTopTabs(
+                tabs = sections.map { FuryTab(it.value, it.label) },
+                selected = selected,
+                onSelect = onSelect,
+                modifier = m.horizontalScroll(rememberScrollState()),
+            )
+        }
         Row(
             Modifier.fillMaxWidth().background(DublSurface).padding(horizontal = FurySpacing.xl, vertical = FurySpacing.sm),
             verticalAlignment = Alignment.CenterVertically,
@@ -111,18 +139,17 @@ private fun <T> WideShell(
                 maxLines = 1,
             )
             Spacer(Modifier.width(FurySpacing.xl))
-            // Seven tabs do not fit a 600dp window next to the wordmark; they scroll rather than clip.
-            Box(Modifier.weight(1f)) {
-                FuryTopTabs(
-                    tabs = sections.map { FuryTab(it.value, it.label) },
-                    selected = selected,
-                    onSelect = onSelect,
-                    modifier = Modifier.horizontalScroll(rememberScrollState()),
-                )
+            // Too narrow for all seven tabs here (tablets, half-screen windows): they move to the row below.
+            Box(Modifier.weight(1f).onSizeChanged { room = it.width }) {
+                NaturalWidth({ tabsWidth = it }) { FuryTopTabs(sections.map { FuryTab(it.value, it.label) }, selected, onSelect) }
+                if (!tabsOnOwnRow) tabs(Modifier)
             }
             Spacer(Modifier.width(FurySpacing.md))
             account?.let { slot -> slot(); Spacer(Modifier.width(FurySpacing.sm)) }
             FuryButton("$characterName ▾", onSwitchCharacter, Modifier.widthIn(max = 280.dp))
+        }
+        if (tabsOnOwnRow) {
+            Box(Modifier.fillMaxWidth().background(DublSurface).padding(start = FurySpacing.lg, end = FurySpacing.lg, bottom = FurySpacing.sm)) { tabs(Modifier) }
         }
         Box(Modifier.fillMaxWidth().height(1.dp).background(DublBorder))
         Box(Modifier.weight(1f).fillMaxWidth()) { content() }

@@ -59,10 +59,13 @@ internal fun EditorSkillsStep(host: DublEditorHost, state: EditorState, data: Ed
             EditorOutlineButton("+ Своё / специализация", { formOpen = true }, control)
         }
         val columns = if (layout == SheetLayout.WIDE_WITH_TRAY) 2 else 1
-        groups.chunked(columns).forEach { pair ->
-            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-                pair.forEach { group -> SkillGroup(host, state, group, layout, Modifier.weight(1f).fillMaxHeight()) }
-                repeat(columns - pair.size) { Box(Modifier.weight(1f)) }
+        // Independent columns, balanced by size, so a one-skill group is never stretched to a big neighbour's height.
+        val split = editorBalancedColumns(groups.map { it.rows.size }, columns)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalAlignment = Alignment.Top) {
+            split.forEach { column ->
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                    column.forEach { index -> SkillGroup(host, state, groups[index], layout, Modifier.fillMaxWidth().height(IntrinsicSize.Min)) }
+                }
             }
         }
     }

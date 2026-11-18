@@ -112,4 +112,54 @@ class EditorModelsTest {
         assertEquals(0.5f, editorSpentFraction(spent = 50, total = 100))
         assertEquals(1f, editorSpentFraction(spent = 150, total = 100))
     }
+
+    @Test
+    fun skillGroupsSplitIntoBalancedColumnsKeepingOrder() {
+        // СИЛ 1, ЛОВ 8, ТЕЛ 0, СКР 0, ИНТ 3, ВОС 5, ВОЛ 0, ХАР 2 rows; an empty group still takes a line.
+        val columns = editorBalancedColumns(listOf(1, 8, 0, 0, 3, 5, 0, 2), columns = 2)
+        assertEquals(listOf(listOf(0, 2, 3, 4, 6, 7), listOf(1, 5)), columns)
+        assertEquals(listOf(listOf(0, 1, 2)), editorBalancedColumns(listOf(4, 1, 2), columns = 1))
+    }
+
+    @Test
+    fun skillOrderStaysPutWhileRanksChange() {
+        // Clicking + twice on the same row must hit the same skill: rows never jump during a visit.
+        val host = host()
+        val before = host.active
+        fun order() = editorSkillGroups(host, before, rankedOnly = false, query = "").flatMap { g -> g.rows.map { it.skillId } }
+        val initial = order()
+        // ВОС group: Внимательность 3, Выживание 2 ranked; lift an unranked ВОС skill above both.
+        val group = editorSkillGroups(host, before, rankedOnly = false, query = "").first { it.short == "ВОС" }
+        val unranked = group.rows.last { it.rank == 0 }.skillId
+        repeat(4) { host.changeSkillRank(unranked, +1) }
+        assertEquals(4, host.active.skills.getValue(unranked).rank)
+        assertEquals(initial, order())
+    }
+
+    @Test
+    fun developmentListsStayPutWhileYouClick() {
+        // Rows must not reorder or vanish under the cursor: the first view of a visit pins membership and order.
+        val single = EditorFixtures.entry("feat_once", "Разовый", "Общие", 10, 1, "", "Один ранг.")
+        val host = FakeSheetHost(hornet, developmentCatalogOverride = com.furybook.dubl.model.DevelopmentCatalog("test", catalog.entries + single))
+        val first = editorDevelopmentView(host)
+        val pins = first.pins
+        assertTrue(single.id in first.perks.map { it.entryId })
+        val lowest = first.skills.last()
+        repeat(3) { host.changeSkillRank(lowest.skillId, +1) }
+        val take = editorPerkDetail(host, single.id, emptyMap(), null)!!.action as EditorPerkAction.Acquire
+        assertTrue(host.acquireDevelopment(take.request).applied)
+        val again = editorDevelopmentView(host, pins)
+        assertEquals(first.skills.map { it.skillId }, again.skills.map { it.skillId })
+        assertEquals(first.attributes.map { it.id }, again.attributes.map { it.id })
+        assertEquals(first.perks.map { it.entryId }, again.perks.map { it.entryId })
+        assertEquals(lowest.from + 3, again.skills.last().from)
+        assertEquals(EditorPerkStatus.OWNED, again.perks.single { it.entryId == single.id }.status)
+    }
+
+    @Test
+    fun developmentSubtitleNeverShowsNegativePoints() {
+        assertEquals("Свободно 2450 XP и 3 ОС. Что можно взять прямо сейчас, одним нажатием.", editorDevelopmentSubtitle(2450, 3))
+        assertEquals("Свободно 3735 XP; очков способностей потрачено на 5 больше бюджета. Что можно взять прямо сейчас, одним нажатием.", editorDevelopmentSubtitle(3735, -5))
+        assertEquals("Перерасход опыта: 40 XP. Верните часть опыта или добавьте XP на «Основе».", editorDevelopmentSubtitle(-40, 0))
+    }
 }
