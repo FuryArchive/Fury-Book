@@ -143,13 +143,10 @@ private fun <T> PhoneShell(
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val menuSections = furyMenuSections(sections)
-    if (chromeHidden) {
-        Box(Modifier.fillMaxSize()) { content() }
-        return
-    }
+    // The content slot stays in one place whether or not the bars show: moving it would recreate its state.
     Column(Modifier.fillMaxSize()) {
         // Wordmark and «Меню» only: the sheet header already names the character (R7).
-        Row(
+        if (!chromeHidden) Row(
             Modifier.fillMaxWidth().background(DublSurface).padding(horizontal = FurySpacing.lg, vertical = FurySpacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(FurySpacing.md),
@@ -160,13 +157,15 @@ private fun <T> PhoneShell(
                 Text("☰", color = DublText, style = MaterialTheme.typography.titleMedium)
             }
         }
-        Box(Modifier.fillMaxWidth().height(1.dp).background(DublBorder))
+        if (!chromeHidden) Box(Modifier.fillMaxWidth().height(1.dp).background(DublBorder))
         Box(Modifier.weight(1f).fillMaxWidth()) { content() }
-        FuryBottomTabs(
-            tabs = furyBottomTabs(sections).map { FuryTab(it.value, it.bottomTabLabel) },
-            selected = selected,
-            onSelect = onSelect,
-        )
+        if (!chromeHidden) {
+            FuryBottomTabs(
+                tabs = furyBottomTabs(sections).map { FuryTab(it.value, it.bottomTabLabel) },
+                selected = selected,
+                onSelect = onSelect,
+            )
+        }
     }
     if (menuOpen) {
         FuryDialogScaffold(title = "Меню", subtitle = characterName, onDismiss = { menuOpen = false }, subtitleMaxLines = 1) {

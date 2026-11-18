@@ -130,12 +130,13 @@ internal fun EditorBasicsStep(
 @Composable
 private fun IdentityFields(host: DublEditorHost, modifier: Modifier) {
     val character = host.active
-    var name by remember(character.id) { mutableStateOf(character.name) }
+    var name by remember(character.id) { mutableStateOf(editorNameFieldInitial(character)) }
     var concept by remember(character.id) { mutableStateOf(character.concept) }
     val currentHost by rememberUpdatedState(host)
     fun save() {
         val c = currentHost.active
-        if (c.name != name || c.concept != concept) currentHost.setIdentity(name, concept, c.size, c.legs, c.manaEnabled)
+        val unchangedName = name == editorNameFieldInitial(c)
+        if (!unchangedName || c.concept != concept) currentHost.setIdentity(if (unchangedName) c.name else name, concept, c.size, c.legs, c.manaEnabled)
     }
     LaunchedEffect(name, concept) {
         delay(IDENTITY_SAVE_DELAY_MS)

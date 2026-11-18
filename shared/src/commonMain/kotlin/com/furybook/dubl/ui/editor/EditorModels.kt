@@ -153,3 +153,13 @@ fun EditorPerkContext.problems(): List<EditorProblem> = buildList {
     }
     if (economy.unpricedLearnedSpells > 0) add(EditorProblem("Заклинания без цены: ${economy.unpricedLearnedSpells}", EditorStep.SUMMARY))
 }
+
+/** A character still in creation with the placeholder name gets an empty name field (blank saves as the placeholder). */
+fun editorNameFieldInitial(character: DublCharacter): String =
+    if (!character.creationComplete && character.name == DEFAULT_NAME) "" else character.name
+
+/** Share of the XP bar that is spent; empty with no XP at all, full once spending passes the total. */
+fun editorSpentFraction(spent: Int, total: Int): Float = when {
+    total <= 0 -> if (spent > 0) 1f else 0f
+    else -> (spent.toFloat() / total).coerceIn(0f, 1f)
+}

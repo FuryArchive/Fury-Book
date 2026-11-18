@@ -88,4 +88,19 @@ class EditorModelsTest {
         assertEquals(EditorStep.PERKS, line.step)
         assertEquals(EditorFixtures.athleticism.id, line.entryId)
     }
+
+    @Test
+    fun newCharacterNameFieldStartsEmpty() {
+        assertEquals("", editorNameFieldInitial(DublCharacter(id = "n", name = "Новый персонаж")))
+        assertEquals("Шершень", editorNameFieldInitial(hornet))
+        assertEquals("Новый персонаж", editorNameFieldInitial(DublCharacter(id = "n", name = "Новый персонаж", creationComplete = true)))
+    }
+
+    @Test
+    fun spentBarIsEmptyWithNoExperience() {
+        assertEquals(0f, editorSpentFraction(spent = 0, total = 0))
+        assertEquals(1f, editorSpentFraction(spent = 55, total = 0))
+        assertEquals(0.5f, editorSpentFraction(spent = 50, total = 100))
+        assertEquals(1f, editorSpentFraction(spent = 150, total = 100))
+    }
 }

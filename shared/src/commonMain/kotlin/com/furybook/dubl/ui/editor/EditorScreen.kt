@@ -375,7 +375,7 @@ private fun EditorSummary(host: DublEditorHost, state: EditorState, data: Editor
                     )
                     Text("из ${economy.totalExperience} XP", color = p.goldText, style = MaterialTheme.typography.bodySmall, maxLines = 1)
                 }
-                val fraction = if (economy.totalExperience <= 0) 1f else (economy.spentXp.toFloat() / economy.totalExperience).coerceIn(0f, 1f)
+                val fraction = editorSpentFraction(economy.spentXp, economy.totalExperience)
                 Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(p.track)) {
                     Box(Modifier.fillMaxWidth(fraction).height(6.dp).background(if (negative) p.acc else p.gold))
                 }
