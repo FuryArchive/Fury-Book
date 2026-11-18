@@ -115,4 +115,30 @@ class EditorStateTest {
         assertEquals(null, state.skillPanelId)
         assertEquals(null, state.skillCategory)
     }
+
+    @Test
+    fun returnUndoesHideAndDelete() {
+        val host = FakeSheetHost(DublCharacter(id = "c1", name = "Шершень", experience = 500))
+        val state = EditorState()
+        state.open(host, forceBasics = false)
+        val id = host.addCustomSkill("Гадание", "", listOf(com.furybook.dubl.model.AttributeId.INTELLIGENCE), com.furybook.dubl.model.UntrainedRule.YES)!!
+        host.changeSkillRank(id, 1)
+        host.changeSkillRank(id, 1)
+        val beforeDelete = host.restorePoint()
+        host.deleteDynamicSkill(id)
+        state.flash("Удалено: Гадание", undoableAt = host.restorePoint(), undoTo = beforeDelete)
+        assertTrue(state.undoToast(host))
+        assertEquals(2, host.active.skills.getValue(id).rank)
+        val beforeHide = host.restorePoint()
+        host.hideSkill(id)
+        state.flash("Скрыто: Гадание", undoableAt = host.restorePoint(), undoTo = beforeHide)
+        assertTrue(state.undoToast(host))
+        assertTrue(id !in host.active.hiddenSkillIds)
+    }
+
+    @Test
+    fun undoToastsStayLongEnoughToReach() {
+        assertTrue(editorToastMs(undoable = true) >= 5000)
+        assertTrue(editorToastMs(undoable = false) < editorToastMs(undoable = true))
+    }
 }

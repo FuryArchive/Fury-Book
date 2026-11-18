@@ -58,7 +58,8 @@ import kotlinx.coroutines.delay
 private val RAIL_WIDTH = 232.dp
 private val SUMMARY_WIDTH = 312.dp
 private const val DEFAULT_NAME = "Новый персонаж"
-private const val TOAST_MS = 2600L
+/** A toast with «Вернуть» stays long enough to reach the button; a plain confirmation is short. */
+internal fun editorToastMs(undoable: Boolean): Long = if (undoable) 5000L else 2600L
 
 /** Everything the frame and the steps read for one character state. Built once per change. */
 internal class EditorFrameData(host: DublEditorHost, val before: CharacterRestorePoint) {
@@ -98,7 +99,7 @@ fun EditorScreen(
     val toast = state.toast
     LaunchedEffect(toast) {
         if (toast != null) {
-            delay(TOAST_MS)
+            delay(editorToastMs(state.toastUndoable))
             if (state.toast == toast) state.toast = null
         }
     }
@@ -146,7 +147,7 @@ fun EditorScreen(
                     if (state.toastUndoable) {
                         Box(
                             Modifier.heightIn(min = 40.dp).clip(RoundedCornerShape(8.dp))
-                                .clickable(role = Role.Button) { if (host.undoLast()) { state.markRestored(); state.flash("Изменения возвращены") } else state.toast = null }
+                                .clickable(role = Role.Button) { state.undoToast(host) }
                                 .padding(horizontal = 12.dp),
                             contentAlignment = Alignment.Center,
                         ) { Text("Вернуть", color = if (p.isLight) p.goldSoft else p.acc2, style = MaterialTheme.typography.labelLarge) }

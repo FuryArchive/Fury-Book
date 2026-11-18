@@ -55,4 +55,22 @@ class EditorSkillModelsTest {
     fun missingSkillHasNoDetail() {
         assertNull(editorSkillDetail(host(), "nope"))
     }
+
+    @Test
+    fun automaticEffectsAreInTheBonusLikeOnTheList() {
+        // The list row shows Атлетика with Атлетичность's +2; the panel must show the same number and say why.
+        val athletic = EditorFixtures.entry("athletic", "Атлетичность", "Тест", 10, 2, "", "")
+        val devCatalog = com.furybook.dubl.model.DevelopmentCatalog("test", listOf(athletic))
+        val effects = com.furybook.dubl.model.SkillEffectCatalog("test", listOf(
+            com.furybook.dubl.model.SkillEffectDefinition("e1", 4, "Атлетичность", "", "", "0.5 · EXISTING", "", com.furybook.dubl.model.SkillEffectMode.AUTO_BONUS,
+                com.furybook.dubl.model.RollContext.SKILL, listOf("Атлетика"), 1, true, "Атлетичность"),
+        ))
+        val character = hornet.copy(development = mapOf(athletic.id to com.furybook.dubl.model.OwnedDevelopment(2)))
+        val host = FakeSheetHost(character, developmentCatalogOverride = devCatalog, skillEffectCatalogOverride = effects)
+        val row = editorSkillGroups(host, character, rankedOnly = false, query = "").flatMap { it.rows }.single { it.skillId == "athletics" }
+        val detail = editorSkillDetail(host, "athletics")!!
+        assertEquals(row.bonus, detail.bonus.first().total)
+        assertTrue("Атлетичность +2" in detail.bonus.first().breakdown, detail.bonus.first().breakdown)
+        assertTrue(detail.headline.endsWith(editorSigned(row.bonus!!)), detail.headline)
+    }
 }

@@ -6,7 +6,7 @@ import com.furybook.dubl.model.SkillCategory
 import com.furybook.dubl.model.SkillEffectRules
 import com.furybook.dubl.model.UntrainedRule
 import com.furybook.dubl.model.resolveSkill
-import com.furybook.dubl.model.skillCalculation
+import com.furybook.dubl.model.skillCalculationForRoll
 import com.furybook.dubl.model.skillCalculationOptions
 
 /** One allowed attribute's bonus: how it adds up, or why the skill can't be rolled with it. */
@@ -46,8 +46,11 @@ fun editorSkillDetail(host: DublEditorHost, skillId: String): EditorSkillDetail?
     val character = host.active
     val skill = character.resolveSkill(skillId) ?: return null
     val stock = skill.stockAttribute
-    val stockTotal = character.skillCalculation(skill, stock).total
-    val effects = SkillEffectRules(character, host.developmentCatalog, host.skillEffectCatalog).configuredForSkill(skill)
+    val rules = SkillEffectRules(character, host.developmentCatalog, host.skillEffectCatalog)
+    val effects = rules.configuredForSkill(skill)
+    // Automatic effects (Атлетичность +2…) are part of the bonus the list and the sheet show; say so here too.
+    val automatic = rules.forSkill(skill).automaticContributions.map { it.label to it.value }
+    val stockTotal = character.skillCalculationForRoll(skill, stock).total?.plus(automatic.sumOf { it.second })
     return EditorSkillDetail(
         skillId = skill.id,
         name = skill.name,
@@ -59,7 +62,7 @@ fun editorSkillDetail(host: DublEditorHost, skillId: String): EditorSkillDetail?
         description = skill.description,
         headline = "${stock.shortTitle} · ранг ${skill.rank} · ${stockTotal?.let(::editorSigned) ?: "—"}",
         rank = skill.rank,
-        bonus = character.skillCalculationOptions(skill).map { (attribute, calculation) -> bonusLine(attribute, calculation) },
+        bonus = character.skillCalculationOptions(skill).map { (attribute, calculation) -> bonusLine(attribute, calculation, automatic) },
         attributes = skill.attributes,
         modifier = skill.modifier,
         formulaNote = skill.formulaNote,
@@ -76,11 +79,12 @@ fun editorSkillDetail(host: DublEditorHost, skillId: String): EditorSkillDetail?
     )
 }
 
-private fun bonusLine(attribute: AttributeId, calculation: SkillCalculation) = EditorBonusLine(
+private fun bonusLine(attribute: AttributeId, calculation: SkillCalculation, automatic: List<Pair<String, Int>>) = EditorBonusLine(
     attribute = attribute,
     title = attribute.title,
-    breakdown = calculation.contributions.joinToString(" + ") { "${it.label} ${editorSigned(it.value)}" },
-    total = calculation.total,
+    breakdown = (calculation.contributions.map { it.label to it.value } + if (calculation.total != null) automatic else emptyList())
+        .joinToString(" + ") { (label, value) -> "$label ${editorSigned(value)}" },
+    total = calculation.total?.plus(automatic.sumOf { it.second }),
     unavailableReason = calculation.unavailableReason,
 )
 

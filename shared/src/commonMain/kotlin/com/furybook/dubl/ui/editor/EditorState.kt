@@ -93,11 +93,30 @@ class EditorState {
     var toastUndoable: Boolean by mutableStateOf(false)
         private set
     private var undoableAt: CharacterRestorePoint? = null
+    private var undoTo: CharacterRestorePoint? = null
 
-    fun flash(text: String, undoableAt: CharacterRestorePoint? = null) {
+    /**
+     * [undoTo]: what «Вернуть» goes back to for actions the application keeps no undo step for (hide, delete,
+     * «К рулбуку»); without it «Вернуть» is the application's one-step undo («Отменить всё»).
+     */
+    fun flash(text: String, undoableAt: CharacterRestorePoint? = null, undoTo: CharacterRestorePoint? = null) {
         toast = text
         this.undoableAt = undoableAt
+        this.undoTo = undoTo
         toastUndoable = undoableAt != null
+    }
+
+    /** «Вернуть» on the toast; true when something was undone. */
+    fun undoToast(host: DublEditorHost): Boolean {
+        val target = undoTo
+        val undone = if (target != null) host.restore(target) else host.undoLast()
+        if (undone) {
+            markRestored()
+            flash("Изменения возвращены")
+        } else {
+            toast = null
+        }
+        return undone
     }
 
     fun dropStaleUndo(current: CharacterRestorePoint) {
