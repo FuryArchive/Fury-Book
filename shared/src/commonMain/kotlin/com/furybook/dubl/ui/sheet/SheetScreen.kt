@@ -81,7 +81,7 @@ fun SheetScreen(
     backHandler(state.editing) { state.updateEditing(false) }
     // A fresh snapshot each time the editor opens, taken in the click/effect that opens it.
     val currentHost by rememberUpdatedState(host)
-    SideEffect { state.onEditorOpening = { forceBasics -> editorState.open(currentHost, forceBasics) } }
+    SideEffect { state.onEditorOpening = { forceBasics, skillId -> editorState.open(currentHost, forceBasics, skillId) } }
     LaunchedEffect(openEditorAtBasics) {
         if (openEditorAtBasics) {
             state.openEditor(forceBasics = true)
@@ -131,7 +131,7 @@ private fun SheetScreenRollDialog(host: DublEditorHost, layout: SheetLayout, sta
 /** The popup [SheetScreenState.dialog] names, if any. */
 @Composable
 private fun SheetScreenDialog(
-    host: DublSheetEditHost,
+    host: DublEditorHost,
     layout: SheetLayout,
     state: SheetScreenState,
     developmentDetails: (@Composable (String, () -> Unit) -> Unit)?,
@@ -153,6 +153,7 @@ private fun SheetScreenDialog(
         SheetDialog.Resources -> SheetResourcesDialog(host, close)
         is SheetDialog.DevelopmentDetails ->
             developmentDetails?.invoke(dialog.entryId, close) ?: SheetDevelopmentDetailsDialog(host, dialog.entryId, close)
+        is SheetDialog.SkillInfo -> SheetSkillInfoDialog(host, dialog.skillId, onConfigure = { state.openEditor(forceBasics = false, skillId = dialog.skillId) }, onDismiss = close)
     }
 }
 
@@ -184,6 +185,7 @@ private fun SheetScreenRoll(host: DublEditorHost, state: SheetScreenState, modif
         history = state.history,
         modifier = modifier,
         showRollButton = inlineRollButton,
+        onSkillInfo = { skillId -> state.openDialog(SheetDialog.SkillInfo(skillId)) },
         onAttributePicked = { skillId, attribute ->
             val skill = host.active.resolveSkill(skillId)
             if (skill != null && sheetRemembersAttribute(skill, attribute)) host.setPreferredSkillAttribute(skillId, attribute)

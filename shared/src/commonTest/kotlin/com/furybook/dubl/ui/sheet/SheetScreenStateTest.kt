@@ -109,12 +109,26 @@ class SheetScreenStateTest {
     fun openingTheEditorTakesOneSnapshotPerVisit() {
         val state = SheetScreenState()
         val opened = mutableListOf<Boolean>()
-        state.onEditorOpening = { forceBasics -> opened += forceBasics }
+        state.onEditorOpening = { forceBasics, _ -> opened += forceBasics }
         state.openEditor(forceBasics = true)
         state.openEditor(forceBasics = false)
         kotlin.test.assertEquals(listOf(true), opened)
         state.updateEditing(false)
         state.openEditor(forceBasics = false)
         kotlin.test.assertEquals(listOf(true, false), opened)
+    }
+
+    @Test
+    fun editorOpensAtSkillFromRollPanel() {
+        val state = SheetScreenState()
+        var opened: Pair<Boolean, String?>? = null
+        state.onEditorOpening = { forceBasics, skillId -> opened = forceBasics to skillId }
+        state.open(SheetRollSubject.Skill("stealth"))
+        state.openDialog(SheetDialog.SkillInfo("stealth"))
+        state.openEditor(forceBasics = false, skillId = "stealth")
+        kotlin.test.assertEquals(false to "stealth", opened)
+        kotlin.test.assertTrue(state.editing)
+        kotlin.test.assertFalse(state.rollOpen)
+        kotlin.test.assertEquals(null, state.dialog)
     }
 }

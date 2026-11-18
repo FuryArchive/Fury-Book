@@ -10,6 +10,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.furybook.ui.theme.FuryColors
+import androidx.compose.ui.semantics.Role
+import androidx.compose.foundation.clickable
 import com.furybook.dubl.model.AttributeId
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -73,6 +76,8 @@ fun SheetRollPanel(
     showRollButton: Boolean = true,
     /** A characteristic picked for a skill roll; the screen saves it as the remembered one when it is allowed. */
     onAttributePicked: (skillId: String, attribute: AttributeId) -> Unit = { _, _ -> },
+    /** «Об умении» for a skill roll: the screen opens the read-only rules dialog. */
+    onSkillInfo: (skillId: String) -> Unit = {},
 ) {
     val options = sheetRollOptions(host, request)
     val subject = request.subject
@@ -101,6 +106,12 @@ fun SheetRollPanel(
                 Modifier.fillMaxWidth().clip(FuryShapes.panel).background(DublSurface).padding(FurySpacing.md),
                 verticalArrangement = Arrangement.spacedBy(FurySpacing.md),
             ) {
+                (subject as? SheetRollSubject.Skill)?.let { skillSubject ->
+                    Text(
+                        "Об умении", Modifier.clickable(role = Role.Button) { onSkillInfo(skillSubject.skillId) }.padding(vertical = 6.dp),
+                        color = FuryColors.current.goldText, style = MaterialTheme.typography.labelLarge,
+                    )
+                }
                 RollSetup(host, request, options, context, onRequestChange, onAttributePicked)
             }
         }

@@ -16,6 +16,8 @@ sealed interface SheetDialog {
     data object Economy : SheetDialog
     data object Resources : SheetDialog
     data class DevelopmentDetails(val entryId: String) : SheetDialog
+    /** «Об умении» from the roll panel: the skill's rules and bonus, read-only. */
+    data class SkillInfo(val skillId: String) : SheetDialog
 }
 
 /**
@@ -80,14 +82,16 @@ class SheetScreenState {
     }
 
     /** Set by the screen: takes the editor's snapshot when a visit starts, outside composition. */
-    var onEditorOpening: ((forceBasics: Boolean) -> Unit)? = null
+    var onEditorOpening: ((forceBasics: Boolean, skillId: String?) -> Unit)? = null
 
-    fun openEditor(forceBasics: Boolean) {
+    /** [skillId]: «Настроить в редакторе» from «Об умении» — the editor opens on that skill's panel. */
+    fun openEditor(forceBasics: Boolean, skillId: String? = null) {
         editorForceBasics = forceBasics
         if (!editing) {
             editorSession++
-            onEditorOpening?.invoke(forceBasics)
+            onEditorOpening?.invoke(forceBasics, skillId)
         }
+        rollOpen = false
         updateEditing(true)
     }
 
