@@ -61,4 +61,16 @@ class FuryPaletteTest {
         val p = furyPalette(id)
         assertTrue(contrastRatio(p.goldText, p.goldSoft) >= 4.5, "$id goldText")
     }
+
+    @Test
+    fun manaTextIsReadableInEveryTheme() = FuryThemeId.entries.forEach { id ->
+        val p = furyPalette(id)
+        assertTrue(contrastRatio(p.manaText, p.panel) >= 4.5, "$id mana on panel")
+        assertTrue(contrastRatio(p.manaText, p.panel2) >= 4.5, "$id mana on panel2")
+    }
+
+    @Test
+    fun darkThemesKeepTheUsualManaBlue() = FuryThemeId.entries.filterNot { furyPalette(it).isLight }.forEach { id ->
+        assertEquals(Color(0xFF6F98D6), furyPalette(id).manaText, id.name)
+    }
 }

@@ -58,6 +58,8 @@ data class FuryPalette(
     val dLine: Color,
     val dLabel: Color,
     val dText: Color,
+    /** Mana written as text: the usual mana blue on dark themes, a deeper blue on light ones where it would wash out. */
+    val manaText: Color = Color(0xFF6F98D6),
 )
 
 private val Graphite = FuryPalette(
@@ -118,6 +120,7 @@ private val Parchment = FuryPalette(
     accLine = Color(0xFFD7A69C), accText = Color(0xFF7A1E19), accDeep = Color(0xFFEEDCD2), onAcc = Color(0xFFFFF8EE),
     gold = Color(0xFF8C5E0F), goldSoft = Color(0xFFF2E4C1), goldLine = Color(0xFFD1B26C), goldText = Color(0xFF6E4A0B),
     dBg = Color(0xFFE1E8E5), dLine = Color(0xFFBFCDC8), dLabel = Color(0xFF3C635D), dText = Color(0xFF1C3834),
+    manaText = Color(0xFF2E5590),
 )
 
 fun furyPalette(id: FuryThemeId): FuryPalette = when (id) {

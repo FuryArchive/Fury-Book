@@ -60,6 +60,7 @@ import com.furybook.ui.theme.DublAccentSoft
 import com.furybook.ui.theme.DublFocus
 import com.furybook.ui.theme.DublGold
 import com.furybook.ui.theme.DublMana
+import com.furybook.ui.theme.DublManaText
 import com.furybook.ui.theme.DublMuted
 import com.furybook.ui.theme.DublSurfaceRaised
 import java.util.UUID
@@ -421,7 +422,7 @@ private fun MagicCoreCard(
                 ) {
                     Column {
                         Text("Мана", style = MaterialTheme.typography.labelLarge, color = DublMuted)
-                        Text("$currentMana / $maxMana", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = DublMana)
+                        Text("$currentMana / $maxMana", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = DublManaText)
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         TextButton(onClick = { onManaDelta(-1) }, enabled = currentMana > 0) { Text("−") }
@@ -565,7 +566,7 @@ private fun SpellRow(character: DublCharacter, spell: KnownSpell, onClick: () ->
                 }
             }
             Surface(shape = RoundedCornerShape(999.dp), color = DublMana.copy(alpha = 0.12f)) {
-                Text("${spell.cost} маны", modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp), style = MaterialTheme.typography.labelMedium, color = DublMana)
+                Text("${spell.cost} маны", modifier = Modifier.padding(horizontal = 9.dp, vertical = 5.dp), style = MaterialTheme.typography.labelMedium, color = DublManaText)
             }
         }
     }
@@ -673,7 +674,7 @@ private fun SpellCatalogSheet(
                             Text(
                                 if (owned) "Изучено" else if (entry.incomplete) "Добавить и исправить" else "Добавить",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = if (owned) DublMuted else DublMana,
+                                color = if (owned) DublMuted else DublManaText,
                                 fontWeight = FontWeight.SemiBold,
                             )
                         }
@@ -704,7 +705,7 @@ private fun SpellDetailSheet(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             Text(spell.name, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("${spell.school.ifBlank { "Без школы" }} · ${spell.cost} маны", color = DublMana)
+            Text("${spell.school.ifBlank { "Без школы" }} · ${spell.cost} маны", color = DublManaText)
             val usability = MagicEquipmentRules.spellUsability(character, spell)
             if (spell.learned && !usability.usable) {
                 Surface(shape = RoundedCornerShape(10.dp), color = MaterialTheme.colorScheme.error.copy(alpha = 0.08f)) {

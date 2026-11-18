@@ -165,7 +165,6 @@ import com.furybook.ui.theme.DublAccentSoft
 import com.furybook.ui.theme.DublDanger
 import com.furybook.ui.theme.DublGold
 import com.furybook.ui.theme.FuryPalette
-import com.furybook.ui.theme.DublMana
 import java.text.DecimalFormat
 import kotlin.math.abs
 import kotlinx.coroutines.Dispatchers
@@ -254,7 +253,7 @@ internal fun recentResourceChange(
     return when (resource) {
         CharacterSheetResourceId.HEALTH -> resourceChangeText("здоровья", applied) to palette.acc
         CharacterSheetResourceId.ENDURANCE -> resourceChangeText("выносливости", applied) to palette.gold
-        CharacterSheetResourceId.MANA -> resourceChangeText("маны", applied) to DublMana
+        CharacterSheetResourceId.MANA -> resourceChangeText("маны", applied) to palette.manaText
         else -> resourceChangeText(resource.title, applied) to palette.acc
     }
 }
