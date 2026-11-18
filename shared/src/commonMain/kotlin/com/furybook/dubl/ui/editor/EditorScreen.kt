@@ -162,9 +162,7 @@ internal fun EditorStepContent(
         EditorStep.ATTRIBUTES -> EditorAttributesStep(host, data, layout)
         EditorStep.SKILLS -> EditorSkillsStep(host, state, data, layout)
         EditorStep.PERKS -> EditorPerksStep(host, state, data, layout)
-        else -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(editorContentPadding(layout))) {
-            EditorStepTitle(state.step.title, "")
-        }
+        EditorStep.SUMMARY -> EditorSummaryStep(host, state, data, layout, onOpenMagic, onOpenGear)
     }
 }
 
