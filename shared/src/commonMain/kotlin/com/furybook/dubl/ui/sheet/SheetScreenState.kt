@@ -68,6 +68,17 @@ class SheetScreenState {
     var editorSession: Int by mutableStateOf(0)
         private set
 
+    private var host: Any? = null
+
+    /**
+     * A replaced host means the app reloaded the character (cloud pull): the editor closes, as on a character
+     * switch, so its snapshot never reverts edits that arrived from elsewhere.
+     */
+    fun syncHost(next: Any) {
+        if (host != null && host !== next) updateEditing(false)
+        host = next
+    }
+
     fun openEditor(forceBasics: Boolean) {
         editorForceBasics = forceBasics
         if (!editing) editorSession++

@@ -43,6 +43,11 @@ class EditorState {
     var toast: String? by mutableStateOf(null)
     var snapshot: CharacterRestorePoint? by mutableStateOf(null)
         private set
+    /** Bumped by «Отменить всё» and «Вернуть», so typed-but-unsaved field text is dropped instead of written back. */
+    var restoreGeneration: Int by mutableStateOf(0)
+        private set
+
+    fun markRestored() { restoreGeneration++ }
 
     fun open(host: DublEditorHost, forceBasics: Boolean) {
         val complete = host.active.creationComplete

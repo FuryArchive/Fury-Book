@@ -92,4 +92,16 @@ class SheetScreenStateTest {
         state.openEditor(forceBasics = false)
         kotlin.test.assertFalse(state.editorForceBasics)
     }
+
+    @Test
+    fun editorClosesWhenTheHostIsReplaced() {
+        val state = SheetScreenState()
+        val first = Any()
+        state.syncHost(first)
+        state.openEditor(forceBasics = false)
+        state.syncHost(first)
+        kotlin.test.assertTrue(state.editing)
+        state.syncHost(Any())
+        kotlin.test.assertFalse(state.editing)
+    }
 }

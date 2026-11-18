@@ -69,7 +69,7 @@ internal fun EditorBasicsStep(
                     size = if (layout == SheetLayout.PHONE) 88.dp else 120.dp,
                 )
             }
-            IdentityFields(host, Modifier.weight(1f))
+            IdentityFields(host, state.restoreGeneration, Modifier.weight(1f))
         }
         FlowRow(Modifier.editorReadableWidth(), horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
             EditorCard(Modifier.width(200.dp)) {
@@ -126,26 +126,22 @@ internal fun EditorBasicsStep(
     if (economyOpen) SheetEconomyDialog(sheetEconomyView(host), host, onDismiss = { economyOpen = false })
 }
 
-/** Name and concept, saved after a short pause and when the step closes, not on every key. */
+/** Name and concept, saved after a short pause and when the step closes, not on every key. See [EditorIdentityDraft]. */
 @Composable
-private fun IdentityFields(host: DublEditorHost, modifier: Modifier) {
+private fun IdentityFields(host: DublEditorHost, generation: Int, modifier: Modifier) {
     val character = host.active
-    var name by remember(character.id) { mutableStateOf(editorNameFieldInitial(character)) }
-    var concept by remember(character.id) { mutableStateOf(character.concept) }
+    val draft = remember(character.id) { EditorIdentityDraft(character, generation) }
     val currentHost by rememberUpdatedState(host)
-    fun save() {
-        val c = currentHost.active
-        val unchangedName = name == editorNameFieldInitial(c)
-        if (!unchangedName || c.concept != concept) currentHost.setIdentity(if (unchangedName) c.name else name, concept, c.size, c.legs, c.manaEnabled)
-    }
-    LaunchedEffect(name, concept) {
+    val currentGeneration by rememberUpdatedState(generation)
+    LaunchedEffect(draft, character.name, character.concept, generation) { draft.sync(character, generation) }
+    LaunchedEffect(draft, draft.name, draft.concept) {
         delay(IDENTITY_SAVE_DELAY_MS)
-        save()
+        draft.save(currentHost, currentGeneration)
     }
-    DisposableEffect(character.id) { onDispose { save() } }
+    DisposableEffect(draft) { onDispose { draft.save(currentHost, currentGeneration) } }
     Column(modifier, verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-        FuryTextField(name, { name = it.take(120) }, "Имя")
-        FuryTextField(concept, { concept = it.take(200) }, "Концепция")
+        FuryTextField(draft.name, { draft.edit(it.take(120), draft.concept) }, "Имя")
+        FuryTextField(draft.concept, { draft.edit(draft.name, it.take(200)) }, "Концепция")
     }
 }
 

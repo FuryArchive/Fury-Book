@@ -73,6 +73,7 @@ fun SheetScreen(
 ) {
     val state = remember { SheetScreenState() }
     state.syncCharacter(host.active.id)
+    state.syncHost(host)
     val playState = remember { SheetPlayState() }
     playState.syncCharacter(host.active.id)
     val editorState = remember { EditorState() }

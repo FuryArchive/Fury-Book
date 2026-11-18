@@ -135,7 +135,7 @@ fun EditorScreen(
                     if (state.toastUndoable) {
                         Box(
                             Modifier.heightIn(min = 40.dp).clip(RoundedCornerShape(8.dp))
-                                .clickable(role = Role.Button) { if (host.undoLast()) state.flash("Изменения возвращены") else state.toast = null }
+                                .clickable(role = Role.Button) { if (host.undoLast()) { state.markRestored(); state.flash("Изменения возвращены") } else state.toast = null }
                                 .padding(horizontal = 12.dp),
                             contentAlignment = Alignment.Center,
                         ) { Text("Вернуть", color = if (p.isLight) p.goldSoft else p.acc2, style = MaterialTheme.typography.labelLarge) }
@@ -149,6 +149,7 @@ fun EditorScreen(
 private fun undoAll(host: DublEditorHost, state: EditorState) {
     val point = state.snapshot ?: return
     if (host.restore(point)) {
+        state.markRestored()
         state.changesOpen = false
         state.flash("Персонаж возвращён к тому, каким был при открытии редактора", undoable = true)
     }

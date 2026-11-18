@@ -62,4 +62,17 @@ class EditorChangesTest {
         assertTrue(result.lines.isEmpty())
         assertEquals(0, result.netSpent)
     }
+
+    @Test
+    fun linesForEveryChangeUndoAllWouldRevert() {
+        assertEquals(listOf("Опыт создания ${hornet.creationExperience} → 900"), changes(hornet.copy(creationExperience = 900)).lines.map { it.text })
+        assertEquals(listOf("Поправка опыта: 50"), changes(hornet.copy(xpAdjustment = 50)).lines.map { it.text })
+        val added = hornet.copy(skills = hornet.skills + ("custom-1" to com.furybook.dubl.model.CharacterSkill(id = "custom-1", name = "Гадание")))
+        assertEquals(listOf("+ Гадание"), changes(added).lines.map { it.text })
+        assertEquals(listOf("− Гадание"), changes(hornet, before = added).lines.map { it.text })
+        val owned = hornet.copy(development = hornet.development + (keenHearing.id to OwnedDevelopment(rank = 1)))
+        val switched = owned.copy(development = owned.development + (keenHearing.id to OwnedDevelopment(rank = 1, optionIndex = 1)))
+        assertEquals(listOf("Острый слух: другой вариант"), changes(switched, before = owned).lines.map { it.text })
+        assertEquals(listOf("Другие изменения"), changes(hornet.copy(chiBonusRanks = 1)).lines.map { it.text })
+    }
 }

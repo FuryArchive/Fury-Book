@@ -36,6 +36,8 @@ fun editorChanges(
     if (a.legs != b.legs) add("Ноги ${b.legs} → ${a.legs}")
     if (a.manaEnabled != b.manaEnabled) add(if (a.manaEnabled) "Мана включена" else "Мана выключена")
     if (a.experience != b.experience) add("Опыт ${b.experience} → ${a.experience}", b.experience - a.experience)
+    if (a.creationExperience != b.creationExperience) add("Опыт создания ${b.creationExperience} → ${a.creationExperience}")
+    if (a.xpAdjustment != b.xpAdjustment) add("Поправка опыта: ${a.xpAdjustment}")
     if (a.abilityPointsOverride != b.abilityPointsOverride) add("Очки способностей: ${a.abilityPointsOverride ?: "авто"}")
 
     AttributeId.entries.forEach { id ->
@@ -48,7 +50,13 @@ fun editorChanges(
     (b.skills.keys + a.skills.keys).forEach { id ->
         val from = b.skills[id]?.rank ?: 0
         val to = a.skills[id]?.rank ?: 0
-        if (from == to) return@forEach
+        if (from == to) {
+            when {
+                id !in b.skills -> add("+ ${names[id] ?: id}")
+                id !in a.skills -> add("− ${names[id] ?: id}")
+            }
+            return@forEach
+        }
         val modified = a.skills[id]?.let { b.copy(skills = b.skills + (id to it)) } ?: b.copy(skills = b.skills - id)
         add("${names[id] ?: id} $from → $to", cost(modified))
     }
@@ -56,8 +64,11 @@ fun editorChanges(
     (b.development.keys + a.development.keys).forEach { id ->
         val from = b.development[id]?.rank ?: 0
         val to = a.development[id]?.rank ?: 0
-        if (from == to) return@forEach
         val name = catalog.byId(id)?.name ?: id
+        if (from == to) {
+            if (b.development[id]?.optionIndex != a.development[id]?.optionIndex) add("$name: другой вариант")
+            return@forEach
+        }
         val text = when {
             from == 0 -> "+ $name"
             to == 0 -> "− $name"
@@ -68,6 +79,8 @@ fun editorChanges(
     }
 
     if (a.creationComplete != b.creationComplete) add(if (a.creationComplete) "Создание завершено" else "Создание открыто снова")
+    // Whatever else differs is still reverted by «Отменить всё», so the list (and the button) must not look empty.
+    if (lines.isEmpty() && before != after) add("Другие изменения")
 
     val net = CharacterEconomy.breakdown(b, catalog, includeChi).remainingXp - CharacterEconomy.breakdown(a, catalog, includeChi).remainingXp
     return EditorChanges(lines, net)
