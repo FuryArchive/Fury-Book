@@ -98,4 +98,7 @@ fun editorToggledAttributes(current: List<AttributeId>, attribute: AttributeId):
     else -> current - attribute
 }
 
+/** Permanent skill modifier range: the same ±99 the old Умения tab and the session accept. */
+val EDITOR_SKILL_MODIFIER_RANGE = -99..99
+
 internal fun editorSigned(value: Int): String = if (value >= 0) "+$value" else value.toString()

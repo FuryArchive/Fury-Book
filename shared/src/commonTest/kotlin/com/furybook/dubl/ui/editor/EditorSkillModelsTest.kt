@@ -73,4 +73,9 @@ class EditorSkillModelsTest {
         assertTrue("Атлетичность +2" in detail.bonus.first().breakdown, detail.bonus.first().breakdown)
         assertTrue(detail.headline.endsWith(editorSigned(row.bonus!!)), detail.headline)
     }
+
+    @Test
+    fun modifierKeepsTheOldRange() {
+        assertEquals(-99..99, EDITOR_SKILL_MODIFIER_RANGE)
+    }
 }

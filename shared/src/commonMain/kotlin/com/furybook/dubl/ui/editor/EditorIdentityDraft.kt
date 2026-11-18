@@ -15,6 +15,9 @@ class EditorIdentityDraft(character: DublCharacter, generation: Int) {
     private val characterId = character.id
     private var typedAt = generation
     private var dirty = false
+    // Typed text vs what the store kept after this draft's own save: setIdentity trims, and echoing that back
+    // mid-typing would eat the space the player just typed.
+    private var echo: Pair<Pair<String, String>, Pair<String, String>>? = null
 
     var name: String by mutableStateOf(editorNameFieldInitial(character))
         private set
@@ -34,6 +37,8 @@ class EditorIdentityDraft(character: DublCharacter, generation: Int) {
         if (c.id != characterId || generation != typedAt) return
         val newName = if (name == editorNameFieldInitial(c)) c.name else name
         if (newName != c.name || concept != c.concept) host.setIdentity(newName, concept, c.size, c.legs, c.manaEnabled)
+        val stored = host.active
+        echo = (name to concept) to (editorNameFieldInitial(stored) to stored.concept)
     }
 
     /** Shows a name/concept changed from outside (restore, undo). A restore also drops pending typing. */
@@ -42,9 +47,14 @@ class EditorIdentityDraft(character: DublCharacter, generation: Int) {
         if (generation != typedAt) {
             typedAt = generation
             dirty = false
+            echo = null
         }
         if (dirty) return
-        name = editorNameFieldInitial(character)
+        val storedName = editorNameFieldInitial(character)
+        val own = echo
+        val ownEcho = own != null && own.first == (name to concept) && own.second == (storedName to character.concept)
+        if (ownEcho) return
+        name = storedName
         concept = character.concept
     }
 }

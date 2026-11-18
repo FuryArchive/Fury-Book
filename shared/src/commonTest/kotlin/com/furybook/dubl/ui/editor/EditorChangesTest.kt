@@ -97,4 +97,11 @@ class EditorChangesTest {
         val back = editorChanges(point(after), point(hornet), catalog, includeChi = false, effectNames = mapOf("fx1" to "Ловкие пальцы")).lines.map { it.text }
         assertTrue("Возвращено: Скрытность" in back && "Автоматизация: Ловкие пальцы вкл." in back, back.toString())
     }
+
+    @Test
+    fun finishingCreationIsOneLineNotSettingsForEverySkill() {
+        val creating = hornet.copy(creationComplete = false)
+        val finished = hornet.copy(creationComplete = true, skills = hornet.skills.mapValues { (_, s) -> s.copy(creationRank = s.rank) })
+        assertEquals(listOf("Создание завершено"), changes(finished, before = creating).lines.map { it.text })
+    }
 }

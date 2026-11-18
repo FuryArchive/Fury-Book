@@ -73,4 +73,14 @@ class EditorIdentityDraftTest {
         draft.sync(host.active, generation = 0)
         assertEquals("Оса", draft.name)
     }
+
+    @Test
+    fun ownSaveDoesNotEatTheTrailingSpace() {
+        val host = host()
+        val draft = EditorIdentityDraft(host.active, generation = 0)
+        draft.edit(name = "Вика ", concept = "наёмник")
+        draft.save(host, generation = 0)
+        draft.sync(host.active, generation = 0)
+        assertEquals("Вика ", draft.name)
+    }
 }

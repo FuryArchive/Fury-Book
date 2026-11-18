@@ -114,7 +114,7 @@ internal fun EditorSkillPanel(host: DublEditorHost, state: EditorState, detail: 
 
         EditorOverline("Постоянная поправка")
         FuryStepper(
-            detail.modifier, { host.setSkillModifier(id, it) }, min = -20, max = 20,
+            detail.modifier, { host.setSkillModifier(id, it) }, min = EDITOR_SKILL_MODIFIER_RANGE.first, max = EDITOR_SKILL_MODIFIER_RANGE.last,
             decreaseLabel = "Уменьшить поправку", increaseLabel = "Увеличить поправку",
         )
 

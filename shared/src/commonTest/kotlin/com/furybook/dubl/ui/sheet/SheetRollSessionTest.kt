@@ -352,4 +352,11 @@ class SheetRollSessionTest {
         val line = sheetRollFormulaLine(FakeSheetHost(sneaky), SheetRollRequest(SheetRollSubject.Skill("stealth"), attribute = AttributeId.STRENGTH))!!
         assertTrue("Сила" in line, line)
     }
+
+    @Test
+    fun rollNeverStartsOnAnAttributeTheSkillNoLongerAllows() {
+        val onlyPerception = hornet.copy(skills = hornet.skills + ("stealth" to CharacterSkill(id = "stealth", definitionId = "stealth", rank = 3, attributes = listOf(AttributeId.PERCEPTION))))
+        val skill = onlyPerception.resolveSkill("stealth")!!
+        assertEquals(AttributeId.PERCEPTION, sheetRememberedAttribute(skill, com.furybook.dubl.model.CharacterSheetExtras()))
+    }
 }

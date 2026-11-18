@@ -51,4 +51,29 @@ class EditorSkillTextDraftTest {
         draft.sync(editorSkillDetail(host, "stealth")!!, generation = 0)
         assertEquals("снаружи", draft.note)
     }
+
+    @Test
+    fun ownSaveDoesNotEatTheTrailingSpace() {
+        // The note setter trims; the field must not snap to the trimmed value while the player is mid-sentence.
+        val host = host()
+        val draft = draft(host)
+        draft.edit(note = "+2 в ")
+        draft.save(host, generation = 0)
+        draft.sync(editorSkillDetail(host, "stealth")!!, generation = 0)
+        assertEquals("+2 в ", draft.note)
+        host.resetSkillDefinitionOverrides("stealth")
+        host.setSkillFormulaNote("stealth", "снаружи")
+        draft.sync(editorSkillDetail(host, "stealth")!!, generation = 0)
+        assertEquals("снаружи", draft.note)
+    }
+
+    @Test
+    fun customSkillNameIsNeverSavedBlank() {
+        val host = host()
+        val id = host.addCustomSkill("Гадание", "", listOf(com.furybook.dubl.model.AttributeId.INTELLIGENCE), com.furybook.dubl.model.UntrainedRule.YES)!!
+        val draft = EditorSkillTextDraft(host.active.id, editorSkillDetail(host, id)!!, 0)
+        draft.edit(name = "  ")
+        draft.save(host, generation = 0)
+        assertEquals("Гадание", editorSkillDetail(host, id)!!.name)
+    }
 }

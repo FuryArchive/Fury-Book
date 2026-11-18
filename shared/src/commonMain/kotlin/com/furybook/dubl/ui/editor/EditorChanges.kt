@@ -57,8 +57,9 @@ fun editorChanges(
         val dynamic = resolved[id]?.isDynamic ?: true
         // A rulebook skill gets a saved entry the first time a setting changes: that is a setting, not a new skill.
         val unsaved = CharacterSkill(id = id, definitionId = id)
-        val settingsBefore = (b.skills[id] ?: unsaved).copy(rank = 0)
-        val settingsAfter = (a.skills[id] ?: unsaved).copy(rank = 0)
+        // Ranks (and the creation snapshot «Завершить создание» takes of them) are not settings.
+        val settingsBefore = (b.skills[id] ?: unsaved).copy(rank = 0, creationRank = 0)
+        val settingsAfter = (a.skills[id] ?: unsaved).copy(rank = 0, creationRank = 0)
         when {
             dynamic && id !in b.skills -> add("+ ${names[id] ?: id}")
             dynamic && id !in a.skills -> add("− ${names[id] ?: id}")

@@ -221,9 +221,11 @@ private fun resolveContextRoll(
     )
 }
 
-/** Where a skill roll starts: the remembered characteristic if the skill still allows it, else its stock one. */
+/** Where a skill roll starts: the remembered characteristic, else the stock one, else the first allowed — never a disallowed one. */
 fun sheetRememberedAttribute(skill: ResolvedSkill, extras: CharacterSheetExtras): AttributeId =
-    extras.preferredSkillAttributes[skill.id]?.takeIf { it in skill.attributes } ?: skill.stockAttribute
+    extras.preferredSkillAttributes[skill.id]?.takeIf { it in skill.attributes }
+        ?: skill.stockAttribute.takeIf { it in skill.attributes }
+        ?: skill.attributes.first()
 
 /** Only allowed picks become the remembered choice; a one-off «другая…» pick is not saved. */
 fun sheetRemembersAttribute(skill: ResolvedSkill, attribute: AttributeId): Boolean = attribute in skill.attributes
