@@ -79,4 +79,17 @@ class SheetScreenStateTest {
         assertNull(state.result)
         assertEquals(0, state.history.size)
     }
+
+    @Test
+    fun editorOpensAtBasicsWhenRequested() {
+        val state = SheetScreenState()
+        state.openEditor(forceBasics = true)
+        kotlin.test.assertTrue(state.editing)
+        kotlin.test.assertTrue(state.editorForceBasics)
+        state.updateEditing(false)
+        kotlin.test.assertFalse(state.editing)
+        kotlin.test.assertFalse(state.editorForceBasics)
+        state.openEditor(forceBasics = false)
+        kotlin.test.assertFalse(state.editorForceBasics)
+    }
 }

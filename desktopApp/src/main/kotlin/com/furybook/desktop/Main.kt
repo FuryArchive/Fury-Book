@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -112,6 +113,9 @@ private fun DesktopApp() {
     val reloadToken = cloudController.reloadToken
     val state = remember(reloadToken) { DesktopAppState(observedCharacters, observedExtras) }
     var selected by remember { mutableStateOf(DesktopSection.SHEET) }
+    // Set by «Новый персонаж»; the sheet consumes it by opening the editor at Основа.
+    var openEditorAtBasics by remember { mutableStateOf(false) }
+    var editorShown by remember { mutableStateOf(false) }
 
     LaunchedEffect(cloudController) {
         cloudController.updateEnabledPackIds(state.enabledContentPackIds())
@@ -134,10 +138,19 @@ private fun DesktopApp() {
         onSwitchCharacter = { characterPickerOpen = true },
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         account = { FuryThemeButton() },
+        phoneChromeHidden = editorShown && selected == DesktopSection.SHEET,
     ) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val layout = layoutClassForWidth(maxWidth.value.toInt())
-            DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.fillMaxSize())
+            DesktopContent(
+                state, cloudController, selected, layout, { selected = it }, Modifier.fillMaxSize(),
+                sheetHooks = DesktopSheetHooks(
+                    openEditorAtBasics = openEditorAtBasics,
+                    onOpenEditorConsumed = { openEditorAtBasics = false },
+                    onEditorShown = { editorShown = it },
+                    onCharacterCreated = { openEditorAtBasics = true; selected = DesktopSection.SHEET },
+                ),
+            )
         }
     }
     if (characterPickerOpen) {
@@ -170,6 +183,7 @@ private fun DesktopContent(
     layout: DublLayoutClass,
     onNavigate: (DesktopSection) -> Unit,
     modifier: Modifier = Modifier,
+    sheetHooks: DesktopSheetHooks = DesktopSheetHooks(),
 ) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         val pageModifier = Modifier
@@ -203,17 +217,26 @@ private fun DesktopContent(
                     state = state,
                     onNavigate = onNavigate,
                     playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
+                    hooks = sheetHooks,
                 )
                 DesktopSection.SKILLS -> SkillsScreen(state, animatedPageModifier)
                 DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
                 DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
                 DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
                 DesktopSection.CAMPAIGN -> CampaignScreen(state, cloudController, animatedPageModifier)
-                DesktopSection.CHARACTERS -> CharactersScreen(state, cloudController, animatedPageModifier)
+                DesktopSection.CHARACTERS -> CharactersScreen(state, cloudController, animatedPageModifier, onCreated = sheetHooks.onCharacterCreated)
             }
         }
     }
 }
+
+/** How the sheet section talks to the shell about the editor. */
+private data class DesktopSheetHooks(
+    val openEditorAtBasics: Boolean = false,
+    val onOpenEditorConsumed: () -> Unit = {},
+    val onEditorShown: (Boolean) -> Unit = {},
+    val onCharacterCreated: () -> Unit = {},
+)
 
 private data class SheetToast(val text: String, val canUndo: Boolean, val token: Int)
 
@@ -226,8 +249,11 @@ private fun DesktopSheet(
     state: DesktopAppState,
     onNavigate: (DesktopSection) -> Unit,
     playModifier: Modifier,
+    hooks: DesktopSheetHooks = DesktopSheetHooks(),
 ) {
     val activeId = state.activeCharacter.id
+    // Leaving the sheet section closes the editor with it; the shell gets its phone chrome back.
+    DisposableEffect(Unit) { onDispose { hooks.onEditorShown(false) } }
     var toast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
     // Keeps the last toast on screen while it animates out.
     var displayedToast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
@@ -256,6 +282,11 @@ private fun DesktopSheet(
             portraitLoader = { path -> rememberDesktopPortrait(path) },
             developmentDetails = { entryId, close -> DesktopSheetDevelopmentDetails(state, entryId, close) },
             onPickPortrait = { chooseDesktopPortraitFile()?.let(state::importPortrait)?.let(state::setPortrait) },
+            openEditorAtBasics = hooks.openEditorAtBasics,
+            onOpenEditorConsumed = hooks.onOpenEditorConsumed,
+            onEditorShown = hooks.onEditorShown,
+            onOpenMagic = { onNavigate(DesktopSection.MAGIC) },
+            onOpenGear = { onNavigate(DesktopSection.EQUIPMENT) },
         )
         AnimatedVisibility(
             visible = toast != null,

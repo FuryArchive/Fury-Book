@@ -20,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -143,6 +144,9 @@ fun DublApp() {
     }
 
     var characterPickerOpen by remember { mutableStateOf(false) }
+    // Set by «+ Создать»; the sheet consumes it by opening the editor at Основа.
+    var openEditorAtBasics by remember { mutableStateOf(false) }
+    var editorShown by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.dismissKeyboardOnPointerDown(),
@@ -166,6 +170,7 @@ fun DublApp() {
                 .fillMaxSize()
                 .padding(innerPadding),
             account = { FuryThemeButton() },
+            phoneChromeHidden = editorShown && selected == AppSection.OVERVIEW && pendingSection == null,
         ) {
             if (pendingSection == AppSection.FEATS) {
                 DevelopmentNavigationLoadingScreen()
@@ -177,6 +182,11 @@ fun DublApp() {
                         onOpenSkills = { selected = AppSection.SKILLS },
                         // Same loading gate as the tab: the development screen is heavy to compose.
                         onOpenDevelopment = { if (pendingSection == null) pendingSection = AppSection.FEATS },
+                        openEditorAtBasics = openEditorAtBasics,
+                        onOpenEditorConsumed = { openEditorAtBasics = false },
+                        onEditorShown = { editorShown = it },
+                        onOpenMagic = { selected = AppSection.MAGIC },
+                        onOpenGear = { selected = AppSection.INVENTORY },
                     )
                     AppSection.SKILLS -> SkillsScreen(controller)
                     AppSection.FEATS -> FeatsScreen(controller, chiPackEnabled)
@@ -201,6 +211,7 @@ fun DublApp() {
                             cloudController.requestSync()
                         },
                         onOpenCampaign = { selected = AppSection.CAMPAIGN },
+                        onCreated = { openEditorAtBasics = true; selected = AppSection.OVERVIEW },
                     )
                 }
             }
@@ -242,8 +253,15 @@ private fun AndroidSheet(
     chiPackEnabled: Boolean,
     onOpenSkills: () -> Unit,
     onOpenDevelopment: () -> Unit,
+    openEditorAtBasics: Boolean = false,
+    onOpenEditorConsumed: () -> Unit = {},
+    onEditorShown: (Boolean) -> Unit = {},
+    onOpenMagic: () -> Unit = {},
+    onOpenGear: () -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    // Leaving the sheet tab closes the editor with it; the shell gets its bottom tabs back.
+    DisposableEffect(Unit) { onDispose { onEditorShown(false) } }
     val activeId = controller.active.id
     // Same picker as the old sheet: keep read access across restarts, then store the URI.
     val portraitPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -281,11 +299,16 @@ private fun AndroidSheet(
             host,
             onOpenSkills = onOpenSkills,
             onOpenDevelopment = onOpenDevelopment,
-            // Back from edit mode returns to the play sheet instead of leaving the app.
+            // Back from the editor returns to the play sheet instead of leaving the app.
             backHandler = { enabled, onBack -> BackHandler(enabled = enabled, onBack = onBack) },
             portraitLoader = { uri -> rememberAndroidPortrait(uri) },
             onPickPortrait = { portraitPicker.launch(arrayOf("image/*")) },
             developmentDetails = { entryId, close -> SheetDevelopmentDetailsDialog(host, entryId, close) },
+            openEditorAtBasics = openEditorAtBasics,
+            onOpenEditorConsumed = onOpenEditorConsumed,
+            onEditorShown = onEditorShown,
+            onOpenMagic = onOpenMagic,
+            onOpenGear = onOpenGear,
         )
         toast?.let { shown ->
             val undoShown: () -> Unit = {

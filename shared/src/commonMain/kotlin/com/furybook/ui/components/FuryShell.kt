@@ -74,11 +74,13 @@ fun <T> FuryShell(
     modifier: Modifier = Modifier,
     /** Account control (web sign-in name / «Выйти»): next to the character button, or in the phone menu. */
     account: (@Composable () -> Unit)? = null,
+    /** On phones, hide the wordmark bar and the bottom tabs: a full-screen view (the character editor) is open. */
+    phoneChromeHidden: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     BoxWithConstraints(modifier.fillMaxSize()) {
         if (furyShellIsPhone(maxWidth.value.toInt())) {
-            PhoneShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, account, content)
+            PhoneShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, account, phoneChromeHidden, content)
         } else {
             WideShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, account, content)
         }
@@ -136,10 +138,15 @@ private fun <T> PhoneShell(
     onSelect: (T) -> Unit,
     onSwitchCharacter: () -> Unit,
     account: (@Composable () -> Unit)?,
+    chromeHidden: Boolean,
     content: @Composable () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     val menuSections = furyMenuSections(sections)
+    if (chromeHidden) {
+        Box(Modifier.fillMaxSize()) { content() }
+        return
+    }
     Column(Modifier.fillMaxSize()) {
         // Wordmark and «Меню» only: the sheet header already names the character (R7).
         Row(

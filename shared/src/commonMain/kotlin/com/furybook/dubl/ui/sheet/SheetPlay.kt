@@ -97,7 +97,7 @@ internal fun SheetPlayBody(
     val notes: @Composable (Modifier, Boolean) -> Unit = { modifier, scrollable ->
         SheetPlayNotes(host.extras.displayNotes(), playState, host, scrollable, modifier, compact)
     }
-    val editor = { state.updateEditing(true) }
+    val editor = { state.openEditor(forceBasics = false) }
     when (layout) {
         SheetLayout.WIDE_WITH_TRAY -> Row(Modifier.fillMaxSize()) {
             Column(Modifier.weight(1f).fillMaxHeight().padding(start = 24.dp, end = 16.dp, top = 14.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {

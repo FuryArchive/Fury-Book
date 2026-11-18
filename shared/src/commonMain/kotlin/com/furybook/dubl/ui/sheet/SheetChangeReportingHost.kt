@@ -1,5 +1,6 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.dubl.ui.editor.DublEditorHost
 import com.furybook.dubl.content.resourceCurrent
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterConditionId
@@ -41,40 +42,47 @@ sealed interface SheetChange {
  * built-in resource steps, condition toggles, attribute steps and identity edits; undo stays [undoLast].
  */
 class SheetChangeReportingHost(
-    private val delegate: DublSheetEditHost,
+    private val delegate: DublEditorHost,
     private val onChange: (SheetChange) -> Unit,
-) : DublSheetEditHost by delegate {
+) : DublEditorHost by delegate {
+    /** While true nothing is reported: the editor lists its own changes and offers «Отменить всё». */
+    var muted: Boolean = false
+
+    private fun report(change: SheetChange) {
+        if (!muted) onChange(change)
+    }
+
     override fun changeResource(resource: CharacterSheetResourceId, delta: Int) {
         val before = delegate.active.resourceCurrent(resource)
         delegate.changeResource(resource, delta)
         val applied = delegate.active.resourceCurrent(resource) - before
-        if (applied != 0) onChange(SheetChange.Resource(resource, applied))
+        if (applied != 0) report(SheetChange.Resource(resource, applied))
     }
 
     override fun toggleCondition(condition: CharacterConditionId) {
         val wasActive = condition in delegate.extras.activeConditions
         delegate.toggleCondition(condition)
         val isActive = condition in delegate.extras.activeConditions
-        if (isActive != wasActive) onChange(SheetChange.Condition(condition, added = isActive))
+        if (isActive != wasActive) report(SheetChange.Condition(condition, added = isActive))
     }
 
     override fun changeAttribute(id: AttributeId, delta: Int) {
         val before = delegate.active.attributes[id]?.base
         delegate.changeAttribute(id, delta)
         val after = delegate.active.attributes[id]?.base
-        if (before != null && after != null && after != before) onChange(SheetChange.Attribute(id, after - before))
+        if (before != null && after != null && after != before) report(SheetChange.Attribute(id, after - before))
     }
 
     override fun setIdentity(name: String, concept: String, size: Int, legs: Int, manaEnabled: Boolean) {
         val before = delegate.active
         delegate.setIdentity(name, concept, size, legs, manaEnabled)
-        if (delegate.active != before) onChange(SheetChange.Identity)
+        if (delegate.active != before) report(SheetChange.Identity)
     }
 
     override fun setExperience(total: Int) {
         val before = delegate.active.experience
         delegate.setExperience(total)
         val after = delegate.active.experience
-        if (after != before) onChange(SheetChange.Experience(before, after))
+        if (after != before) report(SheetChange.Experience(before, after))
     }
 }

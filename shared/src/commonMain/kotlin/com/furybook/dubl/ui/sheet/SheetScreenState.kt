@@ -54,11 +54,26 @@ class SheetScreenState {
         characterId = id
     }
 
-    /** Switching between play and edit closes any open popup. */
+    /** True when the editor was asked to open at Основа (a character just created from the list). */
+    var editorForceBasics: Boolean by mutableStateOf(false)
+        private set
+
+    /** Switching between play and the editor closes any open popup. */
     fun updateEditing(value: Boolean) {
         if (value == editing) return
         editing = value
         dialog = null
+        if (!value) editorForceBasics = false
+    }
+
+    /** Bumped every time the editor opens, so the screen takes a fresh snapshot for «Отменить всё». */
+    var editorSession: Int by mutableStateOf(0)
+        private set
+
+    fun openEditor(forceBasics: Boolean) {
+        editorForceBasics = forceBasics
+        if (!editing) editorSession++
+        updateEditing(true)
     }
 
     fun openDialog(next: SheetDialog) {

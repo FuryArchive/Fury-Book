@@ -38,7 +38,8 @@ import com.furybook.web.pickTextFile
 import kotlinx.coroutines.launch
 
 @Composable
-fun CharactersScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
+/** [onCreated] runs after «Новый персонаж»: the app opens the new character in the editor at Основа. */
+fun CharactersScreen(state: DesktopAppState, modifier: Modifier = Modifier, onCreated: () -> Unit = {}) {
     var confirmDelete by remember { mutableStateOf(false) }
     var transferStatus by remember { mutableStateOf<String?>(null) }
     var contentPackStatus by remember { mutableStateOf<String?>(null) }
@@ -75,7 +76,7 @@ fun CharactersScreen(state: DesktopAppState, modifier: Modifier = Modifier) {
                         )
                         transferStatus = "Персонаж экспортирован."
                     }) { Text("Экспорт") }
-                    Button(onClick = { state.createCharacter() }) { Text("+ Новый персонаж") }
+                    Button(onClick = { state.createCharacter(); onCreated() }) { Text("+ Новый персонаж") }
                 }
             }
         }
