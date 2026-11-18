@@ -3,6 +3,7 @@ package com.furybook.dubl.ui.editor
 import com.furybook.dubl.application.CharacterRestorePoint
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterEconomy
+import com.furybook.dubl.model.CharacterSkill
 import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.resolvedSkills
@@ -22,6 +23,7 @@ fun editorChanges(
     after: CharacterRestorePoint,
     catalog: DevelopmentCatalog,
     includeChi: Boolean,
+    effectNames: Map<String, String> = emptyMap(),
 ): EditorChanges {
     val b = before.character
     val a = after.character
@@ -47,17 +49,22 @@ fun editorChanges(
         if (from != to) add("${id.title} $from → $to", cost(b.copy(attributes = b.attributes + (id to (a.attributes[id] ?: return@forEach)))))
     }
 
-    val names = (b.resolvedSkills(includeHidden = true) + a.resolvedSkills(includeHidden = true)).associate { it.id to it.name }
+    val resolved = (b.resolvedSkills(includeHidden = true) + a.resolvedSkills(includeHidden = true)).associateBy { it.id }
+    val names = resolved.mapValues { it.value.name }
     (b.skills.keys + a.skills.keys).forEach { id ->
         val from = b.skills[id]?.rank ?: 0
         val to = a.skills[id]?.rank ?: 0
-        if (from == to) {
-            when {
-                id !in b.skills -> add("+ ${names[id] ?: id}")
-                id !in a.skills -> add("− ${names[id] ?: id}")
-            }
-            return@forEach
+        val dynamic = resolved[id]?.isDynamic ?: true
+        // A rulebook skill gets a saved entry the first time a setting changes: that is a setting, not a new skill.
+        val unsaved = CharacterSkill(id = id, definitionId = id)
+        val settingsBefore = (b.skills[id] ?: unsaved).copy(rank = 0)
+        val settingsAfter = (a.skills[id] ?: unsaved).copy(rank = 0)
+        when {
+            dynamic && id !in b.skills -> add("+ ${names[id] ?: id}")
+            dynamic && id !in a.skills -> add("− ${names[id] ?: id}")
+            settingsBefore != settingsAfter -> add("${names[id] ?: id}: настройки изменены")
         }
+        if (from == to) return@forEach
         val modified = a.skills[id]?.let { b.copy(skills = b.skills + (id to it)) } ?: b.copy(skills = b.skills - id)
         add("${names[id] ?: id} $from → $to", cost(modified))
     }
@@ -78,6 +85,11 @@ fun editorChanges(
         val modified = a.development[id]?.let { b.copy(development = b.development + (id to it)) } ?: b.copy(development = b.development - id)
         add(text, cost(modified))
     }
+
+    (a.hiddenSkillIds - b.hiddenSkillIds).forEach { add("Скрыто: ${names[it] ?: it}") }
+    (b.hiddenSkillIds - a.hiddenSkillIds).forEach { add("Возвращено: ${names[it] ?: it}") }
+    (a.disabledSkillEffectIds - b.disabledSkillEffectIds).forEach { add("Автоматизация: ${effectNames[it] ?: it} выкл.") }
+    (b.disabledSkillEffectIds - a.disabledSkillEffectIds).forEach { add("Автоматизация: ${effectNames[it] ?: it} вкл.") }
 
     if (a.creationComplete != b.creationComplete) add(if (a.creationComplete) "Создание завершено" else "Создание открыто снова")
     // Whatever else differs is still reverted by «Отменить всё», so the list (and the button) must not look empty.

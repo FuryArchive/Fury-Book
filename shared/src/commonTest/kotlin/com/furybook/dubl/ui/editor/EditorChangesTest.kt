@@ -81,4 +81,20 @@ class EditorChangesTest {
         assertEquals(listOf("Острый слух: другой вариант"), changes(switched, before = owned).lines.map { it.text })
         assertEquals(listOf("Другие изменения"), changes(hornet.copy(chiBonusRanks = 1)).lines.map { it.text })
     }
+
+    @Test
+    fun settingsOnUnrankedBuiltInAreNotAnAddedSkill() {
+        val after = hornet.copy(skills = hornet.skills + ("riding" to com.furybook.dubl.model.CharacterSkill(id = "riding", definitionId = "riding", modifier = 1)))
+        assertEquals(listOf("Верховая езда: настройки изменены"), changes(after).lines.map { it.text })
+    }
+
+    @Test
+    fun hiddenAndEffectLines() {
+        val after = hornet.copy(hiddenSkillIds = setOf("stealth"), disabledSkillEffectIds = setOf("fx1"))
+        val lines = editorChanges(point(hornet), point(after), catalog, includeChi = false, effectNames = mapOf("fx1" to "Ловкие пальцы")).lines.map { it.text }
+        assertTrue("Скрыто: Скрытность" in lines, lines.toString())
+        assertTrue("Автоматизация: Ловкие пальцы выкл." in lines, lines.toString())
+        val back = editorChanges(point(after), point(hornet), catalog, includeChi = false, effectNames = mapOf("fx1" to "Ловкие пальцы")).lines.map { it.text }
+        assertTrue("Возвращено: Скрытность" in back && "Автоматизация: Ловкие пальцы вкл." in back, back.toString())
+    }
 }
