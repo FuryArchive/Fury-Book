@@ -144,7 +144,7 @@ private fun undoAll(host: DublEditorHost, state: EditorState) {
     }
 }
 
-/** Placeholder bodies until each step lands (Tasks 8–11 replace the branches). */
+/** The current step's body. */
 @Composable
 internal fun EditorStepContent(
     host: DublEditorHost,
@@ -156,8 +156,13 @@ internal fun EditorStepContent(
     onOpenMagic: () -> Unit,
     onOpenGear: () -> Unit,
 ) {
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(editorContentPadding(layout))) {
-        EditorStepTitle(state.step.title, "")
+    when (state.step) {
+        EditorStep.DEVELOPMENT -> EditorDevelopmentStep(host, state, data, layout)
+        EditorStep.BASICS -> EditorBasicsStep(host, state, data, layout, portraitLoader, onPickPortrait)
+        EditorStep.ATTRIBUTES -> EditorAttributesStep(host, data, layout)
+        else -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(editorContentPadding(layout))) {
+            EditorStepTitle(state.step.title, "")
+        }
     }
 }
 
