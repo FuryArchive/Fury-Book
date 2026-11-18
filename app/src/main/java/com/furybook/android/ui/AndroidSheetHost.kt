@@ -128,16 +128,6 @@ class AndroidSheetHost(
     override fun updateNote(id: String, title: String, body: String) { controller.updateNote(id, title, body) }
     override fun removeNote(id: String) { controller.removeNote(id) }
     override fun setPortrait(uri: String?) { controller.setPortrait(uri) }
-}
-
-@Composable
-fun rememberAndroidSheetHost(
-    controller: CharacterController,
-    context: Context,
-    chiPackEnabled: Boolean,
-): AndroidSheetHost = remember(controller, context, chiPackEnabled) {
-    AndroidSheetHost(controller, context, chiPackEnabled)
-
     override fun changeSkillRank(skillId: String, delta: Int) { controller.changeSkillRank(skillId, delta) }
     override fun addSpecializedSkill(templateId: String, specialization: String): String? =
         controller.addSpecializedSkill(templateId, specialization)
@@ -148,4 +138,13 @@ fun rememberAndroidSheetHost(
     override fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int) { controller.setDevelopmentRank(entryId, rank, optionIndex) }
     override fun restorePoint(): CharacterRestorePoint = controller.restorePoint()
     override fun restore(point: CharacterRestorePoint): Boolean = controller.restore(point)
+}
+
+@Composable
+fun rememberAndroidSheetHost(
+    controller: CharacterController,
+    context: Context,
+    chiPackEnabled: Boolean,
+): AndroidSheetHost = remember(controller, context, chiPackEnabled) {
+    AndroidSheetHost(controller, context, chiPackEnabled)
 }
