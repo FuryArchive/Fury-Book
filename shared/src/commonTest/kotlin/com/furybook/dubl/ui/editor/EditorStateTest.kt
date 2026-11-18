@@ -101,4 +101,18 @@ class EditorStateTest {
         assertEquals(190, editorTabScrollTarget(tabStart = 320, tabWidth = 100, viewport = 360, maxScroll = 340))
         assertEquals(340, editorTabScrollTarget(tabStart = 600, tabWidth = 100, viewport = 360, maxScroll = 340))
     }
+
+    @Test
+    fun openAtSkill() {
+        val host = FakeSheetHost(DublCharacter(id = "c1", name = "Шершень", creationComplete = true))
+        val state = EditorState()
+        state.open(host, forceBasics = false, skillId = "stealth")
+        assertEquals(EditorStep.SKILLS, state.step)
+        assertEquals("stealth", state.skillPanelId)
+        assertFalse(state.skillsRankedOnly)
+        state.skillCategory = com.furybook.dubl.model.SkillCategory.COMBAT
+        state.open(host, forceBasics = false)
+        assertEquals(null, state.skillPanelId)
+        assertEquals(null, state.skillCategory)
+    }
 }

@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.furybook.dubl.application.CharacterRestorePoint
+import com.furybook.dubl.model.SkillCategory
 
 enum class EditorStep(val title: String) {
     DEVELOPMENT("Развитие"),
@@ -51,15 +52,22 @@ class EditorState {
 
     fun markRestored() { restoreGeneration++ }
 
-    fun open(host: DublEditorHost, forceBasics: Boolean) {
+    /** Skill whose panel is open on the Умения step; [skillCategory] the category chip filter. */
+    var skillPanelId: String? by mutableStateOf(null)
+    var skillCategory: SkillCategory? by mutableStateOf(null)
+
+    /** [skillId]: opened from «Настроить в редакторе» — straight to Умения with that skill's panel. */
+    fun open(host: DublEditorHost, forceBasics: Boolean, skillId: String? = null) {
         val complete = host.active.creationComplete
         snapshot = host.restorePoint()
-        step = editorStartStep(complete, forceBasics)
+        step = if (skillId != null) EditorStep.SKILLS else editorStartStep(complete, forceBasics)
         perkKind = EditorPerkKind.REGULAR
         perkFilter = EditorPerkFilter.ALL
         perkQuery = ""
         skillQuery = ""
-        skillsRankedOnly = complete
+        skillsRankedOnly = complete && skillId == null
+        skillPanelId = skillId
+        skillCategory = null
         selectChoices(null)
         changesOpen = false
         developmentPins = null

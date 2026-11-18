@@ -3,6 +3,7 @@ package com.furybook.dubl.ui.editor
 import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.AttributeValue
 import com.furybook.dubl.model.DublCharacter
+import com.furybook.dubl.model.resolveSkill
 import com.furybook.dubl.model.skillNextRankCost
 import com.furybook.dubl.ui.editor.EditorFixtures.catalog
 import com.furybook.dubl.ui.editor.EditorFixtures.hornet
@@ -161,5 +162,28 @@ class EditorModelsTest {
         assertEquals("Свободно 2450 XP и 3 ОС. Что можно взять прямо сейчас, одним нажатием.", editorDevelopmentSubtitle(2450, 3))
         assertEquals("Свободно 3735 XP; очков способностей потрачено на 5 больше бюджета. Что можно взять прямо сейчас, одним нажатием.", editorDevelopmentSubtitle(3735, -5))
         assertEquals("Перерасход опыта: 40 XP. Верните часть опыта или добавьте XP на «Основе».", editorDevelopmentSubtitle(-40, 0))
+    }
+
+    @Test
+    fun searchMatchesDescriptions() {
+        val host = host()
+        val ids = editorSkillGroups(host, host.active, rankedOnly = false, query = "бесшум").flatMap { g -> g.rows.map { it.skillId } }
+        assertEquals(listOf("stealth"), ids)
+    }
+
+    @Test
+    fun categoryFilterKeepsOnlyThatCategory() {
+        val host = host()
+        val rows = editorSkillGroups(host, host.active, rankedOnly = false, query = "", category = com.furybook.dubl.model.SkillCategory.COMBAT)
+            .flatMap { g -> g.rows.map { it.skillId } }
+        assertTrue(rows.isNotEmpty())
+        assertTrue(rows.all { host.active.resolveSkill(it)!!.category == com.furybook.dubl.model.SkillCategory.COMBAT }, rows.toString())
+    }
+
+    @Test
+    fun openSkillStaysListedAcrossFilters() {
+        val host = host()
+        val ids = editorSkillGroups(host, host.active, rankedOnly = true, query = "zzz", keep = "lockpicking").flatMap { g -> g.rows.map { it.skillId } }
+        assertEquals(listOf("lockpicking"), ids)
     }
 }

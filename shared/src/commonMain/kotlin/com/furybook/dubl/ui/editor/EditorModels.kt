@@ -1,6 +1,8 @@
 package com.furybook.dubl.ui.editor
 
 import com.furybook.dubl.model.AttributeId
+import com.furybook.dubl.model.resolveSkill
+import com.furybook.dubl.model.SkillCategory
 import com.furybook.dubl.model.CharacterEconomy
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.MagicEquipmentRules
@@ -69,13 +71,30 @@ data class EditorSkillGroup(val attribute: AttributeId, val short: String, val t
  * Skills by default attribute, as on the play sheet. With [rankedOnly], a skill ranked when the editor
  * opened stays listed at rank 0 so its last rank can be put back.
  */
-fun editorSkillGroups(host: DublEditorHost, before: DublCharacter, rankedOnly: Boolean, query: String): List<EditorSkillGroup> {
+/**
+ * Skills by attribute for the Умения step. Search matches names and descriptions; [category] narrows to one
+ * category; [keep] (the open skill) stays listed whatever the filters say.
+ */
+fun editorSkillGroups(
+    host: DublEditorHost,
+    before: DublCharacter,
+    rankedOnly: Boolean,
+    query: String,
+    category: SkillCategory? = null,
+    keep: String? = null,
+): List<EditorSkillGroup> {
     val character = host.active
     val needle = developmentNormalize(query)
     return sheetSkillsByAttribute(host, rankedOnly = false).map { group ->
         val rows = group.rows
-            .filter { row -> !rankedOnly || row.rank > 0 || (before.skills[row.skillId]?.rank ?: 0) > 0 }
-            .filter { row -> needle.isBlank() || needle in developmentNormalize(row.name) }
+            .filter { row ->
+                val skill = character.resolveSkill(row.skillId)
+                row.skillId == keep || (
+                    (!rankedOnly || row.rank > 0 || (before.skills[row.skillId]?.rank ?: 0) > 0) &&
+                        (category == null || skill?.category == category) &&
+                        (needle.isBlank() || needle in developmentNormalize(row.name) || needle in developmentNormalize(skill?.description.orEmpty()))
+                    )
+            }
             // Ordered by the rank at the start of the visit, so a row never moves under the cursor while you click it.
             .sortedWith(compareByDescending<com.furybook.dubl.ui.sheet.SheetSkillRow> { before.skills[it.skillId]?.rank ?: 0 }.thenBy { developmentNormalize(it.name) })
             .map { row ->
