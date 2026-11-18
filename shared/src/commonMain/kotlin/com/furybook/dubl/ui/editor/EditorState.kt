@@ -39,6 +39,8 @@ class EditorState {
     var choiceSelections: Map<String, Int> by mutableStateOf(emptyMap())
     var optionIndex: Int? by mutableStateOf(null)
     var changesOpen: Boolean by mutableStateOf(false)
+    /** Short confirmation shown at the bottom of the editor («Взято: …»); the screen clears it after a moment. */
+    var toast: String? by mutableStateOf(null)
     var snapshot: CharacterRestorePoint? by mutableStateOf(null)
         private set
 
@@ -66,6 +68,8 @@ class EditorState {
         choiceSelections = emptyMap()
         optionIndex = null
     }
+
+    fun flash(text: String) { toast = text }
 
     fun next(host: DublEditorHost) = move(host, +1)
 
