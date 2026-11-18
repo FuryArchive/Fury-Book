@@ -182,4 +182,7 @@ class FakeSheetHost(
     override fun setDevelopmentRank(entryId: String, rank: Int, optionIndex: Int) { application.development.setRank(entryId, rank, optionIndex) }
     override fun restorePoint(): CharacterRestorePoint = application.restorePoint()
     override fun restore(point: CharacterRestorePoint): Boolean = application.restore(point)
+
+    /** Test helper: creates a new character and makes it active, as the character list does. */
+    fun createCharacter() { application.character.createCharacter() }
 }
