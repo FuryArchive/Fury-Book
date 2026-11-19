@@ -52,7 +52,13 @@ data class EditorPerkCard(
 
 data class EditorPerkGroup(val title: String, val cards: List<EditorPerkCard>)
 
-data class EditorRequirementLine(val text: String, val status: RequirementStatus)
+/** [targetId]: the catalog perk this requirement names, opened when the line is tapped. */
+data class EditorRequirementLine(val text: String, val status: RequirementStatus, val targetId: String? = null)
+
+data class EditorPerkLink(val entryId: String, val name: String)
+
+/** Where a perk's record comes from: the rulebook, the rulebook with a local edit, or the player's own. */
+enum class EditorPerkOrigin { BOOK, BOOK_EDITED, CUSTOM }
 
 /** One step of a chain; [isTarget] marks the perk itself, the rest are prerequisites bought first. */
 data class EditorChainStep(val label: String, val costText: String, val isTarget: Boolean = false)
@@ -79,7 +85,7 @@ data class EditorPerkDetail(
     val benefit: String,
     val benefitMissing: Boolean,
     val requirements: List<EditorRequirementLine>,
-    val unlocks: List<String>,
+    val unlocks: List<EditorPerkLink>,
     val chain: List<EditorChainStep>,
     val chainCost: String,
     val choices: List<EditorChoice>,
@@ -92,6 +98,13 @@ data class EditorPerkDetail(
     val forceChecks: List<String>,
     val removeAction: EditorPerkAction.SetRank?,
     val removeLabel: String?,
+    val origin: EditorPerkOrigin = EditorPerkOrigin.BOOK,
+    /** Every remaining rank at once (two or more left, affordable). */
+    val allRanksAction: EditorPerkAction.Acquire? = null,
+    val allRanksLabel: String? = null,
+    /** The chain without the perk itself («Добрать требования»). */
+    val prerequisitesAction: EditorPerkAction.Acquire? = null,
+    val prerequisitesLabel: String? = null,
 )
 
 /** One character state's rules, planner and index, shared by every perk model so the planner runs once per entry. */
@@ -329,6 +342,15 @@ fun EditorPerkContext.perkDetail(entryId: String, choiceSelections: Map<String, 
         }
     }
     val benefitMissing = entry.benefit.isBlank()
+    // Bulk actions show only when the whole run is affordable; otherwise the single take already explains why not.
+    fun bulk(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionPlan? =
+        planner.plan(request).takeIf { it.steps.isNotEmpty() && it.unresolvedRequirements.isEmpty() && affordable(it.xpCost, it.abilityCost) }
+    val allRanksRequest = DevelopmentAcquisitionRequest.single(entry.id, targetRank = max, optionIndex = eval.option, enforceBudget = false)
+    val allRanks = if (max - rank >= 2 && !entry.incomplete) bulk(allRanksRequest) else null
+    val prerequisitesRequest = DevelopmentAcquisitionRequest.single(
+        entry.id, includeTarget = false, optionIndex = eval.option, choiceSelections = choiceSelections, enforceBudget = false,
+    )
+    val prerequisitePlan = if (chain.isNotEmpty()) bulk(prerequisitesRequest) else null
     return EditorPerkDetail(
         entryId = entry.id,
         name = entry.name,
@@ -350,8 +372,8 @@ fun EditorPerkContext.perkDetail(entryId: String, choiceSelections: Map<String, 
             else -> "Нет описания в правилах — см. требования."
         },
         benefitMissing = benefitMissing,
-        requirements = eval.availability.checks.map { EditorRequirementLine(it.text, it.status) },
-        unlocks = planner.unlocks(entry.id).map { it.name },
+        requirements = eval.availability.checks.map { EditorRequirementLine(it.text, it.status, it.targetEntryId?.takeIf { id -> catalog.byId(id) != null }) },
+        unlocks = planner.unlocks(entry.id).map { EditorPerkLink(it.id, it.name) },
         chain = chain.map {
             EditorChainStep(stepLabel(it), costLabel(it.xpCost, it.abilityCost), it is DevelopmentAcquisitionStep.Development && it.entryId == entry.id)
         },
@@ -365,5 +387,14 @@ fun EditorPerkContext.perkDetail(entryId: String, choiceSelections: Map<String, 
         forceChecks = if (canForce) eval.availability.checks.filter { it.status != RequirementStatus.OK }.map { it.text } + listOfNotNull(block) else emptyList(),
         removeAction = if (rank > 0) EditorPerkAction.SetRank(rank - 1, eval.option) else null,
         removeLabel = if (rank > 0) (if (rank > 1) "Убрать ранг" else "Убрать") + (if (eval.directXp > 0) " (+${eval.directXp} XP)" else "") else null,
+        origin = when {
+            character.customDevelopmentEntries.any { it.id == entry.id } -> EditorPerkOrigin.CUSTOM
+            entry.id in character.developmentOverrides -> EditorPerkOrigin.BOOK_EDITED
+            else -> EditorPerkOrigin.BOOK
+        },
+        allRanksAction = allRanks?.let { EditorPerkAction.Acquire(allRanksRequest) },
+        allRanksLabel = allRanks?.let { "Взять все оставшиеся ранги · ${costLabel(it.xpCost, it.abilityCost)}" },
+        prerequisitesAction = prerequisitePlan?.let { EditorPerkAction.Acquire(prerequisitesRequest) },
+        prerequisitesLabel = prerequisitePlan?.let { "Добрать требования · ${costLabel(it.xpCost, it.abilityCost)}" },
     )
 }

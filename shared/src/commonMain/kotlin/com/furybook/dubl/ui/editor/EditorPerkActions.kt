@@ -3,11 +3,15 @@ package com.furybook.dubl.ui.editor
 import com.furybook.dubl.model.DevelopmentEntryKind
 
 /** Runs a perk action and confirms it in the editor toast («Взято: …» or the rules' refusal message). */
-internal fun applyPerkAction(host: DublEditorHost, state: EditorState, entryId: String, name: String, action: EditorPerkAction, chain: Boolean) {
+internal fun applyPerkAction(
+    host: DublEditorHost, state: EditorState, entryId: String, name: String, action: EditorPerkAction, chain: Boolean,
+    /** Replaces «Взято: …» on success (bulk ranks, «Добрать требования»). */
+    doneText: String? = null,
+) {
     when (action) {
         is EditorPerkAction.Acquire -> {
             val result = host.acquireDevelopment(action.request)
-            state.flash(if (result.applied) (if (chain) "Взято цепочкой: " else "Взято: ") + name else result.message)
+            state.flash(if (result.applied) doneText ?: ((if (chain) "Взято цепочкой: " else "Взято: ") + name) else result.message)
         }
         is EditorPerkAction.SetRank -> {
             val before = host.active.development[entryId]?.rank ?: 0

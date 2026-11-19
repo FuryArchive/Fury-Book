@@ -149,4 +149,47 @@ class EditorPerkModelsTest {
         assertTrue(single.id in listed(keep = single.id))
         assertFalse(single.id in listed(keep = null))
     }
+
+    @Test
+    fun allRanksOfferedOnlyWithTwoLeft() {
+        val host = host()
+        val fresh = editorPerkDetail(host, keenHearing.id, emptyMap(), null)!!
+        assertTrue(fresh.allRanksLabel!!.startsWith("Взять все оставшиеся ранги · "), fresh.allRanksLabel)
+        assertEquals(2, fresh.allRanksAction!!.request.targets.single().targetRank)
+        assertTrue(host.acquireDevelopment(fresh.allRanksAction!!.request).applied)
+        assertEquals(2, host.active.development.getValue(keenHearing.id).rank)
+        val oneLeft = host(hornet.copy(development = hornet.development + (keenHearing.id to com.furybook.dubl.model.OwnedDevelopment(rank = 1))))
+        assertNull(editorPerkDetail(oneLeft, keenHearing.id, emptyMap(), null)!!.allRanksAction)
+    }
+
+    @Test
+    fun prerequisitesOnlyWhenChainExists() {
+        val host = host()
+        val chained = editorPerkDetail(host, ranger.id, emptyMap(), null)!!
+        val request = chained.prerequisitesAction!!.request
+        assertTrue(chained.prerequisitesLabel!!.startsWith("Добрать требования · "), chained.prerequisitesLabel)
+        assertTrue(host.acquireDevelopment(request).applied)
+        assertEquals(3, host.active.skills.getValue("survival").rank)
+        assertNull(host.active.development[ranger.id])
+        assertNull(editorPerkDetail(host(), keenHearing.id, emptyMap(), null)!!.prerequisitesAction)
+    }
+
+    @Test
+    fun linksCarryTargets() {
+        val host = host()
+        val branch = editorPerkDetail(host, EditorFixtures.branch.id, emptyMap(), null)!!
+        assertTrue(branch.requirements.any { it.targetId == EditorFixtures.access.id }, branch.requirements.toString())
+        val access = editorPerkDetail(host, EditorFixtures.access.id, emptyMap(), null)!!
+        assertTrue(EditorPerkLink(EditorFixtures.branch.id, "Разметать") in access.unlocks, access.unlocks.toString())
+    }
+
+    @Test
+    fun originMarksCustomAndEdited() {
+        val host = host()
+        host.setDevelopmentOverride(keenHearing.copy(cost = 10))
+        val custom = host.addCustomDevelopment(entry("", "Гадание"))!!
+        assertEquals(EditorPerkOrigin.BOOK_EDITED, editorPerkDetail(host, keenHearing.id, emptyMap(), null)!!.origin)
+        assertEquals(EditorPerkOrigin.CUSTOM, editorPerkDetail(host, custom, emptyMap(), null)!!.origin)
+        assertEquals(EditorPerkOrigin.BOOK, editorPerkDetail(host, ranger.id, emptyMap(), null)!!.origin)
+    }
 }

@@ -220,7 +220,7 @@ private fun PerkDetail(host: DublEditorHost, state: EditorState, detail: EditorP
         detail.requirements.forEach { line -> RequirementLine(line) }
         if (detail.unlocks.isNotEmpty()) {
             EditorOverline("Открывает")
-            Text(detail.unlocks.joinToString(", "), color = p.text2, style = MaterialTheme.typography.bodySmall)
+            Text(detail.unlocks.joinToString(", ") { it.name }, color = p.text2, style = MaterialTheme.typography.bodySmall)
         }
         detail.choices.forEach { choice ->
             EditorOverline(choice.label)
