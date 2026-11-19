@@ -53,12 +53,13 @@ class DesktopAppState(
         private set
 
     override val conditionCatalog = catalogLoader.loadConditions()
-    private var canonicalDevelopmentCatalog: DevelopmentCatalog by mutableStateOf(composeCanonicalDevelopmentCatalog())
+    override var canonicalDevelopmentCatalog: DevelopmentCatalog by mutableStateOf(composeCanonicalDevelopmentCatalog())
+        private set
     override val developmentCatalog: DevelopmentCatalog
         get() = activeCharacter
             .effectiveDevelopmentCatalog(canonicalDevelopmentCatalog)
             .let { catalog -> if (chiPackEnabled) catalog else catalog.withoutChiContent() }
-    var chiCatalog: ChiCatalog by mutableStateOf(
+    override var chiCatalog: ChiCatalog by mutableStateOf(
         if (chiPackEnabled) catalogLoader.loadChi() else ChiCatalog("disabled", emptyList(), emptyList()),
     )
         private set
@@ -176,8 +177,8 @@ class DesktopAppState(
             CharacterSheetResourceId.CHI -> changeChi(delta)
         }
     }
-    fun setChiEnabled(enabled: Boolean) = sync { application.development.setChiEnabled(enabled) }
-    fun setChiBonusRanks(rank: Int) = sync { application.development.setChiBonusRanks(rank) }
+    override fun setChiEnabled(enabled: Boolean) = sync { application.development.setChiEnabled(enabled) }
+    override fun setChiBonusRanks(rank: Int) = sync { application.development.setChiBonusRanks(rank) }
     fun restoreChi() = sync { application.development.restoreChi() }
     override fun restoreMountedResource(resource: CharacterSheetResourceId) {
         when (resource) {
@@ -219,11 +220,11 @@ class DesktopAppState(
     override fun acquireDevelopment(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionResult = sync { application.development.acquire(developmentCatalog, request) }
     override fun restorePoint(): CharacterRestorePoint = application.restorePoint()
     override fun restore(point: CharacterRestorePoint): Boolean = sync { application.restore(point) }
-    fun setDevelopmentOverride(entry: DevelopmentEntry) = sync { application.development.setOverride(entry) }
-    fun resetDevelopmentOverride(entryId: String) = sync { application.development.resetOverride(entryId) }
-    fun addCustomDevelopment(entry: DevelopmentEntry): String? = sync { application.development.addCustom(entry) }
-    fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean = sync { application.development.updateCustom(entry) }
-    fun removeCustomDevelopment(entryId: String) = sync { application.development.removeCustom(entryId) }
+    override fun setDevelopmentOverride(entry: DevelopmentEntry) = sync { application.development.setOverride(entry) }
+    override fun resetDevelopmentOverride(entryId: String) = sync { application.development.resetOverride(entryId) }
+    override fun addCustomDevelopment(entry: DevelopmentEntry): String? = sync { application.development.addCustom(entry) }
+    override fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean = sync { application.development.updateCustom(entry) }
+    override fun removeCustomDevelopment(entryId: String) = sync { application.development.removeCustom(entryId) }
 
     fun setMagicManaRank(rank: Int) = sync { application.magic.setManaRank(rank) }
     fun setMagicSchoolPower(name: String, power: Int) = sync { application.magic.setSchoolPower(name, power) }

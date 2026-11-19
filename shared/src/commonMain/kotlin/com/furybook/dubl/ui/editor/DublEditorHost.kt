@@ -2,6 +2,9 @@ package com.furybook.dubl.ui.editor
 
 import com.furybook.dubl.application.CharacterRestorePoint
 import com.furybook.dubl.model.AttributeId
+import com.furybook.dubl.model.ChiCatalog
+import com.furybook.dubl.model.DevelopmentCatalog
+import com.furybook.dubl.model.DevelopmentEntry
 import com.furybook.dubl.model.DevelopmentAcquisitionRequest
 import com.furybook.dubl.model.DevelopmentAcquisitionResult
 import com.furybook.dubl.model.SkillCategory
@@ -37,4 +40,17 @@ interface DublEditorHost : DublSheetEditHost {
     fun setSkillEffectEnabled(effectId: String, enabled: Boolean)
     fun deleteDynamicSkill(skillId: String)
     fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?)
+
+    // Perk editing and ЦИ setup (the old Навыки tab), now in the editor's Навыки step.
+    /** The catalog before this character's local edits and own perks; prices the change list per side. */
+    val canonicalDevelopmentCatalog: DevelopmentCatalog
+    /** ЦИ techniques; empty when the ЦИ pack is off. */
+    val chiCatalog: ChiCatalog
+    fun addCustomDevelopment(entry: DevelopmentEntry): String?
+    fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean
+    fun removeCustomDevelopment(entryId: String)
+    fun setDevelopmentOverride(entry: DevelopmentEntry)
+    fun resetDevelopmentOverride(entryId: String)
+    fun setChiEnabled(enabled: Boolean)
+    fun setChiBonusRanks(rank: Int)
 }

@@ -34,6 +34,9 @@ import com.furybook.dubl.model.DevelopmentAcquisitionRequest
 import com.furybook.dubl.model.DevelopmentAcquisitionResult
 import com.furybook.dubl.model.UntrainedRule
 import com.furybook.dubl.ui.editor.DublEditorHost
+import com.furybook.dubl.ui.editor.editorCatalogFor
+import com.furybook.dubl.model.ChiCatalog
+import com.furybook.dubl.model.DevelopmentEntry
 
 private class InMemoryExtrasStore : CharacterExtrasStore {
     private val values = linkedMapOf<String, CharacterSheetExtras>()
@@ -71,6 +74,7 @@ class FakeSheetHost(
     override val chiPackEnabled: Boolean = false,
     developmentCatalogOverride: DevelopmentCatalog? = null,
     skillEffectCatalogOverride: SkillEffectCatalog? = null,
+    chiCatalogOverride: ChiCatalog? = null,
 ) : DublEditorHost {
     private val extrasStore = InMemoryExtrasStore().also { it.save(character.id, extras) }
     private val application = DublApplication(
@@ -92,7 +96,9 @@ class FakeSheetHost(
     override val extras get() = application.activeExtras
     override val canUndo get() = application.canUndo
     override val conditionCatalog = loader.loadConditions()
-    override val developmentCatalog = developmentCatalogOverride ?: loader.loadDevelopment()
+    override val canonicalDevelopmentCatalog = developmentCatalogOverride ?: loader.loadDevelopment()
+    override val developmentCatalog: DevelopmentCatalog get() = editorCatalogFor(this, active)
+    override val chiCatalog = chiCatalogOverride ?: ChiCatalog("disabled", emptyList(), emptyList())
     override val skillEffectCatalog = skillEffectCatalogOverride ?: loader.loadSkillEffects()
 
     override fun resourceMeters(): List<DublResourceMeterModel> =
@@ -102,8 +108,9 @@ class FakeSheetHost(
     override fun uiMounts(surface: String, component: String): List<DublUiMount> {
         val real = DublUiRegistry.mounts(composition, surface, component)
         val chiXpLine = surface == FcpUiSurface.CHARACTER_ECONOMY && component == FcpUiComponent.XP_LINE
-        return if (chiPackEnabled && chiXpLine) {
-            real + DublUiMount(DublUiFeature.CHI, FcpUiContribution("fake-chi-xp", surface, component, DublUiBinding.CHI, "ЦИ", 0, emptyMap()))
+        val chiTab = surface == FcpUiSurface.DEVELOPMENT_TABS && component == FcpUiComponent.DEVELOPMENT_BROWSER
+        return if (chiPackEnabled && (chiXpLine || chiTab)) {
+            real + DublUiMount(DublUiFeature.CHI, FcpUiContribution("fake-chi-${if (chiTab) "tab" else "xp"}", surface, component, DublUiBinding.CHI, "ЦИ", 0, emptyMap()))
         } else real
     }
 
@@ -202,4 +209,12 @@ class FakeSheetHost(
 
     /** Test helper: creates a new character and makes it active, as the character list does. */
     fun createCharacter() { application.character.createCharacter() }
+
+    override fun addCustomDevelopment(entry: DevelopmentEntry): String? = application.development.addCustom(entry)
+    override fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean = application.development.updateCustom(entry)
+    override fun removeCustomDevelopment(entryId: String) { application.development.removeCustom(entryId) }
+    override fun setDevelopmentOverride(entry: DevelopmentEntry) { application.development.setOverride(entry) }
+    override fun resetDevelopmentOverride(entryId: String) { application.development.resetOverride(entryId) }
+    override fun setChiEnabled(enabled: Boolean) { application.development.setChiEnabled(enabled) }
+    override fun setChiBonusRanks(rank: Int) { application.development.setChiBonusRanks(rank) }
 }

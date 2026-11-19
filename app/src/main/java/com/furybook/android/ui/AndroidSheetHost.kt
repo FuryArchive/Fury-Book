@@ -31,6 +31,9 @@ import com.furybook.dubl.model.DevelopmentAcquisitionRequest
 import com.furybook.dubl.model.DevelopmentAcquisitionResult
 import com.furybook.dubl.model.UntrainedRule
 import com.furybook.dubl.ui.editor.DublEditorHost
+import com.furybook.android.data.ChiCatalogRepository
+import com.furybook.dubl.model.ChiCatalog
+import com.furybook.dubl.model.DevelopmentEntry
 
 /** Android adapter exposing [CharacterController] and the bundled catalogs to the shared sheet. */
 class AndroidSheetHost(
@@ -44,13 +47,15 @@ class AndroidSheetHost(
     override val extras: CharacterSheetExtras get() = controller.extras
     override val canUndo: Boolean get() = controller.canUndo
     override val conditionCatalog: ConditionCatalog = ConditionCatalogRepository(appContext).load()
-    private val canonicalDevelopmentCatalog: DevelopmentCatalog =
+    override val canonicalDevelopmentCatalog: DevelopmentCatalog =
         DevelopmentCatalogRepository(appContext).load(includeChi = chiPackEnabled)
     override val developmentCatalog: DevelopmentCatalog
         get() = controller.active
             .effectiveDevelopmentCatalog(canonicalDevelopmentCatalog)
             .let { catalog -> if (chiPackEnabled) catalog else catalog.withoutChiContent() }
     override val skillEffectCatalog: SkillEffectCatalog = SkillEffectCatalogRepository(appContext).load()
+    override val chiCatalog: ChiCatalog =
+        if (chiPackEnabled) ChiCatalogRepository(appContext).load() else ChiCatalog("disabled", emptyList(), emptyList())
 
     // The pack composition reads installed manifests from disk; resolve it once per host (the host is
     // remembered per chi setting, and the sheet leaves composition while packs are managed elsewhere).
@@ -154,6 +159,13 @@ class AndroidSheetHost(
     override fun setSkillEffectEnabled(effectId: String, enabled: Boolean) { controller.setSkillEffectEnabled(effectId, enabled) }
     override fun deleteDynamicSkill(skillId: String) { controller.deleteDynamicSkill(skillId) }
     override fun setPreferredSkillAttribute(skillId: String, attribute: AttributeId?) { controller.setPreferredSkillAttribute(skillId, attribute) }
+    override fun addCustomDevelopment(entry: DevelopmentEntry): String? = controller.addCustomDevelopment(entry)
+    override fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean = controller.updateCustomDevelopment(entry)
+    override fun removeCustomDevelopment(entryId: String) { controller.removeCustomDevelopment(entryId) }
+    override fun setDevelopmentOverride(entry: DevelopmentEntry) { controller.setDevelopmentOverride(entry) }
+    override fun resetDevelopmentOverride(entryId: String) { controller.resetDevelopmentOverride(entryId) }
+    override fun setChiEnabled(enabled: Boolean) { controller.setChiEnabled(enabled) }
+    override fun setChiBonusRanks(rank: Int) { controller.setChiBonusRanks(rank) }
 }
 
 @Composable
