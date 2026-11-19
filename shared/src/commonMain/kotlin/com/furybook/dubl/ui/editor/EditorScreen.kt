@@ -67,7 +67,7 @@ internal class EditorFrameData(host: DublEditorHost, val before: CharacterRestor
     val economy = context.economy
     val now = host.restorePoint()
     val changes = editorChanges(
-        before, now, host.developmentCatalog, includeChi = sheetChiEconomyMounted(host),
+        before, now, { editorCatalogFor(host, it) }, includeChi = sheetChiEconomyMounted(host),
         effectNames = host.skillEffectCatalog.effects.associate { it.id to it.sourceName },
     )
     val derived = editorDerived(now.character, before.character)

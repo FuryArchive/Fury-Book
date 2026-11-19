@@ -7,6 +7,8 @@ import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.OwnedDevelopment
 import com.furybook.dubl.ui.editor.EditorFixtures.catalog
+import com.furybook.dubl.model.effectiveDevelopmentCatalog
+import com.furybook.dubl.model.CharacterEconomy
 import com.furybook.dubl.ui.editor.EditorFixtures.hornet
 import com.furybook.dubl.ui.editor.EditorFixtures.keenHearing
 import kotlin.test.Test
@@ -14,8 +16,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class EditorChangesTest {
+    private val catalogFor: (DublCharacter) -> com.furybook.dubl.model.DevelopmentCatalog = { it.effectiveDevelopmentCatalog(catalog) }
+
     private fun point(character: DublCharacter) = CharacterRestorePoint(character, CharacterSheetExtras())
-    private fun changes(after: DublCharacter, before: DublCharacter = hornet) = editorChanges(point(before), point(after), catalog, includeChi = false)
+    private fun changes(after: DublCharacter, before: DublCharacter = hornet) = editorChanges(point(before), point(after), catalogFor, includeChi = false)
 
     @Test
     fun attributeAndSkillLines() {
@@ -79,7 +83,7 @@ class EditorChangesTest {
         val owned = hornet.copy(development = hornet.development + (keenHearing.id to OwnedDevelopment(rank = 1)))
         val switched = owned.copy(development = owned.development + (keenHearing.id to OwnedDevelopment(rank = 1, optionIndex = 1)))
         assertEquals(listOf("Острый слух: другой вариант"), changes(switched, before = owned).lines.map { it.text })
-        assertEquals(listOf("Другие изменения"), changes(hornet.copy(chiBonusRanks = 1)).lines.map { it.text })
+        assertEquals(listOf("Другие изменения"), changes(hornet.copy(hpCurrent = hornet.hpCurrent - 1)).lines.map { it.text })
     }
 
     @Test
@@ -91,10 +95,10 @@ class EditorChangesTest {
     @Test
     fun hiddenAndEffectLines() {
         val after = hornet.copy(hiddenSkillIds = setOf("stealth"), disabledSkillEffectIds = setOf("fx1"))
-        val lines = editorChanges(point(hornet), point(after), catalog, includeChi = false, effectNames = mapOf("fx1" to "Ловкие пальцы")).lines.map { it.text }
+        val lines = editorChanges(point(hornet), point(after), catalogFor, includeChi = false, effectNames = mapOf("fx1" to "Ловкие пальцы")).lines.map { it.text }
         assertTrue("Скрыто: Скрытность" in lines, lines.toString())
         assertTrue("Автоматизация: Ловкие пальцы выкл." in lines, lines.toString())
-        val back = editorChanges(point(after), point(hornet), catalog, includeChi = false, effectNames = mapOf("fx1" to "Ловкие пальцы")).lines.map { it.text }
+        val back = editorChanges(point(after), point(hornet), catalogFor, includeChi = false, effectNames = mapOf("fx1" to "Ловкие пальцы")).lines.map { it.text }
         assertTrue("Возвращено: Скрытность" in back && "Автоматизация: Ловкие пальцы вкл." in back, back.toString())
     }
 
@@ -103,5 +107,33 @@ class EditorChangesTest {
         val creating = hornet.copy(creationComplete = false)
         val finished = hornet.copy(creationComplete = true, skills = hornet.skills.mapValues { (_, s) -> s.copy(creationRank = s.rank) })
         assertEquals(listOf("Создание завершено"), changes(finished, before = creating).lines.map { it.text })
+    }
+
+    @Test
+    fun localEditRepricesOwnedRanks() {
+        val after = hornet.copy(developmentOverrides = mapOf(EditorFixtures.athleticism.id to EditorFixtures.athleticism.copy(cost = 100)))
+        val result = changes(after)
+        assertEquals(listOf(EditorChangeLine("Атлетичность: локальная правка", 60)), result.lines)
+        assertEquals(60, result.netSpent)
+        assertEquals(listOf(EditorChangeLine("Атлетичность: правка сброшена", -60)), changes(hornet, before = after).lines)
+    }
+
+    @Test
+    fun deletedOwnedOwnPerkIsOneLine() {
+        val own = EditorFixtures.entry("custom-development-1", "Гадание", cost = 25)
+        val before = hornet.copy(customDevelopmentEntries = listOf(own), development = hornet.development + (own.id to OwnedDevelopment(rank = 1)))
+        assertEquals(listOf(EditorChangeLine("− Гадание", -25)), changes(hornet, before = before).lines)
+        assertEquals(listOf(EditorChangeLine("+ Гадание", 0)), changes(hornet.copy(customDevelopmentEntries = listOf(own))).lines)
+        val renamed = before.copy(customDevelopmentEntries = listOf(own.copy(name = "Ворожба")))
+        assertEquals(listOf("Ворожба: запись изменена"), changes(renamed, before = before).lines.map { it.text })
+    }
+
+    @Test
+    fun chiLines() {
+        val after = hornet.copy(chiEnabled = true, chiBonusRanks = 2)
+        val lines = editorChanges(point(hornet), point(after), catalogFor, includeChi = true).lines
+        assertTrue(EditorChangeLine("ЦИ включено", 0) in lines, lines.toString())
+        assertTrue(EditorChangeLine("ЦИ: доп. ранги 0 → 2", 2 * CharacterEconomy.CHI_BONUS_RANK_XP) in lines, lines.toString())
+        assertTrue(EditorChangeLine("ЦИ выключено", 0) in editorChanges(point(after), point(hornet), catalogFor, includeChi = true).lines)
     }
 }

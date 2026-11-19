@@ -16,19 +16,23 @@ data class EditorChanges(val lines: List<EditorChangeLine>, val netSpent: Int, v
 
 /**
  * What changed since the editor opened, one line per field. Each line's XP is what the economy says
- * that one change costs on top of [before]: no cost table lives here.
+ * that one change costs on top of [before]: no cost table lives here. [catalogFor] gives each character
+ * its own catalog (local edits and own perks included), so a local edit that reprices a perk shows it.
  */
 fun editorChanges(
     before: CharacterRestorePoint,
     after: CharacterRestorePoint,
-    catalog: DevelopmentCatalog,
+    catalogFor: (DublCharacter) -> DevelopmentCatalog,
     includeChi: Boolean,
     effectNames: Map<String, String> = emptyMap(),
 ): EditorChanges {
     val b = before.character
     val a = after.character
-    val baseSpent = CharacterEconomy.breakdown(b, catalog, includeChi).spentXp
-    fun cost(modified: DublCharacter): Int = CharacterEconomy.breakdown(modified, catalog, includeChi).spentXp - baseSpent
+    val beforeCatalog = catalogFor(b)
+    val afterCatalog = catalogFor(a)
+    fun spent(character: DublCharacter): Int = CharacterEconomy.breakdown(character, catalogFor(character), includeChi).spentXp
+    val baseSpent = spent(b)
+    fun cost(modified: DublCharacter): Int = spent(modified) - baseSpent
     val lines = mutableListOf<EditorChangeLine>()
     fun add(text: String, xp: Int = 0) { lines += EditorChangeLine(text, xp) }
 
@@ -70,10 +74,39 @@ fun editorChanges(
         add("${names[id] ?: id} $from → $to", cost(modified))
     }
 
+    val ownBefore = b.customDevelopmentEntries.associateBy { it.id }
+    val ownAfter = a.customDevelopmentEntries.associateBy { it.id }
+    (ownBefore.keys + ownAfter.keys).forEach { id ->
+        val was = ownBefore[id]
+        val now = ownAfter[id]
+        when {
+            was == null && now != null -> add("+ ${now.name}", cost(b.copy(customDevelopmentEntries = b.customDevelopmentEntries + now)))
+            // Deleting an own perk also drops its ranks: one line, priced with both.
+            now == null && was != null -> add(
+                "− ${was.name}",
+                cost(b.copy(customDevelopmentEntries = b.customDevelopmentEntries - was, development = b.development - id)),
+            )
+            was != now && now != null -> add(
+                "${now.name}: запись изменена",
+                cost(b.copy(customDevelopmentEntries = b.customDevelopmentEntries.map { if (it.id == id) now else it })),
+            )
+        }
+    }
+    val removedOwn = ownBefore.keys - ownAfter.keys
+
+    (b.developmentOverrides.keys + a.developmentOverrides.keys).forEach { id ->
+        val now = a.developmentOverrides[id]
+        if (b.developmentOverrides[id] == now) return@forEach
+        val name = (afterCatalog.byId(id) ?: beforeCatalog.byId(id))?.name ?: id
+        val modified = b.copy(developmentOverrides = if (now == null) b.developmentOverrides - id else b.developmentOverrides + (id to now))
+        add(if (now == null) "$name: правка сброшена" else "$name: локальная правка", cost(modified))
+    }
+
     (b.development.keys + a.development.keys).forEach { id ->
+        if (id in removedOwn) return@forEach
         val from = b.development[id]?.rank ?: 0
         val to = a.development[id]?.rank ?: 0
-        val name = catalog.byId(id)?.name ?: id
+        val name = (afterCatalog.byId(id) ?: beforeCatalog.byId(id))?.name ?: id
         if (from == to) {
             if (b.development[id]?.optionIndex != a.development[id]?.optionIndex) add("$name: другой вариант")
             return@forEach
@@ -92,12 +125,15 @@ fun editorChanges(
     (a.disabledSkillEffectIds - b.disabledSkillEffectIds).forEach { add("Автоматизация: ${effectNames[it] ?: it} выкл.") }
     (b.disabledSkillEffectIds - a.disabledSkillEffectIds).forEach { add("Автоматизация: ${effectNames[it] ?: it} вкл.") }
 
+    if (a.chiEnabled != b.chiEnabled) add(if (a.chiEnabled) "ЦИ включено" else "ЦИ выключено")
+    if (a.chiBonusRanks != b.chiBonusRanks) add("ЦИ: доп. ранги ${b.chiBonusRanks} → ${a.chiBonusRanks}", cost(b.copy(chiBonusRanks = a.chiBonusRanks)))
+
     if (a.creationComplete != b.creationComplete) add(if (a.creationComplete) "Создание завершено" else "Создание открыто снова")
     // Whatever else differs is still reverted by «Отменить всё», so the list (and the button) must not look empty.
     if (lines.isEmpty() && before != after) add("Другие изменения")
 
-    val beforeEconomy = CharacterEconomy.breakdown(b, catalog, includeChi)
-    val afterEconomy = CharacterEconomy.breakdown(a, catalog, includeChi)
+    val beforeEconomy = CharacterEconomy.breakdown(b, beforeCatalog, includeChi)
+    val afterEconomy = CharacterEconomy.breakdown(a, afterCatalog, includeChi)
     return EditorChanges(lines, beforeEconomy.remainingXp - afterEconomy.remainingXp, afterEconomy.spentXp - beforeEconomy.spentXp)
 }
 
