@@ -17,7 +17,7 @@ enum class EditorStep(val title: String) {
 
 enum class EditorPerkKind { REGULAR, SPECIAL, MARTIAL, CHI, OWNED }
 
-enum class EditorPerkFilter { ALL, AVAILABLE, ALMOST }
+enum class EditorPerkFilter { ALL, AVAILABLE, ALMOST, PLAN }
 
 private val CREATION_STEPS = listOf(EditorStep.BASICS, EditorStep.ATTRIBUTES, EditorStep.SKILLS, EditorStep.PERKS, EditorStep.SUMMARY)
 
@@ -56,6 +56,16 @@ class EditorState {
     var skillPanelId: String? by mutableStateOf(null)
     var skillCategory: SkillCategory? by mutableStateOf(null)
 
+    /** «План персонажа»: perks marked ☆ during this visit. Session-only, as the old Навыки tab kept it. */
+    var plannedIds: Set<String> by mutableStateOf(emptySet())
+        private set
+
+    fun togglePlanned(entryId: String) {
+        plannedIds = if (entryId in plannedIds) plannedIds - entryId else plannedIds + entryId
+    }
+
+    fun dropPlanned(entryId: String) { plannedIds = plannedIds - entryId }
+
     /** [skillId]: opened from «Настроить в редакторе» — straight to Умения with that skill's panel. */
     fun open(host: DublEditorHost, forceBasics: Boolean, skillId: String? = null) {
         val complete = host.active.creationComplete
@@ -68,6 +78,7 @@ class EditorState {
         skillsRankedOnly = complete && skillId == null
         skillPanelId = skillId
         skillCategory = null
+        plannedIds = emptySet()
         selectChoices(null)
         changesOpen = false
         developmentPins = null

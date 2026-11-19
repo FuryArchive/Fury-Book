@@ -10,6 +10,7 @@ import com.furybook.dubl.model.DevelopmentAcquisitionPlan
 import com.furybook.dubl.model.DevelopmentAcquisitionPlanner
 import com.furybook.dubl.model.DevelopmentAcquisitionRequest
 import com.furybook.dubl.model.DevelopmentAcquisitionStep
+import com.furybook.dubl.model.DevelopmentAcquisitionTarget
 import com.furybook.dubl.model.DevelopmentAvailability
 import com.furybook.dubl.model.DevelopmentEntry
 import com.furybook.dubl.model.DevelopmentEntryKind
@@ -227,10 +228,11 @@ private fun EditorPerkKind.indexKind(): DevelopmentEntryKind? = when (this) {
     EditorPerkKind.OWNED -> null
 }
 
-private fun EditorPerkStatus.matches(filter: EditorPerkFilter): Boolean = when (filter) {
+private fun EditorPerkCard.matches(filter: EditorPerkFilter, planned: Set<String>): Boolean = when (filter) {
     EditorPerkFilter.ALL -> true
-    EditorPerkFilter.AVAILABLE -> this == EditorPerkStatus.AVAILABLE || this == EditorPerkStatus.UPGRADABLE
-    EditorPerkFilter.ALMOST -> this == EditorPerkStatus.ALMOST
+    EditorPerkFilter.AVAILABLE -> status == EditorPerkStatus.AVAILABLE || status == EditorPerkStatus.UPGRADABLE
+    EditorPerkFilter.ALMOST -> status == EditorPerkStatus.ALMOST
+    EditorPerkFilter.PLAN -> entryId in planned
 }
 
 /** Cards of one kind tab, before the filter: base mana and (pack off) chi never appear. */
@@ -254,17 +256,48 @@ private fun EditorPerkContext.cardsFor(kind: EditorPerkKind, query: String): Lis
 fun editorPerkGroups(host: DublEditorHost, kind: EditorPerkKind, filter: EditorPerkFilter, query: String, keep: String? = null): List<EditorPerkGroup> =
     EditorPerkContext(host).perkGroups(kind, filter, query, keep)
 
-/** [keep]: the open perk stays listed even once it no longer matches the filter (just taken, removed). */
-fun EditorPerkContext.perkGroups(kind: EditorPerkKind, filter: EditorPerkFilter, query: String, keep: String? = null): List<EditorPerkGroup> =
-    cardsFor(kind, query).filter { it.second.entryId == keep || it.second.status.matches(filter) }
+/**
+ * [keep]: the open perk stays listed even once it no longer matches the filter (just taken, removed).
+ * [planned]: the visit's plan, for [EditorPerkFilter.PLAN].
+ */
+fun EditorPerkContext.perkGroups(
+    kind: EditorPerkKind, filter: EditorPerkFilter, query: String, keep: String? = null, planned: Set<String> = emptySet(),
+): List<EditorPerkGroup> =
+    cardsFor(kind, query).filter { it.second.entryId == keep || it.second.matches(filter, planned) }
         .groupBy({ it.first }, { it.second })
         .map { (title, cards) -> EditorPerkGroup(title, cards) }
 
 fun editorPerkCounts(host: DublEditorHost, kind: EditorPerkKind): Map<EditorPerkFilter, Int> = EditorPerkContext(host).perkCounts(kind)
 
-fun EditorPerkContext.perkCounts(kind: EditorPerkKind): Map<EditorPerkFilter, Int> {
+fun EditorPerkContext.perkCounts(kind: EditorPerkKind, planned: Set<String> = emptySet()): Map<EditorPerkFilter, Int> {
     val cards = cardsFor(kind, "").map { it.second }
-    return EditorPerkFilter.entries.associateWith { filter -> cards.count { it.status.matches(filter) } }
+    return EditorPerkFilter.entries.associateWith { filter -> cards.count { it.matches(filter, planned) } }
+}
+
+/** «План персонажа»: what the planned perks still cost together; [request] is set only when it can be taken now. */
+data class EditorPlanSummary(
+    val count: Int,
+    val xpCost: Int,
+    val abilityCost: Int,
+    val request: DevelopmentAcquisitionRequest?,
+    val blockReason: String?,
+)
+
+/** Null when nothing planned is still in the catalog (a deleted own perk drops out). One request for every target, as the old plan did. */
+fun EditorPerkContext.planSummary(planned: Set<String>): EditorPlanSummary? {
+    val targets = planned.filter { catalog.byId(it) != null }.sorted()
+    if (targets.isEmpty()) return null
+    val request = DevelopmentAcquisitionRequest(targets = targets.map { DevelopmentAcquisitionTarget(it) }, enforceBudget = false)
+    val plan = planner.plan(request)
+    val block = when {
+        plan.unresolvedRequirements.isNotEmpty() -> "Не все требования можно закрыть автоматически."
+        plan.steps.isEmpty() -> "Уже всё взято"
+        economy.remainingXp < 0 && plan.xpCost > 0 -> overspentReason(economy.remainingXp)
+        plan.xpCost > economy.remainingXp -> "Не хватает опыта: нужно ${plan.xpCost} XP, свободно ${economy.remainingXp}."
+        !affordable(plan.xpCost, plan.abilityCost) -> "Не хватает очков способностей."
+        else -> null
+    }
+    return EditorPlanSummary(targets.size, plan.xpCost, plan.abilityCost, request.takeIf { block == null }, block)
 }
 
 /** All cards of every kind (no owned tab), for the Развитие lists. */

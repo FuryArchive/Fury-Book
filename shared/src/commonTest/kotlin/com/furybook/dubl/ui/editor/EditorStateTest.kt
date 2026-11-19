@@ -149,4 +149,18 @@ class EditorStateTest {
         assertEquals(1, editorSkillColumns(556))
         assertEquals(1, editorSkillColumns(360))
     }
+
+    @Test
+    fun openClearsThePlan() {
+        val host = FakeSheetHost(EditorFixtures.hornet, developmentCatalogOverride = EditorFixtures.catalog)
+        val state = EditorState()
+        state.open(host, forceBasics = false)
+        state.togglePlanned("feat_hear")
+        assertEquals(setOf("feat_hear"), state.plannedIds)
+        state.togglePlanned("feat_hear")
+        assertTrue(state.plannedIds.isEmpty())
+        state.togglePlanned("feat_hear")
+        state.open(host, forceBasics = false)
+        assertTrue(state.plannedIds.isEmpty())
+    }
 }

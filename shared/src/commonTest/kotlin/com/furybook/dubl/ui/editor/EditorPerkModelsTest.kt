@@ -192,4 +192,37 @@ class EditorPerkModelsTest {
         assertEquals(EditorPerkOrigin.CUSTOM, editorPerkDetail(host, custom, emptyMap(), null)!!.origin)
         assertEquals(EditorPerkOrigin.BOOK, editorPerkDetail(host, ranger.id, emptyMap(), null)!!.origin)
     }
+
+    @Test
+    fun planFilterShowsOnlyPlanned() {
+        val context = EditorPerkContext(host())
+        val planned = setOf(keenHearing.id)
+        val ids = context.perkGroups(EditorPerkKind.REGULAR, EditorPerkFilter.PLAN, "", planned = planned).flatMap { g -> g.cards.map { it.entryId } }
+        assertEquals(listOf(keenHearing.id), ids)
+        assertEquals(1, context.perkCounts(EditorPerkKind.REGULAR, planned).getValue(EditorPerkFilter.PLAN))
+    }
+
+    @Test
+    fun planSummaryCostsTheWholePlan() {
+        val host = host()
+        val context = EditorPerkContext(host)
+        val summary = context.planSummary(setOf(ranger.id, keenHearing.id))!!
+        val expected = context.planner.plan(
+            com.furybook.dubl.model.DevelopmentAcquisitionRequest(
+                targets = listOf(keenHearing.id, ranger.id).map { com.furybook.dubl.model.DevelopmentAcquisitionTarget(it) },
+                enforceBudget = false,
+            ),
+        )
+        assertEquals(2, summary.count)
+        assertEquals(expected.xpCost, summary.xpCost)
+        assertEquals(listOf(keenHearing.id, ranger.id), summary.request!!.targets.map { it.entryId })
+        assertTrue(host.acquireDevelopment(summary.request!!.copy()).applied)
+        assertEquals(1, host.active.development.getValue(ranger.id).rank)
+    }
+
+    @Test
+    fun planIgnoresMissingEntries() {
+        assertNull(EditorPerkContext(host()).planSummary(setOf("gone")))
+        assertEquals(1, EditorPerkContext(host()).planSummary(setOf("gone", keenHearing.id))!!.count)
+    }
 }
