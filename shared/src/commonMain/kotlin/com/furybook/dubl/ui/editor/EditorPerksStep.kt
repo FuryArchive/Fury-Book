@@ -69,16 +69,22 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
     val kinds = EditorPerkKind.entries.filter { it != EditorPerkKind.CHI || context.showsChi }
     if (state.perkKind !in kinds) state.perkKind = EditorPerkKind.REGULAR
     val kindCounts = remember(data) { kinds.associateWith { context.perkCounts(it).getValue(EditorPerkFilter.ALL) } }
-    val counts = remember(data, state.perkKind) { context.perkCounts(state.perkKind) }
-    val groups = remember(data, state.perkKind, state.perkFilter, state.perkQuery, state.selectedEntryId) {
-        context.perkGroups(state.perkKind, state.perkFilter, state.perkQuery, keep = state.selectedEntryId)
+    val counts = remember(data, state.perkKind, state.plannedIds) { context.perkCounts(state.perkKind, state.plannedIds) }
+    val groups = remember(data, state.perkKind, state.perkFilter, state.perkQuery, state.selectedEntryId, state.plannedIds) {
+        context.perkGroups(state.perkKind, state.perkFilter, state.perkQuery, keep = state.selectedEntryId, planned = state.plannedIds)
     }
+    val plan = remember(data, state.plannedIds) { context.planSummary(state.plannedIds) }
     val selected = state.selectedEntryId
     val detail = remember(data, selected, state.choiceSelections, state.optionIndex) {
         selected?.let { context.perkDetail(it, state.choiceSelections, state.optionIndex) }
     }
     val padding = editorContentPadding(layout)
-    val header: @Composable () -> Unit = { PerksHeader(state, kinds, kindCounts, counts, layout) }
+    val header: @Composable () -> Unit = {
+        Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
+            PerksHeader(state, kinds, kindCounts, counts, layout)
+            plan?.let { PlanCard(host, state, it, layout) }
+        }
+    }
     BoxWithConstraints(Modifier.fillMaxSize()) {
     val split = wide && editorPerksSplit(maxWidth.value.toInt())
     if (split) {
@@ -95,14 +101,14 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
                             Text("Выберите навык слева — здесь будут правила, требования и кнопка «Взять».", color = FuryColors.current.muted, style = MaterialTheme.typography.bodySmall)
                         }
                     } else {
-                        PerkDetail(host, state, detail, layout, showBack = false)
+                        PerkDetail(host, state, context, detail, layout, showBack = false)
                     }
                 }
             }
         }
     } else if (detail != null) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)) {
-            PerkDetail(host, state, detail, layout, showBack = true)
+            PerkDetail(host, state, context, detail, layout, showBack = true)
         }
     } else {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(padding), verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -139,11 +145,38 @@ private fun PerksHeader(
                 EditorPerkFilter.ALL to "Все",
                 EditorPerkFilter.AVAILABLE to "Доступно",
                 EditorPerkFilter.ALMOST to "Почти",
+                EditorPerkFilter.PLAN to "План",
             ).forEach { (filter, title) ->
                 EditorChip("$title ${counts[filter] ?: 0}", state.perkFilter == filter, { state.perkFilter = filter }, control, gold = true, role = Role.RadioButton)
             }
             FuryTextField(state.perkQuery, { state.perkQuery = it }, "Поиск по названию и правилам", Modifier.widthIn(min = 200.dp, max = 360.dp))
         }
+    }
+}
+
+/** «План персонажа»: what the ☆ perks still cost together, and one button that takes them all. */
+@Composable
+private fun PlanCard(host: DublEditorHost, state: EditorState, plan: EditorPlanSummary, layout: SheetLayout) {
+    val p = FuryColors.current
+    EditorCard(Modifier.fillMaxWidth(), background = p.goldSoft, border = p.goldLine) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("План персонажа · ${plan.count}", color = p.text, style = MaterialTheme.typography.labelLarge)
+                Text(
+                    "Осталось ${plan.xpCost} XP" + (if (plan.abilityCost > 0) " · ${plan.abilityCost} ОС" else ""),
+                    color = p.goldText, style = MaterialTheme.typography.labelMedium.merge(EditorTabular),
+                )
+            }
+            val request = plan.request
+            // Outline: the detail's «Взять» stays the one filled action of the step.
+            EditorOutlineButton("Взять план", {
+                if (request != null) {
+                    val result = host.acquireDevelopment(request)
+                    state.flash(if (result.applied) "План взят" else result.message)
+                }
+            }, editorControl(layout), enabled = request != null)
+        }
+        plan.blockReason?.let { Text(it, color = p.accText, style = MaterialTheme.typography.bodySmall) }
     }
 }
 
@@ -186,7 +219,7 @@ private fun PerkCard(card: EditorPerkCard, selected: Boolean, layout: SheetLayou
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PerkDetail(host: DublEditorHost, state: EditorState, detail: EditorPerkDetail, layout: SheetLayout, showBack: Boolean) {
+private fun PerkDetail(host: DublEditorHost, state: EditorState, context: EditorPerkContext, detail: EditorPerkDetail, layout: SheetLayout, showBack: Boolean) {
     val p = FuryColors.current
     val control = editorControl(layout)
     var confirmForce by remember(detail.entryId) { mutableStateOf(false) }
@@ -204,6 +237,8 @@ private fun PerkDetail(host: DublEditorHost, state: EditorState, detail: EditorP
             }
             EditorPill(detail.pill, editorPillColors(detail.status, detail.rank))
         }
+        val planned = detail.entryId in state.plannedIds
+        EditorChip(if (planned) "★ В плане" else "☆ В план", planned, { state.togglePlanned(detail.entryId) }, control, gold = true, role = Role.Checkbox)
         if (detail.maxRank > 1) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Long rank ladders (Невероятное здоровье has 20) read better as text than as a row of pips.
@@ -217,10 +252,12 @@ private fun PerkDetail(host: DublEditorHost, state: EditorState, detail: EditorP
         )
         EditorOverline("Требования")
         if (detail.requirements.isEmpty()) Text("Нет", color = p.muted, style = MaterialTheme.typography.bodySmall)
-        detail.requirements.forEach { line -> RequirementLine(line) }
+        detail.requirements.forEach { line -> RequirementLine(line, control) { id -> state.openPerk(context, id) } }
         if (detail.unlocks.isNotEmpty()) {
             EditorOverline("Открывает")
-            Text(detail.unlocks.joinToString(", ") { it.name }, color = p.text2, style = MaterialTheme.typography.bodySmall)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                detail.unlocks.forEach { link -> PerkLink(link.name, control) { state.openPerk(context, link.entryId) } }
+            }
         }
         detail.choices.forEach { choice ->
             EditorOverline(choice.label)
@@ -252,6 +289,18 @@ private fun PerkDetail(host: DublEditorHost, state: EditorState, detail: EditorP
                     applyPerkAction(host, state, detail.entryId, detail.name, action, chain = detail.chain.isNotEmpty())
                 }, control)
             }
+            val prerequisites = detail.prerequisitesAction
+            if (prerequisites != null && detail.prerequisitesLabel != null) {
+                EditorOutlineButton(detail.prerequisitesLabel, {
+                    applyPerkAction(host, state, detail.entryId, detail.name, prerequisites, chain = true, doneText = "Требования добраны: ${detail.name}")
+                }, control)
+            }
+            val allRanks = detail.allRanksAction
+            if (allRanks != null && detail.allRanksLabel != null) {
+                EditorOutlineButton(detail.allRanksLabel, {
+                    applyPerkAction(host, state, detail.entryId, detail.name, allRanks, chain = false, doneText = "Взяты все ранги: ${detail.name}")
+                }, control)
+            }
             if (detail.forceAction != null && detail.forceLabel != null) EditorOutlineButton(detail.forceLabel, { confirmForce = true }, control)
             val remove = detail.removeAction
             if (remove != null && detail.removeLabel != null) {
@@ -276,18 +325,28 @@ private fun PerkDetail(host: DublEditorHost, state: EditorState, detail: EditorP
     }
 }
 
+/** A perk name that opens that perk's detail (requirement targets, «Открывает»). */
 @Composable
-private fun RequirementLine(line: EditorRequirementLine) {
+private fun PerkLink(name: String, height: androidx.compose.ui.unit.Dp, onOpen: () -> Unit) {
+    Box(Modifier.heightIn(min = height).clickable(role = Role.Button, onClickLabel = "Открыть «$name»", onClick = onOpen), contentAlignment = Alignment.CenterStart) {
+        Text("$name →", color = FuryColors.current.goldText, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun RequirementLine(line: EditorRequirementLine, height: androidx.compose.ui.unit.Dp, onOpen: (String) -> Unit) {
     val p = FuryColors.current
     val (mark, bg, fg) = when (line.status) {
         RequirementStatus.OK -> Triple("✓", FuryHelpfulChip, FuryHelpfulChipText)
         RequirementStatus.FAIL -> Triple("✗", p.accSoft, p.accText)
         RequirementStatus.MANUAL -> Triple("?", p.hover, p.muted)
     }
-    Row(Modifier.heightIn(min = 26.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    val target = line.targetId
+    val link = if (target != null) Modifier.heightIn(min = height).clickable(role = Role.Button, onClickLabel = "Открыть требование") { onOpen(target) } else Modifier
+    Row(Modifier.heightIn(min = 26.dp).then(link), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(Modifier.size(20.dp).clip(RoundedCornerShape(10.dp)).background(bg), contentAlignment = Alignment.Center) {
             Text(mark, color = fg, style = MaterialTheme.typography.labelSmall)
         }
-        Text(line.text, Modifier.weight(1f), color = p.text2, style = MaterialTheme.typography.bodySmall)
+        Text(line.text + if (target != null) " →" else "", Modifier.weight(1f), color = if (target != null) p.goldText else p.text2, style = MaterialTheme.typography.bodySmall)
     }
 }
