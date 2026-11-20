@@ -1,6 +1,7 @@
 # Магия and Снаряжение: sheet and editor (revamp stage 5)
 
-Status: draft for owner approval · 2026-11-20
+Status: approved by the owner · 2026-11-20
+Mockup: https://claude.ai/artifact/1KQsHrUyHyPTyCuUk737qt (Design canvas: desktop sheet, editor Магия and Снаряжение, phone sheet and editor)
 Builds on:
 - `2026-11-17-ui-revamp-design.md` (stage list, leftovers)
 - `2026-11-18-play-sheet-redesign-design.md` (sheet blocks, layouts)
@@ -128,12 +129,12 @@ Steps become: Развитие · Основа · Характеристики �
   - XP line «ранг маны · школы · заклинания» from `CharacterEconomy`.
   - Mana rank is creation-only in the rules (`setMagicManaRank` refuses after creation, as both old screens show). After creation the stepper is disabled with «Ранг маны меняется только при создании; дальше — навык «Увеличенный запас маны»», plus a link that opens that perk in Навыки.
   - Mana maximum needs rank > 0 and a school with power > 0; the header says so when it is 0.
-- **Schools:** rows with a power stepper (`setSchoolPower`) and the XP per power (`magicSchoolRankXp`). «+ Школа» picks from the rulebook school list (`MagicSchoolCatalog`; the rules only save and price those names), with power and note. A school detail edits the name, power and note and offers «Удалить» with «Вернуть».
+- **Schools:** rows with a power stepper (`setSchoolPower`) and the XP per power (`magicSchoolRankXp`). «+ Школа» picks from the rulebook school list (`MagicSchoolCatalog`; the rules only save and price those names), with power and note. A school detail edits the name, power and note and offers «Удалить» with «Вернуть». A refused save says «Не удалось сохранить школу» instead of failing silently.
 - **Spellbook:**
-  - known spells grouped by school, with a filter «Все / Изученные / Неизученные», and search;
+  - known spells grouped by school, with a filter «Все / Изученные / Неизученные», school chips (the old screens' school filter), and search;
   - **row:** learned switch with the XP it costs, and the usability warning;
   - **detail:** full text, «Изменить» (spell form: name, school, cost, mana text, time, range, area, check, duration, description, enhancement, XP override, «неполное»), «Удалить» with «Вернуть»;
-  - **«+ Из каталога»:** search, school chips, «только доступные по силе школы». Each entry opens a read-only detail (full card, book discrepancy, school-power check, the XP it will cost) with «Добавить». Adding learns the spell (`addCatalogSpell`), so reading first matters. Already-known spells are marked;
+  - **«+ Из каталога»:** search, school chips, «только доступные по силе школы». Each entry opens a read-only detail (full card, book discrepancy, school-power check, the XP it will cost) with «Добавить». Adding learns the spell (`addCatalogSpell`), so reading first matters. Already-known spells are marked. An «неполное» entry stays addable: its button reads «Добавить и исправить» and opens the spell form right after adding (the old escape hatch);
   - **«+ Своё заклинание»:** the same form.
 - Split/overlay layout like the Навыки step (`editorPerksSplit`).
 
@@ -173,9 +174,10 @@ Each priced like other lines: `CharacterEconomy` on `before` with that one chang
 
 ## Constraints
 
+- **Keep the design we already have (owner).** The mockup decides only the new parts: the Заклинания and Снаряжение blocks, the cast and item windows, and the Магия and Снаряжение steps. Everything else keeps its stage 2–4 look and components: the sheet header, vitals, Умения, Навыки, tray, the editor rail, step tabs, XP card, change list and toasts. The mockup's versions of those are stand-ins. New UI is built from the existing parts (`EditorCard`, `EditorRow`, `EditorChip`, `EditorSquareButton`, `FuryDialogScaffold`, the sheet's play cards) in the app's five themes, not from the mockup's CSS.
 - **Shared code only:** platforms keep wiring.
 - **Restore point:** every editor action is inside the visit's restore point (magic and gear live on the character).
-- **Undo toast:** sheet play changes (mana, quantity, carried) report to the platform undo toast; they are not editor changes.
+- **Undo toast:** casting (mana) reports to the platform undo toast, like the mana meter. Gear quantity and carried on the sheet don't (see the sheet Снаряжение block). None of these are editor changes.
 - **Layout and themes:** works at 360dp, tablets and desktop, in all five themes.
 - **Python guards:** guards pinning the old screens are repointed when they guard a function and retired when they pinned old layout. The failing baseline may only shrink.
 
