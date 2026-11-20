@@ -76,6 +76,7 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
     }
     val plan = remember(data, state.plannedIds) { context.planSummary(state.plannedIds) }
     var form by remember { mutableStateOf<Pair<DevelopmentEntry, EditorPerkFormMode>?>(null) }
+    val chiCard = remember(data, state.perkKind) { if (state.perkKind == EditorPerkKind.CHI) editorChiCard(host) else null }
     val openForm: (String?, EditorPerkFormMode) -> Unit = { id, mode ->
         val base = if (id == null) editorNewPerk() else host.developmentCatalog.byId(id)
         if (base != null) form = base to mode
@@ -89,6 +90,7 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
         Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
             PerksHeader(state, kinds, kindCounts, counts, layout) { openForm(null, EditorPerkFormMode.NEW) }
             plan?.let { PlanCard(host, state, it, layout) }
+            if (state.perkKind == EditorPerkKind.CHI) chiCard?.let { EditorChiCardView(host, it, layout) }
         }
     }
     BoxWithConstraints(Modifier.fillMaxSize()) {
