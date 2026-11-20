@@ -82,6 +82,9 @@ fun SheetScreen(
     // A fresh snapshot each time the editor opens, taken in the click/effect that opens it.
     val currentHost by rememberUpdatedState(host)
     SideEffect { state.onEditorOpening = { forceBasics, skillId, entryId -> editorState.open(currentHost, forceBasics, skillId, entryId) } }
+    // Older builds stored catalog items' weight as their load; repair it whenever a character is shown, so the
+    // sheet's load line and burden are right before anyone opens the editor (and before its snapshot).
+    LaunchedEffect(host, host.active.id) { host.syncCatalogGearLoads(host.magicEquipmentCatalog.gear) }
     LaunchedEffect(openEditorAtBasics) {
         if (openEditorAtBasics) {
             state.openEditor(forceBasics = true)
@@ -153,6 +156,8 @@ private fun SheetScreenDialog(
         SheetDialog.Conditions -> SheetConditionsDialog(host, close)
         SheetDialog.Economy -> SheetEconomyDialog(sheetEconomyView(host), host, close)
         SheetDialog.Resources -> SheetResourcesDialog(host, close)
+        is SheetDialog.Cast -> SheetCastDialog(host, dialog.uid, close)
+        is SheetDialog.GearItem -> SheetGearDialog(host, dialog.uid, onEdit = { state.openEditor(forceBasics = false) }, onDismiss = close)
         is SheetDialog.DevelopmentDetails -> SheetDevelopmentDetailsDialog(
             host, dialog.entryId, onConfigure = { state.openEditor(forceBasics = false, entryId = dialog.entryId) }, onDismiss = close,
         )

@@ -70,6 +70,8 @@ class SheetPlayState {
     var expandedPerks: Set<String> by mutableStateOf(emptySet())
     var noteQuery: String by mutableStateOf("")
     var expandedNotes: Set<String> by mutableStateOf(emptySet())
+    /** Desktop's right column tab (Навыки · Заклинания · Снаряжение); kept for the session, across characters. */
+    var rightTab: SheetRightTab by mutableStateOf(SheetRightTab.PERKS)
     private var characterId: String? = null
 
     fun syncCharacter(id: String) {

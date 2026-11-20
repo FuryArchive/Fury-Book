@@ -143,4 +143,17 @@ class SheetScreenStateTest {
         kotlin.test.assertTrue(state.editing)
         kotlin.test.assertEquals(null, state.dialog)
     }
+
+    @Test
+    fun castAndGearDialogsOpenAndClose() {
+        val state = SheetScreenState()
+        state.openDialog(SheetDialog.Cast("u"))
+        assertEquals(SheetDialog.Cast("u"), state.dialog)
+        state.updateEditing(true)
+        assertNull(state.dialog)
+        state.updateEditing(false)
+        state.openDialog(SheetDialog.GearItem("g"))
+        state.closeDialog()
+        assertNull(state.dialog)
+    }
 }

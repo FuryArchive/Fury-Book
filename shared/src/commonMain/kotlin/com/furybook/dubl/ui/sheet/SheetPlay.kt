@@ -1,5 +1,7 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.dubl.ui.editor.DublEditorHost
+import com.furybook.dubl.ui.editor.EditorChip
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,6 +45,15 @@ import com.furybook.ui.theme.FuryColors
 import com.furybook.ui.theme.furyOverlineStyle
 
 /** Skill and perk columns side by side from tablet width up; one column on phones. */
+/** Desktop's right column: Навыки, Заклинания (only for characters who use magic), Снаряжение. */
+enum class SheetRightTab(val title: String) { PERKS("Навыки"), SPELLS("Заклинания"), GEAR("Снаряжение") }
+
+fun sheetRightTabs(showSpells: Boolean): List<SheetRightTab> =
+    SheetRightTab.entries.filter { showSpells || it != SheetRightTab.SPELLS }
+
+fun sheetRightTabOrDefault(tab: SheetRightTab, showSpells: Boolean): SheetRightTab =
+    if (tab in sheetRightTabs(showSpells)) tab else SheetRightTab.PERKS
+
 internal fun sheetPlayColumns(layout: SheetLayout): Int = if (layout == SheetLayout.PHONE) 1 else 2
 
 /** Derived stats: one row of six on tablet (desktop shows them in its identity row), 3×2 on phones. */
@@ -57,7 +68,7 @@ private val TabularNumbers = TextStyle(fontFeatureSettings = "tnum")
  */
 @Composable
 internal fun SheetPlayBody(
-    host: DublSheetEditHost,
+    host: DublEditorHost,
     layout: SheetLayout,
     state: SheetScreenState,
     playState: SheetPlayState,
@@ -89,6 +100,33 @@ internal fun SheetPlayBody(
     val perksColumn: @Composable (Modifier, Boolean) -> Unit = { modifier, scrollable ->
         SheetPlayPerks(perks, playState, { id -> state.openDialog(SheetDialog.DevelopmentDetails(id)) }, compact, scrollable, modifier)
     }
+    val spells = remember(host, character) { sheetSpells(host) }
+    val gear = remember(host, character) { sheetGear(character) }
+    val spellsBlock: @Composable (Modifier, Boolean) -> Unit = { modifier, scrollable ->
+        spells?.let { view ->
+            SheetPlaySpells(view, { uid -> state.openDialog(SheetDialog.Cast(uid)) }, { state.openEditor(forceBasics = false) }, compact, scrollable, modifier)
+        }
+    }
+    val gearBlock: @Composable (Modifier, Boolean) -> Unit = { modifier, scrollable ->
+        SheetPlayGear(gear, { uid -> state.openDialog(SheetDialog.GearItem(uid)) }, { state.openEditor(forceBasics = false) }, compact, scrollable, modifier)
+    }
+    // Desktop: one right column, tabbed; the blocks scroll inside it like Навыки did.
+    val rightColumn: @Composable (Modifier) -> Unit = { modifier ->
+        val tabs = sheetRightTabs(spells != null)
+        val tab = sheetRightTabOrDefault(playState.rightTab, spells != null)
+        Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                tabs.forEach { option ->
+                    EditorChip(option.title, selected = option == tab, onClick = { playState.rightTab = option }, height = 34.dp)
+                }
+            }
+            when (tab) {
+                SheetRightTab.PERKS -> perksColumn(Modifier.weight(1f).fillMaxWidth(), true)
+                SheetRightTab.SPELLS -> spellsBlock(Modifier.weight(1f).fillMaxWidth(), true)
+                SheetRightTab.GEAR -> gearBlock(Modifier.weight(1f).fillMaxWidth(), true)
+            }
+        }
+    }
     val combat: @Composable (Modifier) -> Unit = { modifier ->
         PlayCard("Боевые действия", modifier) {
             SheetCombat(SHEET_COMBAT_CONTEXTS, onRoll = { context -> open(SheetRollSubject.Context(context)) })
@@ -104,7 +142,7 @@ internal fun SheetPlayBody(
                 SheetPlayHeaderWide(host, state, playState, editor, portrait?.let { slot -> { slot(52.dp) } })
                 Row(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     skillsColumn(Modifier.weight(1f).fillMaxHeight(), true)
-                    perksColumn(Modifier.weight(1.35f).fillMaxHeight(), true)
+                    rightColumn(Modifier.weight(1.35f).fillMaxHeight())
                 }
             }
             // The roll panel grows with setup, result and history, so the tray scrolls as a whole (as in 2b);
@@ -129,7 +167,11 @@ internal fun SheetPlayBody(
                 if (sheetPlayColumns(layout) == 2) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
                         skillsColumn(Modifier.weight(1f), false)
-                        perksColumn(Modifier.weight(1.2f), false)
+                        Column(Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            perksColumn(Modifier.fillMaxWidth(), false)
+                            spellsBlock(Modifier.fillMaxWidth(), false)
+                            gearBlock(Modifier.fillMaxWidth(), false)
+                        }
                     }
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
                         combat(Modifier.weight(1f))
@@ -138,6 +180,8 @@ internal fun SheetPlayBody(
                 } else {
                     skillsColumn(Modifier.fillMaxWidth(), false)
                     perksColumn(Modifier.fillMaxWidth(), false)
+                    spellsBlock(Modifier.fillMaxWidth(), false)
+                    gearBlock(Modifier.fillMaxWidth(), false)
                     combat(Modifier.fillMaxWidth())
                     notes(Modifier.fillMaxWidth(), false)
                 }

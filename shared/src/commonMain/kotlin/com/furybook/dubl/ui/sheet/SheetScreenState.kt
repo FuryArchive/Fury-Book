@@ -18,6 +18,10 @@ sealed interface SheetDialog {
     data class DevelopmentDetails(val entryId: String) : SheetDialog
     /** «Об умении» from the roll panel: the skill's rules and bonus, read-only. */
     data class SkillInfo(val skillId: String) : SheetDialog
+    /** The cast window of a learned spell. */
+    data class Cast(val uid: String) : SheetDialog
+    /** The item window of a carried item. */
+    data class GearItem(val uid: String) : SheetDialog
 }
 
 /**

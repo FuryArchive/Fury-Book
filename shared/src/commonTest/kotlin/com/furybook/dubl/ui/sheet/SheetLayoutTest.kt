@@ -34,4 +34,12 @@ class SheetLayoutTest {
         assertEquals(3, sheetPlayDerivedColumns(SheetLayout.PHONE))
         assertEquals(6, sheetPlayDerivedColumns(SheetLayout.WIDE))
     }
+
+    @Test
+    fun rightTabsHideSpellsWithoutMagic() {
+        assertEquals(listOf(SheetRightTab.PERKS, SheetRightTab.GEAR), sheetRightTabs(showSpells = false))
+        assertEquals(listOf(SheetRightTab.PERKS, SheetRightTab.SPELLS, SheetRightTab.GEAR), sheetRightTabs(showSpells = true))
+        assertEquals(SheetRightTab.PERKS, sheetRightTabOrDefault(SheetRightTab.SPELLS, showSpells = false))
+        assertEquals(SheetRightTab.GEAR, sheetRightTabOrDefault(SheetRightTab.GEAR, showSpells = false))
+    }
 }
