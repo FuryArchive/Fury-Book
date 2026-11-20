@@ -63,7 +63,7 @@ class DesktopAppState(
         if (chiPackEnabled) catalogLoader.loadChi() else ChiCatalog("disabled", emptyList(), emptyList()),
     )
         private set
-    val magicEquipmentCatalog = catalogLoader.loadMagicEquipment()
+    override val magicEquipmentCatalog = catalogLoader.loadMagicEquipment()
     override val skillEffectCatalog = catalogLoader.loadSkillEffects()
 
     var snapshot: AppSnapshot by mutableStateOf(application.snapshot)
@@ -226,26 +226,26 @@ class DesktopAppState(
     override fun updateCustomDevelopment(entry: DevelopmentEntry): Boolean = sync { application.development.updateCustom(entry) }
     override fun removeCustomDevelopment(entryId: String) = sync { application.development.removeCustom(entryId) }
 
-    fun setMagicManaRank(rank: Int) = sync { application.magic.setManaRank(rank) }
-    fun setMagicSchoolPower(name: String, power: Int) = sync { application.magic.setSchoolPower(name, power) }
-    fun addMagicSchool(name: String, rank: Int, note: String): Boolean = sync { application.magic.addSchool(name, rank, note) }
-    fun updateMagicSchool(index: Int, name: String, rank: Int, note: String): Boolean = sync { application.magic.updateSchool(index, name, rank, note) }
-    fun removeMagicSchool(index: Int) = sync { application.magic.removeSchool(index) }
-    fun addCatalogSpell(entry: SpellCatalogEntry): Boolean = sync { application.magic.addCatalogSpell(entry) }
-    fun addCustomSpell(spell: KnownSpell): String = sync { application.magic.addCustomSpell(spell) }
-    fun updateSpell(spell: KnownSpell) = sync { application.magic.updateSpell(spell) }
-    fun setSpellLearned(uid: String, learned: Boolean) = sync { application.magic.setSpellLearned(uid, learned) }
-    fun removeSpell(uid: String) = sync { application.magic.removeSpell(uid) }
+    override fun setMagicManaRank(rank: Int) = sync { application.magic.setManaRank(rank) }
+    override fun setMagicSchoolPower(name: String, power: Int) = sync { application.magic.setSchoolPower(name, power) }
+    override fun addMagicSchool(name: String, rank: Int, note: String): Boolean = sync { application.magic.addSchool(name, rank, note) }
+    override fun updateMagicSchool(index: Int, name: String, rank: Int, note: String): Boolean = sync { application.magic.updateSchool(index, name, rank, note) }
+    override fun removeMagicSchool(index: Int) = sync { application.magic.removeSchool(index) }
+    override fun addCatalogSpell(entry: SpellCatalogEntry): Boolean = sync { application.magic.addCatalogSpell(entry) }
+    override fun addCustomSpell(spell: KnownSpell): String = sync { application.magic.addCustomSpell(spell) }
+    override fun updateSpell(spell: KnownSpell) = sync { application.magic.updateSpell(spell) }
+    override fun setSpellLearned(uid: String, learned: Boolean) = sync { application.magic.setSpellLearned(uid, learned) }
+    override fun removeSpell(uid: String) = sync { application.magic.removeSpell(uid) }
 
-    fun setGearLoadAutomatic(enabled: Boolean) = sync { application.equipment.setLoadAutomatic(enabled) }
-    fun setGearManualLoad(value: Double) = sync { application.equipment.setManualLoad(value) }
-    fun syncCatalogGearLoads(entries: List<GearCatalogEntry>) = sync { application.equipment.syncCatalogLoads(entries) }
-    fun addCatalogGear(entry: GearCatalogEntry): String = sync { application.equipment.addCatalog(entry) }
-    fun addCustomGear(item: GearItem): String = sync { application.equipment.addCustom(item) }
-    fun updateGearItem(item: GearItem) = sync { application.equipment.updateItem(item) }
-    fun setGearItemCarried(uid: String, carried: Boolean) = sync { application.equipment.setItemCarried(uid, carried) }
-    fun setGearItemQuantity(uid: String, quantity: Int) = sync { application.equipment.setItemQuantity(uid, quantity) }
-    fun removeGearItem(uid: String) = sync { application.equipment.removeItem(uid) }
+    override fun setGearLoadAutomatic(enabled: Boolean) = sync { application.equipment.setLoadAutomatic(enabled) }
+    override fun setGearManualLoad(value: Double) = sync { application.equipment.setManualLoad(value) }
+    override fun syncCatalogGearLoads(entries: List<GearCatalogEntry>) = sync { application.equipment.syncCatalogLoads(entries) }
+    override fun addCatalogGear(entry: GearCatalogEntry): String = sync { application.equipment.addCatalog(entry) }
+    override fun addCustomGear(item: GearItem): String = sync { application.equipment.addCustom(item) }
+    override fun updateGearItem(item: GearItem) = sync { application.equipment.updateItem(item) }
+    override fun setGearItemCarried(uid: String, carried: Boolean) = sync { application.equipment.setItemCarried(uid, carried) }
+    override fun setGearItemQuantity(uid: String, quantity: Int) = sync { application.equipment.setItemQuantity(uid, quantity) }
+    override fun removeGearItem(uid: String) = sync { application.equipment.removeItem(uid) }
 
     override fun setPortrait(uri: String?) { sync { application.sheet.setPortrait(uri) } }
     override fun toggleCondition(condition: CharacterConditionId) { sync { application.sheet.toggleCondition(condition) } }

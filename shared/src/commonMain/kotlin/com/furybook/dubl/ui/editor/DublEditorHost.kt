@@ -7,6 +7,11 @@ import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DevelopmentEntry
 import com.furybook.dubl.model.DevelopmentAcquisitionRequest
 import com.furybook.dubl.model.DevelopmentAcquisitionResult
+import com.furybook.dubl.model.GearCatalogEntry
+import com.furybook.dubl.model.GearItem
+import com.furybook.dubl.model.KnownSpell
+import com.furybook.dubl.model.MagicEquipmentCatalog
+import com.furybook.dubl.model.SpellCatalogEntry
 import com.furybook.dubl.model.SkillCategory
 import com.furybook.dubl.model.UntrainedRule
 import com.furybook.dubl.ui.sheet.DublSheetEditHost
@@ -53,4 +58,28 @@ interface DublEditorHost : DublSheetEditHost {
     fun resetDevelopmentOverride(entryId: String)
     fun setChiEnabled(enabled: Boolean)
     fun setChiBonusRanks(rank: Int)
+
+    // Magic and gear (the old Магия and Снаряжение tabs), now in the editor's steps and the sheet's blocks.
+    /** Rulebook spells and gear of the enabled content packs. */
+    val magicEquipmentCatalog: MagicEquipmentCatalog
+    fun setMagicManaRank(rank: Int)
+    fun setMagicSchoolPower(name: String, power: Int)
+    fun addMagicSchool(name: String, rank: Int, note: String): Boolean
+    fun updateMagicSchool(index: Int, name: String, rank: Int, note: String): Boolean
+    fun removeMagicSchool(index: Int)
+    fun addCatalogSpell(entry: SpellCatalogEntry): Boolean
+    fun addCustomSpell(spell: KnownSpell): String
+    fun updateSpell(spell: KnownSpell)
+    fun setSpellLearned(uid: String, learned: Boolean)
+    fun removeSpell(uid: String)
+    fun setGearLoadAutomatic(enabled: Boolean)
+    fun setGearManualLoad(value: Double)
+    /** Repairs stored loads of catalog items (older builds stored weight); the sheet runs it whenever it shows a character. */
+    fun syncCatalogGearLoads(entries: List<GearCatalogEntry>)
+    fun addCatalogGear(entry: GearCatalogEntry): String
+    fun addCustomGear(item: GearItem): String
+    fun updateGearItem(item: GearItem)
+    fun setGearItemCarried(uid: String, carried: Boolean)
+    fun setGearItemQuantity(uid: String, quantity: Int)
+    fun removeGearItem(uid: String)
 }

@@ -1,5 +1,10 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.dubl.model.GearCatalogEntry
+import com.furybook.dubl.model.GearItem
+import com.furybook.dubl.model.KnownSpell
+import com.furybook.dubl.model.MagicEquipmentCatalog
+import com.furybook.dubl.model.SpellCatalogEntry
 import com.furybook.dubl.model.SkillCategory
 
 import com.furybook.content.FcpComposition
@@ -75,6 +80,7 @@ class FakeSheetHost(
     developmentCatalogOverride: DevelopmentCatalog? = null,
     skillEffectCatalogOverride: SkillEffectCatalog? = null,
     chiCatalogOverride: ChiCatalog? = null,
+    magicEquipmentCatalogOverride: MagicEquipmentCatalog? = null,
 ) : DublEditorHost {
     private val extrasStore = InMemoryExtrasStore().also { it.save(character.id, extras) }
     private val application = DublApplication(
@@ -100,6 +106,7 @@ class FakeSheetHost(
     override val developmentCatalog: DevelopmentCatalog get() = editorCatalogFor(this, active)
     override val chiCatalog = chiCatalogOverride ?: ChiCatalog("disabled", emptyList(), emptyList())
     override val skillEffectCatalog = skillEffectCatalogOverride ?: loader.loadSkillEffects()
+    override val magicEquipmentCatalog = magicEquipmentCatalogOverride ?: loader.loadMagicEquipment()
 
     override fun resourceMeters(): List<DublResourceMeterModel> =
         DublUiRenderModels.resourceMeters(composition, active)
@@ -218,4 +225,24 @@ class FakeSheetHost(
     override fun resetDevelopmentOverride(entryId: String) { application.development.resetOverride(entryId) }
     override fun setChiEnabled(enabled: Boolean) { application.development.setChiEnabled(enabled) }
     override fun setChiBonusRanks(rank: Int) { application.development.setChiBonusRanks(rank) }
+
+    override fun setMagicManaRank(rank: Int) { application.magic.setManaRank(rank) }
+    override fun setMagicSchoolPower(name: String, power: Int) { application.magic.setSchoolPower(name, power) }
+    override fun addMagicSchool(name: String, rank: Int, note: String): Boolean = application.magic.addSchool(name, rank, note)
+    override fun updateMagicSchool(index: Int, name: String, rank: Int, note: String): Boolean = application.magic.updateSchool(index, name, rank, note)
+    override fun removeMagicSchool(index: Int) { application.magic.removeSchool(index) }
+    override fun addCatalogSpell(entry: SpellCatalogEntry): Boolean = application.magic.addCatalogSpell(entry)
+    override fun addCustomSpell(spell: KnownSpell): String = application.magic.addCustomSpell(spell)
+    override fun updateSpell(spell: KnownSpell) { application.magic.updateSpell(spell) }
+    override fun setSpellLearned(uid: String, learned: Boolean) { application.magic.setSpellLearned(uid, learned) }
+    override fun removeSpell(uid: String) { application.magic.removeSpell(uid) }
+    override fun setGearLoadAutomatic(enabled: Boolean) { application.equipment.setLoadAutomatic(enabled) }
+    override fun setGearManualLoad(value: Double) { application.equipment.setManualLoad(value) }
+    override fun syncCatalogGearLoads(entries: List<GearCatalogEntry>) { application.equipment.syncCatalogLoads(entries) }
+    override fun addCatalogGear(entry: GearCatalogEntry): String = application.equipment.addCatalog(entry)
+    override fun addCustomGear(item: GearItem): String = application.equipment.addCustom(item)
+    override fun updateGearItem(item: GearItem) { application.equipment.updateItem(item) }
+    override fun setGearItemCarried(uid: String, carried: Boolean) { application.equipment.setItemCarried(uid, carried) }
+    override fun setGearItemQuantity(uid: String, quantity: Int) { application.equipment.setItemQuantity(uid, quantity) }
+    override fun removeGearItem(uid: String) { application.equipment.removeItem(uid) }
 }

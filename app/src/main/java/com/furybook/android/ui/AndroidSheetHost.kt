@@ -1,5 +1,11 @@
 package com.furybook.android.ui
 
+import com.furybook.android.data.MagicEquipmentCatalogRepository
+import com.furybook.dubl.model.GearCatalogEntry
+import com.furybook.dubl.model.GearItem
+import com.furybook.dubl.model.KnownSpell
+import com.furybook.dubl.model.MagicEquipmentCatalog
+import com.furybook.dubl.model.SpellCatalogEntry
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -166,6 +172,28 @@ class AndroidSheetHost(
     override fun resetDevelopmentOverride(entryId: String) { controller.resetDevelopmentOverride(entryId) }
     override fun setChiEnabled(enabled: Boolean) { controller.setChiEnabled(enabled) }
     override fun setChiBonusRanks(rank: Int) { controller.setChiBonusRanks(rank) }
+
+    // Magic and gear: the editor's Магия/Снаряжение steps and the sheet's blocks.
+    override val magicEquipmentCatalog: MagicEquipmentCatalog by lazy { MagicEquipmentCatalogRepository(appContext).load() }
+    override fun setMagicManaRank(rank: Int) { controller.setMagicManaRank(rank) }
+    override fun setMagicSchoolPower(name: String, power: Int) { controller.setMagicSchoolPower(name, power) }
+    override fun addMagicSchool(name: String, rank: Int, note: String): Boolean = controller.addMagicSchool(name, rank, note)
+    override fun updateMagicSchool(index: Int, name: String, rank: Int, note: String): Boolean = controller.updateMagicSchool(index, name, rank, note)
+    override fun removeMagicSchool(index: Int) { controller.removeMagicSchool(index) }
+    override fun addCatalogSpell(entry: SpellCatalogEntry): Boolean = controller.addCatalogSpell(entry)
+    override fun addCustomSpell(spell: KnownSpell): String = controller.addCustomSpell(spell)
+    override fun updateSpell(spell: KnownSpell) { controller.updateSpell(spell) }
+    override fun setSpellLearned(uid: String, learned: Boolean) { controller.setSpellLearned(uid, learned) }
+    override fun removeSpell(uid: String) { controller.removeSpell(uid) }
+    override fun setGearLoadAutomatic(enabled: Boolean) { controller.setGearLoadAutomatic(enabled) }
+    override fun setGearManualLoad(value: Double) { controller.setGearManualLoad(value) }
+    override fun syncCatalogGearLoads(entries: List<GearCatalogEntry>) { controller.syncCatalogGearLoads(entries) }
+    override fun addCatalogGear(entry: GearCatalogEntry): String = controller.addCatalogGear(entry)
+    override fun addCustomGear(item: GearItem): String = controller.addCustomGear(item)
+    override fun updateGearItem(item: GearItem) { controller.updateGearItem(item) }
+    override fun setGearItemCarried(uid: String, carried: Boolean) { controller.setGearItemCarried(uid, carried) }
+    override fun setGearItemQuantity(uid: String, quantity: Int) { controller.setGearItemQuantity(uid, quantity) }
+    override fun removeGearItem(uid: String) { controller.removeGearItem(uid) }
 }
 
 @Composable

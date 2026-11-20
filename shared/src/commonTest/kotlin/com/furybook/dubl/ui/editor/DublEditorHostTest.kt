@@ -4,6 +4,11 @@ import com.furybook.dubl.model.AttributeId
 import com.furybook.dubl.model.CharacterSkill
 import com.furybook.dubl.model.DevelopmentAcquisitionRequest
 import com.furybook.dubl.model.DublCharacter
+import com.furybook.dubl.model.GearCatalogEntry
+import com.furybook.dubl.model.GearItem
+import com.furybook.dubl.model.KnownSpell
+import com.furybook.dubl.model.MagicEquipmentCatalog
+import kotlin.test.assertFalse
 import com.furybook.dubl.ui.sheet.FakeSheetHost
 import kotlin.test.assertNull
 import kotlin.test.Test
@@ -67,5 +72,53 @@ class DublEditorHostTest {
         assertTrue(host.active.chiActive)
         host.setChiBonusRanks(3)
         assertEquals(3, host.active.chiBonusRanks)
+    }
+
+    @Test
+    fun magicReachesTheApplication() {
+        val host: DublEditorHost = FakeSheetHost(character)
+        assertTrue(host.addMagicSchool("Разрушение", 2, ""))
+        host.setMagicSchoolPower("Разрушение", 4)
+        assertEquals(4, host.active.magic.schools[0].rank)
+        host.setMagicManaRank(2)
+        assertEquals(2, host.active.magic.manaRank)
+        val uid = host.addCustomSpell(KnownSpell(uid = "", name = "Искра", custom = true))
+        host.setSpellLearned(uid, false)
+        assertFalse(host.active.magic.spells.single { it.uid == uid }.learned)
+        host.updateSpell(host.active.magic.spells.single { it.uid == uid }.copy(name = "Искра+"))
+        assertEquals("Искра+", host.active.magic.spells.single { it.uid == uid }.name)
+        assertTrue(host.updateMagicSchool(0, "Разрушение", 3, "заметка"))
+        assertEquals("заметка", host.active.magic.schools[0].note)
+        host.removeSpell(uid)
+        assertTrue(host.active.magic.spells.none { it.uid == uid })
+        host.removeMagicSchool(0)
+        assertTrue(host.active.magic.schools.isEmpty())
+    }
+
+    @Test
+    fun gearReachesTheApplication() {
+        val host: DublEditorHost = FakeSheetHost(character)
+        val uid = host.addCustomGear(GearItem(uid = "", name = "Верёвка", load = 1.0))
+        host.setGearItemQuantity(uid, 3)
+        host.setGearItemCarried(uid, false)
+        val item = host.active.gear.items.single { it.uid == uid }
+        assertEquals(3, item.quantity)
+        assertFalse(item.carried)
+        host.setGearLoadAutomatic(false)
+        host.setGearManualLoad(2.5)
+        assertFalse(host.active.gear.loadAutomatic)
+        assertEquals(2.5, host.active.gear.loadManual)
+        host.removeGearItem(uid)
+        assertTrue(host.active.gear.items.isEmpty())
+    }
+
+    @Test
+    fun catalogGearLoadsAreRepaired() {
+        val entry = GearCatalogEntry("gear_x", "Лук", "Снаряжение", "Предметы", mapOf("Треб." to "3", "Вес" to "9"), "")
+        val host: DublEditorHost = FakeSheetHost(character, magicEquipmentCatalogOverride = MagicEquipmentCatalog("t", emptyList(), listOf(entry)))
+        val uid = host.addCatalogGear(host.magicEquipmentCatalog.gear.single())
+        host.updateGearItem(host.active.gear.items.single { it.uid == uid }.copy(load = 9.0))
+        host.syncCatalogGearLoads(host.magicEquipmentCatalog.gear)
+        assertEquals(3.0, host.active.gear.items.single { it.uid == uid }.load)
     }
 }
