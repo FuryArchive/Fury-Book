@@ -1,0 +1,185 @@
+# Магия and Снаряжение: sheet and editor (revamp stage 5)
+
+Status: draft for owner approval · 2026-11-20
+Builds on:
+- `2026-11-17-ui-revamp-design.md` (stage list, leftovers)
+- `2026-11-18-play-sheet-redesign-design.md` (sheet blocks, layouts)
+- `2026-11-18-character-editor-design.md` (editor steps, restore point, change list)
+- stages 3–4 (`…skills-into-editor…`, `…development-into-editor…`): the same split, applied to two more tabs.
+
+## Why
+
+Магия and Снаряжение are still the old per-platform screens:
+- **They have drifted apart.**
+  - Android can mark spells learned, toggle items carried, set quantity, and refresh catalog loads.
+  - Desktop/web have the mana-rank stepper and a manual load override.
+- **Leftovers the revamp plan lists for this stage:** dead mana ± at 0/0, a developer note shown to players, and gear descriptions that repeat the stats.
+
+What the owner wants:
+- **At the table:** casting spells and spending mana. Known spells belong on the sheet. In any fight you need to see what your gear does: damage, requirement, range. Possibly all carried gear on the sheet.
+- **Building:** adding spells, raising mana and school power, and managing the inventory, all in the editor. «+ Предмет» on the sheet opens the editor on the gear tab.
+
+## Goals
+
+- **Sheet:** a **Заклинания** block (known spells, «Сотворить» with a mana window) and a **Снаряжение** block (all carried gear with combat stats, load line).
+- **Editor:**
+  - a **Магия** step: mana rank, schools, spellbook, catalog, own spells;
+  - a **Снаряжение** step: inventory, catalog, own items, carried, quantity, load mode.
+- **Remove the Магия and Снаряжение tabs** on Android, desktop and web. Every function either platform has today stays reachable on all three.
+- **Phones get no bottom bar.** The sheet is home; Кампания and Персонажи live in the menu.
+
+## Non-goals
+
+- Rules, formulas, saved data, transfer format, sync: unchanged. Every mutation already exists in `MagicApplication` / `EquipmentApplication`.
+- Rolling attacks or spell checks from a weapon or spell (roll subjects stay as they are). A possible later stage.
+- Кампания, Персонажи, login (stage 6).
+
+## Anti-goals
+
+- Any Магия/Снаряжение function becoming unreachable on any platform.
+- A second copy of magic, load or XP rules in UI code. `MagicEquipmentRules` and `CharacterEconomy` stay the only sources.
+- Editor changes not covered by «Отменить всё» or not listed in «Изменения за этот заход».
+- Developer notes or duplicated text shown to players.
+
+## Approaches
+
+1. **Picked (one sensible way):** sheet blocks plus editor steps in shared code; old screens deleted. Same split as stages 3–4, and it fixes the platform drift at once.
+2. Rejected: rebuild the two screens in shared code and hide them behind the menu. That gives two places to manage the same data, and the owner wants managing in the editor.
+3. Rejected: sheet blocks only, keeping the old screens for managing. That leaves the drift and the dead controls, and works against stage 7.
+
+## Where each function goes
+
+| Today (old screens; platform in brackets when only one has it) | New home |
+|---|---|
+| Mana current ± (dead on desktop at 0/0) | Sheet mana meter (exists) + «Сотворить» window |
+| Mana rank 0–5 with XP (desktop) | Editor Магия: mana rank stepper with XP |
+| Mana recovery per round, XP breakdown (rank · schools · spells) | Editor Магия header; sheet Заклинания header shows recovery |
+| Schools: add / edit (name, power, note) / delete / power stepper; «Только изученные» filter | Editor Магия: schools list |
+| Spellbook: known spells, learned toggle (Android), usability («Требуется сила школы N») | Editor Магия: spellbook; learned spells also on the sheet |
+| Spell catalog: search, school filter, add | Editor Магия: «+ Из каталога» |
+| Own spell: add / edit / delete | Editor Магия: «+ Своё заклинание», spell detail |
+| Inventory list, search, count «N шт. · M позиций» | Editor Снаряжение |
+| Gear catalog: search, sections, owned counts, add | Editor Снаряжение: «+ Из каталога» |
+| Own item: add / edit / delete | Editor Снаряжение: «+ Свой предмет», item detail |
+| Carried toggle, quantity (Android) | Editor Снаряжение item detail; sheet item detail (play changes) |
+| Load: current / capacity, burden label, automatic or manual value (desktop) | Editor Снаряжение header (both); sheet Снаряжение header (read-only line) |
+| Catalog load repair `syncCatalogLoads` (Android, on screen open) | Run when the editor opens, before its snapshot (all platforms) |
+
+## Design
+
+### Sheet: Заклинания block
+
+- Shown when the character uses magic: `manaEnabled`, or mana maximum > 0, or any learned spell (the same test the mana meter uses, plus spells).
+- Header: «Заклинания · мана C/M · восстановление N/раунд».
+- One row per **learned** spell (`KnownSpell.learned`), sorted by school then name:
+  - name;
+  - `manaText` (fallback: cost) «маны»;
+  - time, range, and the check (`action`).
+  - If `MagicEquipmentRules.spellUsability` says the school is too weak, the row says «нужна сила школы N».
+- Tapping the row or its «Сотворить» opens the **cast window**:
+  - the spell's full text: time, range, area, duration, check, description, enhancement;
+  - «Мана» amount, prefilled with the spell's mana (leading number of `manaText`, else `cost`), with −/+ and typing;
+  - «Сотворить · N маны» spends N via `changeResource(MANA, −N)`. It is disabled when N > current mana, and says why.
+  - **Builder's call:** too-weak school power warns but doesn't block, like the old screens.
+- Empty state (magic on, no learned spells): «Заклинаний нет».
+- **«+ Заклинание»** in the header opens the editor at Магия.
+
+### Sheet: Снаряжение block
+
+- Shown for every character.
+- Header: «Снаряжение · нагрузка L/C — <burden label>», with the penalty when non-zero («−2 к атакам»).
+- Rows: every **carried** item.
+  - **Order:** weapons first (items with a damage field), then armour (armour field), then everything else, by name inside each group.
+  - **Weapon line:** damage, damage type, requirement, range, speed, magazine, the first few properties. Field names vary in the catalog (`Треб.`/`Треб`/`Требование`, several spellings of «Спец. свойства»). One shared normaliser maps them, with tests.
+  - **Armour line:** armour value and requirement. **Other items:** name ×quantity.
+- Tapping a row opens the **item window**:
+  - all fields as a two-column list;
+  - the description only when it isn't just the fields again (fixes the duplicated descriptions);
+  - quantity −/+;
+  - «Не нести» (the item leaves the sheet; it stays in the editor's inventory);
+  - «Изменить в редакторе» (opens the editor at Снаряжение with that item open).
+- Quantity and carried are play changes. They go through the platform undo toast like resource changes.
+- Empty state: «Снаряжения нет».
+- **«+ Предмет»** in the header opens the editor at Снаряжение.
+
+### Sheet layout (builder's call, owner may override)
+
+- **Desktop with tray (≥1100dp):** the right column becomes tabs «Навыки · Заклинания · Снаряжение»; Заклинания only when the block is shown. The last tab is remembered for the session.
+- **Tablet and phone:** the blocks stack after Навыки: Заклинания, then Снаряжение.
+
+```
+┌ Умения ───────────┐ ┌ [Навыки] [Заклинания] [Снаряжение] ┐
+│ …                 │ │ СНАРЯЖЕНИЕ · нагрузка 3/8 — без штрафа │
+│                   │ │ Длинный лук  1d6+2 · Треб 2 · 30/150   │
+│                   │ │ Кожаная броня  Броня 2                 │
+│                   │ │ Верёвка ×2                [+ Предмет]  │
+└───────────────────┘ └────────────────────────────────────────┘
+```
+
+### Editor: Магия step
+
+Steps become: Развитие · Основа · Характеристики · Умения · Навыки · **Магия** · **Снаряжение** · Итог. The Магия step is always present.
+
+- **Магия выключена** (manaEnabled off and no spells): a card with the same mana switch as Основа (`setIdentity`), and a short line saying what turns on.
+- **Header:**
+  - mana rank stepper 0–5 with its XP (`MagicEquipmentRules.manaRankXp`);
+  - mana maximum and recovery;
+  - XP line «ранг маны · школы · заклинания» from `CharacterEconomy`.
+- **Schools:** rows with a power stepper (`setSchoolPower`) and the XP per power (`magicSchoolRankXp`). «+ Школа» uses the catalog school names plus a free name, power and note. A school detail edits the name, power and note and offers «Удалить» with «Вернуть».
+- **Spellbook:**
+  - known spells grouped by school, with a filter «Все / Изученные / Неизученные», and search;
+  - **row:** learned switch with the XP it costs, and the usability warning;
+  - **detail:** full text, «Изменить» (spell form: name, school, cost, mana text, time, range, area, check, duration, description, enhancement, XP override, «неполное»), «Удалить» with «Вернуть»;
+  - **«+ Из каталога»:** search, school chips, «только доступные по силе школы», each with «Добавить» (already-known spells marked);
+  - **«+ Своё заклинание»:** the same form.
+- Split/overlay layout like the Навыки step (`editorPerksSplit`).
+
+### Editor: Снаряжение step
+
+- **Header:** load L/C with the burden label and penalty; «Нагрузка: автоматически / вручную» (`setLoadAutomatic`); a manual value field when manual (`setManualLoad`); the count «N шт. · M позиций».
+- **Inventory:** search, groups like the sheet (weapons, armour, other), each row with a carried switch and quantity.
+- **Item detail:** fields, description (deduplicated), carried, quantity, «Изменить» (item form: name, quantity, load, category, section, description, fields as «Название: значение» lines), «Удалить» with «Вернуть».
+- **«+ Из каталога»:** search, section/category chips, owned count, «Добавить». **«+ Свой предмет»:** the item form.
+- Opening the editor at an item (from the sheet) opens that item's detail.
+
+### Change list
+
+New lines:
+- **Mana:** «Ранг маны a → b» (XP).
+- **Schools:** «+ школа N» / «− школа N» / «N: сила a → b» (XP).
+- **Spells:** «+ заклинание S» / «− заклинание S» / «S: изучено» / «S: не изучено» (XP) / «S: изменено».
+- **Gear (0 XP):** «+ предмет I» / «− предмет I» / «I: ×a → ×b» / «I: с собой» / «I: не с собой» / «I: изменён» / «Нагрузка: вручную V» / «Нагрузка: автоматически».
+
+Each priced like other lines: `CharacterEconomy` on `before` with that one change.
+
+### Host
+
+`DublEditorHost` gains delegates to `DublApplication.magic` and `.equipment`, and `val magicEquipmentCatalog`:
+- **Magic:** `setManaRank`, `addMagicSchool`, `updateMagicSchool`, `removeMagicSchool`, `setMagicSchoolPower`, `addCatalogSpell`, `addCustomSpell`, `updateSpell`, `setSpellLearned`, `removeSpell`.
+- **Gear:** `addCatalogGear`, `addCustomGear`, `updateGearItem`, `setGearItemCarried`, `setGearItemQuantity`, `removeGearItem`, `setGearLoadAutomatic`, `setGearManualLoad`, `syncCatalogGearLoads`.
+- Mana spending uses the existing `changeResource(MANA, delta)`.
+- Desktop/web states have most of these already; Android delegates to `CharacterController`, adding any missing call.
+
+### Navigation
+
+- Remove Магия and Снаряжение sections on all platforms (desktop/web `DesktopSection.MAGIC/EQUIPMENT`, Android `AppSection.MAGIC/INVENTORY`).
+- **Phones (owner's call):** no bottom bar. `FuryShell` draws none when no section is primary; Кампания and Персонажи (Android «Ещё») sit in the menu.
+- Wide top tabs: Лист · Кампания · Персонажи.
+- The editor's Итог links «Магия →» / «Снаряжение →» jump to the new steps. `SheetScreen`/`EditorScreen` lose `onOpenMagic` / `onOpenGear`.
+- Delete the per-platform `MagicScreen.kt` and `EquipmentScreen.kt` (desktop, web, Android), plus anything only they use.
+
+## Constraints
+
+- **Shared code only:** platforms keep wiring.
+- **Restore point:** every editor action is inside the visit's restore point (magic and gear live on the character).
+- **Undo toast:** sheet play changes (mana, quantity, carried) report to the platform undo toast; they are not editor changes.
+- **Layout and themes:** works at 360dp, tablets and desktop, in all five themes.
+- **Python guards:** guards pinning the old screens are repointed when they guard a function and retired when they pinned old layout. The failing baseline may only shrink.
+
+## Left to the builder
+
+- Exact row layouts.
+- Which weapon fields fit on one line at each width.
+- Panel vs dialog for forms on wide screens.
+- Test file layout.
+- Wording of empty states and reasons copied from the old screens.
