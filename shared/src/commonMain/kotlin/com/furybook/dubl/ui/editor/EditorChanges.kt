@@ -80,10 +80,11 @@ fun editorChanges(
         val was = ownBefore[id]
         val now = ownAfter[id]
         when {
-            was == null && now != null -> add("+ ${now.name}", cost(b.copy(customDevelopmentEntries = b.customDevelopmentEntries + now)))
+            // «(своя запись)» tells the record line apart from the rank line when the new perk is also taken.
+            was == null && now != null -> add("+ ${now.name} (своя запись)", cost(b.copy(customDevelopmentEntries = b.customDevelopmentEntries + now)))
             // Deleting an own perk also drops its ranks: one line, priced with both.
             now == null && was != null -> add(
-                "− ${was.name}",
+                "− ${was.name} (своя запись)",
                 cost(b.copy(customDevelopmentEntries = b.customDevelopmentEntries - was, development = b.development - id)),
             )
             was != now && now != null -> add(
@@ -102,6 +103,10 @@ fun editorChanges(
         add(if (now == null) "$name: правка сброшена" else "$name: локальная правка", cost(modified))
     }
 
+    // Rank lines are priced against the visit's records (own perks, local edits), so taking a perk created
+    // or edited in this visit costs what its record now says.
+    val withRecords = b.copy(customDevelopmentEntries = a.customDevelopmentEntries, developmentOverrides = a.developmentOverrides)
+    val recordsSpent = spent(withRecords)
     (b.development.keys + a.development.keys).forEach { id ->
         if (id in removedOwn) return@forEach
         val from = b.development[id]?.rank ?: 0
@@ -116,8 +121,9 @@ fun editorChanges(
             to == 0 -> "− $name"
             else -> "$name: ранг $to"
         }
-        val modified = a.development[id]?.let { b.copy(development = b.development + (id to it)) } ?: b.copy(development = b.development - id)
-        add(text, cost(modified))
+        val modified = a.development[id]?.let { withRecords.copy(development = withRecords.development + (id to it)) }
+            ?: withRecords.copy(development = withRecords.development - id)
+        add(text, spent(modified) - recordsSpent)
     }
 
     (a.hiddenSkillIds - b.hiddenSkillIds).forEach { add("Скрыто: ${names[it] ?: it}") }

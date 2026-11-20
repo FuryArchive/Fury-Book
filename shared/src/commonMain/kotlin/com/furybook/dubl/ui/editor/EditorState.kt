@@ -66,6 +66,9 @@ class EditorState {
 
     fun dropPlanned(entryId: String) { plannedIds = plannedIds - entryId }
 
+    /** Paths picked for the plan's alternative requirements. */
+    var planChoices: Map<String, Int> by mutableStateOf(emptyMap())
+
     /**
      * [skillId]: opened from «Настроить в редакторе» — straight to Умения with that skill's panel.
      * [entryId]: the same from a perk's «Подробнее» — straight to Навыки with that perk's detail (the list alone if it is gone).
@@ -82,6 +85,7 @@ class EditorState {
         skillPanelId = skillId
         skillCategory = null
         plannedIds = emptySet()
+        planChoices = emptyMap()
         selectChoices(null)
         changesOpen = false
         developmentPins = null

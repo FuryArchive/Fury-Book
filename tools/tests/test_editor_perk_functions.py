@@ -16,7 +16,8 @@ def test_build_filters_and_plan_workflow():
     for label in ('"Доступно"', '"Почти"', '"План"', "План персонажа", "Взять план", "☆ В план", "★ В плане"):
         assert label in STEP, label
     assert "fun togglePlanned(" in STATE and "plannedIds" in STATE
-    assert "DevelopmentAcquisitionRequest(targets = targets.map { DevelopmentAcquisitionTarget(it) }" in MODELS
+    assert "targets = targets.map { DevelopmentAcquisitionTarget(it) }, choiceSelections = choiceSelections" in MODELS
+    assert "Что будет взято" in STEP and "state.planChoices" in STEP
 
 
 def test_detail_surfaces_requirements_unlocks_and_auto_acquire():

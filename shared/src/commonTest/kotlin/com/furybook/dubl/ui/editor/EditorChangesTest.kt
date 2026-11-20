@@ -122,8 +122,8 @@ class EditorChangesTest {
     fun deletedOwnedOwnPerkIsOneLine() {
         val own = EditorFixtures.entry("custom-development-1", "Гадание", cost = 25)
         val before = hornet.copy(customDevelopmentEntries = listOf(own), development = hornet.development + (own.id to OwnedDevelopment(rank = 1)))
-        assertEquals(listOf(EditorChangeLine("− Гадание", -25)), changes(hornet, before = before).lines)
-        assertEquals(listOf(EditorChangeLine("+ Гадание", 0)), changes(hornet.copy(customDevelopmentEntries = listOf(own))).lines)
+        assertEquals(listOf(EditorChangeLine("− Гадание (своя запись)", -25)), changes(hornet, before = before).lines)
+        assertEquals(listOf(EditorChangeLine("+ Гадание (своя запись)", 0)), changes(hornet.copy(customDevelopmentEntries = listOf(own))).lines)
         val renamed = before.copy(customDevelopmentEntries = listOf(own.copy(name = "Ворожба")))
         assertEquals(listOf("Ворожба: запись изменена"), changes(renamed, before = before).lines.map { it.text })
     }
@@ -135,5 +135,25 @@ class EditorChangesTest {
         assertTrue(EditorChangeLine("ЦИ включено", 0) in lines, lines.toString())
         assertTrue(EditorChangeLine("ЦИ: доп. ранги 0 → 2", 2 * CharacterEconomy.CHI_BONUS_RANK_XP) in lines, lines.toString())
         assertTrue(EditorChangeLine("ЦИ выключено", 0) in editorChanges(point(after), point(hornet), catalogFor, includeChi = true).lines)
+    }
+
+    @Test
+    fun takingANewOwnPerkIsPricedWithItsOwnCost() {
+        val own = EditorFixtures.entry("custom-development-1", "Гадание", cost = 25)
+        val after = hornet.copy(customDevelopmentEntries = listOf(own), development = hornet.development + (own.id to OwnedDevelopment(rank = 1)))
+        val result = changes(after)
+        assertEquals(listOf(EditorChangeLine("+ Гадание (своя запись)", 0), EditorChangeLine("+ Гадание", 25)), result.lines)
+        assertEquals(25, result.netSpent)
+    }
+
+    @Test
+    fun takingALocallyEditedPerkIsPricedWithTheEdit() {
+        val after = hornet.copy(
+            developmentOverrides = mapOf(keenHearing.id to keenHearing.copy(cost = 10)),
+            development = hornet.development + (keenHearing.id to OwnedDevelopment(rank = 1)),
+        )
+        val result = changes(after)
+        assertEquals(listOf(EditorChangeLine("Острый слух: локальная правка", 0), EditorChangeLine("+ Острый слух", 10)), result.lines)
+        assertEquals(10, result.netSpent)
     }
 }

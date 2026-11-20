@@ -313,13 +313,19 @@ data class EditorPlanSummary(
     val abilityCost: Int,
     val request: DevelopmentAcquisitionRequest?,
     val blockReason: String?,
+    /** Paths to pick where a requirement has alternatives (the old plan preview's «Выберите путь»). */
+    val choices: List<EditorChoice> = emptyList(),
+    /** What «Взять план» will buy, in order (the old preview's step list). */
+    val steps: List<EditorChainStep> = emptyList(),
 )
 
 /** Null when nothing planned is still in the catalog (a deleted own perk drops out). One request for every target, as the old plan did. */
-fun EditorPerkContext.planSummary(planned: Set<String>): EditorPlanSummary? {
+fun EditorPerkContext.planSummary(planned: Set<String>, choiceSelections: Map<String, Int> = emptyMap()): EditorPlanSummary? {
     val targets = planned.filter { catalog.byId(it) != null }.sorted()
     if (targets.isEmpty()) return null
-    val request = DevelopmentAcquisitionRequest(targets = targets.map { DevelopmentAcquisitionTarget(it) }, enforceBudget = false)
+    val request = DevelopmentAcquisitionRequest(
+        targets = targets.map { DevelopmentAcquisitionTarget(it) }, choiceSelections = choiceSelections, enforceBudget = false,
+    )
     val plan = planner.plan(request)
     val block = when {
         plan.unresolvedRequirements.isNotEmpty() -> "Не все требования можно закрыть автоматически."
@@ -329,7 +335,15 @@ fun EditorPerkContext.planSummary(planned: Set<String>): EditorPlanSummary? {
         !affordable(plan.xpCost, plan.abilityCost) -> "Не хватает очков способностей."
         else -> null
     }
-    return EditorPlanSummary(targets.size, plan.xpCost, plan.abilityCost, request.takeIf { block == null }, block)
+    return EditorPlanSummary(
+        targets.size, plan.xpCost, plan.abilityCost, request.takeIf { block == null }, block,
+        choices = plan.choices.map { choice ->
+            EditorChoice(choice.id, choice.label, choice.options.map { "${it.label} · ${costLabel(it.xpCost, it.abilityCost)}" }, choiceSelections[choice.id] ?: choice.selectedIndex)
+        },
+        steps = plan.steps.map {
+            EditorChainStep(stepLabel(it), costLabel(it.xpCost, it.abilityCost), it is DevelopmentAcquisitionStep.Development && it.entryId in targets)
+        },
+    )
 }
 
 /** All cards of every kind (no owned tab), for the Развитие lists. */
@@ -410,7 +424,9 @@ fun EditorPerkContext.perkDetail(entryId: String, choiceSelections: Map<String, 
     // Bulk actions show only when the whole run is affordable; otherwise the single take already explains why not.
     fun bulk(request: DevelopmentAcquisitionRequest): DevelopmentAcquisitionPlan? =
         planner.plan(request).takeIf { it.steps.isNotEmpty() && it.unresolvedRequirements.isEmpty() && affordable(it.xpCost, it.abilityCost) }
-    val allRanksRequest = DevelopmentAcquisitionRequest.single(entry.id, targetRank = max, optionIndex = eval.option, enforceBudget = false)
+    val allRanksRequest = DevelopmentAcquisitionRequest.single(
+        entry.id, targetRank = max, optionIndex = eval.option, choiceSelections = choiceSelections, enforceBudget = false,
+    )
     val allRanks = if (max - rank >= 2 && !entry.incomplete) bulk(allRanksRequest) else null
     val prerequisitesRequest = DevelopmentAcquisitionRequest.single(
         entry.id, includeTarget = false, optionIndex = eval.option, choiceSelections = choiceSelections, enforceBudget = false,

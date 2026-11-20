@@ -14,7 +14,7 @@ EDITOR = ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor"
 def test_editor_perk_detail_wires_bulk_ranks_through_the_planner():
     models = (EDITOR / "EditorPerkModels.kt").read_text(encoding="utf-8")
     step = (EDITOR / "EditorPerksStep.kt").read_text(encoding="utf-8")
-    assert "DevelopmentAcquisitionRequest.single(entry.id, targetRank = max, optionIndex = eval.option" in models
+    assert "entry.id, targetRank = max, optionIndex = eval.option, choiceSelections = choiceSelections" in models
     assert "max - rank >= 2" in models
     assert "allRanksAction = allRanks?.let { EditorPerkAction.Acquire(allRanksRequest) }" in models
     assert '"Взять все оставшиеся ранги · ' in models

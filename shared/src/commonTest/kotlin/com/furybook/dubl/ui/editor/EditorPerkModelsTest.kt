@@ -235,4 +235,30 @@ class EditorPerkModelsTest {
         assertEquals("◎ ЦИ", on.first { it.kind == EditorPerkKind.CHI }.title)
         assertEquals("Обычные", on.first().title)
     }
+
+    @Test
+    fun allRanksFollowsTheChosenPath() {
+        // Two-rank perk whose requirement has two paths: Стрельба 5 or Метание 5 (hornet: Стрельба 4, no Метание).
+        val aim2 = quickAim.copy(id = "feat_aim2", maxRank = 2)
+        val host = host(devCatalog = DevelopmentCatalog("t", catalog.entries + aim2))
+        val plain = editorPerkDetail(host, aim2.id, emptyMap(), null)!!
+        val choice = plain.choices.single { it.id != "option" }
+        val other = (choice.options.indices.toList() - choice.selected).first()
+        val picked = editorPerkDetail(host, aim2.id, mapOf(choice.id to other), null)!!
+        assertEquals(mapOf(choice.id to other), picked.allRanksAction!!.request.choiceSelections)
+    }
+
+    @Test
+    fun planSummaryOffersPathsAndSteps() {
+        val host = host()
+        val context = EditorPerkContext(host)
+        val summary = context.planSummary(setOf(quickAim.id))!!
+        val choice = summary.choices.single()
+        assertTrue(summary.steps.any { it.isTarget })
+        val other = (choice.options.indices.toList() - choice.selected).first()
+        val picked = context.planSummary(setOf(quickAim.id), mapOf(choice.id to other))!!
+        assertEquals(other, picked.choices.single().selected)
+        assertNotEquals(summary.steps.map { it.label }, picked.steps.map { it.label })
+        picked.request?.let { assertEquals(mapOf(choice.id to other), it.choiceSelections) }
+    }
 }

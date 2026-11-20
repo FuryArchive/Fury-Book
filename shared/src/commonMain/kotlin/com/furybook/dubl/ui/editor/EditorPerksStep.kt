@@ -67,7 +67,7 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
     val groups = remember(data, state.perkKind, state.perkFilter, state.perkQuery, state.selectedEntryId, state.plannedIds) {
         context.perkGroups(state.perkKind, state.perkFilter, state.perkQuery, keep = state.selectedEntryId, planned = state.plannedIds)
     }
-    val plan = remember(data, state.plannedIds) { context.planSummary(state.plannedIds) }
+    val plan = remember(data, state.plannedIds, state.planChoices) { context.planSummary(state.plannedIds, state.planChoices) }
     var form by remember { mutableStateOf<Pair<DevelopmentEntry, EditorPerkFormMode>?>(null) }
     val chiCard = remember(data, state.perkKind, state.perkQuery, state.perkFilter) {
         if (state.perkKind == EditorPerkKind.CHI) editorChiCard(host, state.perkQuery, availableOnly = state.perkFilter == EditorPerkFilter.AVAILABLE) else null
@@ -165,6 +165,7 @@ private fun PerksHeader(
 }
 
 /** «План персонажа»: what the ☆ perks still cost together, and one button that takes them all. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PlanCard(host: DublEditorHost, state: EditorState, plan: EditorPlanSummary, layout: SheetLayout) {
     val p = FuryColors.current
@@ -187,6 +188,32 @@ private fun PlanCard(host: DublEditorHost, state: EditorState, plan: EditorPlanS
             }, editorControl(layout), enabled = request != null)
         }
         plan.blockReason?.let { Text(it, color = p.accText, style = MaterialTheme.typography.bodySmall) }
+        // The old plan preview: pick a path where a requirement has alternatives, and see what will be bought.
+        plan.choices.forEach { choice ->
+            EditorOverline(choice.label, color = p.goldText)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                choice.options.forEachIndexed { index, option ->
+                    EditorChip(option, choice.selected == index, { state.planChoices = state.planChoices + (choice.id to index) }, editorControl(layout), gold = true, role = Role.RadioButton)
+                }
+            }
+        }
+        if (plan.steps.isNotEmpty()) {
+            var stepsOpen by remember { mutableStateOf(false) }
+            Box(
+                Modifier.fillMaxWidth().heightIn(min = editorControl(layout)).clickable(role = Role.Button) { stepsOpen = !stepsOpen },
+                contentAlignment = Alignment.CenterStart,
+            ) {
+                Text((if (stepsOpen) "▾ " else "▸ ") + "Что будет взято · ${plan.steps.size}", color = p.goldText, style = MaterialTheme.typography.labelLarge)
+            }
+            if (stepsOpen) {
+                plan.steps.forEach { step ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(step.label, Modifier.weight(1f), color = p.text, style = MaterialTheme.typography.bodySmall)
+                        Text(step.costText, color = p.goldText, style = MaterialTheme.typography.labelSmall.merge(EditorTabular), maxLines = 1, softWrap = false)
+                    }
+                }
+            }
+        }
     }
 }
 
