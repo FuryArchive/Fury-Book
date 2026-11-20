@@ -7,6 +7,8 @@ import com.furybook.dubl.model.CharacterSkill
 import com.furybook.dubl.model.DevelopmentCatalog
 import com.furybook.dubl.model.DublCharacter
 import com.furybook.dubl.model.resolvedSkills
+import com.furybook.dubl.model.MagicSchoolCatalog
+import com.furybook.dubl.ui.sheet.formatSheetNumber
 
 /** One line of «Изменения за этот заход»; [xpSpent] > 0 means free XP went down. */
 data class EditorChangeLine(val text: String, val xpSpent: Int)
@@ -134,6 +136,9 @@ fun editorChanges(
     if (a.chiEnabled != b.chiEnabled) add(if (a.chiEnabled) "ЦИ включено" else "ЦИ выключено")
     if (a.chiBonusRanks != b.chiBonusRanks) add("ЦИ: доп. ранги ${b.chiBonusRanks} → ${a.chiBonusRanks}", cost(b.copy(chiBonusRanks = a.chiBonusRanks)))
 
+    magicLines(b, a, ::cost, ::add)
+    gearLines(b, a, ::add)
+
     if (a.creationComplete != b.creationComplete) add(if (a.creationComplete) "Создание завершено" else "Создание открыто снова")
     // Whatever else differs is still reverted by «Отменить всё», so the list (and the button) must not look empty.
     if (lines.isEmpty() && before != after) add("Другие изменения")
@@ -160,4 +165,66 @@ fun editorXpText(spent: Int): String = when {
     spent > 0 -> "−$spent XP"
     spent < 0 -> "+${-spent} XP"
     else -> ""
+}
+
+/** Mana rank, schools (matched by their rulebook name) and spells (by uid), each priced by putting only that change on [b]. */
+private fun magicLines(b: DublCharacter, a: DublCharacter, cost: (DublCharacter) -> Int, add: (String, Int) -> Unit) {
+    fun withMagic(magic: com.furybook.dubl.model.CharacterMagic) = b.copy(magic = magic)
+    if (a.magic.manaRank != b.magic.manaRank) {
+        add("Ранг маны ${b.magic.manaRank} → ${a.magic.manaRank}", cost(withMagic(b.magic.copy(manaRank = a.magic.manaRank))))
+    }
+    val schoolsBefore = b.magic.schools.associateBy { MagicSchoolCatalog.canonicalize(it.name) }
+    val schoolsAfter = a.magic.schools.associateBy { MagicSchoolCatalog.canonicalize(it.name) }
+    (schoolsBefore.keys + schoolsAfter.keys).forEach { key ->
+        val was = schoolsBefore[key]
+        val now = schoolsAfter[key]
+        when {
+            was == null && now != null -> add("+ школа ${now.name}", cost(withMagic(b.magic.copy(schools = b.magic.schools + now))))
+            now == null && was != null -> add("− школа ${was.name}", cost(withMagic(b.magic.copy(schools = b.magic.schools - was))))
+            was != null && now != null -> {
+                val replaced = { school: com.furybook.dubl.model.MagicSchool -> withMagic(b.magic.copy(schools = b.magic.schools.map { if (it === was) school else it })) }
+                if (was.rank != now.rank) add("${now.name}: сила ${was.rank} → ${now.rank}", cost(replaced(was.copy(rank = now.rank))))
+                if (was.note != now.note) add("${now.name}: примечание изменено", 0)
+            }
+        }
+    }
+    val spellsBefore = b.magic.spells.associateBy { it.uid }
+    val spellsAfter = a.magic.spells.associateBy { it.uid }
+    (spellsBefore.keys + spellsAfter.keys).forEach { uid ->
+        val was = spellsBefore[uid]
+        val now = spellsAfter[uid]
+        when {
+            was == null && now != null -> add("+ заклинание ${now.name}", cost(withMagic(b.magic.copy(spells = b.magic.spells + now))))
+            now == null && was != null -> add("− заклинание ${was.name}", cost(withMagic(b.magic.copy(spells = b.magic.spells - was))))
+            was != null && now != null -> {
+                val replaced = { spell: com.furybook.dubl.model.KnownSpell -> withMagic(b.magic.copy(spells = b.magic.spells.map { if (it.uid == uid) spell else it })) }
+                val learnedOnly = was.copy(learned = now.learned)
+                val learnedCost = cost(replaced(learnedOnly))
+                if (was.learned != now.learned) add(if (now.learned) "${now.name}: изучено" else "${now.name}: не изучено", learnedCost)
+                if (learnedOnly != now) add("${now.name}: изменено", cost(replaced(now)) - learnedCost)
+            }
+        }
+    }
+}
+
+/** Gear costs no XP: one line per item change, then the load mode. */
+private fun gearLines(b: DublCharacter, a: DublCharacter, add: (String, Int) -> Unit) {
+    val before = b.gear.items.associateBy { it.uid }
+    val afterIds = a.gear.items.mapTo(mutableSetOf()) { it.uid }
+    a.gear.items.forEach { now ->
+        val was = before[now.uid]
+        if (was == null) {
+            add("+ предмет ${now.name}", 0)
+            return@forEach
+        }
+        if (was.quantity != now.quantity) add("${now.name}: ×${was.quantity} → ×${now.quantity}", 0)
+        if (was.carried != now.carried) add(if (now.carried) "${now.name}: с собой" else "${now.name}: не с собой", 0)
+        if (was.copy(quantity = now.quantity, carried = now.carried) != now) add("${now.name}: изменён", 0)
+    }
+    b.gear.items.filter { it.uid !in afterIds }.forEach { add("− предмет ${it.name}", 0) }
+    val manualChanged = !a.gear.loadAutomatic && a.gear.loadManual != b.gear.loadManual
+    when {
+        a.gear.loadAutomatic != b.gear.loadAutomatic || manualChanged ->
+            add(if (a.gear.loadAutomatic) "Нагрузка: автоматически" else "Нагрузка: вручную ${formatSheetNumber(a.gear.loadManual)}", 0)
+    }
 }

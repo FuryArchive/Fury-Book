@@ -156,4 +156,60 @@ class EditorChangesTest {
         assertEquals(listOf(EditorChangeLine("Острый слух: локальная правка", 0), EditorChangeLine("+ Острый слух", 10)), result.lines)
         assertEquals(10, result.netSpent)
     }
+
+    private val shieldSpell = com.furybook.dubl.model.KnownSpell(uid = "s1", name = "Щит", school = "Ограждение", cost = 4)
+    private val mage = hornet.copy(
+        magic = com.furybook.dubl.model.CharacterMagic(
+            manaRank = 1,
+            schools = listOf(com.furybook.dubl.model.MagicSchool("Разрушение", 2), com.furybook.dubl.model.MagicSchool("Ограждение", 3)),
+            spells = listOf(shieldSpell),
+        ),
+    )
+
+    @Test
+    fun manaRankAndSchoolPowerArePriced() {
+        val after = mage.copy(magic = mage.magic.copy(manaRank = 2, schools = listOf(com.furybook.dubl.model.MagicSchool("Разрушение", 4), mage.magic.schools[1])))
+        val lines = changes(after, before = mage).lines
+        assertTrue(EditorChangeLine("Ранг маны 1 → 2", 100) in lines, lines.toString())
+        assertTrue(EditorChangeLine("Разрушение: сила 2 → 4", 50) in lines, lines.toString())
+        assertEquals(2, lines.size, lines.toString())
+    }
+
+    @Test
+    fun removedSchoolAndSpellArePriced() {
+        val after = mage.copy(magic = mage.magic.copy(schools = listOf(mage.magic.schools[0]), spells = emptyList()))
+        val lines = changes(after, before = mage).lines
+        assertTrue(EditorChangeLine("− школа Ограждение", -75) in lines, lines.toString())
+        assertTrue(EditorChangeLine("− заклинание Щит", -20) in lines, lines.toString())
+        val back = changes(mage, before = after).lines
+        assertTrue(EditorChangeLine("+ школа Ограждение", 75) in back, back.toString())
+        assertTrue(EditorChangeLine("+ заклинание Щит", 20) in back, back.toString())
+    }
+
+    @Test
+    fun learnToggleIsPriced() {
+        val after = mage.copy(magic = mage.magic.copy(spells = listOf(shieldSpell.copy(learned = false))))
+        assertEquals(listOf(EditorChangeLine("Щит: не изучено", -20)), changes(after, before = mage).lines)
+        val renamed = mage.copy(magic = mage.magic.copy(spells = listOf(shieldSpell.copy(range = "10 метров"))))
+        assertEquals(listOf(EditorChangeLine("Щит: изменено", 0)), changes(renamed, before = mage).lines)
+    }
+
+    @Test
+    fun gearLinesCostNothing() {
+        val rope = com.furybook.dubl.model.GearItem(uid = "r", name = "Верёвка")
+        val before = hornet.copy(gear = com.furybook.dubl.model.CharacterGear(items = listOf(rope)))
+        val dagger = com.furybook.dubl.model.GearItem(uid = "d", name = "Кинжал")
+        val after = before.copy(gear = com.furybook.dubl.model.CharacterGear(loadAutomatic = false, loadManual = 4.0, items = listOf(rope.copy(quantity = 3, carried = false), dagger)))
+        val result = changes(after, before = before)
+        assertEquals(
+            listOf(
+                EditorChangeLine("Верёвка: ×1 → ×3", 0), EditorChangeLine("Верёвка: не с собой", 0),
+                EditorChangeLine("+ предмет Кинжал", 0), EditorChangeLine("Нагрузка: вручную 4", 0),
+            ),
+            result.lines,
+        )
+        assertEquals(0, result.netSpent)
+        val removed = changes(before, before = before.copy(gear = before.gear.copy(items = listOf(rope, dagger)))).lines
+        assertEquals(listOf(EditorChangeLine("− предмет Кинжал", 0)), removed)
+    }
 }
