@@ -45,7 +45,7 @@ internal fun EditorSpellFormDialog(host: DublEditorHost, state: EditorState, bas
         FuryTextField(form.name, { form = form.copy(name = it) }, "Название", error = shown.firstOrNull { it == "Нужно название" })
         FuryTextField(form.school, { form = form.copy(school = it) }, "Школа")
         Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-            FuryTextField(form.cost, { form = form.copy(cost = it.filter(Char::isDigit).take(4)) }, "Мана", Modifier.weight(1f), keyboardOptions = number,
+            FuryTextField(form.cost, { form = form.copy(cost = it.filter(Char::isDigit).take(6)) }, "Мана", Modifier.weight(1f), keyboardOptions = number,
                 error = shown.firstOrNull { it.startsWith("Мана") })
             FuryTextField(form.manaText, { form = form.copy(manaText = it) }, "Текст маны", Modifier.weight(1f))
         }
@@ -56,7 +56,7 @@ internal fun EditorSpellFormDialog(host: DublEditorHost, state: EditorState, bas
         FuryTextField(form.duration, { form = form.copy(duration = it) }, "Длительность")
         FuryTextField(form.description, { form = form.copy(description = it) }, "Описание", singleLine = false)
         FuryTextField(form.enhancement, { form = form.copy(enhancement = it) }, "Усиление", singleLine = false)
-        FuryTextField(form.xpOverride, { form = form.copy(xpOverride = it.filter(Char::isDigit).take(4)) }, "Опыт вручную (пусто — по мане)", keyboardOptions = number,
+        FuryTextField(form.xpOverride, { form = form.copy(xpOverride = it.filter(Char::isDigit).take(6)) }, "Опыт вручную (пусто — по мане)", keyboardOptions = number,
             error = shown.firstOrNull { it.startsWith("Опыт") })
         listOf(
             Triple("Изучено", form.learned) { v: Boolean -> form = form.copy(learned = v) },
@@ -101,7 +101,7 @@ internal fun EditorSchoolDialog(host: DublEditorHost, state: EditorState, index:
                 addable.forEach { school -> EditorChip(school, form.name == school, { form = form.copy(name = school) }, control, role = Role.RadioButton) }
             }
         }
-        FuryTextField(form.power, { form = form.copy(power = it.filter(Char::isDigit).take(3)) }, "Сила школы",
+        FuryTextField(form.power, { form = form.copy(power = it.filter(Char::isDigit).take(6)) }, "Сила школы",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
         FuryTextField(form.note, { form = form.copy(note = it) }, "Примечание", singleLine = false)
     }
@@ -124,9 +124,9 @@ internal fun EditorGearFormDialog(host: DublEditorHost, state: EditorState, base
     ) {
         FuryTextField(form.name, { form = form.copy(name = it) }, "Название", error = shown.firstOrNull { it == "Нужно название" })
         Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-            FuryTextField(form.quantity, { form = form.copy(quantity = it.filter(Char::isDigit).take(5)) }, "Количество", Modifier.weight(1f),
+            FuryTextField(form.quantity, { form = form.copy(quantity = it.filter(Char::isDigit).take(6)) }, "Количество", Modifier.weight(1f),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), error = shown.firstOrNull { it.startsWith("Количество") })
-            FuryTextField(form.load, { form = form.copy(load = it.filter { c -> c.isDigit() || c == '.' || c == ',' }.take(8)) }, "Нагрузка (треб. силы)", Modifier.weight(1f),
+            FuryTextField(form.load, { form = form.copy(load = it.filter { c -> c.isDigit() || c == '.' || c == ',' }) }, "Нагрузка (треб. силы)", Modifier.weight(1f),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), error = shown.firstOrNull { it.startsWith("Нагрузка") })
         }
         FuryTextField(form.category, { form = form.copy(category = it) }, "Категория")

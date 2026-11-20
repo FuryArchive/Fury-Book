@@ -30,11 +30,21 @@ def test_all_parity_screens_exist():
     required = {
         'CharactersScreen.kt': ['CharactersScreen', 'createCharacter', 'selectCharacter', 'deleteActive'],
         # Stage 4: DevelopmentScreen.kt is gone; perks live in the shared editor (test_editor_perk_functions.py).
-        'MagicScreen.kt': ['MagicScreen', 'setMagicManaRank', 'setMagicSchoolPower', 'addCatalogSpell'],
-        'EquipmentScreen.kt': ['EquipmentScreen', 'equipmentLoad', 'setGearLoadAutomatic', 'addCatalogGear'],
+        # Stage 5: MagicScreen.kt and EquipmentScreen.kt are gone; magic and gear live in the shared editor and sheet.
     }
     for name, tokens in required.items():
         src = text(SCREENS / name)
+        for token in tokens:
+            assert token in src, f'{name} missing {token}'
+    shared = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui'
+    moved = {
+        'editor/EditorMagicStep.kt': ['setMagicManaRank', 'setMagicSchoolPower'],
+        'editor/EditorMagicActions.kt': ['addCatalogSpell', 'addCatalogGear'],
+        'editor/EditorGearStep.kt': ['setGearLoadAutomatic'],
+        'sheet/SheetGear.kt': ['equipmentLoad'],
+    }
+    for name, tokens in moved.items():
+        src = text(shared / name)
         for token in tokens:
             assert token in src, f'{name} missing {token}'
     # Stage 2b: the character sheet is the shared SheetScreen (all platforms).

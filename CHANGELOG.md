@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Магия and Снаряжение tabs removed (revamp stage 5)
+
+- The Магия and Снаряжение tabs are gone on Android, Desktop and Web, and phones have no bottom bar any more: the sheet is home, Кампания and Персонажи are in «Меню».
+- The sheet has a **Заклинания** block (known spells with mana, time, range and check; «нужна сила школы N» when a school is too weak) and a **Снаряжение** block (all carried gear; weapons and armour show damage, requirement, range and the rest; load and burden in the header). On desktop they are tabs beside Навыки.
+- «Сотворить» opens the spell's full text with a «Мана» amount: cast for less or more than the base cost, and it says when there isn't enough mana.
+- Tapping an item shows all its fields (descriptions that only repeat the fields are hidden), quantity −/+, «Не нести» and «Изменить в редакторе».
+- The editor has two new steps. **Магия**: mana rank (creation only, then a link to «Увеличенный запас маны»), schools from the rulebook list with power steppers, the spellbook with learned switches, school and learned filters and search, the rulebook catalog with a read-only card before «Добавить» («Добавить и исправить» for incomplete entries), and own spells. **Снаряжение**: load mode and manual load, the inventory with quantity and «С собой», the gear catalog with merged categories, and own items with fields as «Название: значение» lines.
+- Deleting a school, spell or item offers «Вернуть»; «Изменения за этот заход» lists mana rank, schools, spells (with their XP) and gear.
+- Catalog item loads stored by older builds are repaired whenever the sheet shows a character, on every platform.
+
 ### Навыки tab removed (revamp stage 4)
 
 - The separate Навыки tab is gone on Android, Desktop and Web; the phone bottom bar is now Лист, Магия, Вещи, Кампания.

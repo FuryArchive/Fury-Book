@@ -186,7 +186,8 @@ private fun <T> PhoneShell(
         }
         if (!chromeHidden) Box(Modifier.fillMaxWidth().height(1.dp).background(DublBorder))
         Box(Modifier.weight(1f).fillMaxWidth()) { content() }
-        if (!chromeHidden) {
+        // Since stage 5 every app passes no primary sections: phones get no bottom bar, everything sits in «Меню».
+        if (!chromeHidden && furyBottomTabs(sections).isNotEmpty()) {
             FuryBottomTabs(
                 tabs = furyBottomTabs(sections).map { FuryTab(it.value, it.bottomTabLabel) },
                 selected = selected,

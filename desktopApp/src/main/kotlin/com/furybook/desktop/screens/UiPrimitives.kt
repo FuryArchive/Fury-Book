@@ -423,30 +423,12 @@ internal fun SectionCard(
 }
 
 @Composable
-internal fun KeyValue(label: String, value: String, tint: Color = DesktopAccent) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
-        Text(label, color = DesktopMuted, modifier = Modifier.weight(1f))
-        Text(value, color = tint, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-    }
-}
-
-@Composable
-internal fun RankStepper(rank: Int, min: Int = 0, max: Int, enabled: Boolean = true, onChange: (Int) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        OutlinedButton(enabled = enabled && rank > min, onClick = { onChange(rank - 1) }) { Text("−") }
-        Text(rank.toString(), fontWeight = FontWeight.Bold)
-        Button(enabled = enabled && rank < max, onClick = { onChange(rank + 1) }) { Text("+") }
-    }
-}
-
-@Composable
 internal fun EmptyState(text: String) {
     Spacer(Modifier.height(4.dp))
     Text(text, color = DesktopMuted, style = MaterialTheme.typography.bodyMedium)
 }
 
 internal fun signed(value: Int): String = if (value >= 0) "+$value" else value.toString()
-internal fun formatNumber(value: Double): String = if (value % 1.0 == 0.0) value.toInt().toString() else "%.2f".format(value).trimEnd('0').trimEnd('.')
 
 enum class DesktopIconKind {
     SHEET, SKILLS, DEVELOPMENT, MAGIC, EQUIPMENT, CHARACTERS, SETTINGS,

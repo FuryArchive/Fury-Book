@@ -87,7 +87,7 @@ internal fun EditorGearStep(host: DublEditorHost, state: EditorState, data: Edit
                     FuryTextField(
                         manualText,
                         { text ->
-                            manualText = text.filter { it.isDigit() || it == '.' || it == ',' }.take(8)
+                            manualText = text.filter { it.isDigit() || it == '.' || it == ',' }
                             editorManualLoad(manualText)?.let(host::setGearManualLoad)
                         },
                         "Нагрузка вручную",

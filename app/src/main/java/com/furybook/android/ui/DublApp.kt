@@ -46,8 +46,6 @@ import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.android.ui.components.dismissKeyboardOnPointerDown
 import com.furybook.android.ui.screens.CharactersScreen
 import com.furybook.android.ui.screens.CampaignScreen
-import com.furybook.android.ui.screens.EquipmentScreen
-import com.furybook.android.ui.screens.MagicScreen
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.android.ui.screens.RecentChangeBar
 import com.furybook.android.ui.screens.recentResourceChange
@@ -72,8 +70,6 @@ import kotlinx.coroutines.delay
 
 private enum class AppSection(val label: String) {
     OVERVIEW("Лист"),
-    MAGIC("Магия"),
-    INVENTORY("Вещи"),
     CAMPAIGN("Кампания"),
     MORE("Ещё"),
 }
@@ -138,7 +134,7 @@ fun DublApp() {
         FuryShell(
             title = "FURY BOOK",
             characterName = controller.active.name,
-            sections = AppSection.entries.map { FuryShellSection(it, it.label, primary = it.primary) },
+            sections = AppSection.entries.map { FuryShellSection(it, it.label, primary = false) },
             selected = selected,
             onSelect = { target -> if (target != selected) selected = target },
             onSwitchCharacter = { characterPickerOpen = true },
@@ -156,8 +152,6 @@ fun DublApp() {
                         onOpenEditorConsumed = { openEditorAtBasics = false },
                         onEditorShown = { editorShown = it },
                     )
-                    AppSection.MAGIC -> MagicScreen(controller)
-                    AppSection.INVENTORY -> EquipmentScreen(controller)
                     AppSection.CAMPAIGN -> CampaignScreen(
                         controller = controller,
                         cloudController = cloudController,
@@ -196,10 +190,6 @@ fun DublApp() {
         )
     }
 }
-
-/** Phones show Лист, Магия, Вещи, Кампания as bottom tabs (Навыки moved into the editor in stage 4); «Ещё» sits behind «Меню». */
-private val AppSection.primary: Boolean
-    get() = this != AppSection.MORE
 
 private data class SheetToast(val text: String, val accent: Color, val canUndo: Boolean, val token: Int)
 

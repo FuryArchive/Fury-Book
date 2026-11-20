@@ -48,10 +48,8 @@ import com.furybook.dubl.data.DesktopThemeStore
 import com.furybook.ui.components.FuryThemeButton
 import com.furybook.desktop.screens.CampaignScreen
 import com.furybook.desktop.screens.CharactersScreen
-import com.furybook.desktop.screens.EquipmentScreen
 import com.furybook.desktop.screens.FuryMotion
 import com.furybook.desktop.screens.FuryUndoToast
-import com.furybook.desktop.screens.MagicScreen
 import com.furybook.desktop.cloud.DesktopCloudController
 import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
@@ -63,8 +61,6 @@ import kotlinx.coroutines.delay
 
 internal enum class DesktopSection(val label: String) {
     SHEET("Лист"),
-    MAGIC("Магия"),
-    EQUIPMENT("Снаряжение"),
     CAMPAIGN("Кампания"),
     CHARACTERS("Персонажи"),
 }
@@ -127,7 +123,7 @@ private fun DesktopApp() {
     FuryShell(
         title = "FURY BOOK",
         characterName = state.activeCharacter.name,
-        sections = DesktopSection.entries.map { FuryShellSection(it, it.label, primary = it.primary, phoneLabel = it.phoneLabel) },
+        sections = DesktopSection.entries.map { FuryShellSection(it, it.label, primary = false) },
         selected = selected,
         onSelect = { selected = it },
         onSwitchCharacter = { characterPickerOpen = true },
@@ -163,13 +159,6 @@ private fun DesktopApp() {
 }
 
 /** Phones show the five play sections as bottom tabs; campaign and characters sit behind «Меню». */
-/** Phone bar: Лист, Магия, Вещи, Кампания (Навыки moved into the editor in stage 4); Персонажи stays in the menu. */
-private val DesktopSection.primary: Boolean
-    get() = this != DesktopSection.CHARACTERS
-
-/** «Снаряжение» does not fit a fifth of a phone; the phone tab uses the spec's «Вещи». */
-private val DesktopSection.phoneLabel: String?
-    get() = if (this == DesktopSection.EQUIPMENT) "Вещи" else null
 
 @Composable
 private fun DesktopContent(
@@ -215,8 +204,6 @@ private fun DesktopContent(
                     playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
                     hooks = sheetHooks,
                 )
-                DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
-                DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
                 DesktopSection.CAMPAIGN -> CampaignScreen(state, cloudController, animatedPageModifier)
                 DesktopSection.CHARACTERS -> CharactersScreen(state, cloudController, animatedPageModifier, onCreated = sheetHooks.onCharacterCreated)
             }

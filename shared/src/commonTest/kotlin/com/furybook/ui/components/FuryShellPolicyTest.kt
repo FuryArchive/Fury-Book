@@ -53,4 +53,15 @@ class FuryShellPolicyTest {
         assertFalse(furyShellTabsOnOwnRow(tabsWidth = 680, room = 700))
         assertFalse(furyShellTabsOnOwnRow(tabsWidth = 0, room = 420))
     }
+
+    @Test
+    fun noPrimarySectionsMeansNoBottomTabs() {
+        val sections = listOf(
+            FuryShellSection("SHEET", "Лист", primary = false),
+            FuryShellSection("CAMPAIGN", "Кампания", primary = false),
+            FuryShellSection("CHARACTERS", "Персонажи", primary = false),
+        )
+        assertTrue(furyBottomTabs(sections).isEmpty())
+        assertEquals(listOf("Лист", "Кампания", "Персонажи"), furyMenuSections(sections).map { it.label })
+    }
 }

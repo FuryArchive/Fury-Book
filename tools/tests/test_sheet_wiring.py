@@ -65,7 +65,8 @@ def test_old_sheet_is_no_longer_called_and_edit_mode_lives_in_the_shared_sheet()
         # Stage 4: no platform details hook (one shared dialog).
         assert 'developmentDetails =' not in text, path.name
         assert 'portraitLoader =' in text, path.name
-        assert 'onOpenMagic =' in text, path.name
+        # Stage 5: no Магия/Снаряжение tabs to jump to; the sheet opens the editor's steps itself.
+        assert 'onOpenMagic =' not in text, path.name
 
 
 def test_new_sheet_changes_still_reach_the_platform_undo_toast():
@@ -121,8 +122,10 @@ def test_desktop_and_web_toast_keep_the_slide_and_fade():
             assert token in text, (path.name, token)
 
 
-def test_phone_tab_label_is_short_and_wide_label_full():
+def test_phones_have_no_bottom_tabs():
+    # Stage 5 (owner): no phone bottom bar; every section sits in «Меню».
     for path in (DESKTOP, WEB):
         text = read(path)
-        assert 'phoneLabel = it.phoneLabel' in text, path.name
-        assert 'EQUIPMENT("Снаряжение")' in text, path.name
+        assert 'primary = false' in text, path.name
+        assert 'phoneLabel' not in text, path.name
+        assert 'EQUIPMENT("Снаряжение")' not in text, path.name

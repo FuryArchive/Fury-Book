@@ -8,7 +8,8 @@ SHARED = ROOT / 'shared/src/commonMain/kotlin'
 HARNESS = ROOT / 'tools/tests/kotlin/RulesBoundaryHarness.kt'
 SHEET_STATS = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetStatBreakdown.kt'
 SHEET_ROLLS = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt'
-ANDROID_MAGIC = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/MagicScreen.kt'
+# Stage 5: school XP is shown by the shared editor's Магия step.
+EDITOR_MAGIC = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorMagicModels.kt'
 # Stage 4: the ЦИ setup moved from the Навыки tabs into the shared editor's ЦИ card.
 EDITOR_CHI = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorChiCard.kt'
 
@@ -44,9 +45,9 @@ def test_chi_breakdown_and_cost_constants_are_owned_by_shared_rules():
 
 
 def test_magic_school_rank_xp_display_uses_shared_rule():
-    android = read(ANDROID_MAGIC)
-    assert 'MagicEquipmentRules.magicSchoolRankXp(power)' in android
-    assert '${power * 25} XP' not in android
+    editor = read(EDITOR_MAGIC)
+    assert 'MagicEquipmentRules.magicSchoolRankXp(school.rank)' in editor
+    assert '* 25' not in editor
 
 
 
