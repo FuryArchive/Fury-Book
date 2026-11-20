@@ -106,15 +106,16 @@ internal fun SheetChiDialog(vital: SheetVital, host: DublEditorHost, onDismiss: 
             style = FuryButtonStyle.Ghost, enabled = panel.current < panel.maximum)
         Text("ПРИЁМЫ ЦИ", color = DublMuted, style = furyOverlineStyle())
         if (panel.techniques.isEmpty()) Text("Приёмов ЦИ в каталоге нет.", color = DublMuted, style = MaterialTheme.typography.bodySmall)
+        // Text full width, the button under it: on a phone a side button squeezes long effects into a narrow column.
         panel.techniques.forEach { technique ->
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text("${technique.name} · ${technique.school}", color = DublText, style = MaterialTheme.typography.labelLarge)
-                    Text("${technique.cost} ЦИ · ${technique.action}", color = DublGold, style = MaterialTheme.typography.labelSmall)
-                    if (technique.effect.isNotBlank()) Text(technique.effect, color = DublText, style = MaterialTheme.typography.bodySmall)
-                    if (!technique.canUse) Text(technique.reason, color = DublMuted, style = MaterialTheme.typography.labelSmall)
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("${technique.name} · ${technique.school}", color = DublText, style = MaterialTheme.typography.labelLarge)
+                Text("${technique.cost} ЦИ · ${technique.action}", color = DublGold, style = MaterialTheme.typography.labelSmall)
+                if (technique.effect.isNotBlank()) Text(technique.effect, color = DublText, style = MaterialTheme.typography.bodySmall)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                    FuryButton("Использовать", { sheetUseChiTechnique(host, technique.id) }, enabled = technique.canUse)
+                    if (!technique.canUse) Text(technique.reason, Modifier.weight(1f), color = DublMuted, style = MaterialTheme.typography.labelSmall)
                 }
-                FuryButton("Использовать", { sheetUseChiTechnique(host, technique.id) }, enabled = technique.canUse)
             }
         }
     }
