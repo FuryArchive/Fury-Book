@@ -2,6 +2,7 @@ package com.furybook.dubl.ui.editor
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -101,11 +102,12 @@ internal fun EditorChiCardView(host: DublEditorHost, card: EditorChiCard, layout
         } else {
             Text("Включение ресурса само по себе не расходует XP и не выдаёт способности автоматически.", color = p.muted, style = MaterialTheme.typography.bodySmall)
         }
-        Text(
-            (if (techniquesOpen) "▾ " else "▸ ") + "Приёмы ЦИ · ${card.techniques.size}",
+        Box(
             Modifier.fillMaxWidth().heightIn(min = control).clickable(role = Role.Button) { techniquesOpen = !techniquesOpen },
-            color = p.goldText, style = MaterialTheme.typography.labelLarge,
-        )
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text((if (techniquesOpen) "▾ " else "▸ ") + "Приёмы ЦИ · ${card.techniques.size}", color = p.goldText, style = MaterialTheme.typography.labelLarge)
+        }
         if (techniquesOpen) {
             if (card.techniques.isEmpty()) Text("Приёмов ЦИ в каталоге нет.", color = p.muted, style = MaterialTheme.typography.bodySmall)
             card.techniques.forEach { line ->
