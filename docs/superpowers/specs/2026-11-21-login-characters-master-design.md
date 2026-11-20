@@ -79,12 +79,18 @@ What the owner wants:
 - **A guest signs in later** from the menu (or Персонажи): the login screen opens as a dialog or page.
   - **Desktop and Android:** the guest's local characters join the account. Their first sign-in already links local characters (`firstLinkAllowed`).
   - **Web:** today it keeps nothing locally. Guest characters must be uploaded into the account through the existing save path before the remote pull, never replaced by it. *Builder:* show what will happen («N персонажей будут добавлены в аккаунт») and keep a local copy until the upload succeeds.
-- **Web guest mode:** characters, extras and GM data persist in localStorage. A one-line notice in guest mode warns that clearing site data deletes them and points to export.
+- **Web guest mode:** characters, extras and GM data persist in localStorage. Portraits stored as data URLs can fill it: if a save fails for lack of space, say so and suggest a smaller portrait or export (builder's call). A one-line notice in guest mode warns that clearing site data deletes them and points to export.
+- **«Выйти» (owner's choice):** the account's characters leave the device.
+  - First it checks for changes not yet synced. If there are any, it offers «Синхронизировать и выйти» or «Выйти всё равно» (those changes are lost, and it says so).
+  - Then it clears the account's characters, extras and archive list from the device. The device becomes an empty guest. Signing back in brings everything back from the account.
+  - **Web:** after a guest's characters are uploaded at sign-in, the local guest copy is removed (they now live in the account). So a web guest after «Выйти» also starts empty.
+  - GM data (Мастер) stays on the device either way; it is never tied to an account.
+- **Users updating the app** (builder's call): someone already signed in skips the login screen. Someone with local characters and no account is treated as a guest and sees the login screen once.
 - **Offline at start:** a signed-in user opens the app offline exactly as today (desktop and Android keep local copies). Web signed-in behaviour stays as it is.
 
 ### Menu (all platforms)
 
-- Account panel:
+- Account panel (on wide screens it opens from the account/character button in the top bar; builder's call):
   - **signed in:** nickname (editable), email, sync status, «Синхронизировать», conflicts, «Журнал синхронизации», «Выйти»;
   - **guest:** «Войти или создать аккаунт».
 - «Сменить персонажа» and theme stay.
@@ -99,7 +105,7 @@ What the owner wants:
 - **«Дублировать»** makes a copy with a new id and name «<имя> (копия)», with the same extras. It is a new application method (`CharacterApplication.duplicate`). Sync treats it as a new character.
 - **Кампании on a character** (signed in only):
   - the campaigns this character is linked to;
-  - «Вступить по коду» (code → `joinCampaign(code, characterId)`);
+  - «Вступить по коду» (code → `joinCampaign(code, characterId)`). The server keeps one character per player per campaign. If the player already has another character in that campaign, a warning says joining moves the membership to this one (builder's call);
   - «Выйти из кампании».
 - **«Пакеты контента»:** the existing .fcp import and on/off list, unchanged in function.
 
@@ -112,7 +118,7 @@ One section, five tabs. **Бой, Враги, Заметки and Справоч�
   - Add an entry three ways: from Враги (a copy, so two goblins are two entries), as a quick typed name (a player), or from Партия members (name only; their real sheet stays theirs).
   - Sorted by initiative, highest first. Ties keep insertion order, and the GM can drag or nudge to reorder.
   - «Раунд N», «Следующий» moves the turn marker and bumps the round after the last entry; «Новый бой» clears.
-  - An optional «Бросить» per entry rolls 2d6 + its initiative bonus. It is never required.
+  - An optional «Бросить» per entry rolls 2d6 + its Инициатива (enemies: their typed Инициатива; a Партия member: their sheet's Инициатива; a typed name: 2d6 alone). It is never required.
   - HP and conditions here are the GM's; they never touch a player's sheet.
 - **Враги (bestiary):** a list of enemy templates.
   - Fields: name, Защита, Рефлексы, Инициатива, Здоровье, Выносливость, attacks/abilities (text), notes.
@@ -124,7 +130,8 @@ One section, five tabs. **Бой, Враги, Заметки and Справоч�
   - **Signed out or offline:** a short message and «Войти».
   - **Signed in:**
     - campaigns you own («Создать кампанию», «Пригласить» → code, «Убрать игрока»);
-    - for the chosen campaign, a **party table**: per player, nickname, character, HP/Выносливость/Мана, Защита/Рефлексы/Инициатива, active conditions and «обновлено». Tapping a row opens the player's sheet read-only, as the GM Screen does today;
+    - for the chosen campaign, a **party table**: per player, nickname, character, HP/Выносливость/Мана, Защита/Рефлексы/Инициатива, active conditions and «обновлено»;
+    - tapping a row opens a **read-only character view** (builder's call). It is built from the sheet's own blocks and models (vitals, stats, Умения, Навыки, Заклинания, Снаряжение) with no buttons, rolls or editor. It is not the live sheet made read-only: that would rework stage 5 code. When the GM's device lacks a content pack the player uses, those entries show by name with «нет пакета» instead of failing;
     - «Обновить».
   - Campaigns you're a player in show here read-only too, without GM data. The player side lives in Персонажи.
 - **GM store:** one shared interface (`MasterStore`: load/save a `MasterData` of enemies, tracker state and notes). It is versioned JSON and saved atomically (temp file then swap, as character saves do), and it isn't synced or exported.
@@ -146,7 +153,7 @@ Two parts, each buildable and pushed on its own:
 - **Server:** only the calls that already exist (auth, character sync, campaign functions).
 - **Keep the existing design:** new screens are built from the stage 2–5 parts (`EditorCard`, `EditorRow`, `EditorChip`, `FuryDialogScaffold`, the sheet's cards) in the five themes, at 360dp, tablet and desktop.
 - **Python guards:** guards pinning the old screens are repointed when they guard a function and retired when they pinned old layout. The failing baseline may only shrink.
-- **Mockup first:** a Design canvas for login, Персонажи, Мастер (Бой, Враги, Партия) and the menu account panel, before the plan (owner asked for this in stage 5).
+- **Mockup first:** a Design canvas for login, Персонажи, Мастер (Бой, Враги, Партия, the read-only character view) and the menu account panel, made after this doc is approved and before the plan, as in stage 5. The plan takes layouts and copy from it, and its link is added here.
 
 ## Left to the builder
 
