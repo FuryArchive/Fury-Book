@@ -57,3 +57,27 @@ internal fun editorSaveSchool(host: DublEditorHost, state: EditorState, index: I
     if (!saved) state.flash("Не удалось сохранить школу")
     return saved
 }
+
+internal fun editorRemoveGear(host: DublEditorHost, state: EditorState, uid: String) {
+    val item = host.active.gear.items.firstOrNull { it.uid == uid } ?: return
+    val before = host.restorePoint()
+    host.removeGearItem(uid)
+    if (state.gearPane == EditorPane.Item(uid)) state.gearPane = null
+    state.flash("Удалено: ${item.name}", undoableAt = host.restorePoint(), undoTo = before)
+}
+
+/** «Добавить» in the gear catalog (a second copy raises the quantity) and opens the item. */
+internal fun editorAddCatalogGear(host: DublEditorHost, state: EditorState, entry: com.furybook.dubl.model.GearCatalogEntry) {
+    val uid = host.addCatalogGear(entry)
+    state.gearPane = EditorPane.Item(uid)
+    state.flash("Добавлено: ${entry.name}")
+}
+
+/** Saves the item form and opens the saved item; false (nothing written) while the form has errors. */
+internal fun editorSaveGear(host: DublEditorHost, state: EditorState, form: EditorGearForm, base: com.furybook.dubl.model.GearItem?): Boolean {
+    if (form.errors().isNotEmpty()) return false
+    val item = form.toItem(base)
+    val uid = if (base == null) host.addCustomGear(item) else item.uid.also { host.updateGearItem(item) }
+    state.gearPane = EditorPane.Item(uid)
+    return true
+}

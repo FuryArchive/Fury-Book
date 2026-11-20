@@ -107,3 +107,35 @@ internal fun EditorSchoolDialog(host: DublEditorHost, state: EditorState, index:
     }
 }
 
+
+/** «+ Свой предмет» / «Изменить»: name, quantity, load, category, section, description and fields as «Название: значение» lines. */
+@Composable
+internal fun EditorGearFormDialog(host: DublEditorHost, state: EditorState, base: com.furybook.dubl.model.GearItem?, layout: SheetLayout, onDismiss: () -> Unit) {
+    val p = FuryColors.current
+    val control = editorControl(layout)
+    var form by remember(base?.uid) { mutableStateOf(editorGearForm(base)) }
+    val errors = form.errors()
+    val shown = if (form != editorGearForm(base)) errors else emptyList()
+    FuryDialogScaffold(
+        title = if (base == null) "Свой предмет" else base.name,
+        onDismiss = onDismiss,
+        primary = FuryDialogAction("Сохранить", { if (editorSaveGear(host, state, form, base)) onDismiss() }, enabled = errors.isEmpty()),
+        secondary = FuryDialogAction("Отмена", onDismiss),
+    ) {
+        FuryTextField(form.name, { form = form.copy(name = it) }, "Название", error = shown.firstOrNull { it == "Нужно название" })
+        Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+            FuryTextField(form.quantity, { form = form.copy(quantity = it.filter(Char::isDigit).take(5)) }, "Количество", Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), error = shown.firstOrNull { it.startsWith("Количество") })
+            FuryTextField(form.load, { form = form.copy(load = it.filter { c -> c.isDigit() || c == '.' || c == ',' }.take(8)) }, "Нагрузка (треб. силы)", Modifier.weight(1f),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), error = shown.firstOrNull { it.startsWith("Нагрузка") })
+        }
+        FuryTextField(form.category, { form = form.copy(category = it) }, "Категория")
+        FuryTextField(form.section, { form = form.copy(section = it) }, "Раздел")
+        FuryTextField(form.fields, { form = form.copy(fields = it) }, "Поля: «Название: значение», по одному в строке", singleLine = false)
+        FuryTextField(form.description, { form = form.copy(description = it) }, "Описание", singleLine = false)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+            Text("С собой", Modifier.weight(1f), color = p.text2, style = MaterialTheme.typography.bodyMedium)
+            EditorChip(if (form.carried) "Да" else "Нет", form.carried, { form = form.copy(carried = !form.carried) }, control, role = Role.Switch)
+        }
+    }
+}

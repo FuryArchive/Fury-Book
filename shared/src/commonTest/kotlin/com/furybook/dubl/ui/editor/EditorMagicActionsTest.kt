@@ -68,4 +68,28 @@ class EditorMagicActionsTest {
         assertTrue(editorSaveSchool(host, state, 0, EditorSchoolForm("Ограждение", "5", "заметка")))
         assertEquals(5, host.active.magic.schools[0].rank)
     }
+
+    @Test
+    fun removeGearOffersReturn() {
+        val host = FakeSheetHost(hornet)
+        val uid = host.addCustomGear(com.furybook.dubl.model.GearItem(uid = "", name = "Верёвка", quantity = 2))
+        val state = opened(host)
+        state.gearPane = EditorPane.Item(uid)
+        editorRemoveGear(host, state, uid)
+        assertTrue(host.active.gear.items.isEmpty())
+        assertNull(state.gearPane)
+        assertTrue(state.toast!!.startsWith("Удалено"))
+        assertTrue(state.undoToast(host))
+        assertEquals(2, host.active.gear.items.single().quantity)
+    }
+
+    @Test
+    fun savedGearFormOpensTheItem() {
+        val host = FakeSheetHost(hornet)
+        val state = opened(host)
+        assertFalse(editorSaveGear(host, state, editorGearForm(null), null))
+        assertTrue(editorSaveGear(host, state, editorGearForm(null).copy(name = "Фляга"), null))
+        val item = host.active.gear.items.single()
+        assertEquals(EditorPane.Item(item.uid), state.gearPane)
+    }
 }
