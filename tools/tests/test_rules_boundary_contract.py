@@ -8,9 +8,9 @@ SHARED = ROOT / 'shared/src/commonMain/kotlin'
 HARNESS = ROOT / 'tools/tests/kotlin/RulesBoundaryHarness.kt'
 SHEET_STATS = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetStatBreakdown.kt'
 SHEET_ROLLS = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt'
-ANDROID_FEATS = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt'
 ANDROID_MAGIC = ROOT / 'app/src/main/java/com/furybook/android/ui/screens/MagicScreen.kt'
-DESKTOP_DEVELOPMENT = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt'
+# Stage 4: the ЦИ setup moved from the Навыки tabs into the shared editor's ЦИ card.
+EDITOR_CHI = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorChiCard.kt'
 
 
 def read(path: Path) -> str:
@@ -33,12 +33,10 @@ def test_selected_skill_effect_totals_are_owned_by_shared_rules():
     assert 'sumOf { it.hindranceDice }' not in sheet
 
 def test_chi_breakdown_and_cost_constants_are_owned_by_shared_rules():
-    android = read(ANDROID_FEATS)
-    desktop = read(DESKTOP_DEVELOPMENT)
-    for text in (android, desktop):
-        assert 'character.chiAutomaticAccess' in text
-        assert 'character.chiBaseMaximum' in text
-        assert 'character.chiProgressionBonus' in text
+    for text in (read(EDITOR_CHI),):
+        assert 'c.chiAutomaticAccess' in text
+        assert 'c.chiBaseMaximum' in text
+        assert 'c.chiProgressionBonus' in text
         assert 'CharacterEconomy.CHI_BONUS_RANK_XP' in text
         assert 'DevelopmentEffectIds.MASTER_CHI) * 2' not in text
         assert 'DevelopmentEffectIds.AWAKENED_CHI) * 3' not in text

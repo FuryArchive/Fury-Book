@@ -29,7 +29,7 @@ def test_compose_host_uses_real_shared_sessions_and_file_persistence():
 def test_all_parity_screens_exist():
     required = {
         'CharactersScreen.kt': ['CharactersScreen', 'createCharacter', 'selectCharacter', 'deleteActive'],
-        'DevelopmentScreen.kt': ['DevelopmentScreen', 'DevelopmentRules', 'ChiRules', 'setDevelopmentRank'],
+        # Stage 4: DevelopmentScreen.kt is gone; perks live in the shared editor (test_editor_perk_functions.py).
         'MagicScreen.kt': ['MagicScreen', 'setMagicManaRank', 'setMagicSchoolPower', 'addCatalogSpell'],
         'EquipmentScreen.kt': ['EquipmentScreen', 'equipmentLoad', 'setGearLoadAutomatic', 'addCatalogGear'],
     }

@@ -35,29 +35,12 @@ def test_keyboard_focus_is_cleared_from_app_and_sheets():
     assert "dismissKeyboardOnPointerDown()" in sheets
 
 
-def test_martial_art_availability_is_prepared_off_main_behind_loading_gate():
-    source = read("app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt")
-    assert "DevelopmentLoadingScreen(stage = loadingStage)" in source
-    assert "withContext(Dispatchers.Default)" in source
-    assert "availabilityById" in source
-    assert "associate { entry -> entry.id to preparationRules.availability(entry) }" in source
-    row = source.split("private fun DevelopmentRow(", 1)[1].split("@Composable\nprivate fun DevelopmentStatusPill", 1)[0]
-    assert "availability: DevelopmentAvailability" in row
-    assert "rules.availability(entry)" not in row
-    assert "!availableOnly || availabilityById[entry.id]?.canIncrease == true" in source
-
-
 def test_character_sheet_skill_tap_always_starts_with_stock_attribute_chooser():
-    # Stage 3: the roll offers the allowed attributes (+ «другая…») and starts on the remembered allowed one, else stock.
+    # Stage 3: the roll offers the allowed attributes (+ «другая…») and starts on the remembered allowed one, else stock, else the first allowed.
     source = read("shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt")
     model = read("shared/src/commonMain/kotlin/com/furybook/dubl/model/SkillModels.kt")
-    assert "?.takeIf { it in skill.attributes } ?: skill.stockAttribute" in source
+    assert "?.takeIf { it in skill.attributes }\n        ?: skill.stockAttribute.takeIf { it in skill.attributes }" in source
     assert "attributeChoices = skill.attributes" in source
     assert "skillCalculationForRoll" in source
     assert "val stockAttribute: AttributeId" in model
     assert "definition?.defaultAttribute ?: attributes.first()" in model
-
-def test_key_bottom_sheets_skip_partial_expansion():
-    # Stage 3: the Android skill roll sheets went with the Умения tab; FeatsScreen keeps the rule.
-    feats = read("app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt")
-    assert "rememberModalBottomSheetState(skipPartiallyExpanded = true)" in feats

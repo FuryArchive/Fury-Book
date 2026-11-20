@@ -41,4 +41,5 @@ def test_all_desktop_feature_dialogs_use_fury_dialog_instead_of_material_alert_d
             users.append(path.name)
 
     assert not offenders, f'legacy Material AlertDialog remains in: {offenders}'
-    assert {'DevelopmentScreen.kt', 'MagicScreen.kt', 'EquipmentScreen.kt', 'CharactersScreen.kt'} <= set(users)
+    # Stage 4: DevelopmentScreen.kt is gone (its dialogs are shared FuryDialogScaffold ones in the editor).
+    assert {'MagicScreen.kt', 'EquipmentScreen.kt', 'CharactersScreen.kt'} <= set(users)

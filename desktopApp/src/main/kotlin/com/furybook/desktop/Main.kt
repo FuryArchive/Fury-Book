@@ -48,7 +48,6 @@ import com.furybook.dubl.data.DesktopThemeStore
 import com.furybook.ui.components.FuryThemeButton
 import com.furybook.desktop.screens.CampaignScreen
 import com.furybook.desktop.screens.CharactersScreen
-import com.furybook.desktop.screens.DevelopmentScreen
 import com.furybook.desktop.screens.EquipmentScreen
 import com.furybook.desktop.screens.FuryMotion
 import com.furybook.desktop.screens.FuryUndoToast
@@ -64,7 +63,6 @@ import kotlinx.coroutines.delay
 
 internal enum class DesktopSection(val label: String) {
     SHEET("Лист"),
-    DEVELOPMENT("Навыки"),
     MAGIC("Магия"),
     EQUIPMENT("Снаряжение"),
     CAMPAIGN("Кампания"),
@@ -165,8 +163,9 @@ private fun DesktopApp() {
 }
 
 /** Phones show the five play sections as bottom tabs; campaign and characters sit behind «Меню». */
+/** Phone bar: Лист, Магия, Вещи, Кампания (Навыки moved into the editor in stage 4); Персонажи stays in the menu. */
 private val DesktopSection.primary: Boolean
-    get() = this != DesktopSection.CAMPAIGN && this != DesktopSection.CHARACTERS
+    get() = this != DesktopSection.CHARACTERS
 
 /** «Снаряжение» does not fit a fifth of a phone; the phone tab uses the spec's «Вещи». */
 private val DesktopSection.phoneLabel: String?
@@ -216,7 +215,6 @@ private fun DesktopContent(
                     playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
                     hooks = sheetHooks,
                 )
-                DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
                 DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
                 DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
                 DesktopSection.CAMPAIGN -> CampaignScreen(state, cloudController, animatedPageModifier)

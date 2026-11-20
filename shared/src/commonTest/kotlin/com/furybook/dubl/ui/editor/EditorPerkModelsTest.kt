@@ -225,4 +225,14 @@ class EditorPerkModelsTest {
         assertNull(EditorPerkContext(host()).planSummary(setOf("gone")))
         assertEquals(1, EditorPerkContext(host()).planSummary(setOf("gone", keenHearing.id))!!.count)
     }
+
+    @Test
+    fun chiTabTakesThePackOrderAndPresentation() {
+        val off = editorPerkKindTabs(host())
+        assertEquals(listOf(EditorPerkKind.REGULAR, EditorPerkKind.SPECIAL, EditorPerkKind.MARTIAL, EditorPerkKind.OWNED), off.map { it.kind })
+        val on = editorPerkKindTabs(FakeSheetHost(hornet, chiPackEnabled = true, developmentCatalogOverride = catalog))
+        assertEquals(listOf(EditorPerkKind.REGULAR, EditorPerkKind.SPECIAL, EditorPerkKind.MARTIAL, EditorPerkKind.CHI, EditorPerkKind.OWNED), on.map { it.kind })
+        assertEquals("◎ ЦИ", on.first { it.kind == EditorPerkKind.CHI }.title)
+        assertEquals("Обычные", on.first().title)
+    }
 }

@@ -87,7 +87,9 @@ def test_sheet_keeps_grouping_and_development_details_reachable():
     # Custom groups: the manager UI is retired, the data stays (owner ruling, character editor stage).
     play = read(SHEET_DIR / 'SheetPlay.kt')
     assert 'SheetDialog.DevelopmentDetails(id)' in play
-    assert 'DesktopSheetDevelopmentDetails(state, entryId, close)' in read(MAIN)
+    # Stage 4: one shared details dialog; no platform hook.
+    assert 'developmentDetails' not in read(MAIN)
+    assert 'SheetDevelopmentDetailsDialog(' in read(SHEET_DIR / 'SheetScreen.kt')
 
 
 def test_narrow_skills_column_falls_back_to_one_internal_column():

@@ -1,6 +1,11 @@
 package com.furybook.dubl.ui.editor
 
+import com.furybook.content.FcpOrderedUiItem
 import com.furybook.content.FcpUiComponent
+import com.furybook.content.FcpUiContribution
+import com.furybook.content.FcpUiHostOrder
+import com.furybook.content.orderedUiItems
+import com.furybook.content.presentation
 import com.furybook.content.FcpUiSurface
 import com.furybook.dubl.content.DublUiFeature
 import com.furybook.dubl.content.forFeature
@@ -21,6 +26,7 @@ import com.furybook.dubl.model.MagicEquipmentRules
 import com.furybook.dubl.model.RequirementStatus
 import com.furybook.dubl.model.developmentNormalize
 import com.furybook.dubl.ui.sheet.sheetChiEconomyMounted
+import com.furybook.dubl.ui.sheet.sheetFcpIconGlyph
 
 /** The rules' "creation is over" requirement check carries this phrase (DevelopmentRules, «только при создании»). */
 internal const val CREATION_CLOSED_MARK = "создание уже завершено"
@@ -200,8 +206,34 @@ class EditorPerkContext(host: DublEditorHost) {
     }
 }
 
-fun editorShowsChi(host: DublEditorHost): Boolean =
-    host.uiMounts(FcpUiSurface.DEVELOPMENT_TABS, FcpUiComponent.DEVELOPMENT_BROWSER).forFeature(DublUiFeature.CHI) != null
+/** The ЦИ pack's development-tab contribution (FCP contract): its presence, order and presentation. */
+private fun editorChiTab(host: DublEditorHost): FcpUiContribution? =
+    host.uiMounts(FcpUiSurface.DEVELOPMENT_TABS, FcpUiComponent.DEVELOPMENT_BROWSER).forFeature(DublUiFeature.CHI)
+
+fun editorShowsChi(host: DublEditorHost): Boolean = editorChiTab(host) != null
+
+data class EditorPerkKindTab(val kind: EditorPerkKind, val title: String)
+
+/**
+ * The Навыки step's kind tabs. The host's tabs sit at the host orders; the ЦИ tab is placed by the pack's own
+ * order and titled from its presentation (label + icon), as the old Навыки tabs did.
+ */
+fun editorPerkKindTabs(host: DublEditorHost): List<EditorPerkKindTab> {
+    val chi = editorChiTab(host)
+    return orderedUiItems(
+        buildList {
+            add(FcpOrderedUiItem(FcpUiHostOrder.PRIMARY, EditorPerkKind.REGULAR.name, EditorPerkKindTab(EditorPerkKind.REGULAR, "Обычные")))
+            add(FcpOrderedUiItem(FcpUiHostOrder.SECONDARY, EditorPerkKind.SPECIAL.name, EditorPerkKindTab(EditorPerkKind.SPECIAL, "Особые")))
+            add(FcpOrderedUiItem(FcpUiHostOrder.TERTIARY, EditorPerkKind.MARTIAL.name, EditorPerkKindTab(EditorPerkKind.MARTIAL, "Боевые")))
+            if (chi != null) {
+                val presentation = chi.presentation()
+                val title = sheetFcpIconGlyph(presentation.icon)?.let { "$it ${presentation.label}" } ?: presentation.label
+                add(FcpOrderedUiItem(chi.order, EditorPerkKind.CHI.name, EditorPerkKindTab(EditorPerkKind.CHI, title)))
+            }
+            add(FcpOrderedUiItem(FcpUiHostOrder.TRAILING, EditorPerkKind.OWNED.name, EditorPerkKindTab(EditorPerkKind.OWNED, "Взятые")))
+        },
+    )
+}
 
 fun editorPerkStatus(host: DublEditorHost, entry: DevelopmentEntry): EditorPerkStatus = EditorPerkContext(host).evaluate(entry).status
 

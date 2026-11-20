@@ -7,28 +7,21 @@ import tempfile
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-SCREENS = [
-    ("app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt", 1, "currentRank"),
-    ("desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt", 2, "rank"),
-    ("webApp/src/jsMain/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt", 2, "rank"),
-]
+# Stage 4: the Навыки tabs are gone; «Взять все оставшиеся ранги» lives in the editor's perk detail (all platforms).
+EDITOR = ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor"
 
 
-@pytest.mark.parametrize("path,call_sites,rank_name", SCREENS)
-def test_every_inspector_layout_wires_bulk_ranks_to_the_existing_preview(path, call_sites, rank_name):
-    text = (ROOT / path).read_text(encoding="utf-8")
-    callbacks = re.findall(r"onAcquireAllRanks = \{ optionIndex ->(.*?)\n\s*\},", text, re.S)
-    assert len(callbacks) == call_sites, "Missing bulk-rank callback in an inspector layout"
-    for callback in callbacks:
-        assert "acquisitionRequest = DevelopmentAcquisitionRequest.single(" in callback
-        assert "targetRank = entry.maxRank" in callback
-        assert "optionIndex = optionIndex" in callback
-        assert "setDevelopmentRank" not in callback
-        assert "enforceBudget = false" not in callback
-    assert "onAcquireAllRanks: (Int) -> Unit" in text
-    assert f"if (entry.maxRank - {rank_name} > 1)" in text
-    assert "onClick = { onAcquireAllRanks(optionIndex) }" in text
-    assert "Взять все оставшиеся ранги" in text
+def test_editor_perk_detail_wires_bulk_ranks_through_the_planner():
+    models = (EDITOR / "EditorPerkModels.kt").read_text(encoding="utf-8")
+    step = (EDITOR / "EditorPerksStep.kt").read_text(encoding="utf-8")
+    assert "DevelopmentAcquisitionRequest.single(entry.id, targetRank = max, optionIndex = eval.option" in models
+    assert "max - rank >= 2" in models
+    assert "allRanksAction = allRanks?.let { EditorPerkAction.Acquire(allRanksRequest) }" in models
+    assert '"Взять все оставшиеся ранги · ' in models
+    assert "applyPerkAction(host, state, detail.entryId, detail.name, allRanks" in step
+    # Through the planner and acquireDevelopment, never a plain rank set.
+    actions = (EDITOR / "EditorPerkActions.kt").read_text(encoding="utf-8")
+    assert "host.acquireDevelopment(action.request)" in actions
 
 
 def test_sequential_and_bulk_ranks_against_real_catalog_and_application():

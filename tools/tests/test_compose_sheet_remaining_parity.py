@@ -6,9 +6,8 @@ SHEET_DIR = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet'
 VITAL = (SHEET_DIR / 'SheetVitalDialog.kt').read_text(encoding='utf-8')
 SCREEN = (SHEET_DIR / 'SheetScreen.kt').read_text(encoding='utf-8') + (SHEET_DIR / 'SheetPlay.kt').read_text(encoding='utf-8')
 PORTRAIT = (SHEET_DIR / 'SheetPortrait.kt').read_text(encoding='utf-8')
-DESKTOP_DETAILS = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/SheetDevelopmentDetails.kt').read_text(encoding='utf-8')
+DETAILS = (SHEET_DIR / 'SheetDevelopment.kt').read_text(encoding='utf-8')
 DESKTOP_PORTRAITS = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/DesktopPortraits.kt').read_text(encoding='utf-8')
-DEV = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt').read_text(encoding='utf-8')
 
 
 def test_health_has_android_style_amount_control():
@@ -19,8 +18,9 @@ def test_health_has_android_style_amount_control():
 
 def test_owned_development_on_sheet_opens_details():
     assert 'SheetDialog.DevelopmentDetails(' in SCREEN
-    assert 'DevelopmentDetailsDialog(' in DESKTOP_DETAILS
-    assert 'fun DevelopmentDetailsDialog(' in DEV
+    # Stage 4: one shared dialog on every platform; changes go through «Настроить в редакторе».
+    assert 'SheetDevelopmentDetailsDialog(' in SCREEN
+    assert 'fun SheetDevelopmentDetailsDialog(' in DETAILS and 'Настроить в редакторе' in DETAILS
 
 
 def test_portrait_is_visible_not_only_filename():

@@ -28,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,7 +47,6 @@ import com.furybook.android.ui.components.dismissKeyboardOnPointerDown
 import com.furybook.android.ui.screens.CharactersScreen
 import com.furybook.android.ui.screens.CampaignScreen
 import com.furybook.android.ui.screens.EquipmentScreen
-import com.furybook.android.ui.screens.FeatsScreen
 import com.furybook.android.ui.screens.MagicScreen
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.android.ui.screens.RecentChangeBar
@@ -74,7 +72,6 @@ import kotlinx.coroutines.delay
 
 private enum class AppSection(val label: String) {
     OVERVIEW("Лист"),
-    FEATS("Навыки"),
     MAGIC("Магия"),
     INVENTORY("Вещи"),
     CAMPAIGN("Кампания"),
@@ -98,7 +95,6 @@ fun DublApp() {
         CharacterController(observingCharacters, observingExtras)
     }
     var selected by rememberSaveable { mutableStateOf(AppSection.OVERVIEW) }
-    var pendingSection by remember { mutableStateOf<AppSection?>(null) }
     var chiPackEnabled by rememberSaveable { mutableStateOf(AndroidContentPackState.isChiEnabled(appContext)) }
     val chiDevelopmentIds = remember(appContext) { AndroidContentPackState.chiDevelopmentIds(appContext) }
 
@@ -130,16 +126,6 @@ fun DublApp() {
         )
     }
 
-    LaunchedEffect(pendingSection) {
-        if (pendingSection == AppSection.FEATS) {
-            // Commit at least one lightweight frame before mounting the heavy development screen.
-            withFrameNanos { }
-            withFrameNanos { }
-            selected = AppSection.FEATS
-            pendingSection = null
-        }
-    }
-
     var characterPickerOpen by remember { mutableStateOf(false) }
     // Set by «+ Создать»; the sheet consumes it by opening the editor at Основа.
     var openEditorAtBasics by remember { mutableStateOf(false) }
@@ -153,25 +139,15 @@ fun DublApp() {
             title = "FURY BOOK",
             characterName = controller.active.name,
             sections = AppSection.entries.map { FuryShellSection(it, it.label, primary = it.primary) },
-            selected = pendingSection ?: selected,
-            onSelect = { target ->
-                if (pendingSection == null && target != selected) {
-                    when (target) {
-                        AppSection.FEATS -> pendingSection = AppSection.FEATS
-                        else -> selected = target
-                    }
-                }
-            },
+            selected = selected,
+            onSelect = { target -> if (target != selected) selected = target },
             onSwitchCharacter = { characterPickerOpen = true },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
             account = { FuryThemeButton() },
-            phoneChromeHidden = editorShown && selected == AppSection.OVERVIEW && pendingSection == null,
+            phoneChromeHidden = editorShown && selected == AppSection.OVERVIEW,
         ) {
-            if (pendingSection == AppSection.FEATS) {
-                DevelopmentNavigationLoadingScreen()
-            } else {
                 when (selected) {
                     AppSection.OVERVIEW -> AndroidSheet(
                         controller = controller,
@@ -182,7 +158,6 @@ fun DublApp() {
                         onOpenMagic = { selected = AppSection.MAGIC },
                         onOpenGear = { selected = AppSection.INVENTORY },
                     )
-                    AppSection.FEATS -> FeatsScreen(controller, chiPackEnabled)
                     AppSection.MAGIC -> MagicScreen(controller)
                     AppSection.INVENTORY -> EquipmentScreen(controller)
                     AppSection.CAMPAIGN -> CampaignScreen(
@@ -207,7 +182,6 @@ fun DublApp() {
                         onCreated = { openEditorAtBasics = true; selected = AppSection.OVERVIEW },
                     )
                 }
-            }
         }
     }
 
@@ -217,21 +191,17 @@ fun DublApp() {
             activeId = controller.snapshot.activeCharacterId,
             onSelect = { id ->
                 controller.selectCharacter(id)
-                pendingSection = null
                 selected = AppSection.OVERVIEW
             },
-            onManage = {
-                pendingSection = null
-                selected = AppSection.MORE
-            },
+            onManage = { selected = AppSection.MORE },
             onDismiss = { characterPickerOpen = false },
         )
     }
 }
 
-/** Phones show the five play sections as bottom tabs; campaign and «Ещё» sit behind «Меню». */
+/** Phones show Лист, Магия, Вещи, Кампания as bottom tabs (Навыки moved into the editor in stage 4); «Ещё» sits behind «Меню». */
 private val AppSection.primary: Boolean
-    get() = this != AppSection.CAMPAIGN && this != AppSection.MORE
+    get() = this != AppSection.MORE
 
 private data class SheetToast(val text: String, val accent: Color, val canUndo: Boolean, val token: Int)
 
@@ -316,42 +286,3 @@ private fun AndroidSheet(
     }
 }
 
-@Composable
-private fun DevelopmentNavigationLoadingScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center,
-    ) {
-        Surface(
-            shape = RoundedCornerShape(18.dp),
-            color = DublSurfaceInset,
-            border = BorderStroke(1.dp, DublFocus.copy(alpha = 0.24f)),
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(34.dp),
-                    color = DublFocus,
-                    strokeWidth = 3.dp,
-                )
-                Text(
-                    text = "Подготавливаем навыки",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    text = "Загружаем каталог, требования и зависимости…",
-                    fontSize = 13.sp,
-                    color = DublMuted,
-                    textAlign = TextAlign.Center,
-                )
-            }
-        }
-    }
-}

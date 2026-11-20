@@ -54,20 +54,13 @@ private const val SPLIT_MIN_CONTENT_DP = 760
 /** The detail pane sits beside the list only when the list keeps ~350dp next to its 360dp; otherwise it opens over it. */
 internal fun editorPerksSplit(contentWidthDp: Int): Boolean = contentWidthDp >= SPLIT_MIN_CONTENT_DP
 
-private val KIND_TITLES = mapOf(
-    EditorPerkKind.REGULAR to "Обычные",
-    EditorPerkKind.SPECIAL to "Особые",
-    EditorPerkKind.MARTIAL to "Боевые",
-    EditorPerkKind.CHI to "ЦИ",
-    EditorPerkKind.OWNED to "Взятые",
-)
-
 /** Навыки: the catalog by kind, with status pills, and a detail that takes a perk — through its whole chain if needed. */
 @Composable
 internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: EditorFrameData, layout: SheetLayout) {
     val context = data.context
     val wide = layout == SheetLayout.WIDE_WITH_TRAY
-    val kinds = EditorPerkKind.entries.filter { it != EditorPerkKind.CHI || context.showsChi }
+    val tabs = remember(data) { editorPerkKindTabs(host) }
+    val kinds = tabs.map { it.kind }
     if (state.perkKind !in kinds) state.perkKind = EditorPerkKind.REGULAR
     val kindCounts = remember(data) { kinds.associateWith { context.perkCounts(it).getValue(EditorPerkFilter.ALL) } }
     val counts = remember(data, state.perkKind, state.plannedIds) { context.perkCounts(state.perkKind, state.plannedIds) }
@@ -76,7 +69,9 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
     }
     val plan = remember(data, state.plannedIds) { context.planSummary(state.plannedIds) }
     var form by remember { mutableStateOf<Pair<DevelopmentEntry, EditorPerkFormMode>?>(null) }
-    val chiCard = remember(data, state.perkKind) { if (state.perkKind == EditorPerkKind.CHI) editorChiCard(host) else null }
+    val chiCard = remember(data, state.perkKind, state.perkQuery, state.perkFilter) {
+        if (state.perkKind == EditorPerkKind.CHI) editorChiCard(host, state.perkQuery, availableOnly = state.perkFilter == EditorPerkFilter.AVAILABLE) else null
+    }
     val openForm: (String?, EditorPerkFormMode) -> Unit = { id, mode ->
         val base = if (id == null) editorNewPerk() else host.developmentCatalog.byId(id)
         if (base != null) form = base to mode
@@ -88,7 +83,7 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
     val padding = editorContentPadding(layout)
     val header: @Composable () -> Unit = {
         Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
-            PerksHeader(state, kinds, kindCounts, counts, layout) { openForm(null, EditorPerkFormMode.NEW) }
+            PerksHeader(state, tabs, kindCounts, counts, layout) { openForm(null, EditorPerkFormMode.NEW) }
             plan?.let { PlanCard(host, state, it, layout) }
             if (state.perkKind == EditorPerkKind.CHI) chiCard?.let { EditorChiCardView(host, it, layout) }
         }
@@ -132,7 +127,7 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
 @Composable
 private fun PerksHeader(
     state: EditorState,
-    kinds: List<EditorPerkKind>,
+    tabs: List<EditorPerkKindTab>,
     kindCounts: Map<EditorPerkKind, Int>,
     counts: Map<EditorPerkFilter, Int>,
     layout: SheetLayout,
@@ -148,8 +143,8 @@ private fun PerksHeader(
         }
         // Wraps rather than scrolls: «Взятые» must never hide off the edge of a phone.
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            kinds.forEach { kind ->
-                EditorChip("${KIND_TITLES.getValue(kind)} ${kindCounts[kind] ?: 0}", state.perkKind == kind, {
+            tabs.forEach { (kind, title) ->
+                EditorChip("$title ${kindCounts[kind] ?: 0}", state.perkKind == kind, {
                     state.perkKind = kind
                     if (kind == EditorPerkKind.OWNED) state.perkFilter = EditorPerkFilter.ALL
                 }, control)

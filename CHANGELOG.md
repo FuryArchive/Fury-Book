@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Навыки tab removed (revamp stage 4)
+
+- The separate Навыки tab is gone on Android, Desktop and Web; the phone bottom bar is now Лист, Магия, Вещи, Кампания.
+- The editor's Навыки step does everything the tab did: «+ Свой навык», «Редактировать / Удалить свою запись», «Локальная правка» and «Сбросить к рулбуку» (delete and reset offer «Вернуть»), «Взять все оставшиеся ранги», «Добрать требования», and the character plan (☆ in a perk, «План» filter, «Взять план»). Requirement targets and «Открывает» names open that perk.
+- The ЦИ tab in the editor has the ЦИ switch, extra ranks with their XP, and the techniques list (searchable, «Доступно» filter).
+- Tapping the ЦИ meter on the sheet opens a ЦИ panel: ±1, amount, «Восстановить», and «Использовать» for each technique (or why it can't be used).
+- A perk's «Подробнее» on the sheet is one dialog on every platform, with «Настроить в редакторе».
+- «Изменения за этот заход» lists own perks, local edits (repriced when the cost changes) and ЦИ settings.
+
 ### Умения tab removed (revamp stage 3)
 
 - The separate Умения tab is gone on Android, Desktop and Web; the phone bottom bar is now Лист, Навыки, Магия, Вещи.

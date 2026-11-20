@@ -62,7 +62,8 @@ def test_old_sheet_is_no_longer_called_and_edit_mode_lives_in_the_shared_sheet()
         text = read(path)
         assert old_sheet not in text, path.name
         assert 'if (editing) {' not in text, path.name
-        assert 'developmentDetails =' in text, path.name
+        # Stage 4: no platform details hook (one shared dialog).
+        assert 'developmentDetails =' not in text, path.name
         assert 'portraitLoader =' in text, path.name
         assert 'onOpenMagic =' in text, path.name
 
@@ -84,10 +85,11 @@ def test_old_navigation_is_gone():
     assert 'DublBottomBar(' not in read(ANDROID)
 
 
-def test_android_keeps_the_development_loading_gate():
+def test_android_development_loading_gate_left_with_the_tab():
+    # Stage 4: the Навыки tab (and the gate that delayed its heavy screen) is gone.
     android = read(ANDROID)
-    assert 'AppSection.FEATS -> pendingSection = AppSection.FEATS' in android
-    assert 'DevelopmentNavigationLoadingScreen(' in android
+    assert 'pendingSection' not in android
+    assert 'DevelopmentNavigationLoadingScreen(' not in android
 
 
 def test_web_keeps_account_and_sign_out_reachable():

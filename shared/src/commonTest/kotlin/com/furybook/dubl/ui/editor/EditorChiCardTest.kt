@@ -47,4 +47,18 @@ class EditorChiCardTest {
         assertEquals("Удар ладонью", line.name)
         assertEquals("Недостаточно ЦИ: нужно 2", line.status)
     }
+
+    @Test
+    fun techniquesFollowSearchAndAvailableFilter() {
+        // «Доступно» keeps techniques whose requirements are met (the old tab's `unlocked`), even when ЦИ is short right now.
+        val locked = ChiTechnique("t2", "Шаг ветра", "Базовые приёмы", chiCost = 1, action = "1 ОД", effect = "Бег удваивается.", requirements = "Сила 20")
+        val h = FakeSheetHost(
+            EditorFixtures.hornet.copy(chiEnabled = true, chiCurrent = 1), chiPackEnabled = true, developmentCatalogOverride = EditorFixtures.catalog,
+            chiCatalogOverride = ChiCatalog("t", emptyList(), listOf(technique, locked)),
+        )
+        assertEquals(listOf("Шаг ветра"), editorChiCard(h, query = "шаг")!!.techniques.map { it.name })
+        assertEquals(listOf("Удар ладонью"), editorChiCard(h, query = "отбрасывает")!!.techniques.map { it.name })
+        assertEquals(listOf("Удар ладонью"), editorChiCard(h, availableOnly = true)!!.techniques.map { it.name })
+        assertEquals(2, editorChiCard(h)!!.techniques.size)
+    }
 }

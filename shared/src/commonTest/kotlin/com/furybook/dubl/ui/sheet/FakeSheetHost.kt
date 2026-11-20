@@ -110,7 +110,8 @@ class FakeSheetHost(
         val chiXpLine = surface == FcpUiSurface.CHARACTER_ECONOMY && component == FcpUiComponent.XP_LINE
         val chiTab = surface == FcpUiSurface.DEVELOPMENT_TABS && component == FcpUiComponent.DEVELOPMENT_BROWSER
         return if (chiPackEnabled && (chiXpLine || chiTab)) {
-            real + DublUiMount(DublUiFeature.CHI, FcpUiContribution("fake-chi-${if (chiTab) "tab" else "xp"}", surface, component, DublUiBinding.CHI, "ЦИ", 0, emptyMap()))
+            // Same order and icon as the real ЦИ pack's development tab (manifest: order 40, icon "chi").
+            real + DublUiMount(DublUiFeature.CHI, FcpUiContribution("fake-chi-${if (chiTab) "tab" else "xp"}", surface, component, DublUiBinding.CHI, "ЦИ", 40, mapOf("icon" to "chi")))
         } else real
     }
 

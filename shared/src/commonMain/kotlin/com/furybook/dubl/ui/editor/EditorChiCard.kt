@@ -19,6 +19,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.furybook.dubl.model.CharacterEconomy
 import com.furybook.dubl.model.ChiRules
+import com.furybook.dubl.model.developmentNormalize
 import com.furybook.dubl.ui.sheet.SheetLayout
 import com.furybook.ui.theme.FuryColors
 import com.furybook.ui.theme.FurySpacing
@@ -41,8 +42,12 @@ data class EditorChiCard(
 
 internal const val EDITOR_CHI_MAX_BONUS_RANKS = 10
 
-/** The ЦИ setup card of the Навыки step's ЦИ tab (the old tab's «Ресурс ЦИ»); null unless the ЦИ pack mounts the tab. */
-fun editorChiCard(host: DublEditorHost): EditorChiCard? {
+/**
+ * The ЦИ setup card of the Навыки step's ЦИ tab (the old tab's «Ресурс ЦИ»); null unless the ЦИ pack mounts the tab.
+ * The step's search ([query]: name, school, effect) and «Доступно» ([availableOnly]: requirements met) filter the
+ * techniques too, as the old ЦИ tab's search and filter did.
+ */
+fun editorChiCard(host: DublEditorHost, query: String = "", availableOnly: Boolean = false): EditorChiCard? {
     if (!editorShowsChi(host)) return null
     val c = host.active
     val rules = ChiRules(c, host.developmentCatalog)
@@ -55,8 +60,11 @@ fun editorChiCard(host: DublEditorHost): EditorChiCard? {
         bonusRanks = c.chiBonusRanks,
         rankXp = CharacterEconomy.CHI_BONUS_RANK_XP,
         maximumText = "Максимум: база ${c.chiBaseMaximum} + запас ${c.chiBonusRanks} + развитие ${c.chiProgressionBonus} = ${c.chiMaximum}",
-        techniques = host.chiCatalog.techniques.map { technique ->
+        techniques = host.chiCatalog.techniques.mapNotNull { technique ->
             val availability = rules.availability(technique)
+            val needle = developmentNormalize(query)
+            if (needle.isNotBlank() && needle !in developmentNormalize("${technique.name} ${technique.school} ${technique.effect}")) return@mapNotNull null
+            if (availableOnly && !availability.unlocked) return@mapNotNull null
             EditorChiTechniqueLine(
                 technique.name, technique.school, technique.chiCost, technique.action, technique.effect,
                 if (availability.canUse) "Можно использовать" else availability.reason,

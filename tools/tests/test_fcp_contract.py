@@ -77,9 +77,9 @@ def test_fury_book_mounts_chi_from_real_pack_activation_and_ui_contributions():
     android_state = (ROOT / "app/src/main/java/com/furybook/android/data/AndroidContentPackState.kt").read_text(encoding="utf-8")
     android_sheet_host = (ROOT / "app/src/main/java/com/furybook/android/ui/AndroidSheetHost.kt").read_text(encoding="utf-8")
     shared_sheet = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt").read_text(encoding="utf-8") + (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetResourcesDialog.kt").read_text(encoding="utf-8")
-    android_dev = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt").read_text(encoding="utf-8")
+    # Stage 4: the Навыки tab is gone; the shared editor mounts the ЦИ tab for every platform.
+    editor_dev = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorPerkModels.kt").read_text(encoding="utf-8")
     desktop_state = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/DesktopAppState.kt").read_text(encoding="utf-8")
-    desktop_dev = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt").read_text(encoding="utf-8")
 
     assert "AndroidContentPackState.isChiEnabled" in android_app
     assert "AndroidContentPackState.setPackEnabled" in android_app
@@ -88,14 +88,12 @@ def test_fury_book_mounts_chi_from_real_pack_activation_and_ui_contributions():
     assert "DublUiRenderModels.resourceToggles" in android_sheet_host
     assert "host.resourceMeters()" in shared_sheet
     assert "host.resourceToggleModels()" in shared_sheet
-    assert "FcpUiSurface.DEVELOPMENT_TABS" in android_dev
-    assert "FcpUiComponent.DEVELOPMENT_BROWSER" in android_dev
+    assert "FcpUiSurface.DEVELOPMENT_TABS" in editor_dev
+    assert "FcpUiComponent.DEVELOPMENT_BROWSER" in editor_dev
     assert "Preferences.userRoot().node" in desktop_state
     assert "setContentPackActive" in desktop_state
     assert "fun resourceMeterModels(" in desktop_state
     assert "override fun resourceToggleModels(" in desktop_state
-    assert "FcpUiSurface.DEVELOPMENT_TABS" in desktop_dev
-    assert "FcpUiComponent.DEVELOPMENT_BROWSER" in desktop_dev
 
 
 def _write_manifest(directory: Path, payload: dict) -> None:
@@ -188,8 +186,7 @@ def test_chi_ui_mounts_use_generic_fcp_surface_contract():
     bindings = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/content/DublUiBindings.kt").read_text(encoding="utf-8")
     screens = [
         ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetEditModels.kt",
-        ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt",
-        ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt",
+        ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorPerkModels.kt",
     ]
 
     assert "object FcpUiSurface" in ui_contract
@@ -226,40 +223,33 @@ def test_resource_meter_uses_manifest_presentation_tokens_on_both_platforms():
 
 def test_fcp_ui_order_controls_host_tab_and_resource_positions():
     shared_sheet = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt").read_text(encoding="utf-8")
-    android_dev = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt").read_text(encoding="utf-8")
-    desktop_dev = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt").read_text(encoding="utf-8")
+    editor_dev = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorPerkModels.kt").read_text(encoding="utf-8")
+    editor_step = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorPerksStep.kt").read_text(encoding="utf-8")
     contract = (ROOT / "shared/src/commonMain/kotlin/com/furybook/content/FcpUiContract.kt").read_text(encoding="utf-8")
 
     assert "object FcpUiHostOrder" in contract
     assert "fun <T> orderedUiItems" in contract
     assert "model.presentation.order" in shared_sheet
     assert "orderedUiItems(items)" in shared_sheet
-    assert "chiTabUi.order" in android_dev
-    assert "items(developmentTabs)" in android_dev
     assert "FcpUiHostOrder.PRIMARY" in shared_sheet
-    assert "chiTabUi.order" in desktop_dev
-    assert "developmentTabs.forEach" in desktop_dev
+    assert "FcpOrderedUiItem(chi.order" in editor_dev
+    assert "FcpUiHostOrder.TRAILING" in editor_dev and "orderedUiItems(" in editor_dev
+    assert "tabs.forEach" in editor_step
 
 
 def test_resource_toggle_and_development_browser_use_fcp_presentation():
     shared_sheet = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt").read_text(encoding="utf-8")
-    android_dev = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt").read_text(encoding="utf-8")
-    desktop_dev = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt").read_text(encoding="utf-8")
+    editor_dev = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorPerkModels.kt").read_text(encoding="utf-8")
 
     toggles = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetResourcesDialog.kt").read_text(encoding="utf-8")
     assert "host.resourceToggleModels()" in toggles
     assert "val presentation = model.presentation" in toggles
     assert "sheetFcpIconGlyph(presentation.icon)" in toggles
 
-    assert "chiTabPresentation = chiTabUi?.presentation()" in android_dev
-    assert "chiTabPresentation?.label" in android_dev
-    assert "fcpDevelopmentIcon(chiTabPresentation?.icon)" in android_dev
-    assert 'properties?.get("icon")' not in android_dev
-
-
-    assert "chiTabPresentation = chiTabUi?.presentation()" in desktop_dev
-    assert "chiTabPresentation?.label" in desktop_dev
-    assert "fcpDevelopmentIcon(chiTabPresentation?.icon)" in desktop_dev
+    assert "val presentation = chi.presentation()" in editor_dev
+    assert "presentation.label" in editor_dev
+    assert "sheetFcpIconGlyph(presentation.icon)" in editor_dev
+    assert 'properties?.get("icon")' not in editor_dev
 
 
 def test_raw_fcp_binding_is_confined_to_shared_dubl_registry():
@@ -271,8 +261,9 @@ def test_raw_fcp_binding_is_confined_to_shared_dubl_registry():
         ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetModels.kt",
         ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetEditModels.kt",
         ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetResourcesDialog.kt",
-        ROOT / "app/src/main/java/com/furybook/android/ui/screens/FeatsScreen.kt",
-        ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt",
+        ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorPerkModels.kt",
+        ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorChiCard.kt",
+        ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetChiPanel.kt",
     ]
 
     assert '"dubl.chi"' in binding_registry

@@ -2,11 +2,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SHEET = ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet"
-PLATFORMS = {
-    "desktopApp/src/main/kotlin/com/furybook/desktop/Main.kt": "DesktopSheetDevelopmentDetails(",
-    "webApp/src/jsMain/kotlin/com/furybook/web/Main.kt": "DesktopSheetDevelopmentDetails(",
-    "app/src/main/java/com/furybook/android/ui/DublApp.kt": "SheetDevelopmentDetailsDialog(",
-}
 
 
 def read(path: Path) -> str:
@@ -26,18 +21,21 @@ def test_development_panel_and_shared_details():
     assert "Color(0x" not in source
 
 
-def test_every_platform_passes_development_details():
-    for rel, call in PLATFORMS.items():
-        source = read(ROOT / rel)
-        assert "developmentDetails =" in source, rel
-        assert call in source, rel
-
-
-def test_desktop_details_keep_local_edit_reset_and_delete():
+def test_every_platform_uses_the_shared_details_dialog():
+    # Stage 4: no platform hook; the shared dialog opens the editor on the perk («Настроить в редакторе»).
     for rel in (
-        "desktopApp/src/main/kotlin/com/furybook/desktop/screens/SheetDevelopmentDetails.kt",
-        "webApp/src/jsMain/kotlin/com/furybook/desktop/screens/SheetDevelopmentDetails.kt",
+        "desktopApp/src/main/kotlin/com/furybook/desktop/Main.kt",
+        "webApp/src/jsMain/kotlin/com/furybook/web/Main.kt",
+        "app/src/main/java/com/furybook/android/ui/DublApp.kt",
     ):
-        source = read(ROOT / rel)
-        for text in ("DevelopmentDetailsDialog(", "DevelopmentLocalEditDialog(", "resetDevelopmentOverride", "removeCustomDevelopment", "updateCustomDevelopment", "setDevelopmentOverride"):
-            assert text in source, (rel, text)
+        assert "developmentDetails =" not in read(ROOT / rel), rel
+    screen = read(SHEET / "SheetScreen.kt")
+    assert "SheetDevelopmentDetailsDialog(" in screen
+    assert "entryId = dialog.entryId" in screen
+
+
+def test_local_edit_reset_and_delete_moved_to_the_editor():
+    actions = read(ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorPerkActions.kt")
+    for text in ("resetDevelopmentOverride", "removeCustomDevelopment", "updateCustomDevelopment", "setDevelopmentOverride"):
+        assert text in actions, text
+    assert "fun EditorPerkFormDialog(" in read(ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorPerkFormDialog.kt")
