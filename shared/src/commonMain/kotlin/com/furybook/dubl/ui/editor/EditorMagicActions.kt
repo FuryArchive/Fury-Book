@@ -48,7 +48,7 @@ internal fun editorSaveSpell(host: DublEditorHost, state: EditorState, form: Edi
 internal fun editorSaveSchool(host: DublEditorHost, state: EditorState, index: Int?, form: EditorSchoolForm): Boolean {
     val character = host.active
     val current = index?.let { character.magic.schools.getOrNull(it)?.name }
-    val allowed = editorAddableSchools(character) + listOfNotNull(current?.let { com.furybook.dubl.model.MagicSchoolCatalog.canonicalizeOrNull(it) })
+    val allowed = editorSchoolChoices(character, index.takeIf { current != null })
     val saved = form.errors(allowed).isEmpty() && if (index == null) {
         host.addMagicSchool(form.name, form.powerValue(), form.note.trim())
     } else {
@@ -80,4 +80,14 @@ internal fun editorSaveGear(host: DublEditorHost, state: EditorState, form: Edit
     val uid = if (base == null) host.addCustomGear(item) else item.uid.also { host.updateGearItem(item) }
     state.gearPane = EditorPane.Item(uid)
     return true
+}
+
+/**
+ * A school's −/+ keeps its note (the rules' power setter rebuilds the school without one). Stepping below 1
+ * removes the school, so it goes through [editorRemoveSchool] and offers «Вернуть».
+ */
+internal fun editorStepSchoolPower(host: DublEditorHost, state: EditorState, index: Int, delta: Int) {
+    val school = host.active.magic.schools.getOrNull(index) ?: return
+    val next = school.rank + delta
+    if (next < 1) editorRemoveSchool(host, state, index) else host.updateMagicSchool(index, school.name, next, school.note)
 }

@@ -108,9 +108,9 @@ internal fun EditorMagicStep(host: DublEditorHost, state: EditorState, data: Edi
                             Text(school.name, color = p.text, style = MaterialTheme.typography.labelLarge)
                             Text("сила ${school.power} · ${school.xp} XP", color = p.muted, style = MaterialTheme.typography.bodySmall)
                         }
-                        EditorSquareButton("−", "Снизить силу школы ${school.name}", school.power > 0, control) { host.setMagicSchoolPower(school.name, school.power - 1) }
+                        EditorSquareButton("−", "Снизить силу школы ${school.name}", school.power > 0, control) { editorStepSchoolPower(host, state, school.index, -1) }
                         Text(school.power.toString(), Modifier.widthIn(min = 22.dp), color = p.text, style = MaterialTheme.typography.titleMedium)
-                        EditorSquareButton("+", "Повысить силу школы ${school.name}", true, control) { host.setMagicSchoolPower(school.name, school.power + 1) }
+                        EditorSquareButton("+", "Повысить силу школы ${school.name}", true, control) { editorStepSchoolPower(host, state, school.index, +1) }
                     }
                 }
             }
@@ -228,7 +228,7 @@ private fun OwnedSpellPane(host: DublEditorHost, state: EditorState, spell: Know
     EditorCard(Modifier.fillMaxWidth()) {
         SpellDetailBody(editorSpellDetail(host.active, spell))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-            val xp = editorSpellLearnXp(spell)?.let { " · $it XP" } ?: ""
+            val xp = editorSpellLearnXp(host.active, spell)?.let { " · $it XP" } ?: ""
             EditorChip(if (spell.learned) "Изучено$xp" else "Изучить$xp", spell.learned, { host.setSpellLearned(spell.uid, !spell.learned) }, control, gold = true, role = Role.Switch)
             EditorOutlineButton("Изменить", onEdit, control)
             EditorOutlineButton("Удалить", { editorRemoveSpell(host, state, spell.uid) }, control, accent = true)
@@ -246,7 +246,7 @@ private fun CatalogSpellPane(
     onFix: (String) -> Unit,
 ) {
     val known = host.active.magic.spells.any { it.catalogId == entry.id }
-    val xp = MagicEquipmentRules.learnXpCost(entry.cost)?.let { " · $it XP" } ?: ""
+    val xp = editorSpellLearnXp(host.active, entry.asKnownSpell())?.let { " · $it XP" } ?: ""
     EditorCard(Modifier.fillMaxWidth()) {
         SpellDetailBody(editorSpellDetail(host.active, entry))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {

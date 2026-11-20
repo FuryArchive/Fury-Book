@@ -38,7 +38,7 @@ def test_all_parity_screens_exist():
             assert token in src, f'{name} missing {token}'
     shared = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui'
     moved = {
-        'editor/EditorMagicStep.kt': ['setMagicManaRank', 'setMagicSchoolPower'],
+        'editor/EditorMagicStep.kt': ['setMagicManaRank', 'editorStepSchoolPower'],
         'editor/EditorMagicActions.kt': ['addCatalogSpell', 'addCatalogGear'],
         'editor/EditorGearStep.kt': ['setGearLoadAutomatic'],
         'sheet/SheetGear.kt': ['equipmentLoad'],

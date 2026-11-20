@@ -77,7 +77,7 @@ internal fun EditorSchoolDialog(host: DublEditorHost, state: EditorState, index:
     val p = FuryColors.current
     val control = editorControl(layout)
     val existing = index?.let { host.active.magic.schools.getOrNull(it) }
-    val addable = remember(index) { editorAddableSchools(host.active) }
+    val addable = remember(index) { editorSchoolChoices(host.active, index) }
     var form by remember(index) {
         mutableStateOf(
             EditorSchoolForm(
@@ -95,11 +95,10 @@ internal fun EditorSchoolDialog(host: DublEditorHost, state: EditorState, index:
         secondary = FuryDialogAction("Отмена", onDismiss),
         destructive = if (index != null) FuryDialogAction("Удалить", { editorRemoveSchool(host, state, index); onDismiss() }) else null,
     ) {
-        if (existing == null) {
-            if (addable.isEmpty()) Text("Все школы книги уже добавлены.", color = p.muted, style = MaterialTheme.typography.bodySmall)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                addable.forEach { school -> EditorChip(school, form.name == school, { form = form.copy(name = school) }, control, role = Role.RadioButton) }
-            }
+        if (addable.isEmpty()) Text("Все школы книги уже добавлены.", color = p.muted, style = MaterialTheme.typography.bodySmall)
+        // In a school's detail the list also offers the other free schools: that is how a school is renamed.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            addable.forEach { school -> EditorChip(school, form.name == school, { form = form.copy(name = school) }, control, role = Role.RadioButton) }
         }
         FuryTextField(form.power, { form = form.copy(power = it.filter(Char::isDigit).take(6)) }, "Сила школы",
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))

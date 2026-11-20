@@ -48,7 +48,7 @@ def test_phones_get_no_bottom_bar():
 
 def test_moved_functions_live_in_shared_code():
     magic = read(EDITOR / "EditorMagicStep.kt") + read(EDITOR / "EditorMagicActions.kt") + read(EDITOR / "EditorMagicDialogs.kt")
-    for call in ("setMagicManaRank", "setMagicSchoolPower", "addMagicSchool", "updateMagicSchool", "removeMagicSchool",
+    for call in ("setMagicManaRank", "editorStepSchoolPower", "addMagicSchool", "updateMagicSchool", "removeMagicSchool",
                  "addCatalogSpell", "addCustomSpell", "updateSpell", "setSpellLearned", "removeSpell"):
         assert call in magic, call
     gear = read(EDITOR / "EditorGearStep.kt") + read(EDITOR / "EditorMagicActions.kt")

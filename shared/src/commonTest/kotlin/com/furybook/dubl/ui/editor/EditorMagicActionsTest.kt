@@ -92,4 +92,19 @@ class EditorMagicActionsTest {
         val item = host.active.gear.items.single()
         assertEquals(EditorPane.Item(item.uid), state.gearPane)
     }
+
+    @Test
+    fun schoolPowerStepKeepsTheNote() {
+        val host = FakeSheetHost(mage.copy(magic = mage.magic.copy(schools = listOf(MagicSchool("Ограждение", 1, "от учителя")))))
+        val state = opened(host)
+        editorStepSchoolPower(host, state, 0, +1)
+        assertEquals(MagicSchool("Ограждение", 2, "от учителя"), host.active.magic.schools.single())
+        editorStepSchoolPower(host, state, 0, -1)
+        assertEquals("от учителя", host.active.magic.schools.single().note)
+        editorStepSchoolPower(host, state, 0, -1)
+        assertTrue(host.active.magic.schools.isEmpty())
+        assertTrue(state.toast!!.startsWith("Удалено"))
+        assertTrue(state.undoToast(host))
+        assertEquals("от учителя", host.active.magic.schools.single().note)
+    }
 }

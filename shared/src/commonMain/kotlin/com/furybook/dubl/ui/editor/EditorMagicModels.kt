@@ -27,7 +27,8 @@ const val EDITOR_MANA_RANK_MAX = 5
 fun editorMagicHeader(host: DublEditorHost): EditorMagicHeader {
     val character = host.active
     val economy = CharacterEconomy.breakdown(character, host.developmentCatalog, includeChi = sheetChiEconomyMounted(host))
-    val maximum = MagicEquipmentRules.manaMaximum(character)
+    // What the sheet shows: a manual maximum or a stored one from older builds counts.
+    val maximum = character.effectiveManaMaximum
     return EditorMagicHeader(
         manaRank = character.magic.manaRank,
         rankXp = economy.manaXp,
@@ -54,6 +55,12 @@ fun editorAddableSchools(character: DublCharacter): List<String> {
     return MagicSchoolCatalog.schools.filterNot { it in owned }
 }
 
+/** Names the school form may pick: the addable ones plus, in a school's detail ([index]), its own (rename). */
+fun editorSchoolChoices(character: DublCharacter, index: Int?): List<String> {
+    val own = index?.let { character.magic.schools.getOrNull(it) }?.let { MagicSchoolCatalog.canonicalizeOrNull(it.name) }
+    return MagicSchoolCatalog.schools.filter { it == own || it in editorAddableSchools(character) }
+}
+
 data class EditorSpellRow(val uid: String, val name: String, val manaLabel: String, val learned: Boolean, val learnXp: Int?, val weakText: String?)
 
 data class EditorSpellGroup(val school: String, val power: Int, val rows: List<EditorSpellRow>)
@@ -66,7 +73,19 @@ private fun matches(query: String, vararg texts: String): Boolean {
 /** The spell's school for grouping: its first rulebook school, else its text, else «Без школы». */
 private fun groupSchool(spell: String): String = MagicSchoolCatalog.parseSchools(spell).firstOrNull() ?: spell.trim().ifBlank { "Без школы" }
 
-fun editorSpellLearnXp(spell: KnownSpell): Int? = spell.xpOverride ?: MagicEquipmentRules.learnXpCost(spell.cost)
+/**
+ * What learning [spell] costs, read from the rule itself (`learnedSpellXp` with and without it), so «неполное»
+ * spells show the 0 the economy charges. Null when the rules give it no price («без цены»).
+ */
+fun editorSpellLearnXp(character: DublCharacter, spell: KnownSpell): Int? {
+    if (spell.xpOverride == null && !spell.incomplete && MagicEquipmentRules.learnXpCost(spell.cost) == null) return null
+    val others = character.magic.spells.filterNot { it.uid == spell.uid }
+    fun xp(spells: List<KnownSpell>) = MagicEquipmentRules.learnedSpellXp(character.copy(magic = character.magic.copy(spells = spells)))
+    return xp(others + spell.copy(learned = true)) - xp(others)
+}
+
+internal fun SpellCatalogEntry.asKnownSpell(): KnownSpell =
+    KnownSpell(uid = "catalog:$id", catalogId = id, name = name, school = school, cost = cost, manaText = manaText, incomplete = incomplete)
 
 /** The spellbook grouped by school (rulebook order), filtered by learned state, a school chip and a search over name and text. */
 fun editorSpellGroups(character: DublCharacter, filter: EditorSpellFilter, school: String?, query: String): List<EditorSpellGroup> =
@@ -88,7 +107,7 @@ fun editorSpellGroups(character: DublCharacter, filter: EditorSpellFilter, schoo
                 school = name,
                 power = MagicEquipmentRules.schoolPower(character, name),
                 rows = spells.sortedBy { it.name.lowercase() }.map { spell ->
-                    EditorSpellRow(spell.uid, spell.name, sheetSpellManaLabel(spell), spell.learned, editorSpellLearnXp(spell), sheetSpellWeakText(character, spell))
+                    EditorSpellRow(spell.uid, spell.name, sheetSpellManaLabel(spell), spell.learned, editorSpellLearnXp(character, spell), sheetSpellWeakText(character, spell))
                 },
             )
         }
@@ -144,7 +163,7 @@ private fun xpText(xp: Int?): String = xp?.let { "изучить $it XP" } ?: "�
 
 fun editorSpellDetail(character: DublCharacter, spell: KnownSpell): EditorSpellDetail = EditorSpellDetail(
     title = spell.name,
-    subtitle = listOf(spell.school, sheetSpellManaLabel(spell), xpText(editorSpellLearnXp(spell))).filter { it.isNotBlank() }.joinToString(" · "),
+    subtitle = listOf(spell.school, sheetSpellManaLabel(spell), xpText(editorSpellLearnXp(character, spell))).filter { it.isNotBlank() }.joinToString(" · "),
     facts = facts(spell.time, spell.range, spell.area, spell.action, spell.duration),
     description = spell.description,
     enhancement = spell.enhancement,
@@ -157,7 +176,7 @@ fun editorSpellDetail(character: DublCharacter, entry: SpellCatalogEntry): Edito
     val usability = MagicEquipmentRules.spellUsability(character, entry)
     return EditorSpellDetail(
         title = entry.name,
-        subtitle = listOf(entry.school, "${entry.manaText.trim().ifBlank { entry.cost.toString() }} маны", xpText(MagicEquipmentRules.learnXpCost(entry.cost)))
+        subtitle = listOf(entry.school, "${entry.manaText.trim().ifBlank { entry.cost.toString() }} маны", xpText(editorSpellLearnXp(character, entry.asKnownSpell())))
             .filter { it.isNotBlank() }.joinToString(" · "),
         facts = facts(entry.time, entry.range, entry.area, entry.action, entry.duration),
         description = entry.description,

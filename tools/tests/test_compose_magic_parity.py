@@ -48,6 +48,8 @@ def test_custom_spell_save_keeps_mana_text_in_sync_with_numeric_cost():
 
 
 def test_school_power_and_magic_numeric_inputs_do_not_have_desktop_only_digit_caps():
-    assert 'host.setMagicSchoolPower(school.name, school.power + 1)' in STEP
+    # Power steps keep the school's note (updateMagicSchool) and have no upper cap.
+    assert 'editorStepSchoolPower(host, state, school.index, +1)' in STEP
+    assert 'host.updateMagicSchool(index, school.name, next, school.note)' in ACTIONS
     for cap in ('.take(2)', '.take(3)', '.take(5)'):
         assert cap not in DIALOGS, cap

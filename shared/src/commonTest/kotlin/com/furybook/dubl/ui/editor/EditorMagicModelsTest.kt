@@ -90,4 +90,32 @@ class EditorMagicModelsTest {
         assertEquals(listOf("Время" to "1 ОД"), detail.facts)
         assertNull(editorSpellDetail(mage, shield).weakText)
     }
+
+    @Test
+    fun schoolDetailOffersRename() {
+        val choices = editorSchoolChoices(mage, index = 1)
+        assertEquals("Ограждение", choices.first { it == "Ограждение" })
+        assertFalse("Разрушение" in choices)
+        assertEquals(12, choices.size)
+        assertEquals(editorAddableSchools(mage), editorSchoolChoices(mage, index = null))
+    }
+
+    @Test
+    fun spellXpComesFromTheRule() {
+        val incomplete = spark.copy(uid = "s9", incomplete = true)
+        assertEquals(0, editorSpellLearnXp(mage, incomplete))
+        assertEquals(20, editorSpellLearnXp(mage, spark))
+        assertEquals(5, editorSpellLearnXp(mage, spark.copy(xpOverride = 5)))
+        assertEquals(null, editorSpellLearnXp(mage, spark.copy(cost = 25)))
+        val row = editorSpellGroups(mage.copy(magic = mage.magic.copy(spells = listOf(incomplete))), EditorSpellFilter.ALL, null, "").single().rows.single()
+        assertEquals(0, row.learnXp)
+    }
+
+    @Test
+    fun headerUsesTheSheetsManaMaximum() {
+        val overridden = mage.copy(magic = mage.magic.copy(manaRank = 0), manaMaximumOverride = 15)
+        val header = editorMagicHeader(FakeSheetHost(overridden))
+        assertEquals(15, header.manaMaximum)
+        assertNull(header.zeroReason)
+    }
 }
