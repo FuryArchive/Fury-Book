@@ -10,9 +10,9 @@ Builds on:
 ## Why
 
 Магия and Снаряжение are still the old per-platform screens:
-- **They have drifted apart.**
-  - Android can mark spells learned, toggle items carried, set quantity, and refresh catalog loads.
-  - Desktop/web have the mana-rank stepper and a manual load override.
+- **They have drifted apart** (desktop and web are identical, Android is its own).
+  - Android has the spell learned switch, item carried switch and quantity on its main screens, and repairs catalog loads when the gear tab opens.
+  - Desktop keeps those inside edit dialogs, has catalog «Подробнее», and repairs loads at startup.
 - **Leftovers the revamp plan lists for this stage:** dead mana ± at 0/0, a developer note shown to players, and gear descriptions that repeat the stats.
 
 What the owner wants:
@@ -54,16 +54,16 @@ What the owner wants:
 | Mana current ± (dead on desktop at 0/0) | Sheet mana meter (exists) + «Сотворить» window |
 | Mana rank 0–5 with XP (desktop) | Editor Магия: mana rank stepper with XP |
 | Mana recovery per round, XP breakdown (rank · schools · spells) | Editor Магия header; sheet Заклинания header shows recovery |
-| Schools: add / edit (name, power, note) / delete / power stepper; «Только изученные» filter | Editor Магия: schools list |
+| Schools: add / edit (name from the school list, power, note) / delete / power stepper; «Только изученные» filter | Editor Магия: schools list |
 | Spellbook: known spells, learned toggle (Android), usability («Требуется сила школы N») | Editor Магия: spellbook; learned spells also on the sheet |
-| Spell catalog: search, school filter, add | Editor Магия: «+ Из каталога» |
+| Spell catalog: search, school filter, «Подробнее» (full card, book discrepancy, school-power check) (desktop), add | Editor Магия: «+ Из каталога» with a read-only detail before «Добавить» |
 | Own spell: add / edit / delete | Editor Магия: «+ Своё заклинание», spell detail |
 | Inventory list, search, count «N шт. · M позиций» | Editor Снаряжение |
-| Gear catalog: search, sections, owned counts, add | Editor Снаряжение: «+ Из каталога» |
+| Gear catalog: search, sections, owned counts, «Подробнее» (category, load, all fields) (desktop), add | Editor Снаряжение: «+ Из каталога» with a read-only detail before «Добавить» |
 | Own item: add / edit / delete | Editor Снаряжение: «+ Свой предмет», item detail |
 | Carried toggle, quantity (Android) | Editor Снаряжение item detail; sheet item detail (play changes) |
 | Load: current / capacity, burden label, automatic or manual value (desktop) | Editor Снаряжение header (both); sheet Снаряжение header (read-only line) |
-| Catalog load repair `syncCatalogLoads` (Android, on screen open) | Run when the editor opens, before its snapshot (all platforms) |
+| Catalog load repair `syncCatalogLoads` (Android on gear-tab open; desktop/web at startup) | Shared: whenever the sheet shows a character (start, switch, reload), before any editor snapshot; desktop's startup call stays |
 
 ## Design
 
@@ -82,6 +82,7 @@ What the owner wants:
   - «Сотворить · N маны» spends N via `changeResource(MANA, −N)`. It is disabled when N > current mana, and says why.
   - **Builder's call:** too-weak school power warns but doesn't block, like the old screens.
 - Empty state (magic on, no learned spells): «Заклинаний нет».
+- The spell's `conflictNote` shows under «Расхождение книги», as perks do since stage 4.
 - **«+ Заклинание»** in the header opens the editor at Магия.
 
 ### Sheet: Снаряжение block
@@ -98,7 +99,7 @@ What the owner wants:
   - quantity −/+;
   - «Не нести» (the item leaves the sheet; it stays in the editor's inventory);
   - «Изменить в редакторе» (opens the editor at Снаряжение with that item open).
-- Quantity and carried are play changes. They go through the platform undo toast like resource changes.
+- Quantity (never below 1) and carried are play changes, saved at once. They get no undo toast: gear has no undo today, and adding it would change the application layer. −/+ and the editor reverse them (builder's call).
 - Empty state: «Снаряжения нет».
 - **«+ Предмет»** in the header opens the editor at Снаряжение.
 
@@ -120,17 +121,19 @@ What the owner wants:
 
 Steps become: Развитие · Основа · Характеристики · Умения · Навыки · **Магия** · **Снаряжение** · Итог. The Магия step is always present.
 
-- **Магия выключена** (manaEnabled off and no spells): a card with the same mana switch as Основа (`setIdentity`), and a short line saying what turns on.
+- **Магия выключена** (manaEnabled off): a card **above** the step body, with the same mana switch as Основа (`setIdentity`) and a short line saying what turns on. Schools and spells stay manageable under it, as on the old screens.
 - **Header:**
   - mana rank stepper 0–5 with its XP (`MagicEquipmentRules.manaRankXp`);
   - mana maximum and recovery;
   - XP line «ранг маны · школы · заклинания» from `CharacterEconomy`.
-- **Schools:** rows with a power stepper (`setSchoolPower`) and the XP per power (`magicSchoolRankXp`). «+ Школа» uses the catalog school names plus a free name, power and note. A school detail edits the name, power and note and offers «Удалить» with «Вернуть».
+  - Mana rank is creation-only in the rules (`setMagicManaRank` refuses after creation, as both old screens show). After creation the stepper is disabled with «Ранг маны меняется только при создании; дальше — навык «Увеличенный запас маны»», plus a link that opens that perk in Навыки.
+  - Mana maximum needs rank > 0 and a school with power > 0; the header says so when it is 0.
+- **Schools:** rows with a power stepper (`setSchoolPower`) and the XP per power (`magicSchoolRankXp`). «+ Школа» picks from the rulebook school list (`MagicSchoolCatalog`; the rules only save and price those names), with power and note. A school detail edits the name, power and note and offers «Удалить» with «Вернуть».
 - **Spellbook:**
   - known spells grouped by school, with a filter «Все / Изученные / Неизученные», and search;
   - **row:** learned switch with the XP it costs, and the usability warning;
   - **detail:** full text, «Изменить» (spell form: name, school, cost, mana text, time, range, area, check, duration, description, enhancement, XP override, «неполное»), «Удалить» with «Вернуть»;
-  - **«+ Из каталога»:** search, school chips, «только доступные по силе школы», each with «Добавить» (already-known spells marked);
+  - **«+ Из каталога»:** search, school chips, «только доступные по силе школы». Each entry opens a read-only detail (full card, book discrepancy, school-power check, the XP it will cost) with «Добавить». Adding learns the spell (`addCatalogSpell`), so reading first matters. Already-known spells are marked;
   - **«+ Своё заклинание»:** the same form.
 - Split/overlay layout like the Навыки step (`editorPerksSplit`).
 
@@ -139,7 +142,7 @@ Steps become: Развитие · Основа · Характеристики �
 - **Header:** load L/C with the burden label and penalty; «Нагрузка: автоматически / вручную» (`setLoadAutomatic`); a manual value field when manual (`setManualLoad`); the count «N шт. · M позиций».
 - **Inventory:** search, groups like the sheet (weapons, armour, other), each row with a carried switch and quantity.
 - **Item detail:** fields, description (deduplicated), carried, quantity, «Изменить» (item form: name, quantity, load, category, section, description, fields as «Название: значение» lines), «Удалить» with «Вернуть».
-- **«+ Из каталога»:** search, section/category chips, owned count, «Добавить». **«+ Свой предмет»:** the item form.
+- **«+ Из каталога»:** search, category chips (the catalog's duplicate spellings merged), owned count. Each entry opens a read-only detail (category, load, all fields) with «Добавить». **«+ Свой предмет»:** the item form.
 - Opening the editor at an item (from the sheet) opens that item's detail.
 
 ### Change list
@@ -175,6 +178,14 @@ Each priced like other lines: `CharacterEconomy` on `before` with that one chang
 - **Undo toast:** sheet play changes (mana, quantity, carried) report to the platform undo toast; they are not editor changes.
 - **Layout and themes:** works at 360dp, tablets and desktop, in all five themes.
 - **Python guards:** guards pinning the old screens are repointed when they guard a function and retired when they pinned old layout. The failing baseline may only shrink.
+
+## Decisions from the builder check (builder's calls)
+
+- **No free-name schools.** The rules only save and price rulebook school names, and rules stay unchanged. The form picks from the list, which also fixes Android's misleading «уже существует» on free text.
+- **Catalog loads are repaired whenever the sheet shows a character.** That way the sheet's load line and the burden penalty on defence and attacks are right without opening the editor.
+- **Both catalog pickers get a read-only detail before «Добавить»** (desktop's «Подробнее»; nothing lost).
+- **Mana rank stays creation-only** (rules unchanged); after creation the step points to the «Увеличенный запас маны» perk. The «Магия выключена» card sits above the step body.
+- **Gear play changes on the sheet have no undo toast** (there is none today).
 
 ## Left to the builder
 
