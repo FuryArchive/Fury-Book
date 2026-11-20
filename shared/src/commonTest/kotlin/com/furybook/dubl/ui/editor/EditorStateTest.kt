@@ -163,4 +163,71 @@ class EditorStateTest {
         state.open(host, forceBasics = false)
         assertTrue(state.plannedIds.isEmpty())
     }
+
+    private fun hornetHost() = FakeSheetHost(EditorFixtures.hornet, developmentCatalogOverride = EditorFixtures.catalog)
+
+    @Test
+    fun removeOwnPerkOffersReturn() {
+        val host = hornetHost()
+        val state = EditorState()
+        state.open(host, forceBasics = false)
+        val id = host.addCustomDevelopment(EditorFixtures.entry("", "Гадание", cost = 25))!!
+        host.setDevelopmentRank(id, 1)
+        state.togglePlanned(id)
+        state.selectChoices(id)
+        editorRemoveOwnPerk(host, state, id, "Гадание")
+        assertTrue(host.active.customDevelopmentEntries.none { it.id == id })
+        assertEquals(null, state.selectedEntryId)
+        assertTrue(id !in state.plannedIds)
+        assertTrue(state.toastUndoable)
+        assertTrue(state.undoToast(host))
+        assertEquals(1, host.active.development.getValue(id).rank)
+        assertTrue(host.active.customDevelopmentEntries.any { it.id == id })
+    }
+
+    @Test
+    fun resetPerkOffersReturn() {
+        val host = hornetHost()
+        val state = EditorState()
+        state.open(host, forceBasics = false)
+        host.setDevelopmentOverride(EditorFixtures.keenHearing.copy(cost = 10))
+        state.selectChoices("feat_hear")
+        editorResetPerk(host, state, "feat_hear", "Острый слух")
+        assertEquals(30, host.developmentCatalog.byId("feat_hear")!!.cost)
+        assertEquals("feat_hear", state.selectedEntryId)
+        assertTrue(state.undoToast(host))
+        assertEquals(10, host.developmentCatalog.byId("feat_hear")!!.cost)
+    }
+
+    @Test
+    fun newPerkOpensInDetail() {
+        val host = hornetHost()
+        val state = EditorState()
+        state.open(host, forceBasics = false)
+        val form = editorPerkForm(editorNewPerk()).copy(name = "Гадание")
+        assertTrue(editorSavePerk(host, state, form, editorNewPerk(), EditorPerkFormMode.NEW))
+        val id = host.active.customDevelopmentEntries.single().id
+        assertEquals(EditorStep.PERKS, state.step)
+        assertEquals(id, state.selectedEntryId)
+        assertFalse(editorSavePerk(host, state, form.copy(name = ""), editorNewPerk(), EditorPerkFormMode.NEW))
+        val edited = editorPerkForm(EditorFixtures.keenHearing).copy(cost = "12")
+        assertTrue(editorSavePerk(host, state, edited, EditorFixtures.keenHearing, EditorPerkFormMode.LOCAL_EDIT))
+        assertEquals(12, host.developmentCatalog.byId("feat_hear")!!.cost)
+        val own = host.developmentCatalog.byId(id)!!
+        assertTrue(editorSavePerk(host, state, editorPerkForm(own).copy(name = "Ворожба"), own, EditorPerkFormMode.EDIT_OWN))
+        assertEquals("Ворожба", host.developmentCatalog.byId(id)!!.name)
+    }
+
+    @Test
+    fun unchangedLocalEditStoresNothing() {
+        val host = hornetHost()
+        val state = EditorState()
+        state.open(host, forceBasics = false)
+        assertTrue(editorSavePerk(host, state, editorPerkForm(EditorFixtures.keenHearing), EditorFixtures.keenHearing, EditorPerkFormMode.LOCAL_EDIT))
+        assertTrue(host.active.developmentOverrides.isEmpty())
+        host.setDevelopmentOverride(EditorFixtures.keenHearing.copy(cost = 10))
+        val edited = host.developmentCatalog.byId("feat_hear")!!
+        assertTrue(editorSavePerk(host, state, editorPerkForm(edited).copy(cost = "30"), edited, EditorPerkFormMode.LOCAL_EDIT))
+        assertTrue(host.active.developmentOverrides.isEmpty())
+    }
 }

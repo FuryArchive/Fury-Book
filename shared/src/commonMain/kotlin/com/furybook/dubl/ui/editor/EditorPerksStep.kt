@@ -37,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.furybook.dubl.model.DevelopmentEntry
 import com.furybook.dubl.model.RequirementStatus
 import com.furybook.dubl.ui.sheet.SheetLayout
 import com.furybook.ui.components.FuryDialogAction
@@ -74,6 +75,11 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
         context.perkGroups(state.perkKind, state.perkFilter, state.perkQuery, keep = state.selectedEntryId, planned = state.plannedIds)
     }
     val plan = remember(data, state.plannedIds) { context.planSummary(state.plannedIds) }
+    var form by remember { mutableStateOf<Pair<DevelopmentEntry, EditorPerkFormMode>?>(null) }
+    val openForm: (String?, EditorPerkFormMode) -> Unit = { id, mode ->
+        val base = if (id == null) editorNewPerk() else host.developmentCatalog.byId(id)
+        if (base != null) form = base to mode
+    }
     val selected = state.selectedEntryId
     val detail = remember(data, selected, state.choiceSelections, state.optionIndex) {
         selected?.let { context.perkDetail(it, state.choiceSelections, state.optionIndex) }
@@ -81,7 +87,7 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
     val padding = editorContentPadding(layout)
     val header: @Composable () -> Unit = {
         Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
-            PerksHeader(state, kinds, kindCounts, counts, layout)
+            PerksHeader(state, kinds, kindCounts, counts, layout) { openForm(null, EditorPerkFormMode.NEW) }
             plan?.let { PlanCard(host, state, it, layout) }
         }
     }
@@ -101,14 +107,14 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
                             Text("Выберите навык слева — здесь будут правила, требования и кнопка «Взять».", color = FuryColors.current.muted, style = MaterialTheme.typography.bodySmall)
                         }
                     } else {
-                        PerkDetail(host, state, context, detail, layout, showBack = false)
+                        PerkDetail(host, state, context, detail, layout, showBack = false, openForm)
                     }
                 }
             }
         }
     } else if (detail != null) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding)) {
-            PerkDetail(host, state, context, detail, layout, showBack = true)
+            PerkDetail(host, state, context, detail, layout, showBack = true, openForm)
         }
     } else {
         LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(padding), verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -117,6 +123,7 @@ internal fun EditorPerksStep(host: DublEditorHost, state: EditorState, data: Edi
         }
     }
     }
+    form?.let { (base, mode) -> EditorPerkFormDialog(host, state, base, mode, layout) { form = null } }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -127,10 +134,16 @@ private fun PerksHeader(
     kindCounts: Map<EditorPerkKind, Int>,
     counts: Map<EditorPerkFilter, Int>,
     layout: SheetLayout,
+    onNewPerk: () -> Unit,
 ) {
     val control = editorControl(layout)
     Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
-        EditorStepTitle("Навыки", "Нажмите навык — откроются правила, требования и кнопка «Взять». Недостающие ступени берутся цепочкой.")
+        Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+            Box(Modifier.weight(1f)) {
+                EditorStepTitle("Навыки", "Нажмите навык — откроются правила, требования и кнопка «Взять». Недостающие ступени берутся цепочкой.")
+            }
+            EditorOutlineButton("+ Свой навык", onNewPerk, control)
+        }
         // Wraps rather than scrolls: «Взятые» must never hide off the edge of a phone.
         FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             kinds.forEach { kind ->
@@ -219,7 +232,10 @@ private fun PerkCard(card: EditorPerkCard, selected: Boolean, layout: SheetLayou
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PerkDetail(host: DublEditorHost, state: EditorState, context: EditorPerkContext, detail: EditorPerkDetail, layout: SheetLayout, showBack: Boolean) {
+private fun PerkDetail(
+    host: DublEditorHost, state: EditorState, context: EditorPerkContext, detail: EditorPerkDetail, layout: SheetLayout, showBack: Boolean,
+    openForm: (String?, EditorPerkFormMode) -> Unit,
+) {
     val p = FuryColors.current
     val control = editorControl(layout)
     var confirmForce by remember(detail.entryId) { mutableStateOf(false) }
@@ -305,6 +321,22 @@ private fun PerkDetail(host: DublEditorHost, state: EditorState, context: Editor
             val remove = detail.removeAction
             if (remove != null && detail.removeLabel != null) {
                 EditorOutlineButton(detail.removeLabel, { applyPerkAction(host, state, detail.entryId, detail.name, remove, chain = false) }, control, accent = true)
+            }
+        }
+        EditorOverline("Запись", Modifier.padding(top = FurySpacing.xs))
+        // The record itself: a local edit of a rulebook perk, or the player's own perk.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+            when (detail.origin) {
+                EditorPerkOrigin.CUSTOM -> {
+                    EditorOutlineButton("Редактировать свою запись", { openForm(detail.entryId, EditorPerkFormMode.EDIT_OWN) }, control)
+                    EditorOutlineButton("Удалить свою запись", { editorRemoveOwnPerk(host, state, detail.entryId, detail.name) }, control, accent = true)
+                }
+                else -> {
+                    EditorOutlineButton("Локальная правка", { openForm(detail.entryId, EditorPerkFormMode.LOCAL_EDIT) }, control)
+                    if (detail.origin == EditorPerkOrigin.BOOK_EDITED) {
+                        EditorOutlineButton("Сбросить к рулбуку", { editorResetPerk(host, state, detail.entryId, detail.name) }, control, accent = true)
+                    }
+                }
             }
         }
     }

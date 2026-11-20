@@ -1,6 +1,8 @@
 package com.furybook.dubl.ui.editor
 
+import com.furybook.dubl.model.DevelopmentEntry
 import com.furybook.dubl.model.DevelopmentEntryKind
+import com.furybook.dubl.model.normalizedLocalCopy
 
 /** Runs a perk action and confirms it in the editor toast («Взято: …» or the rules' refusal message). */
 internal fun applyPerkAction(
@@ -37,4 +39,47 @@ internal fun EditorState.openPerk(context: EditorPerkContext, entryId: String) {
     perkFilter = EditorPerkFilter.ALL
     perkQuery = ""
     selectChoices(entryId)
+}
+
+/** «Удалить свою запись»: drops the record and its ranks; «Вернуть» brings both back. Closes the detail and the plan entry. */
+internal fun editorRemoveOwnPerk(host: DublEditorHost, state: EditorState, entryId: String, name: String) {
+    val before = host.restorePoint()
+    host.removeCustomDevelopment(entryId)
+    state.selectChoices(null)
+    state.dropPlanned(entryId)
+    state.flash("Удалено: $name", undoableAt = host.restorePoint(), undoTo = before)
+}
+
+/** «Сбросить к рулбуку»: drops the local edit; the detail stays open on the rulebook record. */
+internal fun editorResetPerk(host: DublEditorHost, state: EditorState, entryId: String, name: String) {
+    val before = host.restorePoint()
+    host.resetDevelopmentOverride(entryId)
+    state.flash("Сброшено к рулбуку: $name", undoableAt = host.restorePoint(), undoTo = before)
+}
+
+enum class EditorPerkFormMode(val title: String) {
+    NEW("Своя запись"),
+    EDIT_OWN("Редактировать свою запись"),
+    LOCAL_EDIT("Локальная правка"),
+}
+
+/** Saves the perk form; false (nothing written) while the form has errors or the application refuses it. */
+internal fun editorSavePerk(host: DublEditorHost, state: EditorState, form: EditorPerkForm, base: DevelopmentEntry, mode: EditorPerkFormMode): Boolean {
+    val entry = form.toEntry(base) ?: return false
+    when (mode) {
+        EditorPerkFormMode.NEW -> {
+            val id = host.addCustomDevelopment(entry) ?: return false
+            state.openPerk(EditorPerkContext(host), id)
+        }
+        EditorPerkFormMode.EDIT_OWN -> if (!host.updateCustomDevelopment(entry)) return false
+        // A local edit that matches the rulebook record again is no edit: drop it rather than store a copy.
+        EditorPerkFormMode.LOCAL_EDIT ->
+            if (entry.normalizedLocalCopy(entry.id) == host.canonicalDevelopmentCatalog.byId(entry.id)?.normalizedLocalCopy(entry.id)) {
+                host.resetDevelopmentOverride(entry.id)
+            } else {
+                host.setDevelopmentOverride(entry)
+            }
+    }
+    state.flash("Сохранено: ${entry.name.trim()}")
+    return true
 }
