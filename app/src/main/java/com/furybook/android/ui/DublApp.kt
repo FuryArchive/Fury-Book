@@ -55,7 +55,6 @@ import com.furybook.android.ui.screens.RecentChangeBar
 import com.furybook.android.ui.screens.recentResourceChange
 import com.furybook.dubl.ui.sheet.SheetChange
 import com.furybook.dubl.ui.sheet.SheetChangeReportingHost
-import com.furybook.dubl.ui.sheet.SheetDevelopmentDetailsDialog
 import com.furybook.dubl.ui.sheet.SheetScreen
 import com.furybook.ui.components.FuryButton
 import com.furybook.ui.components.FuryButtonStyle
@@ -293,7 +292,6 @@ private fun AndroidSheet(
             backHandler = { enabled, onBack -> BackHandler(enabled = enabled, onBack = onBack) },
             portraitLoader = { uri -> rememberAndroidPortrait(uri) },
             onPickPortrait = { portraitPicker.launch(arrayOf("image/*")) },
-            developmentDetails = { entryId, close -> SheetDevelopmentDetailsDialog(host, entryId, close) },
             openEditorAtBasics = openEditorAtBasics,
             onOpenEditorConsumed = onOpenEditorConsumed,
             onEditorShown = onEditorShown,

@@ -230,4 +230,25 @@ class EditorStateTest {
         assertTrue(editorSavePerk(host, state, editorPerkForm(edited).copy(cost = "30"), edited, EditorPerkFormMode.LOCAL_EDIT))
         assertTrue(host.active.developmentOverrides.isEmpty())
     }
+
+    @Test
+    fun openAtPerkPicksItsKind() {
+        val chi = EditorFixtures.entry("chi_x", "Поток ЦИ", "Мастерство ЦИ", section = "ЦИ")
+        val host = FakeSheetHost(
+            EditorFixtures.hornet, chiPackEnabled = true,
+            developmentCatalogOverride = com.furybook.dubl.model.DevelopmentCatalog("t", EditorFixtures.catalog.entries + chi),
+        )
+        val state = EditorState()
+        state.open(host, forceBasics = false, entryId = "feat_hear")
+        assertEquals(EditorStep.PERKS, state.step)
+        assertEquals(EditorPerkKind.REGULAR, state.perkKind)
+        assertEquals("feat_hear", state.selectedEntryId)
+        state.open(host, forceBasics = false, entryId = "chi_x")
+        assertEquals(EditorPerkKind.CHI, state.perkKind)
+        state.open(host, forceBasics = false, entryId = "gone")
+        assertEquals(EditorStep.PERKS, state.step)
+        assertEquals(null, state.selectedEntryId)
+        state.open(host, forceBasics = false)
+        assertEquals(EditorStep.DEVELOPMENT, state.step)
+    }
 }

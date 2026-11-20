@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.furybook.dubl.model.DevelopmentAcquisitionPlanner
 import com.furybook.dubl.model.DevelopmentProgress
 import com.furybook.dubl.model.DevelopmentRules
 import com.furybook.dubl.model.RequirementStatus
@@ -35,11 +36,11 @@ import com.furybook.ui.theme.FurySpacing
 import com.furybook.ui.theme.furyOverlineStyle
 
 /**
- * Read-only details of an owned entry (Android OwnedDevelopmentDetailSheet): effect, notes, requirement
- * checks (✓ / ✕ / ?), cost and book conflict. Desktop and web keep their richer dialog until stage 4.
+ * A perk's «Подробнее» on every platform: effect, notes, requirement checks (✓ / ✕ / ?), what it opens, cost
+ * and book conflict. Changing it happens in the editor: «Настроить в редакторе» ([onConfigure]) opens its detail there.
  */
 @Composable
-fun SheetDevelopmentDetailsDialog(host: DublSheetHost, entryId: String, onDismiss: () -> Unit) {
+fun SheetDevelopmentDetailsDialog(host: DublSheetHost, entryId: String, onConfigure: () -> Unit, onDismiss: () -> Unit) {
     val character = host.active
     val entry = host.developmentCatalog.byId(entryId) ?: run { onDismiss(); return }
     val progress = DevelopmentProgress(character.development)
@@ -48,7 +49,8 @@ fun SheetDevelopmentDetailsDialog(host: DublSheetHost, entryId: String, onDismis
         title = entry.name,
         subtitle = "${entry.section} · ${entry.category} · ранг ${progress.rank(entry.id)}/${entry.maxRank}",
         onDismiss = onDismiss,
-        primary = FuryDialogAction("Закрыть", onDismiss),
+        primary = FuryDialogAction("Настроить в редакторе", onConfigure),
+        secondary = FuryDialogAction("Закрыть", onDismiss),
     ) {
         if (entry.tags.isNotEmpty()) Text(entry.tags.joinToString(" · "), color = DublGold, style = MaterialTheme.typography.labelMedium)
         Section("Эффект", entry.benefit)
@@ -62,6 +64,8 @@ fun SheetDevelopmentDetailsDialog(host: DublSheetHost, entryId: String, onDismis
             }
             Text("$mark ${check.text}", color = color, style = MaterialTheme.typography.bodySmall)
         }
+        val unlocks = DevelopmentAcquisitionPlanner(character, host.developmentCatalog).unlocks(entry.id)
+        if (unlocks.isNotEmpty()) Section("Открывает", unlocks.joinToString(", ") { it.name })
         Text(
             if (entry.isAbility) "Стоимость доступа: ${rules.abilityCost(entry, progress.optionIndex(entry.id))} ОС" else "Стоимость ранга: ${entry.cost} XP",
             color = DublGold, style = MaterialTheme.typography.labelLarge,

@@ -699,7 +699,6 @@ private fun WebSheet(
         SheetScreen(
             host,
             portraitLoader = { dataUrl -> rememberWebPortrait(dataUrl) },
-            developmentDetails = { entryId, close -> DesktopSheetDevelopmentDetails(state, entryId, close) },
             onPickPortrait = { pickPortraitDataUrl { dataUrl -> state.setPortrait(dataUrl) } },
             openEditorAtBasics = hooks.openEditorAtBasics,
             onOpenEditorConsumed = hooks.onOpenEditorConsumed,

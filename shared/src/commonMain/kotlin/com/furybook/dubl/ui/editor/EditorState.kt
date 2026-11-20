@@ -66,8 +66,11 @@ class EditorState {
 
     fun dropPlanned(entryId: String) { plannedIds = plannedIds - entryId }
 
-    /** [skillId]: opened from «Настроить в редакторе» — straight to Умения with that skill's panel. */
-    fun open(host: DublEditorHost, forceBasics: Boolean, skillId: String? = null) {
+    /**
+     * [skillId]: opened from «Настроить в редакторе» — straight to Умения with that skill's panel.
+     * [entryId]: the same from a perk's «Подробнее» — straight to Навыки with that perk's detail (the list alone if it is gone).
+     */
+    fun open(host: DublEditorHost, forceBasics: Boolean, skillId: String? = null, entryId: String? = null) {
         val complete = host.active.creationComplete
         snapshot = host.restorePoint()
         step = if (skillId != null) EditorStep.SKILLS else editorStartStep(complete, forceBasics)
@@ -82,6 +85,11 @@ class EditorState {
         selectChoices(null)
         changesOpen = false
         developmentPins = null
+        if (entryId != null) {
+            step = EditorStep.PERKS
+            val context = EditorPerkContext(host)
+            if (context.catalog.byId(entryId) != null) openPerk(context, entryId)
+        }
     }
 
     /** Another character became active (picker, cloud pull): start over, so no snapshot ever crosses characters. */

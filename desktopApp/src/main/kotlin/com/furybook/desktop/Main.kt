@@ -46,7 +46,6 @@ import com.furybook.ui.layout.layoutClassForWidth
 import com.furybook.ui.theme.FuryThemedApp
 import com.furybook.dubl.data.DesktopThemeStore
 import com.furybook.ui.components.FuryThemeButton
-import com.furybook.desktop.screens.DesktopSheetDevelopmentDetails
 import com.furybook.desktop.screens.CampaignScreen
 import com.furybook.desktop.screens.CharactersScreen
 import com.furybook.desktop.screens.DevelopmentScreen
@@ -275,7 +274,6 @@ private fun DesktopSheet(
         SheetScreen(
             host,
             portraitLoader = { path -> rememberDesktopPortrait(path) },
-            developmentDetails = { entryId, close -> DesktopSheetDevelopmentDetails(state, entryId, close) },
             onPickPortrait = { chooseDesktopPortraitFile()?.let(state::importPortrait)?.let(state::setPortrait) },
             openEditorAtBasics = hooks.openEditorAtBasics,
             onOpenEditorConsumed = hooks.onOpenEditorConsumed,

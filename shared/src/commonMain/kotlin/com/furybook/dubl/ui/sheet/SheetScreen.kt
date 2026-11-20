@@ -54,7 +54,7 @@ private val TRAY_WIDTH = 340.dp
 /**
  * The character sheet: the play view, or the character editor while ✎ is on. Owns roll state,
  * the open popup and the mode; rolls open in a bottom sheet (phone), a centred dialog (wide) or the
- * docked tray. Platform pieces come in as callbacks: portrait loading/picking and development details.
+ * docked tray. Platform pieces come in as callbacks: portrait loading and picking.
  */
 @Composable
 fun SheetScreen(
@@ -62,8 +62,6 @@ fun SheetScreen(
     modifier: Modifier = Modifier,
     portraitLoader: SheetPortraitLoader? = null,
     onPickPortrait: (() -> Unit)? = null,
-    /** Details of an owned development entry; platform-owned until stage 4 rebuilds Навыки. */
-    developmentDetails: (@Composable (entryId: String, onDismiss: () -> Unit) -> Unit)? = null,
     /** Android passes its BackHandler so system Back closes the editor instead of leaving the app. */
     backHandler: @Composable (enabled: Boolean, onBack: () -> Unit) -> Unit = { _, _ -> },
     /** Set right after «Новый персонаж»: open the editor at Основа, then [onOpenEditorConsumed]. */
@@ -83,7 +81,7 @@ fun SheetScreen(
     backHandler(state.editing) { state.updateEditing(false) }
     // A fresh snapshot each time the editor opens, taken in the click/effect that opens it.
     val currentHost by rememberUpdatedState(host)
-    SideEffect { state.onEditorOpening = { forceBasics, skillId -> editorState.open(currentHost, forceBasics, skillId) } }
+    SideEffect { state.onEditorOpening = { forceBasics, skillId, entryId -> editorState.open(currentHost, forceBasics, skillId, entryId) } }
     LaunchedEffect(openEditorAtBasics) {
         if (openEditorAtBasics) {
             state.openEditor(forceBasics = true)
@@ -108,7 +106,7 @@ fun SheetScreen(
             }
         SheetPlayBody(host, layout, state, playState, portrait, TRAY_WIDTH) { rollModifier -> SheetScreenRoll(host, state, rollModifier) }
         SheetScreenRollDialog(host, layout, state)
-        SheetScreenDialog(host, layout, state, developmentDetails)
+        SheetScreenDialog(host, layout, state)
     }
 }
 
@@ -136,7 +134,6 @@ private fun SheetScreenDialog(
     host: DublEditorHost,
     layout: SheetLayout,
     state: SheetScreenState,
-    developmentDetails: (@Composable (String, () -> Unit) -> Unit)?,
 ) {
     val close = state::closeDialog
     when (val dialog = state.dialog) {
@@ -156,8 +153,9 @@ private fun SheetScreenDialog(
         SheetDialog.Conditions -> SheetConditionsDialog(host, close)
         SheetDialog.Economy -> SheetEconomyDialog(sheetEconomyView(host), host, close)
         SheetDialog.Resources -> SheetResourcesDialog(host, close)
-        is SheetDialog.DevelopmentDetails ->
-            developmentDetails?.invoke(dialog.entryId, close) ?: SheetDevelopmentDetailsDialog(host, dialog.entryId, close)
+        is SheetDialog.DevelopmentDetails -> SheetDevelopmentDetailsDialog(
+            host, dialog.entryId, onConfigure = { state.openEditor(forceBasics = false, entryId = dialog.entryId) }, onDismiss = close,
+        )
         is SheetDialog.SkillInfo -> SheetSkillInfoDialog(host, dialog.skillId, onConfigure = { state.openEditor(forceBasics = false, skillId = dialog.skillId) }, onDismiss = close)
     }
 }

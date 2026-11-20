@@ -82,14 +82,17 @@ class SheetScreenState {
     }
 
     /** Set by the screen: takes the editor's snapshot when a visit starts, outside composition. */
-    var onEditorOpening: ((forceBasics: Boolean, skillId: String?) -> Unit)? = null
+    var onEditorOpening: ((forceBasics: Boolean, skillId: String?, entryId: String?) -> Unit)? = null
 
-    /** [skillId]: «Настроить в редакторе» from «Об умении» — the editor opens on that skill's panel. */
-    fun openEditor(forceBasics: Boolean, skillId: String? = null) {
+    /**
+     * [skillId]: «Настроить в редакторе» from «Об умении» — the editor opens on that skill's panel;
+     * [entryId]: the same from a perk's «Подробнее» — on that perk's detail.
+     */
+    fun openEditor(forceBasics: Boolean, skillId: String? = null, entryId: String? = null) {
         editorForceBasics = forceBasics
         if (!editing) {
             editorSession++
-            onEditorOpening?.invoke(forceBasics, skillId)
+            onEditorOpening?.invoke(forceBasics, skillId, entryId)
         }
         rollOpen = false
         updateEditing(true)
