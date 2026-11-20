@@ -1,0 +1,234 @@
+package com.furybook.dubl.ui.editor
+
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.furybook.dubl.application.CharacterRestorePoint
+import com.furybook.dubl.model.SkillCategory
+
+enum class EditorStep(val title: String) {
+    DEVELOPMENT("Развитие"),
+    BASICS("Основа"),
+    ATTRIBUTES("Характеристики"),
+    SKILLS("Умения"),
+    PERKS("Навыки"),
+    MAGIC("Магия"),
+    GEAR("Снаряжение"),
+    SUMMARY("Итог"),
+}
+
+/** Where the sheet asks the editor to open: a spell or the spell catalog, an item or the gear catalog. */
+sealed interface EditorOpenTarget {
+    data class Magic(val spellUid: String? = null, val catalog: Boolean = false) : EditorOpenTarget
+    data class Gear(val itemUid: String? = null, val catalog: Boolean = false) : EditorOpenTarget
+}
+
+/** What the Магия / Снаряжение step shows beside (or over) its list. */
+sealed interface EditorPane {
+    data class Spell(val uid: String) : EditorPane
+    data class CatalogSpell(val id: String) : EditorPane
+    data object SpellCatalog : EditorPane
+    data class School(val index: Int) : EditorPane
+    data class Item(val uid: String) : EditorPane
+    data class CatalogItem(val id: String) : EditorPane
+    data object GearCatalog : EditorPane
+}
+
+enum class EditorSpellFilter { ALL, LEARNED, UNLEARNED }
+
+enum class EditorPerkKind { REGULAR, SPECIAL, MARTIAL, CHI, OWNED }
+
+enum class EditorPerkFilter { ALL, AVAILABLE, ALMOST, PLAN }
+
+private val CREATION_STEPS = listOf(
+    EditorStep.BASICS, EditorStep.ATTRIBUTES, EditorStep.SKILLS, EditorStep.PERKS, EditorStep.MAGIC, EditorStep.GEAR, EditorStep.SUMMARY,
+)
+
+/** A character in creation walks the seven steps; a finished one also gets the Развитие landing, first. */
+fun editorSteps(creationComplete: Boolean): List<EditorStep> =
+    if (creationComplete) listOf(EditorStep.DEVELOPMENT) + CREATION_STEPS else CREATION_STEPS
+
+fun editorStartStep(creationComplete: Boolean, forceBasics: Boolean): EditorStep =
+    if (!creationComplete || forceBasics) EditorStep.BASICS else EditorStep.DEVELOPMENT
+
+/** Editor UI state. The snapshot taken on [open] is what «Отменить всё» restores and the changes list compares against. */
+class EditorState {
+    var step: EditorStep by mutableStateOf(EditorStep.BASICS)
+    var perkKind: EditorPerkKind by mutableStateOf(EditorPerkKind.REGULAR)
+    var perkFilter: EditorPerkFilter by mutableStateOf(EditorPerkFilter.ALL)
+    var perkQuery: String by mutableStateOf("")
+    var skillQuery: String by mutableStateOf("")
+    var skillsRankedOnly: Boolean by mutableStateOf(true)
+    var selectedEntryId: String? by mutableStateOf(null)
+    var choiceSelections: Map<String, Int> by mutableStateOf(emptyMap())
+    var optionIndex: Int? by mutableStateOf(null)
+    var changesOpen: Boolean by mutableStateOf(false)
+    /** Short confirmation shown at the bottom of the editor («Взято: …»); the screen clears it after a moment. */
+    var toast: String? by mutableStateOf(null)
+    var snapshot: CharacterRestorePoint? by mutableStateOf(null)
+        private set
+    /** Bumped by «Отменить всё» and «Вернуть», so typed-but-unsaved field text is dropped instead of written back. */
+    var restoreGeneration: Int by mutableStateOf(0)
+        private set
+    /** Rows Развитие pinned on its first view of this visit; cleared when the visit or the step changes. */
+    var developmentPins: EditorDevelopmentPins? = null
+
+    fun markRestored() { restoreGeneration++ }
+
+    /** Skill whose panel is open on the Умения step; [skillCategory] the category chip filter. */
+    var skillPanelId: String? by mutableStateOf(null)
+    var skillCategory: SkillCategory? by mutableStateOf(null)
+
+    /** «План персонажа»: perks marked ☆ during this visit. Session-only, as the old Навыки tab kept it. */
+    var plannedIds: Set<String> by mutableStateOf(emptySet())
+        private set
+
+    fun togglePlanned(entryId: String) {
+        plannedIds = if (entryId in plannedIds) plannedIds - entryId else plannedIds + entryId
+    }
+
+    fun dropPlanned(entryId: String) { plannedIds = plannedIds - entryId }
+
+    /** Paths picked for the plan's alternative requirements. */
+    var planChoices: Map<String, Int> by mutableStateOf(emptyMap())
+
+    // Магия and Снаряжение: the open pane and the list filters; all reset when a visit starts.
+    var magicPane: EditorPane? by mutableStateOf(null)
+    var gearPane: EditorPane? by mutableStateOf(null)
+    var spellFilter: EditorSpellFilter by mutableStateOf(EditorSpellFilter.ALL)
+    var spellSchool: String? by mutableStateOf(null)
+    var spellQuery: String by mutableStateOf("")
+    var spellCatalogQuery: String by mutableStateOf("")
+    var spellCatalogSchool: String? by mutableStateOf(null)
+    var spellCatalogUsableOnly: Boolean by mutableStateOf(false)
+    var gearQuery: String by mutableStateOf("")
+    var gearCatalogQuery: String by mutableStateOf("")
+    /** A [com.furybook.dubl.ui.sheet.gearCategoryKey]; null = every category. */
+    var gearCatalogCategory: String? by mutableStateOf(null)
+
+    /**
+     * [skillId]: opened from «Настроить в редакторе» — straight to Умения with that skill's panel.
+     * [entryId]: the same from a perk's «Подробнее» — straight to Навыки with that perk's detail (the list alone if it is gone).
+     * [target]: the sheet's «+ Заклинание», «+ Предмет» or «Изменить в редакторе» — Магия or Снаряжение, at that spell,
+     * item or catalog (the list alone if the spell or item is gone).
+     */
+    fun open(host: DublEditorHost, forceBasics: Boolean, skillId: String? = null, entryId: String? = null, target: EditorOpenTarget? = null) {
+        val complete = host.active.creationComplete
+        snapshot = host.restorePoint()
+        step = if (skillId != null) EditorStep.SKILLS else editorStartStep(complete, forceBasics)
+        perkKind = EditorPerkKind.REGULAR
+        perkFilter = EditorPerkFilter.ALL
+        perkQuery = ""
+        skillQuery = ""
+        skillsRankedOnly = complete && skillId == null
+        skillPanelId = skillId
+        skillCategory = null
+        plannedIds = emptySet()
+        planChoices = emptyMap()
+        selectChoices(null)
+        changesOpen = false
+        developmentPins = null
+        magicPane = null
+        gearPane = null
+        spellFilter = EditorSpellFilter.ALL
+        spellSchool = null
+        spellQuery = ""
+        spellCatalogQuery = ""
+        spellCatalogSchool = null
+        spellCatalogUsableOnly = false
+        gearQuery = ""
+        gearCatalogQuery = ""
+        gearCatalogCategory = null
+        when (target) {
+            null -> Unit
+            is EditorOpenTarget.Magic -> {
+                step = EditorStep.MAGIC
+                magicPane = when {
+                    target.catalog -> EditorPane.SpellCatalog
+                    target.spellUid != null && host.active.magic.spells.any { it.uid == target.spellUid } -> EditorPane.Spell(target.spellUid)
+                    else -> null
+                }
+            }
+            is EditorOpenTarget.Gear -> {
+                step = EditorStep.GEAR
+                gearPane = when {
+                    target.catalog -> EditorPane.GearCatalog
+                    target.itemUid != null && host.active.gear.items.any { it.uid == target.itemUid } -> EditorPane.Item(target.itemUid)
+                    else -> null
+                }
+            }
+        }
+        if (entryId != null) {
+            step = EditorStep.PERKS
+            val context = EditorPerkContext(host)
+            if (context.catalog.byId(entryId) != null) openPerk(context, entryId)
+        }
+    }
+
+    /** Another character became active (picker, cloud pull): start over, so no snapshot ever crosses characters. */
+    fun syncCharacter(host: DublEditorHost) {
+        if (host.active.id != snapshot?.character?.id) open(host, forceBasics = false)
+    }
+
+    /** Selects a perk and forgets the choices made for the previous one. */
+    fun selectChoices(entryId: String?) {
+        selectedEntryId = entryId
+        choiceSelections = emptyMap()
+        optionIndex = null
+    }
+
+    /**
+     * The toast offers «Вернуть» (one-step undo) only right after «Отменить всё», which the application records
+     * as one undo step, and only while the character is still exactly as the restore left it: any later change
+     * takes that undo slot, so «Вернуть» would undo the wrong thing.
+     */
+    var toastUndoable: Boolean by mutableStateOf(false)
+        private set
+    private var undoableAt: CharacterRestorePoint? = null
+    private var undoTo: CharacterRestorePoint? = null
+
+    /**
+     * [undoTo]: what «Вернуть» goes back to for actions the application keeps no undo step for (hide, delete,
+     * «К рулбуку»); without it «Вернуть» is the application's one-step undo («Отменить всё»).
+     */
+    fun flash(text: String, undoableAt: CharacterRestorePoint? = null, undoTo: CharacterRestorePoint? = null) {
+        toast = text
+        this.undoableAt = undoableAt
+        this.undoTo = undoTo
+        toastUndoable = undoableAt != null
+    }
+
+    /** «Вернуть» on the toast; true when something was undone. */
+    fun undoToast(host: DublEditorHost): Boolean {
+        val target = undoTo
+        val undone = if (target != null) host.restore(target) else host.undoLast()
+        if (undone) {
+            markRestored()
+            flash("Изменения возвращены")
+        } else {
+            toast = null
+        }
+        return undone
+    }
+
+    fun dropStaleUndo(current: CharacterRestorePoint) {
+        if (toastUndoable && current != undoableAt) {
+            toastUndoable = false
+            undoableAt = null
+        }
+    }
+
+    fun next(host: DublEditorHost) = move(host, +1)
+
+    fun back(host: DublEditorHost) = move(host, -1)
+
+    private fun move(host: DublEditorHost, delta: Int) {
+        val steps = editorSteps(host.active.creationComplete)
+        val index = steps.indexOf(step).coerceAtLeast(0)
+        step = steps[(index + delta).coerceIn(0, steps.lastIndex)]
+    }
+}
+
+/** Scroll position (px) that centres the current step tab in the tab strip, clamped to the scroll range. */
+fun editorTabScrollTarget(tabStart: Int, tabWidth: Int, viewport: Int, maxScroll: Int): Int =
+    (tabStart + tabWidth / 2 - viewport / 2).coerceIn(0, maxScroll.coerceAtLeast(0))

@@ -1,8 +1,10 @@
 from pathlib import Path
 
+# Stage 4: the Навыки tab is gone. Its ЦИ parity (economy from the pack, the pack-mounted ЦИ tab, automatic access,
+# bounded resource controls, requirement/unlock navigation) now lives in the shared editor and the sheet's ЦИ panel.
 ROOT = Path(__file__).resolve().parents[2]
-DEV = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/DevelopmentScreen.kt'
-SHEET = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt'
+EDITOR = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor'
+SHEET = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet'
 WORKFLOW = ROOT / '.github/workflows/linux-appimage.yml'
 
 
@@ -12,49 +14,49 @@ def read(path: Path) -> str:
 
 
 def test_development_summary_uses_pack_composed_character_economy():
-    text = read(DEV)
-    assert 'remember(character, state.chiPackEnabled) { state.developmentCatalog }' in text
-    assert 'FcpUiSurface.CHARACTER_ECONOMY' in text
-    assert 'FcpUiComponent.XP_LINE' in text
-    assert 'includeChi = showChiEconomy' in text
-    assert 'economy.remainingXp' in text
-    assert 'economy.abilityPointsRemaining' in text
-    assert 'if (showChi) add("ЦИ ${economy.chiXp}")' in text
+    perks = read(EDITOR / 'EditorPerkModels.kt')
+    mounts = read(SHEET / 'SheetEditModels.kt')
+    assert 'includeChi = sheetChiEconomyMounted(host)' in perks
+    assert 'FcpUiSurface.CHARACTER_ECONOMY' in mounts and 'FcpUiComponent.XP_LINE' in mounts
+    assert 'economy.remainingXp' in perks
+    assert 'economy.abilityPointsRemaining' in perks
+    assert 'fun editorCatalogFor(' in read(EDITOR / 'EditorCatalogs.kt')
 
 
 def test_chi_tab_is_mounted_only_from_fcp_ui_contribution():
-    text = read(DEV)
-    assert 'FcpUiSurface.DEVELOPMENT_TABS' in text
-    assert 'FcpUiComponent.DEVELOPMENT_BROWSER' in text
-    assert 'chiTabUi.order' in text
-    assert 'developmentTabs.forEach' in text
+    perks = read(EDITOR / 'EditorPerkModels.kt')
+    assert 'FcpUiSurface.DEVELOPMENT_TABS' in perks
+    assert 'FcpUiComponent.DEVELOPMENT_BROWSER' in perks
+    assert 'FcpOrderedUiItem(chi.order' in perks
+    assert 'tabs.forEach' in read(EDITOR / 'EditorPerksStep.kt')
 
 
 def test_chi_card_matches_android_automatic_access_semantics():
-    text = read(DEV)
-    assert 'character.chiAutomaticAccess' in text
-    assert 'character.chiProgressionBonus' in text
-    assert 'character.chiBaseMaximum' in text
-    assert 'checked = character.chiActive' in text
-    assert 'enabled = !automaticAccess' in text
-    assert 'Ресурс открыт способностью «Внутренняя ЦИ»' in text
+    card = read(EDITOR / 'EditorChiCard.kt')
+    assert 'c.chiAutomaticAccess' in card
+    assert 'c.chiProgressionBonus' in card
+    assert 'c.chiBaseMaximum' in card
+    assert 'card.active' in card and 'if (!card.locked)' in card
+    assert 'Ресурс открыт способностью «Внутренняя ЦИ»' in card
 
 
 def test_chi_resource_controls_are_bounded_and_explain_cost_formula():
-    text = read(DEV)
-    assert 'enabled = character.chiCurrent > 0' in text
-    assert 'enabled = character.chiCurrent < character.chiMaximum' in text
-    assert 'CharacterEconomy.CHI_BONUS_RANK_XP' in text
-    assert 'Максимум: база $baseMaximum + купленный запас ${character.chiBonusRanks} + развитие $progressionBonus' in text
+    card = read(EDITOR / 'EditorChiCard.kt')
+    panel = read(SHEET / 'SheetChiPanel.kt')
+    assert 'enabled = panel.current > 0' in panel
+    assert 'enabled = panel.current < panel.maximum' in panel
+    assert 'CharacterEconomy.CHI_BONUS_RANK_XP' in card
+    assert 'card.bonusRanks < EDITOR_CHI_MAX_BONUS_RANKS' in card
+    assert 'Максимум: база ${c.chiBaseMaximum} + запас ${c.chiBonusRanks} + развитие ${c.chiProgressionBonus}' in card
 
 
 def test_development_details_can_follow_requirements_and_children():
-    text = read(DEV)
-    assert 'onOpenEntry: (String) -> Unit' in text
-    assert 'state.developmentCatalog.childrenOf(entry.id)' in text
-    assert 'check.targetEntryId' in text
-    assert 'onOpenEntry(child.id)' in text
-    assert 'enabled = owned.rank == 0' in text
+    perks = read(EDITOR / 'EditorPerkModels.kt')
+    step = read(EDITOR / 'EditorPerksStep.kt')
+    assert 'targetEntryId' in perks
+    assert 'planner.unlocks(entry.id).map { EditorPerkLink(' in perks
+    assert 'state.openPerk(context, link.entryId)' in step
+    assert 'onOpen: (String) -> Unit' in step
 
 
 def test_linux_release_gate_runs_development_chi_parity_guard():
@@ -63,13 +65,13 @@ def test_linux_release_gate_runs_development_chi_parity_guard():
 
 
 def test_owned_entries_surface_manual_or_failed_requirements_like_android():
-    text = read(DEV)
-    assert 'availability.checks.any { it.status != RequirementStatus.OK }' in text
-    assert 'RequirementStatus.MANUAL' in text
-    assert 'Требуется ручная проверка' in text
+    perks = read(EDITOR / 'EditorPerkModels.kt')
+    assert 'RequirementStatus.MANUAL' in perks
+    assert 'it.status != RequirementStatus.OK' in perks
+    assert 'val warn = eval.rank > 0' in perks
 
 
 def test_character_sheet_development_details_wires_navigation_callback():
-    text = read(SHEET)
-    assert 'DevelopmentDetailsDialog(' in text
-    assert 'onOpenEntry = { targetId -> state.developmentCatalog.byId(targetId)?.let { sheetDevelopmentEntry = it } }' in text
+    screen = read(SHEET / 'SheetScreen.kt')
+    assert 'SheetDevelopmentDetailsDialog(' in screen
+    assert 'state.openEditor(forceBasics = false, entryId = dialog.entryId)' in screen

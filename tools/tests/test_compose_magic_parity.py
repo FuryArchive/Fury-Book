@@ -1,51 +1,55 @@
 from pathlib import Path
-MAGIC = (Path(__file__).resolve().parents[2] / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/MagicScreen.kt').read_text(encoding='utf-8')
+# Stage 5: the Магия tab is gone; its functions live in the editor's Магия step and the sheet's Заклинания block.
+EDITOR = Path(__file__).resolve().parents[2] / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor'
+SHEET = Path(__file__).resolve().parents[2] / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet'
+STEP = (EDITOR / 'EditorMagicStep.kt').read_text(encoding='utf-8')
+MODELS = (EDITOR / 'EditorMagicModels.kt').read_text(encoding='utf-8')
+ACTIONS = (EDITOR / 'EditorMagicActions.kt').read_text(encoding='utf-8')
+FORMS = (EDITOR / 'EditorMagicForms.kt').read_text(encoding='utf-8')
+DIALOGS = (EDITOR / 'EditorMagicDialogs.kt').read_text(encoding='utf-8')
+SPELLS = (SHEET / 'SheetSpells.kt').read_text(encoding='utf-8')
 
 
-def test_magic_defaults_to_hiding_unlearned_schools_and_can_add_school():
-    assert 'mutableStateOf(true)' in MAGIC
-    assert 'addSchool' in MAGIC
-    assert '+ Школа' in MAGIC
-    assert 'addMagicSchool' in MAGIC
+def test_schools_list_only_owned_and_add_picks_from_the_rulebook():
+    assert '+ Школа' in STEP
+    assert 'addMagicSchool' in ACTIONS
+    assert 'fun editorAddableSchools' in MODELS
+    assert 'MagicSchoolCatalog.schools.filterNot { it in owned }' in MODELS
 
 
 def test_spellbook_and_catalog_have_school_filter():
-    assert 'schoolFilter' in MAGIC
-    assert 'Школа:' in MAGIC
-    assert 'schoolFilter ?: "Все"' in MAGIC
-    assert 'schoolFilter == null' in MAGIC
-    assert 'MagicSchoolCatalog.parseSchools(spell.school).contains(schoolFilter)' in MAGIC
+    assert 'state.spellSchool' in STEP
+    assert 'state.spellCatalogSchool' in STEP
+    assert 'school in MagicSchoolCatalog.parseSchools(' in MODELS
 
 
 def test_school_errors_are_reported_instead_of_silent_failure():
-    assert 'schoolError' in MAGIC
-    assert 'Не удалось сохранить школу' in MAGIC
+    assert 'Не удалось сохранить школу' in ACTIONS
 
 
-def test_desktop_magic_exposes_android_mana_mutations_and_creation_lock():
-    assert 'changeMana(-1)' in MAGIC
-    assert 'changeMana(1)' in MAGIC
-    assert 'enabled = character.manaCurrent > 0' in MAGIC
-    assert 'enabled = character.manaCurrent < character.effectiveManaMaximum' in MAGIC
-    assert 'enabled = !character.creationComplete' in MAGIC
+def test_mana_is_spent_from_the_sheet_and_rank_is_creation_only():
+    assert 'CharacterSheetResourceId.MANA, -amount' in SPELLS
+    assert 'rankLocked = character.creationComplete' in MODELS
+    assert '!header.rankLocked' in STEP
 
 
-def test_desktop_magic_keeps_incomplete_catalog_spells_addable_for_local_fix():
-    assert 'enabled = !spell.incomplete' not in MAGIC
-    assert 'if (spell.incomplete) "Добавить и исправить"' in MAGIC
+def test_incomplete_catalog_spells_stay_addable_for_local_fix():
+    assert 'enabled = !entry.incomplete' not in STEP
+    assert '"Добавить и исправить"' in STEP
 
 
 def test_spell_usability_warning_matches_android_learned_semantics():
-    assert 'if (spell.learned && !usability.usable)' in MAGIC
+    assert 'if (row.learned) row.weakText' in STEP
 
 
 def test_custom_spell_save_keeps_mana_text_in_sync_with_numeric_cost():
-    assert 'val manaCost =' in MAGIC
-    assert 'manaText = manaCost.toString()' in MAGIC
+    assert 'val manaCost =' in FORMS
+    assert 'manaText = manaText.trim().ifBlank { manaCost.toString() }' in FORMS
 
 
 def test_school_power_and_magic_numeric_inputs_do_not_have_desktop_only_digit_caps():
-    assert 'RankStepper(power, max = Int.MAX_VALUE)' in MAGIC
-    assert '.take(2)' not in MAGIC
-    assert '.take(3)' not in MAGIC
-    assert '.take(5)' not in MAGIC
+    # Power steps keep the school's note (updateMagicSchool) and have no upper cap.
+    assert 'editorStepSchoolPower(host, state, school.index, +1)' in STEP
+    assert 'host.updateMagicSchool(index, school.name, next, school.note)' in ACTIONS
+    for cap in ('.take(2)', '.take(3)', '.take(5)'):
+        assert cap not in DIALOGS, cap

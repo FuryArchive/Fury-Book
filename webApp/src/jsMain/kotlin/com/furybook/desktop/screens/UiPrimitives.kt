@@ -1,5 +1,6 @@
 package com.furybook.desktop.screens
 
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
@@ -65,6 +66,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import com.furybook.ui.theme.DublAccent
+import com.furybook.ui.theme.FuryAccentFill
+import com.furybook.ui.theme.FuryOnAccentFill
+import com.furybook.ui.theme.FuryAccentFillPressed
 import com.furybook.ui.theme.DublAccentSoft
 import com.furybook.ui.theme.DublBackground
 import com.furybook.ui.theme.DublBorder
@@ -80,28 +84,21 @@ import com.furybook.ui.theme.DublSurfaceRaised
 import com.furybook.ui.theme.DublText
 
 // Desktop aliases the shared Fury Book palette so Android and desktop stay visually aligned.
-internal val DesktopBackground = DublBackground
-internal val DesktopSurface = DublSurface
-internal val DesktopSurfaceRaised = DublSurfaceRaised
-internal val DesktopSurfaceInset = DublSurfaceInset
-internal val DesktopBorder = DublBorder
-internal val DesktopText = DublText
-internal val DesktopMuted = DublMuted
-internal val DesktopAccent = DublAccent
-internal val DesktopAccentSoft = DublAccentSoft
-internal val DesktopGold = DublGold
-internal val DesktopHealth = DublHealth
-internal val DesktopStamina = DublStamina
-internal val DesktopMana = DublMana
-internal val DesktopCustomResource = DublCustomResource
-
+internal val DesktopBackground: Color @Composable @ReadOnlyComposable get() = DublBackground
+internal val DesktopSurface: Color @Composable @ReadOnlyComposable get() = DublSurface
+internal val DesktopSurfaceRaised: Color @Composable @ReadOnlyComposable get() = DublSurfaceRaised
+internal val DesktopSurfaceInset: Color @Composable @ReadOnlyComposable get() = DublSurfaceInset
+internal val DesktopBorder: Color @Composable @ReadOnlyComposable get() = DublBorder
+internal val DesktopText: Color @Composable @ReadOnlyComposable get() = DublText
+internal val DesktopMuted: Color @Composable @ReadOnlyComposable get() = DublMuted
+internal val DesktopAccent: Color @Composable @ReadOnlyComposable get() = DublAccent
+internal val DesktopAccentSoft: Color @Composable @ReadOnlyComposable get() = DublAccentSoft
 internal object FuryMotion {
     const val FastMs = 110
     const val StandardMs = 170
     const val DialogMs = 200
     const val UndoToastDurationMs = 4_000L
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -254,22 +251,6 @@ internal fun DesktopHeroPanel(
     }
 }
 
-@Composable
-internal fun DesktopHeroSection(
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(11.dp),
-        color = DesktopSurfaceInset.copy(alpha = 0.58f),
-        border = BorderStroke(1.dp, DesktopBorder.copy(alpha = 0.74f)),
-    ) {
-        Box(Modifier.fillMaxWidth().padding(10.dp)) { content() }
-    }
-}
-
-
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun FuryUndoToast(
@@ -327,8 +308,8 @@ internal fun DesktopSmallAction(
     var hovered by remember { mutableStateOf(false) }
     val background by animateColorAsState(
         targetValue = when {
-            emphasized && hovered && enabled -> DesktopAccent.copy(alpha = .88f)
-            emphasized -> DesktopAccent
+            emphasized && hovered && enabled -> FuryAccentFillPressed
+            emphasized -> FuryAccentFill
             hovered && enabled -> DesktopSurfaceRaised
             else -> DesktopSurfaceInset
         },
@@ -361,7 +342,7 @@ internal fun DesktopSmallAction(
             maxLines = 1,
             color = when {
                 !enabled -> DesktopMuted
-                emphasized -> Color.White
+                emphasized -> FuryOnAccentFill
                 else -> DesktopText
             },
             style = MaterialTheme.typography.labelMedium,
@@ -397,108 +378,6 @@ internal fun DesktopInlineAction(
         fontWeight = FontWeight.SemiBold,
         maxLines = 1,
     )
-}
-
-@Composable
-internal fun DesktopConditionChip(
-    label: String,
-    modifier: Modifier = Modifier,
-    automatic: Boolean = false,
-    onClick: (() -> Unit)? = null,
-) {
-    val interactive = if (onClick != null) modifier.clickable(onClick = onClick) else modifier
-    Surface(
-        modifier = interactive,
-        shape = RoundedCornerShape(999.dp),
-        color = if (automatic) DesktopAccentSoft.copy(alpha = 0.72f) else DesktopSurfaceInset,
-        border = BorderStroke(1.dp, if (automatic) DesktopAccent.copy(alpha = 0.42f) else DesktopBorder.copy(alpha = 0.74f)),
-    ) {
-        Text(
-            if (automatic) "$label · авто" else label,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = if (automatic) DesktopAccent else MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-@Composable
-internal fun DesktopResourceRow(
-    title: String,
-    current: Int,
-    maximum: Int,
-    tint: Color,
-    onMinus: () -> Unit,
-    onPlus: () -> Unit,
-    modifier: Modifier = Modifier,
-    onSecondary: (() -> Unit)? = null,
-    secondaryLabel: String? = null,
-) {
-    val fraction = if (maximum <= 0) 0f else (current.toFloat() / maximum.toFloat()).coerceIn(0f, 1f)
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Text("$current / $maximum", color = tint, fontWeight = FontWeight.Bold)
-        }
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(999.dp))
-                .background(DesktopSurfaceInset),
-        ) {
-            if (fraction > 0f) {
-                Box(
-                    Modifier
-                        .fillMaxWidth(fraction)
-                        .height(6.dp)
-                        .background(tint.copy(alpha = 0.86f)),
-                )
-            }
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            DesktopSmallAction("−", onMinus, Modifier.width(48.dp))
-            DesktopSmallAction("+", onPlus, Modifier.width(48.dp))
-            if (onSecondary != null && !secondaryLabel.isNullOrBlank()) {
-                TextButton(onClick = onSecondary) { Text(secondaryLabel) }
-            }
-        }
-    }
-}
-
-@Composable
-internal fun DesktopStatCell(
-    title: String,
-    value: String,
-    meta: String,
-    onMinus: () -> Unit,
-    onPlus: () -> Unit,
-    onRoll: () -> Unit,
-    modifier: Modifier = Modifier,
-    secondary: String? = null,
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(11.dp),
-        color = DesktopSurfaceInset.copy(alpha = 0.72f),
-        border = BorderStroke(1.dp, DesktopBorder.copy(alpha = 0.62f)),
-    ) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(title, color = DesktopMuted, style = MaterialTheme.typography.labelLarge)
-                    Text(value, color = DesktopAccent, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    if (!secondary.isNullOrBlank()) Text(secondary, color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
-                }
-                TextButton(onClick = onRoll) { Text("Бросок") }
-            }
-            Text(meta, color = DesktopMuted, style = MaterialTheme.typography.bodySmall, maxLines = 2)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                DesktopSmallAction("−", onMinus, Modifier.width(48.dp))
-                DesktopSmallAction("+", onPlus, Modifier.width(48.dp))
-            }
-        }
-    }
 }
 
 @Composable
@@ -544,33 +423,9 @@ internal fun SectionCard(
 }
 
 @Composable
-internal fun KeyValue(label: String, value: String, tint: Color = DesktopAccent) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Top) {
-        Text(label, color = DesktopMuted, modifier = Modifier.weight(1f))
-        Text(value, color = tint, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-    }
-}
-
-@Composable
-internal fun RankStepper(rank: Int, min: Int = 0, max: Int, enabled: Boolean = true, onChange: (Int) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        OutlinedButton(enabled = enabled && rank > min, onClick = { onChange(rank - 1) }) { Text("−") }
-        Text(rank.toString(), fontWeight = FontWeight.Bold)
-        Button(enabled = enabled && rank < max, onClick = { onChange(rank + 1) }) { Text("+") }
-    }
-}
-
-@Composable
 internal fun EmptyState(text: String) {
     Spacer(Modifier.height(4.dp))
     Text(text, color = DesktopMuted, style = MaterialTheme.typography.bodyMedium)
-}
-
-internal fun signed(value: Int): String = if (value >= 0) "+$value" else value.toString()
-internal fun formatNumber(value: Double): String {
-    if (value % 1.0 == 0.0) return value.toInt().toString()
-    val rounded = kotlin.math.round(value * 100.0) / 100.0
-    return rounded.toString().trimEnd('0').trimEnd('.')
 }
 
 
@@ -648,102 +503,6 @@ internal fun DesktopIcon(
             DesktopIconKind.SETTINGS -> { circle(.5f,.5f,.26f,thin); circle(.5f,.5f,.08f,thin); line(.5f,.06f,.5f,.22f,thin); line(.5f,.78f,.5f,.94f,thin); line(.06f,.5f,.22f,.5f,thin); line(.78f,.5f,.94f,.5f,thin) }
             DesktopIconKind.PORTRAIT -> { val p=Path().apply { moveTo(w*.50f,h*.08f); lineTo(w*.76f,h*.26f); lineTo(w*.68f,h*.76f); lineTo(w*.50f,h*.92f); lineTo(w*.32f,h*.76f); lineTo(w*.24f,h*.26f); close() }; drawPath(p,tint,style=thin) }
             DesktopIconKind.DETAIL -> { line(.35f,.20f,.66f,.50f,thin); line(.66f,.50f,.35f,.80f,thin) }
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-internal fun DesktopTinyButton(
-    label: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    var hovered by remember { mutableStateOf(false) }
-    val background by animateColorAsState(
-        targetValue = if (hovered && enabled) DesktopSurfaceRaised else DesktopSurfaceInset,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "tiny-button-background",
-    )
-    val borderColor by animateColorAsState(
-        targetValue = if (hovered && enabled) DesktopAccent.copy(alpha = .38f) else DesktopBorder.copy(alpha = .88f),
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "tiny-button-border",
-    )
-    Surface(
-        modifier = modifier
-            .size(28.dp)
-            .pointerMoveFilter(
-                onEnter = { if (enabled) hovered = true; false },
-                onExit = { hovered = false; false },
-            )
-            .clickable(enabled = enabled, onClick = onClick),
-        shape = RoundedCornerShape(7.dp),
-        color = background,
-        border = BorderStroke(1.dp, borderColor),
-    ) {
-        Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
-            Text(label, color = if (enabled) MaterialTheme.colorScheme.onSurface else DesktopMuted, fontWeight = FontWeight.SemiBold)
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-internal fun FuryStepper(
-    onMinus: () -> Unit,
-    onPlus: () -> Unit,
-    modifier: Modifier = Modifier,
-    minusEnabled: Boolean = true,
-    plusEnabled: Boolean = true,
-) {
-    var minusHovered by remember { mutableStateOf(false) }
-    var plusHovered by remember { mutableStateOf(false) }
-    val minusBackground by animateColorAsState(
-        targetValue = if (minusHovered && minusEnabled) DesktopSurfaceRaised else Color.Transparent,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "stepper-minus-background",
-    )
-    val plusBackground by animateColorAsState(
-        targetValue = if (plusHovered && plusEnabled) DesktopSurfaceRaised else Color.Transparent,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "stepper-plus-background",
-    )
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(7.dp),
-        color = DesktopSurfaceInset,
-        border = BorderStroke(1.dp, DesktopBorder.copy(alpha = .88f)),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .size(26.dp)
-                    .background(minusBackground)
-                    .pointerMoveFilter(
-                        onEnter = { if (minusEnabled) minusHovered = true; false },
-                        onExit = { minusHovered = false; false },
-                    )
-                    .clickable(enabled = minusEnabled, onClick = onMinus),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("−", color = if (minusEnabled) DesktopText else DesktopMuted, fontWeight = FontWeight.Bold)
-            }
-            Box(Modifier.width(1.dp).height(18.dp).background(DesktopBorder.copy(alpha = .82f)))
-            Box(
-                Modifier
-                    .size(26.dp)
-                    .background(plusBackground)
-                    .pointerMoveFilter(
-                        onEnter = { if (plusEnabled) plusHovered = true; false },
-                        onExit = { plusHovered = false; false },
-                    )
-                    .clickable(enabled = plusEnabled, onClick = onPlus),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("+", color = if (plusEnabled) DesktopText else DesktopMuted, fontWeight = FontWeight.Bold)
-            }
         }
     }
 }
@@ -845,337 +604,6 @@ internal fun FuryChoiceButton(
             )
             Spacer(Modifier.width(8.dp))
             Text(meta, color = metaColor, fontWeight = FontWeight.Bold)
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-internal fun DesktopIconButton(
-    kind: DesktopIconKind,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    tint: Color = MaterialTheme.colorScheme.onSurface,
-) {
-    var hovered by remember { mutableStateOf(false) }
-    val background by animateColorAsState(
-        targetValue = if (hovered) DesktopSurfaceRaised else DesktopSurfaceInset,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "icon-button-background",
-    )
-    val borderColor by animateColorAsState(
-        targetValue = if (hovered) DesktopAccent.copy(alpha = .38f) else DesktopBorder.copy(alpha = .88f),
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "icon-button-border",
-    )
-    Surface(
-        modifier = modifier
-            .size(28.dp)
-            .pointerMoveFilter(
-                onEnter = { hovered = true; false },
-                onExit = { hovered = false; false },
-            )
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(7.dp),
-        color = background,
-        border = BorderStroke(1.dp, borderColor),
-    ) {
-        Box(Modifier.size(28.dp), contentAlignment = Alignment.Center) {
-            DesktopIcon(kind, tint = tint, size = 14.dp)
-        }
-    }
-}
-
-@Composable
-internal fun DesktopDenseAttributeRow(
-    icon: DesktopIconKind,
-    title: String,
-    value: String,
-    onRoll: () -> Unit,
-    onMinus: () -> Unit,
-    onPlus: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(modifier, RoundedCornerShape(8.dp), DesktopSurfaceInset.copy(alpha=.72f), border=BorderStroke(1.dp,DesktopBorder.copy(alpha=.68f))) {
-        Row(Modifier.fillMaxWidth().padding(horizontal=9.dp, vertical=3.dp), verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(6.dp)) {
-            DesktopIcon(icon, tint=DesktopAccent, size=20.dp)
-            Text(title, modifier=Modifier.weight(1f), maxLines=1, overflow=TextOverflow.Ellipsis)
-            Text(value, fontWeight=FontWeight.Bold, style=MaterialTheme.typography.titleMedium)
-            DesktopIconButton(DesktopIconKind.DICE, onRoll)
-            DesktopTinyButton("−", onMinus)
-            DesktopTinyButton("+", onPlus)
-        }
-    }
-}
-
-@Composable
-internal fun DesktopDenseMetricRow(
-    icon: DesktopIconKind,
-    title: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
-) {
-    val interactive = if (onClick != null) modifier.clickable(onClick=onClick) else modifier
-    Surface(interactive, RoundedCornerShape(8.dp), DesktopSurfaceInset.copy(alpha=.72f), border=BorderStroke(1.dp,DesktopBorder.copy(alpha=.68f))) {
-        Row(Modifier.fillMaxWidth().padding(horizontal=10.dp, vertical=5.dp), verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-            val iconTint = when (icon) {
-                DesktopIconKind.FORTITUDE, DesktopIconKind.RUN -> DesktopAccent
-                else -> DesktopMuted
-            }
-            DesktopIcon(icon, tint=iconTint, size=20.dp)
-            Text(title, modifier=Modifier.weight(1f), maxLines=1, overflow=TextOverflow.Ellipsis)
-            Text(value, fontWeight=FontWeight.Bold, style=MaterialTheme.typography.titleMedium)
-            if (onClick != null) DesktopIcon(DesktopIconKind.DETAIL, tint=DesktopMuted, size=12.dp)
-        }
-    }
-}
-
-@Composable
-internal fun DesktopHeroAttributeCell(
-    icon: DesktopIconKind,
-    title: String,
-    value: String,
-    onRoll: () -> Unit,
-    onMinus: () -> Unit,
-    onPlus: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        color = DesktopSurfaceInset.copy(alpha = .76f),
-        border = BorderStroke(1.dp, DesktopBorder.copy(alpha = .62f)),
-    ) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            DesktopIcon(icon, tint = DesktopAccent, size = 18.dp)
-            Text(
-                title,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            Text(value, color = DesktopText, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            DesktopIconButton(DesktopIconKind.DICE, onRoll, tint = DesktopAccent)
-            DesktopTinyButton("−", onMinus)
-            DesktopTinyButton("+", onPlus)
-        }
-    }
-}
-
-@Composable
-internal fun DesktopHeroMetricCell(
-    icon: DesktopIconKind,
-    title: String,
-    value: String,
-    modifier: Modifier = Modifier,
-    tint: Color = DesktopMuted,
-    onRoll: (() -> Unit)? = null,
-) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        color = DesktopSurfaceInset.copy(alpha = .70f),
-        border = BorderStroke(1.dp, DesktopBorder.copy(alpha = .56f)),
-    ) {
-        Row(
-            Modifier.fillMaxWidth().padding(horizontal = 9.dp, vertical = 7.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
-        ) {
-            DesktopIcon(icon, tint = tint, size = 18.dp)
-            Text(
-                title,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Text(value, color = DesktopText, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            if (onRoll != null) DesktopIconButton(DesktopIconKind.DICE, onRoll, tint = DesktopAccent)
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-internal fun DesktopSkillRow(
-    icon: DesktopIconKind,
-    title: String,
-    rank: Int,
-    bonus: String,
-    breakdownLines: List<String> = emptyList(),
-    onRoll: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var breakdownHovered by remember(title, bonus, breakdownLines) { mutableStateOf(false) }
-    var breakdownPinned by remember(title, bonus, breakdownLines) { mutableStateOf(false) }
-    val showBreakdown = breakdownLines.isNotEmpty() && (breakdownHovered || breakdownPinned)
-    val breakdownBackground by animateColorAsState(
-        targetValue = if (showBreakdown) DesktopAccentSoft.copy(alpha = 0.72f) else Color.Transparent,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "skill-breakdown-anchor",
-    )
-
-    Surface(modifier, RoundedCornerShape(8.dp), DesktopSurfaceInset.copy(alpha=.72f), border=BorderStroke(1.dp,DesktopBorder.copy(alpha=.68f))) {
-        Row(Modifier.fillMaxWidth().padding(horizontal=11.dp, vertical=6.dp), verticalAlignment=Alignment.CenterVertically, horizontalArrangement=Arrangement.spacedBy(9.dp)) {
-            DesktopIcon(icon, tint=DesktopMuted, size=20.dp)
-            Text(title, modifier=Modifier.weight(1f), maxLines=1, overflow=TextOverflow.Ellipsis)
-            Text("Ранг $rank", color=DesktopMuted, style=MaterialTheme.typography.labelMedium, fontWeight=FontWeight.SemiBold)
-            Box {
-                Surface(
-                    shape = RoundedCornerShape(6.dp),
-                    color = breakdownBackground,
-                    modifier = Modifier
-                        .pointerMoveFilter(
-                            onEnter = { breakdownHovered = breakdownLines.isNotEmpty(); false },
-                            onExit = { breakdownHovered = false; false },
-                        )
-                        .clickable(enabled = breakdownLines.isNotEmpty()) {
-                            if (breakdownPinned) {
-                                breakdownPinned = false
-                                breakdownHovered = false
-                            } else {
-                                breakdownPinned = true
-                            }
-                        }
-                ) {
-                    Text(
-                        bonus,
-                        color=DesktopAccent,
-                        fontWeight=FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp),
-                    )
-                }
-                if (breakdownLines.isNotEmpty()) {
-                    FuryBreakdownPopover(
-                        visible = showBreakdown,
-                        bonus = bonus,
-                        lines = breakdownLines,
-                        pinned = breakdownPinned,
-                        onDismiss = { breakdownPinned = false; breakdownHovered = false },
-                    )
-                }
-            }
-            DesktopIconButton(DesktopIconKind.DICE, onRoll)
-        }
-    }
-}
-
-@Composable
-private fun FuryBreakdownPopover(
-    visible: Boolean,
-    bonus: String,
-    lines: List<String>,
-    pinned: Boolean,
-    onDismiss: () -> Unit,
-) {
-    val density = LocalDensity.current
-    val visibility = remember { MutableTransitionState(false) }
-    visibility.targetState = visible
-    if (visibility.currentState || visibility.targetState) {
-        Popup(
-            alignment = Alignment.TopStart,
-            offset = IntOffset(0, with(density) { 34.dp.roundToPx() }),
-            onDismissRequest = onDismiss,
-            properties = PopupProperties(focusable = pinned && visible),
-        ) {
-            AnimatedVisibility(
-                visibleState = visibility,
-                enter = fadeIn(tween(FuryMotion.FastMs)) + scaleIn(
-                    animationSpec = tween(FuryMotion.FastMs),
-                    initialScale = .97f,
-                ),
-                exit = fadeOut(tween(FuryMotion.FastMs)) + scaleOut(
-                    animationSpec = tween(FuryMotion.FastMs),
-                    targetScale = .98f,
-                ),
-            ) {
-                Surface(
-                    modifier = Modifier.widthIn(min = 240.dp, max = 360.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    color = DesktopSurfaceRaised,
-                    border = BorderStroke(1.dp, DesktopBorder.copy(alpha = 0.95f)),
-                    shadowElevation = 12.dp,
-                ) {
-                    Column(
-                        Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                    ) {
-                        Text("Итоговый бонус $bonus", fontWeight = FontWeight.Bold, color = DesktopText)
-                        lines.forEach { line ->
-                            Text(line, color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
-                        }
-                        if (pinned) {
-                            Text("Закреплено · кликните по бонусу или вне окна, чтобы закрыть", color = DesktopMuted, style = MaterialTheme.typography.labelMedium)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-internal fun DesktopResourceTile(
-    icon: DesktopIconKind,
-    title: String,
-    current: Int,
-    maximum: Int,
-    tint: Color,
-    onMinus: () -> Unit,
-    onPlus: () -> Unit,
-    modifier: Modifier = Modifier,
-    onSecondary: (() -> Unit)? = null,
-) {
-    val fraction = if (maximum <= 0) 0f else (current.toFloat() / maximum.toFloat()).coerceIn(0f, 1f)
-    val animatedFraction by animateFloatAsState(
-        targetValue = fraction,
-        animationSpec = tween(FuryMotion.StandardMs),
-        label = "resource-progress-$title",
-    )
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Row(
-            Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            DesktopIcon(icon, tint = tint, size = 18.dp)
-            Text(
-                title,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                "$current / $maximum",
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = DesktopText,
-            )
-            FuryStepper(
-                onMinus = onMinus,
-                onPlus = onPlus,
-                modifier = Modifier,
-            )
-            if (onSecondary != null) {
-                Text(
-                    "⋯",
-                    color = DesktopMuted,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.clickable(onClick = onSecondary).padding(horizontal = 4.dp, vertical = 2.dp),
-                )
-            }
-        }
-        Box(Modifier.fillMaxWidth().height(5.dp).clip(RoundedCornerShape(999.dp)).background(DesktopBorder.copy(alpha = .72f))) {
-            Box(Modifier.fillMaxWidth(animatedFraction).height(5.dp).background(tint.copy(alpha = .94f)))
         }
     }
 }

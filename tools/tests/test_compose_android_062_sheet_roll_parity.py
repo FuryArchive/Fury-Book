@@ -1,28 +1,24 @@
 from pathlib import Path
 
+# Stage 3: skill rolls offer the allowed attributes plus «другая…», starting on the remembered allowed one.
 ROOT = Path(__file__).resolve().parents[2]
-SHEET = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt').read_text(encoding='utf-8')
-ROLL = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/RollDialog.kt').read_text(encoding='utf-8')
+SESSION = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetRollSession.kt').read_text(encoding='utf-8')
+MODELS = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetPlayModels.kt').read_text(encoding='utf-8')
+SCREEN = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetScreen.kt').read_text(encoding='utf-8')
 
 
-def test_character_sheet_roll_uses_explicit_attribute_choice_before_roll():
-    assert 'SkillAttributeChoiceDialog' in SHEET
-    assert 'sheetRollAttributeChoice' in SHEET
-    assert 'sheetRollRequest' in SHEET
+def test_sheet_skill_roll_offers_allowed_attributes_and_others_behind_another():
+    assert 'request.attribute ?: sheetRememberedAttribute(skill, host.extras)' in SESSION
+    assert 'attributeChoices = skill.attributes' in SESSION
+    assert 'otherAttributeChoices = AttributeId.entries.filter { it !in skill.attributes }' in SESSION
+    assert 'skillCalculationForRoll(skill, attribute)' in SESSION
 
 
-def test_sheet_attribute_choice_defaults_to_stock_and_allows_any_attribute():
-    assert 'fun SkillAttributeChoiceDialog(' in ROLL
-    assert 'mutableStateOf(skill.stockAttribute)' in ROLL
-    assert 'AttributeId.entries' in ROLL
-    assert 'skillCalculationForRoll(skill, selectedAttribute)' in ROLL
-
-
-def test_skill_roll_accepts_explicit_initial_attribute_for_sheet_flow():
-    assert 'initialAttribute: AttributeId? = null' in ROLL
-    assert 'initialAttribute ?: preferredAttribute' in ROLL
+def test_only_allowed_picks_are_remembered():
+    assert 'sheetRemembersAttribute(skill, attribute)' in SCREEN
+    assert 'host.setPreferredSkillAttribute(skillId, attribute)' in SCREEN
 
 
 def test_character_sheet_skill_summary_uses_stock_attribute_like_android_062():
-    assert 'val selected = skill.stockAttribute' in SHEET
-    assert 'skillCalculationForRoll(skill, selected)' in SHEET
+    assert 'val attribute = skill.stockAttribute' in MODELS
+    assert 'skillCalculationForRoll(skill, attribute)' in MODELS

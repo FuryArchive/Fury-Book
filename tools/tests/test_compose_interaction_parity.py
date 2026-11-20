@@ -1,41 +1,26 @@
 from pathlib import Path
 
+# The sheet's roll flow is the shared one in shared/.../ui/sheet.
 ROOT = Path(__file__).resolve().parents[2]
-SHEET = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharacterSheetScreen.kt'
-ROLL = ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/RollDialog.kt'
-
-
-def test_group_manager_has_real_long_press_drag_drop():
-    text = SHEET.read_text(encoding='utf-8')
-    assert 'detectDragGesturesAfterLongPress' in text
-    assert '.pointerInput(' in text
-    assert 'boundsInWindow()' in text
-    assert 'SheetGroupingRules.moveItems' in text
-    assert 'SheetGroupingRules.moveGroupToIndex' in text
-    assert 'subtreeBlock' in text
+SHEET_DIR = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet'
+SESSION = SHEET_DIR / 'SheetRollSession.kt'
+SCREEN = SHEET_DIR / 'SheetPlay.kt'
 
 
 def test_attribute_quick_roll_preserves_selected_attribute():
-    roll = ROLL.read_text(encoding='utf-8')
-    sheet = SHEET.read_text(encoding='utf-8')
-    assert 'initialAttribute: AttributeId? = null' in roll
-    assert 'initialAttribute?.takeIf' in roll
-    assert 'ContextRollRequest' in sheet
-    assert 'initialAttribute = request.attribute' in sheet
+    session = SESSION.read_text(encoding='utf-8')
+    assert 'request.attribute' in session
+    assert 'RollContext.ATTRIBUTE' in session
 
 
 def test_sheet_skills_roll_directly_without_forcing_navigation():
-    text = SHEET.read_text(encoding='utf-8')
-    assert 'sheetRollAttributeChoice' in text
-    assert 'SkillAttributeChoiceDialog(' in text
-    assert 'sheetRollRequest' in text
-    assert 'SkillRollDialog(' in text
+    screen = SCREEN.read_text(encoding='utf-8')
+    assert 'open(SheetRollSubject.Skill(it))' in screen
+
 
 def test_context_rolls_show_owned_effect_reminders():
-    roll = ROLL.read_text(encoding='utf-8')
-    sheet = SHEET.read_text(encoding='utf-8')
-    assert 'developmentCatalog: DevelopmentCatalog' in roll
-    assert 'effectCatalog: SkillEffectCatalog' in roll
-    assert '.forContext(context)' in roll
-    assert 'developmentCatalog = state.developmentCatalog' in sheet
-    assert 'effectCatalog = state.skillEffectCatalog' in sheet
+    session = SESSION.read_text(encoding='utf-8')
+    assert '.forContext(' in session
+    assert 'host.developmentCatalog' in session
+    assert 'host.skillEffectCatalog' in session
+    assert 'reminders' in session

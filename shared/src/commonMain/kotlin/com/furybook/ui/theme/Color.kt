@@ -1,24 +1,42 @@
 package com.furybook.ui.theme
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.graphics.Color
 
-// Canonical Fury Book charcoal/crimson palette shared across Android and desktop.
-val DublBackground = Color(0xFF0B0D10)
-val DublSurface = Color(0xFF14161A)
-val DublSurfaceInset = Color(0xFF0F1114)
-val DublSurfaceRaised = Color(0xFF181B20)
-val DublBorder = Color(0xFF2A2E34)
-val DublText = Color(0xFFE6E1D8)
-val DublMuted = Color(0xFF9A958D)
+// Legacy names for the active theme's colours (see Palette.kt). They read LocalFuryPalette, so every
+// screen that uses them follows the player's theme; they can only be read inside composition.
+val DublBackground: Color @Composable @ReadOnlyComposable get() = FuryColors.current.bg
+val DublSurface: Color @Composable @ReadOnlyComposable get() = FuryColors.current.panel
+val DublSurfaceInset: Color @Composable @ReadOnlyComposable get() = FuryColors.current.bg
+val DublSurfaceRaised: Color @Composable @ReadOnlyComposable get() = FuryColors.current.panel2
+val DublBorder: Color @Composable @ReadOnlyComposable get() = FuryColors.current.line2
+val FuryBorderStrong: Color @Composable @ReadOnlyComposable get() = FuryColors.current.track
+/** The unfilled part of a resource bar; must stay visible on panels and tiles. */
+val FuryBarTrack: Color @Composable @ReadOnlyComposable get() = FuryColors.current.track
+val DublText: Color @Composable @ReadOnlyComposable get() = FuryColors.current.text
+val DublMuted: Color @Composable @ReadOnlyComposable get() = FuryColors.current.muted
 
-val DublAccent = Color(0xFFD34F64)
-val DublAccentStrong = Color(0xFFDF6477)
-val DublAccentSoft = Color(0xFF3A1E24)
-val DublFocus = Color(0xFFD98290)
-val DublGold = Color(0xFFD0A24A)
+// The accent is for bars, markers and accent text. Text does not pass contrast on it,
+// so filled controls use FuryAccentFill (acc2) with FuryOnAccentFill instead.
+val DublAccent: Color @Composable @ReadOnlyComposable get() = FuryColors.current.acc
+val DublAccentStrong: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accText
+val DublAccentSoft: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accSoft
+val DublFocus: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accText
+val DublGold: Color @Composable @ReadOnlyComposable get() = FuryColors.current.gold
 
-val DublHealth = Color(0xFFD94A5C)
-val DublStamina = Color(0xFFD6A54B)
+val FuryAccentFill: Color @Composable @ReadOnlyComposable get() = FuryColors.current.acc2
+val FuryAccentFillPressed: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accPressed
+val FuryOnAccentFill: Color @Composable @ReadOnlyComposable get() = FuryColors.current.onAcc
+
+val DublHealth: Color @Composable @ReadOnlyComposable get() = FuryColors.current.acc
+val DublStamina: Color @Composable @ReadOnlyComposable get() = FuryColors.current.gold
+// Mana and custom resources keep their colour in every theme.
 val DublMana = Color(0xFF6F98D6)
+/** Mana as text (numbers, costs): follows the theme so it stays readable on light backgrounds. */
+val DublManaText: Color @Composable @ReadOnlyComposable get() = FuryColors.current.manaText
 val DublCustomResource = Color(0xFF65B4A4)
-val DublDanger = Color(0xFFD95C67)
+// Helpful conditions (Воодушевление, Невидимость) keep one green chip in every theme.
+val FuryHelpfulChip = Color(0xFF14302A)
+val FuryHelpfulChipText = Color(0xFF7FE0C4)
+val DublDanger: Color @Composable @ReadOnlyComposable get() = FuryColors.current.accText

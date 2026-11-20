@@ -33,7 +33,7 @@ def test_desktop_window_and_distribution_are_fury_book_branded_with_custom_icon(
     icon = ROOT / "desktopApp/src/main/resources/fury-icon.png"
 
     assert 'title = "Fury Book — DUBL 3.69"' in main
-    assert 'Text(\n            "Fury Book"' in main
+    assert 'title = "FURY BOOK"' in main  # wordmark handed to the shared FuryShell
     assert 'painterResource("fury-icon.png")' in main
     assert 'packageName = "FuryBook"' in gradle
     assert 'FURY_BOOK_VERSION' in gradle

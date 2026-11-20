@@ -25,11 +25,9 @@ def test_skill_effect_automation_can_be_disabled_per_character_and_persists():
 
 
 def test_android_and_desktop_expose_skill_effect_automation_escape_hatch():
+    # Stage 3: the switch lives in the editor's skill panel (all platforms); Android's controller still delegates.
     android_controller = (ROOT / "app/src/main/java/com/furybook/android/state/CharacterController.kt").read_text(encoding="utf-8")
-    android_skills = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/SkillsScreen.kt").read_text(encoding="utf-8")
-    desktop_skills = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/SkillsScreen.kt").read_text(encoding="utf-8")
+    panel = (ROOT / "shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorSkillPanel.kt").read_text(encoding="utf-8")
     assert "setSkillEffectEnabled" in android_controller
-    assert "Автоматизация правил" in android_skills
-    assert "setSkillEffectEnabled(effect.id, enabled)" in android_skills
-    assert "Автоматизация правил" in desktop_skills
-    assert "setSkillEffectEnabled(effect.id, enabled)" in desktop_skills
+    assert "Автоматизация правил" in panel
+    assert "host.setSkillEffectEnabled(effect.id, !effect.enabled)" in panel

@@ -28,18 +28,32 @@ def test_compose_host_uses_real_shared_sessions_and_file_persistence():
 
 def test_all_parity_screens_exist():
     required = {
-        'CharacterSheetScreen.kt': ['CharacterSheetScreen', 'CharacterSheetExtras', 'RollContext', 'SheetGroupingRules'],
         'CharactersScreen.kt': ['CharactersScreen', 'createCharacter', 'selectCharacter', 'deleteActive'],
-        'SkillsScreen.kt': ['SkillsScreen', 'resolvedSkills', 'changeSkillRank', 'SkillRollDialog'],
-        'DevelopmentScreen.kt': ['DevelopmentScreen', 'DevelopmentRules', 'ChiRules', 'setDevelopmentRank'],
-        'MagicScreen.kt': ['MagicScreen', 'setMagicManaRank', 'setMagicSchoolPower', 'addCatalogSpell'],
-        'EquipmentScreen.kt': ['EquipmentScreen', 'equipmentLoad', 'setGearLoadAutomatic', 'addCatalogGear'],
-        'RollDialog.kt': ['SkillRollDialog', 'RollMode', 'rollPreset'],
+        # Stage 4: DevelopmentScreen.kt is gone; perks live in the shared editor (test_editor_perk_functions.py).
+        # Stage 5: MagicScreen.kt and EquipmentScreen.kt are gone; magic and gear live in the shared editor and sheet.
     }
     for name, tokens in required.items():
         src = text(SCREENS / name)
         for token in tokens:
             assert token in src, f'{name} missing {token}'
+    shared = ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui'
+    moved = {
+        'editor/EditorMagicStep.kt': ['setMagicManaRank', 'editorStepSchoolPower'],
+        'editor/EditorMagicActions.kt': ['addCatalogSpell', 'addCatalogGear'],
+        'editor/EditorGearStep.kt': ['setGearLoadAutomatic'],
+        'sheet/SheetGear.kt': ['equipmentLoad'],
+    }
+    for name, tokens in moved.items():
+        src = text(shared / name)
+        for token in tokens:
+            assert token in src, f'{name} missing {token}'
+    # Stage 2b: the character sheet is the shared SheetScreen (all platforms).
+    sheet = text(ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetScreen.kt')
+    assert 'fun SheetScreen(' in sheet
+    assert 'EditorScreen(' in sheet, 'SheetScreen.kt opens the character editor'
+    play = text(ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetPlay.kt')
+    for token in ['SHEET_COMBAT_CONTEXTS', 'displayNotes()']:
+        assert token in play, f'SheetPlay.kt missing {token}'
 
 
 def test_compose_screens_have_no_horizontal_scroll():

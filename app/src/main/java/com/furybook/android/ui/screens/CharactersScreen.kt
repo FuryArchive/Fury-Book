@@ -58,6 +58,8 @@ fun CharactersScreen(
     contentPackComposition: FcpComposition,
     onContentPackActiveChange: (String, Boolean) -> Unit,
     onOpenCampaign: () -> Unit,
+    /** Runs after «+ Создать»: the app opens the new character in the editor at Основа. */
+    onCreated: () -> Unit = {},
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
     var transferStatus by remember { mutableStateOf<String?>(null) }
@@ -128,7 +130,7 @@ fun CharactersScreen(
             title = "Персонажи",
             subtitle = "Выбор активного листа",
             action = {
-                Button(onClick = controller::createCharacter) { Text("+ Создать") }
+                Button(onClick = { controller.createCharacter(); onCreated() }) { Text("+ Создать") }
             },
         )
 
