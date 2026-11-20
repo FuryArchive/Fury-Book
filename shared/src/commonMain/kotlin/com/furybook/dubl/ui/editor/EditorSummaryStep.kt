@@ -40,8 +40,6 @@ internal fun EditorSummaryStep(
     state: EditorState,
     data: EditorFrameData,
     layout: SheetLayout,
-    onOpenMagic: () -> Unit,
-    onOpenGear: () -> Unit,
 ) {
     val p = FuryColors.current
     val character = host.active
@@ -135,11 +133,14 @@ internal fun EditorSummaryStep(
             },
             { m ->
                 EditorCard(m) {
-                    EditorOverline("Ещё")
-                    Text("Заклинания и снаряжение пока на своих вкладках.", color = p.muted, style = MaterialTheme.typography.bodySmall)
+                    EditorOverline("Магия и снаряжение")
+                    Text(
+                        "Заклинаний изучено: ${data.spellCount} · предметов: ${data.gearCount}, с собой ${data.carriedCount}",
+                        color = p.text2, style = MaterialTheme.typography.bodySmall,
+                    )
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-                        EditorOutlineButton("Магия →", onOpenMagic, control)
-                        EditorOutlineButton("Снаряжение →", onOpenGear, control)
+                        EditorOutlineButton("Магия →", { state.step = EditorStep.MAGIC }, control)
+                        EditorOutlineButton("Снаряжение →", { state.step = EditorStep.GEAR }, control)
                     }
                 }
             },

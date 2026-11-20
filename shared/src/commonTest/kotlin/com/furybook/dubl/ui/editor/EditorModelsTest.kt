@@ -186,4 +186,12 @@ class EditorModelsTest {
         val ids = editorSkillGroups(host, host.active, rankedOnly = true, query = "zzz", keep = "lockpicking").flatMap { g -> g.rows.map { it.skillId } }
         assertEquals(listOf("lockpicking"), ids)
     }
+
+    @Test
+    fun unpricedSpellsPointToMagic() {
+        val spell = com.furybook.dubl.model.KnownSpell(uid = "s", name = "Буря", cost = 25)
+        val host = FakeSheetHost(hornet.copy(magic = com.furybook.dubl.model.CharacterMagic(spells = listOf(spell))), developmentCatalogOverride = catalog)
+        val problem = editorProblems(host).single { it.text.startsWith("Заклинания без цены") }
+        assertEquals(EditorStep.MAGIC, problem.step)
+    }
 }

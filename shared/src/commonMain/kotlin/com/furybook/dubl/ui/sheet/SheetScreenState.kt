@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.furybook.dubl.model.RollResult
+import com.furybook.dubl.ui.editor.EditorOpenTarget
 import com.furybook.ui.components.FuryRollHistoryEntry
 
 private const val SHEET_HISTORY_LIMIT = 5
@@ -86,17 +87,18 @@ class SheetScreenState {
     }
 
     /** Set by the screen: takes the editor's snapshot when a visit starts, outside composition. */
-    var onEditorOpening: ((forceBasics: Boolean, skillId: String?, entryId: String?) -> Unit)? = null
+    var onEditorOpening: ((forceBasics: Boolean, skillId: String?, entryId: String?, target: EditorOpenTarget?) -> Unit)? = null
 
     /**
      * [skillId]: «Настроить в редакторе» from «Об умении» — the editor opens on that skill's panel;
-     * [entryId]: the same from a perk's «Подробнее» — on that perk's detail.
+     * [entryId]: the same from a perk's «Подробнее» — on that perk's detail;
+     * [target]: Магия or Снаряжение from the sheet's spells and gear blocks.
      */
-    fun openEditor(forceBasics: Boolean, skillId: String? = null, entryId: String? = null) {
+    fun openEditor(forceBasics: Boolean, skillId: String? = null, entryId: String? = null, target: EditorOpenTarget? = null) {
         editorForceBasics = forceBasics
         if (!editing) {
             editorSession++
-            onEditorOpening?.invoke(forceBasics, skillId, entryId)
+            onEditorOpening?.invoke(forceBasics, skillId, entryId, target)
         }
         rollOpen = false
         updateEditing(true)

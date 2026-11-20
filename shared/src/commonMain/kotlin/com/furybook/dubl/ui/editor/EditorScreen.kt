@@ -77,6 +77,9 @@ internal class EditorFrameData(host: DublEditorHost, val before: CharacterRestor
     val perkCount = host.active.development.keys.count { id ->
         id != MagicEquipmentRules.BASE_MANA_ENTRY_ID && host.developmentCatalog.byId(id)?.isAbility != true
     }
+    val spellCount = host.active.magic.spells.count { it.learned }
+    val gearCount = host.active.gear.items.size
+    val carriedCount = host.active.gear.items.count { it.carried }
 }
 
 /**
@@ -92,8 +95,6 @@ fun EditorScreen(
     modifier: Modifier = Modifier,
     portraitLoader: SheetPortraitLoader? = null,
     onPickPortrait: (() -> Unit)? = null,
-    onOpenMagic: () -> Unit = {},
-    onOpenGear: () -> Unit = {},
 ) {
     LaunchedEffect(host.active.id) { state.syncCharacter(host) }
     val toast = state.toast
@@ -119,7 +120,7 @@ fun EditorScreen(
                 if (wide) EditorRail(steps, state, data, Modifier.width(RAIL_WIDTH).fillMaxHeight())
                 Column(Modifier.weight(1f).fillMaxHeight()) {
                     Box(Modifier.weight(1f).fillMaxWidth()) {
-                        EditorStepContent(host, state, data, layout, portraitLoader, onPickPortrait, onOpenMagic, onOpenGear)
+                        EditorStepContent(host, state, data, layout, portraitLoader, onPickPortrait)
                     }
                     if (wide) EditorNavBar(steps, index, state, host, onClose)
                 }
@@ -176,8 +177,6 @@ internal fun EditorStepContent(
     layout: SheetLayout,
     portraitLoader: SheetPortraitLoader?,
     onPickPortrait: (() -> Unit)?,
-    onOpenMagic: () -> Unit,
-    onOpenGear: () -> Unit,
 ) {
     when (state.step) {
         EditorStep.DEVELOPMENT -> EditorDevelopmentStep(host, state, data, layout)
@@ -185,7 +184,9 @@ internal fun EditorStepContent(
         EditorStep.ATTRIBUTES -> EditorAttributesStep(host, data, layout)
         EditorStep.SKILLS -> EditorSkillsStep(host, state, data, layout)
         EditorStep.PERKS -> EditorPerksStep(host, state, data, layout)
-        EditorStep.SUMMARY -> EditorSummaryStep(host, state, data, layout, onOpenMagic, onOpenGear)
+        EditorStep.MAGIC -> EditorMagicStep(host, state, data, layout)
+        EditorStep.GEAR -> EditorGearStep(host, state, data, layout)
+        EditorStep.SUMMARY -> EditorSummaryStep(host, state, data, layout)
     }
 }
 
@@ -238,6 +239,8 @@ private fun stepSub(step: EditorStep, data: EditorFrameData, name: String): Stri
     EditorStep.ATTRIBUTES -> "${data.economy.attributeXp} XP"
     EditorStep.SKILLS -> "${data.rankCount} рангов · ${data.economy.skillXp} XP"
     EditorStep.PERKS -> "${data.perkCount} взято · ${data.economy.developmentXp} XP"
+    EditorStep.MAGIC -> "${data.spellCount} заклинаний · ${data.economy.manaXp + data.economy.magicSchoolXp + data.economy.spellXp} XP"
+    EditorStep.GEAR -> "${data.gearCount} позиций · ${data.carriedCount} с собой"
     EditorStep.SUMMARY -> if (data.problems.isEmpty()) "всё в порядке" else "${data.problems.size} замеч."
 }
 

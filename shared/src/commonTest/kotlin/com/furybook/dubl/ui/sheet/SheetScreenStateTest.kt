@@ -109,7 +109,7 @@ class SheetScreenStateTest {
     fun openingTheEditorTakesOneSnapshotPerVisit() {
         val state = SheetScreenState()
         val opened = mutableListOf<Boolean>()
-        state.onEditorOpening = { forceBasics, _, _ -> opened += forceBasics }
+        state.onEditorOpening = { forceBasics, _, _, _ -> opened += forceBasics }
         state.openEditor(forceBasics = true)
         state.openEditor(forceBasics = false)
         kotlin.test.assertEquals(listOf(true), opened)
@@ -122,7 +122,7 @@ class SheetScreenStateTest {
     fun editorOpensAtSkillFromRollPanel() {
         val state = SheetScreenState()
         var opened: Pair<Boolean, String?>? = null
-        state.onEditorOpening = { forceBasics, skillId, _ -> opened = forceBasics to skillId }
+        state.onEditorOpening = { forceBasics, skillId, _, _ -> opened = forceBasics to skillId }
         state.open(SheetRollSubject.Skill("stealth"))
         state.openDialog(SheetDialog.SkillInfo("stealth"))
         state.openEditor(forceBasics = false, skillId = "stealth")
@@ -136,7 +136,7 @@ class SheetScreenStateTest {
     fun editorOpensAtPerkFromSheet() {
         val state = SheetScreenState()
         var opened: Triple<Boolean, String?, String?>? = null
-        state.onEditorOpening = { forceBasics, skillId, entryId -> opened = Triple(forceBasics, skillId, entryId) }
+        state.onEditorOpening = { forceBasics, skillId, entryId, _ -> opened = Triple(forceBasics, skillId, entryId) }
         state.openDialog(SheetDialog.DevelopmentDetails("feat_hear"))
         state.openEditor(forceBasics = false, entryId = "feat_hear")
         kotlin.test.assertEquals(Triple(false, null, "feat_hear"), opened)
@@ -155,5 +155,14 @@ class SheetScreenStateTest {
         state.openDialog(SheetDialog.GearItem("g"))
         state.closeDialog()
         assertNull(state.dialog)
+    }
+
+    @Test
+    fun editorOpensAtTargetFromSheet() {
+        val state = SheetScreenState()
+        var target: com.furybook.dubl.ui.editor.EditorOpenTarget? = null
+        state.onEditorOpening = { _, _, _, t -> target = t }
+        state.openEditor(forceBasics = false, target = com.furybook.dubl.ui.editor.EditorOpenTarget.Gear("u"))
+        assertEquals(com.furybook.dubl.ui.editor.EditorOpenTarget.Gear("u"), target)
     }
 }

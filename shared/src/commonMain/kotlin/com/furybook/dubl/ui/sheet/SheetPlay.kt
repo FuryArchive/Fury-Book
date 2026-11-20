@@ -2,6 +2,7 @@ package com.furybook.dubl.ui.sheet
 
 import com.furybook.dubl.ui.editor.DublEditorHost
 import com.furybook.dubl.ui.editor.EditorChip
+import com.furybook.dubl.ui.editor.EditorOpenTarget
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -104,11 +105,11 @@ internal fun SheetPlayBody(
     val gear = remember(host, character) { sheetGear(character) }
     val spellsBlock: @Composable (Modifier, Boolean) -> Unit = { modifier, scrollable ->
         spells?.let { view ->
-            SheetPlaySpells(view, { uid -> state.openDialog(SheetDialog.Cast(uid)) }, { state.openEditor(forceBasics = false) }, compact, scrollable, modifier)
+            SheetPlaySpells(view, { uid -> state.openDialog(SheetDialog.Cast(uid)) }, { state.openEditor(forceBasics = false, target = EditorOpenTarget.Magic(catalog = true)) }, compact, scrollable, modifier)
         }
     }
     val gearBlock: @Composable (Modifier, Boolean) -> Unit = { modifier, scrollable ->
-        SheetPlayGear(gear, { uid -> state.openDialog(SheetDialog.GearItem(uid)) }, { state.openEditor(forceBasics = false) }, compact, scrollable, modifier)
+        SheetPlayGear(gear, { uid -> state.openDialog(SheetDialog.GearItem(uid)) }, { state.openEditor(forceBasics = false, target = EditorOpenTarget.Gear(catalog = true)) }, compact, scrollable, modifier)
     }
     // Desktop: one right column, tabbed; the blocks scroll inside it like Навыки did.
     val rightColumn: @Composable (Modifier) -> Unit = { modifier ->

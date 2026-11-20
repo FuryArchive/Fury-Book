@@ -702,8 +702,6 @@ private fun WebSheet(
             openEditorAtBasics = hooks.openEditorAtBasics,
             onOpenEditorConsumed = hooks.onOpenEditorConsumed,
             onEditorShown = hooks.onEditorShown,
-            onOpenMagic = { onNavigate(DesktopSection.MAGIC) },
-            onOpenGear = { onNavigate(DesktopSection.EQUIPMENT) },
         )
         AnimatedVisibility(
             visible = toast != null,

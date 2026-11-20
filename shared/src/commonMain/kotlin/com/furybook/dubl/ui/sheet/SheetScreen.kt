@@ -1,5 +1,6 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.dubl.ui.editor.EditorOpenTarget
 import com.furybook.dubl.model.CharacterSheetResourceId
 
 import androidx.compose.foundation.layout.Arrangement
@@ -69,8 +70,6 @@ fun SheetScreen(
     onOpenEditorConsumed: () -> Unit = {},
     /** Tells the shell when the editor covers the sheet (the phone bottom nav hides). */
     onEditorShown: (Boolean) -> Unit = {},
-    onOpenMagic: () -> Unit = {},
-    onOpenGear: () -> Unit = {},
 ) {
     val state = remember { SheetScreenState() }
     state.syncCharacter(host.active.id)
@@ -81,7 +80,7 @@ fun SheetScreen(
     backHandler(state.editing) { state.updateEditing(false) }
     // A fresh snapshot each time the editor opens, taken in the click/effect that opens it.
     val currentHost by rememberUpdatedState(host)
-    SideEffect { state.onEditorOpening = { forceBasics, skillId, entryId -> editorState.open(currentHost, forceBasics, skillId, entryId) } }
+    SideEffect { state.onEditorOpening = { forceBasics, skillId, entryId, target -> editorState.open(currentHost, forceBasics, skillId, entryId, target) } }
     // Older builds stored catalog items' weight as their load; repair it whenever a character is shown, so the
     // sheet's load line and burden are right before anyone opens the editor (and before its snapshot).
     LaunchedEffect(host, host.active.id) { host.syncCatalogGearLoads(host.magicEquipmentCatalog.gear) }
@@ -99,7 +98,7 @@ fun SheetScreen(
         if (state.editing) {
             EditorScreen(
                 host, editorState, onClose = { state.updateEditing(false) },
-                portraitLoader = portraitLoader, onPickPortrait = onPickPortrait, onOpenMagic = onOpenMagic, onOpenGear = onOpenGear,
+                portraitLoader = portraitLoader, onPickPortrait = onPickPortrait,
             )
             return@BoxWithConstraints
         }
@@ -157,7 +156,7 @@ private fun SheetScreenDialog(
         SheetDialog.Economy -> SheetEconomyDialog(sheetEconomyView(host), host, close)
         SheetDialog.Resources -> SheetResourcesDialog(host, close)
         is SheetDialog.Cast -> SheetCastDialog(host, dialog.uid, close)
-        is SheetDialog.GearItem -> SheetGearDialog(host, dialog.uid, onEdit = { state.openEditor(forceBasics = false) }, onDismiss = close)
+        is SheetDialog.GearItem -> SheetGearDialog(host, dialog.uid, onEdit = { state.openEditor(forceBasics = false, target = EditorOpenTarget.Gear(dialog.uid)) }, onDismiss = close)
         is SheetDialog.DevelopmentDetails -> SheetDevelopmentDetailsDialog(
             host, dialog.entryId, onConfigure = { state.openEditor(forceBasics = false, entryId = dialog.entryId) }, onDismiss = close,
         )

@@ -12,16 +12,39 @@ enum class EditorStep(val title: String) {
     ATTRIBUTES("Характеристики"),
     SKILLS("Умения"),
     PERKS("Навыки"),
+    MAGIC("Магия"),
+    GEAR("Снаряжение"),
     SUMMARY("Итог"),
 }
+
+/** Where the sheet asks the editor to open: a spell or the spell catalog, an item or the gear catalog. */
+sealed interface EditorOpenTarget {
+    data class Magic(val spellUid: String? = null, val catalog: Boolean = false) : EditorOpenTarget
+    data class Gear(val itemUid: String? = null, val catalog: Boolean = false) : EditorOpenTarget
+}
+
+/** What the Магия / Снаряжение step shows beside (or over) its list. */
+sealed interface EditorPane {
+    data class Spell(val uid: String) : EditorPane
+    data class CatalogSpell(val id: String) : EditorPane
+    data object SpellCatalog : EditorPane
+    data class School(val index: Int) : EditorPane
+    data class Item(val uid: String) : EditorPane
+    data class CatalogItem(val id: String) : EditorPane
+    data object GearCatalog : EditorPane
+}
+
+enum class EditorSpellFilter { ALL, LEARNED, UNLEARNED }
 
 enum class EditorPerkKind { REGULAR, SPECIAL, MARTIAL, CHI, OWNED }
 
 enum class EditorPerkFilter { ALL, AVAILABLE, ALMOST, PLAN }
 
-private val CREATION_STEPS = listOf(EditorStep.BASICS, EditorStep.ATTRIBUTES, EditorStep.SKILLS, EditorStep.PERKS, EditorStep.SUMMARY)
+private val CREATION_STEPS = listOf(
+    EditorStep.BASICS, EditorStep.ATTRIBUTES, EditorStep.SKILLS, EditorStep.PERKS, EditorStep.MAGIC, EditorStep.GEAR, EditorStep.SUMMARY,
+)
 
-/** A character in creation walks the five steps; a finished one also gets the Развитие landing, first. */
+/** A character in creation walks the seven steps; a finished one also gets the Развитие landing, first. */
 fun editorSteps(creationComplete: Boolean): List<EditorStep> =
     if (creationComplete) listOf(EditorStep.DEVELOPMENT) + CREATION_STEPS else CREATION_STEPS
 
@@ -69,11 +92,27 @@ class EditorState {
     /** Paths picked for the plan's alternative requirements. */
     var planChoices: Map<String, Int> by mutableStateOf(emptyMap())
 
+    // Магия and Снаряжение: the open pane and the list filters; all reset when a visit starts.
+    var magicPane: EditorPane? by mutableStateOf(null)
+    var gearPane: EditorPane? by mutableStateOf(null)
+    var spellFilter: EditorSpellFilter by mutableStateOf(EditorSpellFilter.ALL)
+    var spellSchool: String? by mutableStateOf(null)
+    var spellQuery: String by mutableStateOf("")
+    var spellCatalogQuery: String by mutableStateOf("")
+    var spellCatalogSchool: String? by mutableStateOf(null)
+    var spellCatalogUsableOnly: Boolean by mutableStateOf(false)
+    var gearQuery: String by mutableStateOf("")
+    var gearCatalogQuery: String by mutableStateOf("")
+    /** A [com.furybook.dubl.ui.sheet.gearCategoryKey]; null = every category. */
+    var gearCatalogCategory: String? by mutableStateOf(null)
+
     /**
      * [skillId]: opened from «Настроить в редакторе» — straight to Умения with that skill's panel.
      * [entryId]: the same from a perk's «Подробнее» — straight to Навыки with that perk's detail (the list alone if it is gone).
+     * [target]: the sheet's «+ Заклинание», «+ Предмет» or «Изменить в редакторе» — Магия or Снаряжение, at that spell,
+     * item or catalog (the list alone if the spell or item is gone).
      */
-    fun open(host: DublEditorHost, forceBasics: Boolean, skillId: String? = null, entryId: String? = null) {
+    fun open(host: DublEditorHost, forceBasics: Boolean, skillId: String? = null, entryId: String? = null, target: EditorOpenTarget? = null) {
         val complete = host.active.creationComplete
         snapshot = host.restorePoint()
         step = if (skillId != null) EditorStep.SKILLS else editorStartStep(complete, forceBasics)
@@ -89,6 +128,36 @@ class EditorState {
         selectChoices(null)
         changesOpen = false
         developmentPins = null
+        magicPane = null
+        gearPane = null
+        spellFilter = EditorSpellFilter.ALL
+        spellSchool = null
+        spellQuery = ""
+        spellCatalogQuery = ""
+        spellCatalogSchool = null
+        spellCatalogUsableOnly = false
+        gearQuery = ""
+        gearCatalogQuery = ""
+        gearCatalogCategory = null
+        when (target) {
+            null -> Unit
+            is EditorOpenTarget.Magic -> {
+                step = EditorStep.MAGIC
+                magicPane = when {
+                    target.catalog -> EditorPane.SpellCatalog
+                    target.spellUid != null && host.active.magic.spells.any { it.uid == target.spellUid } -> EditorPane.Spell(target.spellUid)
+                    else -> null
+                }
+            }
+            is EditorOpenTarget.Gear -> {
+                step = EditorStep.GEAR
+                gearPane = when {
+                    target.catalog -> EditorPane.GearCatalog
+                    target.itemUid != null && host.active.gear.items.any { it.uid == target.itemUid } -> EditorPane.Item(target.itemUid)
+                    else -> null
+                }
+            }
+        }
         if (entryId != null) {
             step = EditorStep.PERKS
             val context = EditorPerkContext(host)

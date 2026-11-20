@@ -155,8 +155,6 @@ fun DublApp() {
                         openEditorAtBasics = openEditorAtBasics,
                         onOpenEditorConsumed = { openEditorAtBasics = false },
                         onEditorShown = { editorShown = it },
-                        onOpenMagic = { selected = AppSection.MAGIC },
-                        onOpenGear = { selected = AppSection.INVENTORY },
                     )
                     AppSection.MAGIC -> MagicScreen(controller)
                     AppSection.INVENTORY -> EquipmentScreen(controller)
@@ -217,8 +215,6 @@ private fun AndroidSheet(
     openEditorAtBasics: Boolean = false,
     onOpenEditorConsumed: () -> Unit = {},
     onEditorShown: (Boolean) -> Unit = {},
-    onOpenMagic: () -> Unit = {},
-    onOpenGear: () -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     // Leaving the sheet tab closes the editor with it; the shell gets its bottom tabs back.
@@ -265,8 +261,6 @@ private fun AndroidSheet(
             openEditorAtBasics = openEditorAtBasics,
             onOpenEditorConsumed = onOpenEditorConsumed,
             onEditorShown = onEditorShown,
-            onOpenMagic = onOpenMagic,
-            onOpenGear = onOpenGear,
         )
         toast?.let { shown ->
             val undoShown: () -> Unit = {

@@ -195,7 +195,7 @@ fun EditorPerkContext.problems(): List<EditorProblem> = buildList {
         val unmet = rules.requirements(entry).any { it.status == RequirementStatus.FAIL && CREATION_CLOSED_MARK !in it.text }
         if (unmet) add(EditorProblem("${entry.name}: требования больше не выполнены", EditorStep.PERKS, entry.id))
     }
-    if (economy.unpricedLearnedSpells > 0) add(EditorProblem("Заклинания без цены: ${economy.unpricedLearnedSpells}", EditorStep.SUMMARY))
+    if (economy.unpricedLearnedSpells > 0) add(EditorProblem("Заклинания без цены: ${economy.unpricedLearnedSpells}", EditorStep.MAGIC))
 }
 
 /** A character still in creation with the placeholder name gets an empty name field (blank saves as the placeholder). */

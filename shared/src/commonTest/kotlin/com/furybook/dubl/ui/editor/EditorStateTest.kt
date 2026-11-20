@@ -8,7 +8,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class EditorStateTest {
-    private val creating = listOf(EditorStep.BASICS, EditorStep.ATTRIBUTES, EditorStep.SKILLS, EditorStep.PERKS, EditorStep.SUMMARY)
+    private val creating = listOf(EditorStep.BASICS, EditorStep.ATTRIBUTES, EditorStep.SKILLS, EditorStep.PERKS, EditorStep.MAGIC, EditorStep.GEAR, EditorStep.SUMMARY)
 
     @Test
     fun stepsForNewAndExisting() {
@@ -33,7 +33,7 @@ class EditorStateTest {
         repeat(10) { state.next(host) }
         assertEquals(EditorStep.SUMMARY, state.step)
         state.back(host)
-        assertEquals(EditorStep.PERKS, state.step)
+        assertEquals(EditorStep.GEAR, state.step)
     }
 
     @Test
@@ -250,5 +250,46 @@ class EditorStateTest {
         assertEquals(null, state.selectedEntryId)
         state.open(host, forceBasics = false)
         assertEquals(EditorStep.DEVELOPMENT, state.step)
+    }
+
+    @Test
+    fun stepsIncludeMagicAndGear() {
+        val tail = listOf(EditorStep.PERKS, EditorStep.MAGIC, EditorStep.GEAR, EditorStep.SUMMARY)
+        assertEquals(tail, editorSteps(creationComplete = true).takeLast(4))
+        assertEquals(tail, editorSteps(creationComplete = false).takeLast(4))
+    }
+
+    private fun gearHost(): Pair<FakeSheetHost, String> {
+        val host = FakeSheetHost(EditorFixtures.hornet)
+        val uid = host.addCustomGear(com.furybook.dubl.model.GearItem(uid = "", name = "Верёвка"))
+        return host to uid
+    }
+
+    @Test
+    fun openAtGearItem() {
+        val (host, uid) = gearHost()
+        val state = EditorState()
+        state.open(host, forceBasics = false, target = EditorOpenTarget.Gear(uid))
+        assertEquals(EditorStep.GEAR, state.step)
+        assertEquals(EditorPane.Item(uid), state.gearPane)
+    }
+
+    @Test
+    fun openAtSpellCatalog() {
+        val state = EditorState()
+        state.open(FakeSheetHost(EditorFixtures.hornet), forceBasics = false, target = EditorOpenTarget.Magic(catalog = true))
+        assertEquals(EditorStep.MAGIC, state.step)
+        assertEquals(EditorPane.SpellCatalog, state.magicPane)
+    }
+
+    @Test
+    fun openAtMissingItemShowsList() {
+        val (host, _) = gearHost()
+        val state = EditorState()
+        state.open(host, forceBasics = false, target = EditorOpenTarget.Gear("gone"))
+        assertEquals(EditorStep.GEAR, state.step)
+        assertEquals(null, state.gearPane)
+        state.open(host, forceBasics = false)
+        assertEquals(null, state.gearPane)
     }
 }
