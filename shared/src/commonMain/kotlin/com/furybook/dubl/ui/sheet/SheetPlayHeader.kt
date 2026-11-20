@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.furybook.dubl.model.CharacterSheetResourceId
 import com.furybook.dubl.model.CharacterConditionId
 import com.furybook.dubl.model.CharacterEconomyBreakdown
 import com.furybook.ui.components.FuryBar
@@ -455,7 +456,9 @@ fun SheetPlayHeaderCompact(
             Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 rest.forEach { vital ->
                     ResourceChip(vital, playState.selectedResource == vital.id) {
-                        playState.selectedResource = if (playState.selectedResource == vital.id) null else vital.id
+                        // ЦИ opens its panel straight away (±1 is there too, with the techniques).
+                        if (vital.resource == CharacterSheetResourceId.CHI) state.openDialog(SheetDialog.Vital(vital.id))
+                        else playState.selectedResource = if (playState.selectedResource == vital.id) null else vital.id
                     }
                 }
             }

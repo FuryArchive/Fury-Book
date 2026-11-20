@@ -1,5 +1,7 @@
 package com.furybook.dubl.ui.sheet
 
+import com.furybook.dubl.model.CharacterSheetResourceId
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -140,7 +142,10 @@ private fun SheetScreenDialog(
     when (val dialog = state.dialog) {
         null -> Unit
         is SheetDialog.Vital -> sheetVitals(host).firstOrNull { it.id == dialog.vitalId }
-            ?.let { vital -> SheetVitalDialog(vital, host, close) } ?: close()
+            ?.let { vital ->
+                // ЦИ has its own panel: the same amount controls plus the techniques to spend it on.
+                if (vital.resource == CharacterSheetResourceId.CHI) SheetChiDialog(vital, host, close) else SheetVitalDialog(vital, host, close)
+            } ?: close()
         is SheetDialog.Stat -> SheetStatDialog(
             breakdown = sheetStatBreakdown(host.active, dialog.stat),
             onRoll = dialog.roll?.let { subject -> { state.open(subject, dialog = layout != SheetLayout.WIDE_WITH_TRAY) } },
