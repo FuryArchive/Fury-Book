@@ -1,6 +1,7 @@
 # Login, Персонажи and Мастер (revamp stage 6)
 
-Status: draft for owner approval · 2026-11-21
+Status: approved by the owner · 2026-11-21
+Mockup: https://claude.ai/artifact/KJ2cQGEeWMsejyWZsWedky (Design canvas: login, Персонажи + account panel, Мастер → Бой and Партия, phone login and Мастер)
 Builds on: `2026-11-17-ui-revamp-design.md` (stage list, leftovers) and stages 2–5 (shared screens, the editor, the sheet).
 
 ## Why
