@@ -45,6 +45,9 @@ class FuryToastState {
 
     fun clear() { text = null; undo = null }
 
+    /** The undo behind «Вернуть» is gone: keep the message, drop the button so it never does nothing. */
+    fun dropUndo() { undo = null }
+
     internal val key: Int get() = serial
 }
 

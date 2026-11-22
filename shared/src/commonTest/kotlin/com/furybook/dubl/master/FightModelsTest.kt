@@ -76,12 +76,6 @@ class FightModelsTest {
         assertEquals("b", state.turnUid)
         assertNull(removeEntry(state, "b").turnUid)
     }
-
-    @Test
-    fun masterDataSurvivesSignOut() {
-        val data = MasterData(enemies = listOf(MasterEnemy("g", "Гоблин")), fight = addPlayer(newFight(), "Вика", null, "u"))
-        assertEquals(data, masterAfterSignOut(data))
-    }
 }
 
 class FightNudgeTest {
@@ -95,5 +89,21 @@ class FightNudgeTest {
         assertEquals(false, canNudgeUp(state, "a"))
         assertEquals(listOf("b", "c", "a"), fightOrder(nudgeUp(state, "c")).map { it.uid })
         assertEquals(state, nudgeUp(state, "a"))
+    }
+}
+
+class MasterSmallFixesTest {
+    @Test
+    fun enemyWithoutHealthHasNoHitPoints() {
+        val ghost = addEnemy(newFight(), MasterEnemy("g", "Призрак", health = 0), "u").entries.single()
+        assertNull(ghost.hp)
+        assertNull(ghost.hpMax)
+    }
+
+    @Test
+    fun blankNewNoteIsDroppedOnClose() {
+        val notes = listOf(MasterNote("n2", "", "", "2026-11-22"), MasterNote("n1", "Сессия", "", "2026-11-21"))
+        assertEquals(listOf("n1"), saveNoteEdit(notes, notes[0].copy(title = "  ", text = "\n")).map { it.id })
+        assertEquals("Таверна", saveNoteEdit(notes, notes[0].copy(title = "Таверна")).first().title)
     }
 }

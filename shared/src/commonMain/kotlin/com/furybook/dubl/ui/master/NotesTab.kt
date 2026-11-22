@@ -16,6 +16,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import com.furybook.dubl.master.MasterNote
 import com.furybook.dubl.master.newNote
+import com.furybook.dubl.master.saveNoteEdit
 import com.furybook.dubl.master.searchNotes
 import com.furybook.ui.components.FuryButton
 import com.furybook.ui.components.FuryButtonStyle
@@ -62,7 +63,7 @@ internal fun NotesTab(scope: MasterScope) {
         var text by remember(note.id) { mutableStateOf(note.text) }
         fun save() {
             val saved = note.copy(title = title.trim(), date = date.trim(), text = text.trimEnd())
-            scope.change { d -> d.copy(notes = d.notes.map { if (it.id == note.id) saved else it }) }
+            scope.change { d -> d.copy(notes = saveNoteEdit(d.notes, saved)) }
             editing = null
         }
         FuryDialogScaffold(

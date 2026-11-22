@@ -43,3 +43,14 @@ class MasterStateTest {
         assertEquals(emptyList(), state.data.enemies)
     }
 }
+
+class MasterScopeTest {
+    @Test
+    fun toastLosesVernutWhenUndoIsGone() {
+        val scope = MasterScope(MasterState(InMemoryMasterStore(MasterData(enemies = listOf(MasterEnemy("g", "Гоблин"))))), com.furybook.ui.components.FuryToastState())
+        scope.change("Гоблин удалён") { it.copy(enemies = emptyList()) }
+        assertTrue(scope.toast.undo != null)
+        scope.change { it.copy(notes = listOf(MasterNote("n", "x"))) }
+        assertNull(scope.toast.undo)
+    }
+}

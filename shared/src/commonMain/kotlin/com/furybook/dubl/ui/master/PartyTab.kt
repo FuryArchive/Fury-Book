@@ -81,6 +81,7 @@ internal fun PartyTab(
     var invite by remember { mutableStateOf<CampaignInvite?>(null) }
     var creating by remember { mutableStateOf(false) }
     var viewing by remember { mutableStateOf<String?>(null) }
+    var confirmRemove by remember { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(false) }
     val owned = account.campaigns.filter { it.isOwner }
     val playing = account.campaigns.filter { !it.isOwner }
@@ -183,17 +184,32 @@ internal fun PartyTab(
             subtitle = "${member.nickname} · только просмотр",
             onDismiss = { viewing = null },
             maxWidth = 960.dp,
-            destructive = FuryDialogAction("Убрать игрока", {
-                val campaignId = dashboard.id
-                viewing = null
-                coroutines.launch {
-                    account.removeMember(campaignId, member.userId).fold(
-                        { scope.toast.show("${member.nickname} больше не в кампании"); load(campaignId) },
-                        { error = it.message ?: "Не удалось убрать игрока." },
-                    )
-                }
-            }),
+            destructive = FuryDialogAction("Убрать игрока", { confirmRemove = member.userId }),
         ) { ReadOnlyCharacterView(view) }
+        if (confirmRemove == member.userId) {
+            FuryDialogScaffold(
+                title = "Убрать игрока?",
+                subtitle = "${member.nickname} · ${member.character.name}",
+                onDismiss = { confirmRemove = null },
+                secondary = FuryDialogAction("Отмена", { confirmRemove = null }),
+                destructive = FuryDialogAction("Убрать", {
+                    val campaignId = dashboard.id
+                    confirmRemove = null
+                    viewing = null
+                    coroutines.launch {
+                        account.removeMember(campaignId, member.userId).fold(
+                            { scope.toast.show("${member.nickname} больше не в кампании"); load(campaignId) },
+                            { error = it.message ?: "Не удалось убрать игрока." },
+                        )
+                    }
+                }),
+            ) {
+                Text(
+                    "Игрок перестанет быть участником «${dashboard.name}», и вы больше не увидите его лист. Вернуть его можно только новым приглашением.",
+                    color = DublText, style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
     }
 }
 

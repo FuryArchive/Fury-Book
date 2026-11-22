@@ -58,3 +58,34 @@ def test_fight_rows_are_keyed_and_campaigns_can_always_be_left():
     assert 'key(entry.uid) { FightRow(' in fight
     party = text(SHARED / 'ui/master/PartyTab.kt')
     assert 'account.leaveCampaign(campaign.id)' in party
+
+
+def _body(src: str, start: str) -> str:
+    """The braces-balanced block that follows the first line containing [start]."""
+    i = src.index(start)
+    j = src.index('{', i)
+    depth = 0
+    for k in range(j, len(src)):
+        depth += {'{': 1, '}': -1}.get(src[k], 0)
+        if depth == 0:
+            return src[j:k + 1]
+    raise AssertionError(f'unbalanced block after {start}')
+
+
+def test_sign_out_never_touches_gm_data():
+    """«Выйти» clears the account's characters; Мастер's data belongs to the device and must survive it."""
+    blocks = [
+        _body(text(ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/cloud/DesktopCloudController.kt'), 'override suspend fun signOutDiscarding()'),
+        _body(text(ROOT / 'app/src/main/java/com/furybook/android/cloud/AndroidCloudController.kt'), 'override suspend fun signOutDiscarding()'),
+        _body(text(ROOT / 'webApp/src/jsMain/kotlin/com/furybook/web/WebAccount.kt'), 'override suspend fun signOutDiscarding()'),
+        _body(text(ROOT / 'shared/src/commonMain/kotlin/com/furybook/core/cloud/NativeCloudSync.kt'), 'fun clearLocal()'),
+        _body(text(HOSTS['desktop']), 'onSignedOut = {'),
+        _body(text(HOSTS['android']), 'onSignedOut = {'),
+        _body(text(HOSTS['web']), 'onSignedOut = {'),
+        _body(text(ROOT / 'webApp/src/jsMain/kotlin/com/furybook/web/BrowserPersistence.kt'), 'fun clearBrowserSessionData()'),
+    ]
+    for block in blocks:
+        assert 'master' not in block.lower(), block[:200]
+    # The browser's sign-out clear only removes the guest keys, never `fury.master`.
+    clear = _body(text(ROOT / 'webApp/src/jsMain/kotlin/com/furybook/web/BrowserPersistence.kt'), '    fun clear() {\n        listOf(')
+    assert 'SNAPSHOT, EXTRAS, CHI' in clear

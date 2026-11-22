@@ -67,7 +67,7 @@ internal fun masterToday(): String = Clock.System.now().toString().take(10)
 internal class MasterScope(val state: MasterState, val toast: FuryToastState) {
     fun change(undoable: String? = null, block: (MasterData) -> MasterData) {
         state.update(block, undoable)
-        if (undoable != null) toast.show(undoable, onUndo = { state.undo() })
+        if (undoable != null) toast.show(undoable, onUndo = { state.undo() }) else if (state.undoLabel == null) toast.dropUndo()
     }
 }
 

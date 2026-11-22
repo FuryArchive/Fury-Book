@@ -47,5 +47,10 @@ fun searchNotes(notes: List<MasterNote>, query: String): List<MasterNote> {
     return notes.filter { key in lookupKey(it.title) || key in lookupKey(it.text) }
 }
 
+/** Writes an edited note back; a note left with no title and no text is dropped (a «+ Новая заметка» closed unused). */
+fun saveNoteEdit(notes: List<MasterNote>, edited: MasterNote): List<MasterNote> =
+    if (edited.title.isBlank() && edited.text.isBlank()) notes.filterNot { it.id == edited.id }
+    else notes.map { if (it.id == edited.id) edited else it }
+
 /** «Новая заметка»: empty, dated [today] (the GM can change the date). */
 fun newNote(id: String, today: String): MasterNote = MasterNote(id = id, title = "", text = "", date = today)

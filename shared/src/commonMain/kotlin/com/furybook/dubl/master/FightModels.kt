@@ -38,8 +38,9 @@ fun addEnemy(state: FightState, enemy: MasterEnemy, newUid: String): FightState 
         uid = newUid,
         name = "$base $number",
         kind = FightKind.ENEMY,
-        hp = enemy.health,
-        hpMax = enemy.health,
+        // No health typed: no hit-point control (a 0/0 bar helps nobody).
+        hp = enemy.health.takeIf { it > 0 },
+        hpMax = enemy.health.takeIf { it > 0 },
         initiativeBonus = enemy.initiative,
     )
     return state.copy(entries = state.entries + entry)
@@ -79,9 +80,6 @@ fun removeEntry(state: FightState, uid: String): FightState {
 
 /** «Бросить» for the GM: 2d6 plus the entry's bonus. */
 fun rollInitiative(entry: FightEntry, d6: () -> Int): Int = d6() + d6() + (entry.initiativeBonus ?: 0)
-
-/** Signing out never touches Мастер: the GM's data is not tied to an account. */
-fun masterAfterSignOut(data: MasterData): MasterData = data
 
 private fun FightState.tiedWithPrevious(uid: String): Pair<FightEntry, FightEntry>? {
     val order = fightOrder(this)
