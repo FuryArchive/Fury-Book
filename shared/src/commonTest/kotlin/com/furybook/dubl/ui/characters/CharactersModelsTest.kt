@@ -72,6 +72,31 @@ class CharactersModelsTest {
     }
 
     @Test
+    fun joinWarnsWhenMoving() {
+        val before = listOf(CampaignSummary("k1", "Дорога на Лест", false, linkedCharacterId = "a", memberCount = 3, createdAt = ""))
+        val joined = before.single().copy(linkedCharacterId = "b")
+        assertEquals("a", joinReplaced(before, joined, "b"))
+        // A new campaign, or the same character again: nothing moved.
+        assertEquals(null, joinReplaced(emptyList(), joined, "b"))
+        assertEquals(null, joinReplaced(before, before.single(), "a"))
+    }
+
+    @Test
+    fun importMessages() {
+        assertEquals("Импортирован персонаж: Шершень.", importResultMessage(CharacterTransferImportResult.Imported("x", "Шершень")))
+        assertEquals(
+            "Этот файл создан для другого рулбука или версии правил.",
+            importResultMessage(CharacterTransferImportResult.Rejected(com.furybook.dubl.data.CharacterTransferRejectReason.UNSUPPORTED_RULESET)),
+        )
+    }
+
+    @Test
+    fun exportFileNameIsSafe() {
+        assertEquals("Вика_Ястреб_.dubl", exportFileName("Вика/Ястреб?"))
+        assertEquals("character.dubl", exportFileName("  "))
+    }
+
+    @Test
     fun archiveIdsRoundTrip() {
         assertEquals(setOf("a", "b c"), decodeArchiveIds(encodeArchiveIds(setOf("a", "b c"))))
         assertEquals(emptySet(), decodeArchiveIds(null))

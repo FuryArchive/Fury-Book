@@ -1,6 +1,8 @@
 package com.furybook.dubl.ui.characters
 
 import com.furybook.core.cloud.CampaignSummary
+import com.furybook.dubl.application.CharacterTransferImportResult
+import com.furybook.dubl.data.CharacterTransferRejectReason
 import com.furybook.core.json.jsonArray
 import com.furybook.core.json.jsonObject
 import com.furybook.core.json.jsonString
@@ -53,3 +55,24 @@ fun encodeArchiveIds(ids: Set<String>): String = jsonStringify(jsonObject("archi
 
 fun decodeArchiveIds(raw: String?): Set<String> =
     raw?.let { runCatching { parseRoot(it).stringList("archived").toSet() }.getOrNull() }.orEmpty()
+
+/**
+ * After a join: the character of [characterId]'s player that was in [joined] before and got replaced (the server
+ * keeps one character per player per campaign), or null. An invite code doesn't name its campaign, so this is
+ * only known afterwards.
+ */
+fun joinReplaced(before: List<CampaignSummary>, joined: CampaignSummary, characterId: String): String? =
+    before.firstOrNull { it.id == joined.id }?.linkedCharacterId?.takeIf { it != characterId }
+
+fun importResultMessage(result: CharacterTransferImportResult): String = when (result) {
+    is CharacterTransferImportResult.Imported -> "Импортирован персонаж: ${result.name}."
+    is CharacterTransferImportResult.Rejected -> when (result.reason) {
+        CharacterTransferRejectReason.INVALID_FILE -> "Это не поддерживаемый файл персонажа DUBL."
+        CharacterTransferRejectReason.UNSUPPORTED_FORMAT_VERSION -> "Версия файла персонажа пока не поддерживается."
+        CharacterTransferRejectReason.UNSUPPORTED_RULESET -> "Этот файл создан для другого рулбука или версии правил."
+    }
+}
+
+/** «<имя>.dubl» with the characters file systems refuse replaced. */
+fun exportFileName(name: String): String =
+    name.trim().ifBlank { "character" }.replace(Regex("[\\\\/:*?\"<>|]+"), "_").take(80) + ".dubl"
