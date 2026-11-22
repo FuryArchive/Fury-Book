@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -98,7 +99,8 @@ internal fun FightTab(scope: MasterScope, conditions: ConditionCatalog, dashboar
             }
         }
         order.forEach { entry ->
-            FightRow(
+            // Keyed: rows re-sort while the GM types an initiative, and typing must stay on the same combatant.
+            key(entry.uid) { FightRow(
                 entry = entry,
                 isTurn = entry.uid == fight.turnUid,
                 canNudge = canNudgeUp(fight, entry.uid),
@@ -114,7 +116,7 @@ internal fun FightTab(scope: MasterScope, conditions: ConditionCatalog, dashboar
                     scope.toast.show("${entry.name}: 2d6$bonus = $roll")
                 },
                 onRemove = { scope.change("${entry.name} убран из боя") { it.copy(fight = removeEntry(it.fight, entry.uid)) } },
-            )
+            ) }
         }
     }
     if (addingPlayer) {

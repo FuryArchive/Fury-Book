@@ -50,3 +50,24 @@ def test_guest_merge_lives_in_shared_code():
 def test_sign_out_clears_the_archive_list():
     for name, path in HOSTS.items():
         assert 'archive' in text(path).lower(), f'{name} never touches the archive store'
+
+
+def test_web_password_reset_lands_on_the_reset_page():
+    backend = text(ROOT / 'webApp/src/jsMain/kotlin/com/furybook/web/SupabaseBackend.kt')
+    assert 'redirectTo = com.furybook.core.cloud.FuryAuthProtocol.RECOVERY_REDIRECT_URL' in backend
+    assert 'redirectTo = window.location.origin' not in backend
+
+
+def test_web_guest_copy_goes_only_after_the_upload():
+    merge = text(ROOT / 'webApp/src/jsMain/kotlin/com/furybook/web/WebGuestMerge.kt')
+    assert 'guestCopyCanGo(joinedIds, cloud.idsOnServer()' in merge
+    # The pull happens before the working copy is cleared, so a failed pull loses nothing.
+    assert merge.index('cloud.pull()') < merge.index('clearBrowserSessionData()')
+    web = text(HOSTS['web'])
+    assert 'suspend fun hydrateRemote() {\n        val joined = hydrateRemoteMergingGuest(cloud)' in web
+
+
+def test_native_sign_in_outlives_the_login_screen():
+    for path in [ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/cloud/DesktopCloudController.kt',
+                 ROOT / 'app/src/main/java/com/furybook/android/cloud/AndroidCloudController.kt']:
+        assert text(path).count('detachedFromCaller(scope) { runCatching {') == 2, path.name

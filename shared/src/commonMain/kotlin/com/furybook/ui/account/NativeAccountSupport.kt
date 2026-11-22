@@ -1,5 +1,7 @@
 package com.furybook.ui.account
 
+import kotlinx.coroutines.async
+
 import com.furybook.core.cloud.FuryCloudTransport
 import com.furybook.core.cloud.NativeCloudStatus
 import com.furybook.core.cloud.NativeSyncConflict
@@ -43,3 +45,7 @@ suspend fun setNativeNickname(transport: FuryCloudTransport, nickname: String): 
     val raw = transport.rpc("set_profile_nickname", jsonStringify(jsonObject("p_nickname" to jsonString(clean))))
     return runCatching { parseRoot(raw).string("nickname") }.getOrNull()?.takeIf { it.isNotBlank() } ?: clean
 }
+
+/** Runs [block] in [scope] and waits for it; if the caller is cancelled (the login screen left), [block] still finishes. */
+suspend fun <T> detachedFromCaller(scope: kotlinx.coroutines.CoroutineScope, block: suspend () -> T): T =
+    scope.async { block() }.await()

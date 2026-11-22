@@ -179,8 +179,14 @@ fun DublCharactersScreen(
             destructive = FuryDialogAction("Удалить", {
                 deleting = null
                 host.delete(card.id)
-                if (card.archived) { unarchiveCharacter(host, card.id); archiveTick++ }
-                toast.show("${card.name} удалён")
+                if (host.characters.any { it.id == card.id }) {
+                    toast.show("Последнего персонажа удалить нельзя")
+                } else {
+                    if (card.archived) unarchiveCharacter(host, card.id)
+                    keepActiveUnarchived(host)
+                    archiveTick++
+                    toast.show("${card.name} удалён")
+                }
             }),
         ) {
             Text(

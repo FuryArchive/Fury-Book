@@ -57,8 +57,9 @@ object BrowserGuestStorage {
     /** True when a guest played in this browser and the characters are still here. */
     fun hasData(): Boolean = read(SNAPSHOT) != null
 
-    fun snapshotRaw(): String? = read(SNAPSHOT)
-    fun extrasRaw(): String = read(EXTRAS) ?: EMPTY_EXTRAS
+    /** The guest's characters: the live working copy while guest mode is on (it may hold edits a full storage refused), else what is stored. */
+    fun snapshotRaw(): String? = if (BrowserSessionMemory.persistent) BrowserSessionMemory.snapshotRaw ?: read(SNAPSHOT) else read(SNAPSHOT)
+    fun extrasRaw(): String = if (BrowserSessionMemory.persistent) BrowserSessionMemory.extrasRaw else read(EXTRAS) ?: EMPTY_EXTRAS
 
     /** Guest mode on: the working copy comes from localStorage and is written back on every change. */
     fun enable() {

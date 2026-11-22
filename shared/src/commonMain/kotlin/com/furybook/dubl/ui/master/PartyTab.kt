@@ -143,9 +143,20 @@ internal fun PartyTab(
             MasterCard(Modifier.fillMaxWidth()) {
                 Text("ВЫ ИГРАЕТЕ В", color = DublMuted, style = com.furybook.ui.theme.furyOverlineStyle())
                 playing.forEach { campaign ->
-                    Text("${campaign.name} · участников: ${campaign.memberCount}", color = DublText, style = MaterialTheme.typography.bodyMedium)
+                    // «Выйти» here too: the linked character may be deleted or on another device.
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                        Text("${campaign.name} · участников: ${campaign.memberCount}", Modifier.weight(1f), color = DublText, style = MaterialTheme.typography.bodyMedium)
+                        FuryButton("Выйти", {
+                            coroutines.launch {
+                                account.leaveCampaign(campaign.id).fold(
+                                    { scope.toast.show("Вы вышли из кампании «${campaign.name}»"); error = null },
+                                    { error = it.message ?: "Не удалось выйти из кампании." },
+                                )
+                            }
+                        }, style = FuryButtonStyle.Danger)
+                    }
                 }
-                Text("Своего персонажа в кампанию добавляют и убирают в «Персонажи».", color = DublMuted, style = MaterialTheme.typography.bodySmall)
+                Text("Своего персонажа в кампанию добавляют и меняют в «Персонажи».", color = DublMuted, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

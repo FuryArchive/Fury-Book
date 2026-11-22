@@ -12,6 +12,7 @@ import com.furybook.ui.account.FuryAccountConflict
 import com.furybook.ui.account.FuryAccountLogEntry
 import com.furybook.ui.account.FuryAccountStatus
 import com.furybook.ui.account.accountStatusText
+import kotlinx.coroutines.launch
 
 /**
  * Web's [FuryAccount]: the Supabase client plus the session [WebRoot] keeps. [onSignedIn] loads the account
@@ -65,7 +66,13 @@ class WebAccount(
 
     override suspend fun requestPasswordReset(email: String): Result<Unit> = cloud.requestPasswordReset(email)
     override suspend fun updateNickname(nickname: String): Result<String> = cloud.updateNickname(nickname)
-    override fun requestSync() { /* web syncs every change on its own; «Синхронизировать» retries the last batch */ }
+    private val scope = kotlinx.coroutines.MainScope()
+
+    /** Web syncs every change on its own; «Синхронизировать» retries a batch that is waiting or failed. */
+    override fun requestSync() {
+        val phase = cloud.status.phase
+        if (phase == CloudSyncPhase.PENDING || phase == CloudSyncPhase.ERROR) scope.launch { cloud.retryLast() }
+    }
 
     override suspend fun syncAndSignOut(): Result<Unit> = runCatching {
         if (pendingChanges > 0) cloud.retryLast().getOrThrow()

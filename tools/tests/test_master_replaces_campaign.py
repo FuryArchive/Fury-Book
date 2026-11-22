@@ -51,3 +51,10 @@ def test_master_data_is_local_json():
         ROOT / 'webApp/src/jsMain/kotlin/com/furybook/web/WebMasterStore.kt',
     ]:
         assert 'MasterDataCodec' in text(store)
+
+
+def test_fight_rows_are_keyed_and_campaigns_can_always_be_left():
+    fight = text(SHARED / 'ui/master/FightTab.kt')
+    assert 'key(entry.uid) { FightRow(' in fight
+    party = text(SHARED / 'ui/master/PartyTab.kt')
+    assert 'account.leaveCampaign(campaign.id)' in party

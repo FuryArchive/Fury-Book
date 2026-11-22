@@ -60,6 +60,23 @@ class CharactersModelsTest {
     }
 
     @Test
+    fun activeNeverStaysArchived() {
+        // Deleting the active one can leave an archived character active; it must hand over like archiving does.
+        val host = ListHost(listOf("Шершень", "Вика", "Гром"), "c0")
+        host.archive.save(setOf("c0", "c1"))
+        keepActiveUnarchived(host)
+        assertEquals("c2", host.activeId)
+        val lonely = ListHost(listOf("Шершень"), "c0")
+        lonely.archive.save(setOf("c0"))
+        keepActiveUnarchived(lonely)
+        assertEquals("new1", lonely.activeId)
+        val fine = ListHost(listOf("Шершень", "Вика"), "c1")
+        keepActiveUnarchived(fine)
+        assertEquals("c1", fine.activeId); assertEquals(0, fine.created)
+        assertEquals(listOf("c2"), unarchivedCharacters(host).map { it.id })
+    }
+
+    @Test
     fun cardShowsLinkedCampaign() {
         val host = ListHost(listOf("Шершень", "Вика"), "c0")
         val campaigns = listOf(

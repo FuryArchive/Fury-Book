@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.furybook.dubl.master.MasterEnemy
 import com.furybook.dubl.master.addEnemy
 import com.furybook.dubl.master.duplicateEnemy
+import com.furybook.dubl.master.enemyCopiesInFight
 import com.furybook.ui.components.FuryButton
 import com.furybook.ui.components.FuryButtonStyle
 import com.furybook.ui.theme.DublMuted
@@ -48,7 +49,7 @@ internal fun EnemiesTab(scope: MasterScope) {
                 data.enemies.chunked(columns).forEach { row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.md)) {
                         row.forEach { enemy ->
-                            val inFight = data.fight.entries.count { it.name.startsWith(enemy.name.trim()) }
+                            val inFight = enemyCopiesInFight(data.fight, enemy)
                             MasterCard(Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.Bottom) {
                                     Text(enemy.name, Modifier.weight(1f), color = DublText, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)

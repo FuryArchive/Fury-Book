@@ -17,6 +17,7 @@ import com.furybook.core.cloud.NativeSyncOutcome
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.ui.account.FuryAccount
+import com.furybook.ui.account.detachedFromCaller
 import com.furybook.ui.account.FuryAccountConflict
 import com.furybook.ui.account.FuryAccountLogEntry
 import com.furybook.ui.account.FuryAccountStatus
@@ -157,7 +158,10 @@ class DesktopCloudController(
         refreshCampaigns()
     }
 
-    override suspend fun signIn(email: String, password: String): Result<Unit> = runCatching {
+    override suspend fun signIn(email: String, password: String): Result<Unit> =
+        // Runs in the controller's scope: the login screen leaves composition the moment the session appears,
+        // and the first sync must still finish.
+        detachedFromCaller(scope) { runCatching {
         status_ = NativeCloudStatus.CONNECTING
         statusMessage = "Входим в Fury Account…"
         val signedIn = gateway.signIn(email, password).getOrThrow()
@@ -170,9 +174,12 @@ class DesktopCloudController(
     }.onFailure { error ->
         status_ = NativeCloudStatus.ERROR
         statusMessage = error.message ?: "Не удалось войти в Fury Account."
-    }
+    } }
 
-    override suspend fun signUp(email: String, password: String, nickname: String): Result<Boolean> = runCatching {
+    override suspend fun signUp(email: String, password: String, nickname: String): Result<Boolean> =
+        // Runs in the controller's scope: the login screen leaves composition the moment the session appears,
+        // and the first sync must still finish.
+        detachedFromCaller(scope) { runCatching {
         status_ = NativeCloudStatus.CONNECTING
         statusMessage = "Создаём Fury Account…"
         val created = gateway.signUp(email, password, nickname).getOrThrow()
@@ -191,7 +198,7 @@ class DesktopCloudController(
     }.onFailure { error ->
         status_ = NativeCloudStatus.ERROR
         statusMessage = error.message ?: "Не удалось создать Fury Account."
-    }
+    } }
 
     override suspend fun requestPasswordReset(email: String): Result<Unit> = gateway.requestPasswordReset(email)
 

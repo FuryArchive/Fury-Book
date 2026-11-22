@@ -3,6 +3,7 @@ package com.furybook.android.ui
 import com.furybook.android.data.AndroidArchiveStore
 import com.furybook.android.data.AndroidStartStore
 import com.furybook.dubl.ui.characters.DublCharactersScreen
+import com.furybook.dubl.ui.characters.unarchivedCharacters
 import com.furybook.ui.account.FuryAccountPanel
 import com.furybook.ui.account.FuryLoginScreen
 import com.furybook.ui.account.FuryStartMode
@@ -141,6 +142,14 @@ fun DublApp() {
     }
 
     fun saveStart(mode: FuryStartMode) { startMode = mode; startStore.save(mode) }
+    // The login page can leave composition before its own callback runs (the session appears mid-sign-in),
+    // so the start mode follows the account itself.
+    LaunchedEffect(cloudController.signedIn) {
+        if (cloudController.signedIn) {
+            loginFromGuest = false
+            if (startMode != FuryStartMode.SIGNED_IN) saveStart(FuryStartMode.SIGNED_IN)
+        }
+    }
     if (loginFromGuest || furyShowsLogin(startMode, cloudController.signedIn, controller.snapshot.characters.isNotEmpty())) {
         BackHandler(enabled = loginFromGuest) { loginFromGuest = false }
         Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
@@ -240,7 +249,7 @@ fun DublApp() {
 
     if (characterPickerOpen) {
         FuryCharacterPicker(
-            characters = controller.snapshot.characters.map { FuryShellCharacter(it.id, it.name) },
+            characters = unarchivedCharacters(controller).map { FuryShellCharacter(it.id, it.name) },
             activeId = controller.snapshot.activeCharacterId,
             onSelect = { id ->
                 controller.selectCharacter(id)

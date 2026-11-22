@@ -23,8 +23,20 @@ fun guestCharactersToUpload(remote: AppSnapshot, guest: AppSnapshot): List<DublC
  * A web guest signs in: the account's characters first, then the guest's that it lacks, and the guest's active
  * character stays active when it is in the result.
  */
-fun mergeGuestIntoRemote(remote: AppSnapshot, guest: AppSnapshot): AppSnapshot {
-    val characters = remote.characters + guestCharactersToUpload(remote, guest)
-    val active = guest.activeCharacterId.takeIf { id -> characters.any { it.id == id } } ?: remote.activeCharacterId
+fun mergeGuestIntoRemote(remote: AppSnapshot, guest: AppSnapshot, remoteHasCharacters: Boolean = true): AppSnapshot {
+    val joining = guestCharactersToUpload(remote, guest)
+    // An empty account pulls as one fresh placeholder; when the guest brings characters, they replace it.
+    val kept = if (!remoteHasCharacters && joining.isNotEmpty()) emptyList() else remote.characters
+    val characters = kept + joining
+    val active = guest.activeCharacterId.takeIf { id -> characters.any { it.id == id } }
+        ?: remote.activeCharacterId.takeIf { id -> characters.any { it.id == id } }
+        ?: characters.first().id
     return AppSnapshot(characters, active)
 }
+
+/**
+ * The local guest copy may go only once every character that joined the account is on the server. A plain pull also
+ * ends «synced», so being synced alone proves nothing.
+ */
+fun guestCopyCanGo(joinedIds: Set<String>, serverIds: Set<String>, synced: Boolean): Boolean =
+    synced && joinedIds.isNotEmpty() && serverIds.containsAll(joinedIds)

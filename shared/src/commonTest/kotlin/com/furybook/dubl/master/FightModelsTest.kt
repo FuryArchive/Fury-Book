@@ -39,6 +39,13 @@ class FightModelsTest {
         assertEquals(listOf("Гоблин 1", "Гоблин 2"), state.entries.map { it.name })
         val first = state.entries.first()
         assertEquals(FightKind.ENEMY, first.kind); assertEquals(8, first.hp); assertEquals(8, first.hpMax); assertEquals(2, first.initiativeBonus)
+        // Removing «Гоблин 1» must not make the next copy a second «Гоблин 2»; «Гоблин-шаман» is not a goblin copy.
+        val afterRemoval = addEnemy(removeEntry(state, "u1"), goblin, "u9")
+        assertEquals(listOf("Гоблин 2", "Гоблин 3"), afterRemoval.entries.map { it.name })
+        val shaman = addEnemy(newFight(), MasterEnemy("s", "Гоблин-шаман"), "s1")
+        assertEquals("Гоблин 1", addEnemy(shaman, goblin, "g1").entries.last().name)
+        assertEquals(2, enemyCopiesInFight(state, goblin))
+        assertEquals(0, enemyCopiesInFight(shaman, goblin))
         state = addPlayer(state, "Вика", 3, "u3")
         assertEquals(FightEntry("u3", "Вика", FightKind.PLAYER, initiativeBonus = 3), state.entries.last())
     }

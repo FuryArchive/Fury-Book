@@ -54,6 +54,7 @@ import com.furybook.dubl.ui.master.MasterCatalogs
 import com.furybook.dubl.data.DesktopArchiveStore
 import com.furybook.dubl.data.DesktopStartStore
 import com.furybook.dubl.ui.characters.DublCharactersScreen
+import com.furybook.dubl.ui.characters.unarchivedCharacters
 import com.furybook.ui.account.FuryAccountPanel
 import com.furybook.ui.account.FuryLoginScreen
 import com.furybook.ui.account.FuryStartMode
@@ -139,6 +140,14 @@ private fun DesktopApp() {
     }
 
     fun saveStart(mode: FuryStartMode) { startMode = mode; startStore.save(mode) }
+    // The login page can leave composition before its own callback runs (the session appears mid-sign-in),
+    // so the start mode follows the account itself.
+    LaunchedEffect(cloudController.signedIn) {
+        if (cloudController.signedIn) {
+            loginFromGuest = false
+            if (startMode != FuryStartMode.SIGNED_IN) saveStart(FuryStartMode.SIGNED_IN)
+        }
+    }
     if (loginFromGuest || furyShowsLogin(startMode, cloudController.signedIn, state.snapshot.characters.isNotEmpty())) {
         FuryLoginScreen(
             account = cloudController,
@@ -196,7 +205,7 @@ private fun DesktopApp() {
     }
     if (characterPickerOpen) {
         FuryCharacterPicker(
-            characters = state.snapshot.characters.map { FuryShellCharacter(it.id, it.name) },
+            characters = unarchivedCharacters(state).map { FuryShellCharacter(it.id, it.name) },
             activeId = state.snapshot.activeCharacterId,
             onSelect = { id ->
                 state.selectCharacter(id)

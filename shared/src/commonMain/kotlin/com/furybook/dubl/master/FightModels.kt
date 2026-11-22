@@ -20,10 +20,20 @@ fun nextTurn(state: FightState): FightState {
 
 fun newFight(): FightState = FightState(entries = emptyList(), round = 1, turnUid = null)
 
-/** Adds a copy of [enemy] as «<имя> N», with its health and initiative bonus. */
+private fun enemyBase(enemy: MasterEnemy): String = enemy.name.trim().ifBlank { "Враг" }
+
+/** N of a «<base> N» enemy row, or null for anything else («Гоблин-шаман» is not a «Гоблин»). */
+private fun copyNumber(entry: FightEntry, base: String): Int? =
+    if (entry.kind != FightKind.ENEMY || !entry.name.startsWith("$base ")) null
+    else entry.name.removePrefix("$base ").toIntOrNull()
+
+/** How many copies of [enemy] are in the fight («в бою: N» in Враги). */
+fun enemyCopiesInFight(state: FightState, enemy: MasterEnemy): Int = state.entries.count { copyNumber(it, enemyBase(enemy)) != null }
+
+/** Adds a copy of [enemy] as «<имя> N» (one past the highest copy still in the fight), with its health and initiative bonus. */
 fun addEnemy(state: FightState, enemy: MasterEnemy, newUid: String): FightState {
-    val base = enemy.name.trim().ifBlank { "Враг" }
-    val number = state.entries.count { it.name.startsWith(base) } + 1
+    val base = enemyBase(enemy)
+    val number = (state.entries.mapNotNull { copyNumber(it, base) }.maxOrNull() ?: 0) + 1
     val entry = FightEntry(
         uid = newUid,
         name = "$base $number",

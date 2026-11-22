@@ -48,6 +48,7 @@ import com.furybook.ui.account.accountDotColor
 import com.furybook.ui.account.furyShowsLogin
 import com.furybook.ui.theme.FuryColors
 import com.furybook.dubl.ui.characters.DublCharactersScreen
+import com.furybook.dubl.ui.characters.unarchivedCharacters
 import com.furybook.dubl.master.MasterStore
 import com.furybook.dubl.model.SkillCatalog
 import com.furybook.dubl.ui.master.DublMasterScreen
@@ -91,12 +92,13 @@ private fun WebRoot() {
 
     fun saveStart(mode: FuryStartMode) { startMode = mode; startStore.save(mode) }
 
-    suspend fun hydrateRemote(): CloudBootstrap {
-        val remote = cloud.pull()
-        BrowserCharacterStore().replaceRaw(remote.snapshot)
-        BrowserCharacterExtrasStore().replaceRaw(remote.extras)
-        BrowserPackState.chiEnabled = remote.chiEnabled
-        return remote
+    /**
+     * Loads the account. Guest characters still in this browser (an upload that never finished, a tab closed too
+     * early) join it every time, so they can't stay stranded while signed in.
+     */
+    suspend fun hydrateRemote() {
+        val joined = hydrateRemoteMergingGuest(cloud)
+        if (joined > 0) mergeNotice = "Персонажей с этого устройства добавлено в аккаунт: $joined."
     }
 
     fun cloudErrorMessage(error: Throwable): String =
@@ -109,15 +111,12 @@ private fun WebRoot() {
             onSignedIn = {
                 connectionError = null
                 // Guest characters still in this browser join the account; the pull never replaces them.
-                runCatching { hydrateRemoteMergingGuest(cloud) }
-                    .onSuccess { joined ->
-                        if (joined > 0) mergeNotice = "Персонажей с этого устройства добавлено в аккаунт: $joined."
-                    }
-                    .onFailure { connectionError = cloudErrorMessage(it) }
+                runCatching { hydrateRemote() }.onFailure { connectionError = cloudErrorMessage(it) }
                 saveStart(FuryStartMode.SIGNED_IN)
                 appEpoch++
             },
             onSignedOut = {
+                WebGuestUpload.reset()
                 clearBrowserSessionData()
                 // The account's characters left the browser; so does the list of which were archived.
                 archiveStore.save(emptySet())
@@ -156,7 +155,7 @@ private fun WebRoot() {
         }
         booting = false
     }
-    LaunchedEffect(cloud.status.phase) { WebGuestUpload.onSyncPhase(cloud.status.phase) }
+    LaunchedEffect(cloud.status.phase) { WebGuestUpload.onSyncPhase(cloud.status.phase, cloud) }
 
     val fontsReady = furyFontsReady()
     when {
@@ -422,7 +421,7 @@ private fun FuryWebApp(
     }
     if (characterPickerOpen) {
         FuryCharacterPicker(
-            characters = state.snapshot.characters.map { FuryShellCharacter(it.id, it.name) },
+            characters = unarchivedCharacters(state).map { FuryShellCharacter(it.id, it.name) },
             activeId = state.snapshot.activeCharacterId,
             onSelect = { id ->
                 state.selectCharacter(id)

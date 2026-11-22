@@ -45,6 +45,19 @@ fun archiveCharacter(host: DublCharactersHost, id: String) {
     if (next != null) host.select(next.id) else host.create()
 }
 
+/** Characters outside «Архив», in roster order (the character switcher lists only these). */
+fun unarchivedCharacters(host: DublCharactersHost): List<com.furybook.dubl.model.DublCharacter> {
+    val archive = host.archive.load()
+    return host.characters.filter { it.id !in archive }
+}
+
+/** An archived character never stays active: after a delete, hand over to the first unarchived one, or a new one. */
+fun keepActiveUnarchived(host: DublCharactersHost) {
+    if (host.activeId !in host.archive.load()) return
+    val next = unarchivedCharacters(host).firstOrNull()
+    if (next != null) host.select(next.id) else host.create()
+}
+
 /** Brings [id] back from «Архив». */
 fun unarchiveCharacter(host: DublCharactersHost, id: String) {
     host.archive.save(host.archive.load() - id)
