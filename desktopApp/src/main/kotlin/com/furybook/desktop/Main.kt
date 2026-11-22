@@ -1,31 +1,25 @@
 package com.furybook.desktop
 
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -34,50 +28,53 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.zIndex
+import com.furybook.ui.components.FuryButton
+import com.furybook.ui.components.FuryButtonStyle
+import com.furybook.ui.components.FuryCharacterPicker
+import com.furybook.ui.components.FuryShell
+import com.furybook.ui.components.FuryShellCharacter
+import com.furybook.ui.components.FuryShellSection
 import com.furybook.ui.layout.DublLayoutClass
 import com.furybook.ui.layout.layoutClassForWidth
-import com.furybook.ui.theme.DublTheme
-import com.furybook.desktop.screens.CharacterSheetScreen
-import com.furybook.desktop.screens.CampaignScreen
-import com.furybook.desktop.screens.CharactersScreen
-import com.furybook.desktop.screens.DevelopmentScreen
-import com.furybook.desktop.screens.DesktopIcon
-import com.furybook.desktop.screens.DesktopIconKind
-import com.furybook.desktop.screens.DesktopAccent
-import com.furybook.desktop.screens.DesktopAccentSoft
-import com.furybook.desktop.screens.DesktopBackground
-import com.furybook.desktop.screens.DesktopBorder
-import com.furybook.desktop.screens.DesktopGold
-import com.furybook.desktop.screens.DesktopMuted
-import com.furybook.desktop.screens.DesktopSurface
-import com.furybook.desktop.screens.DesktopSurfaceInset
-import com.furybook.desktop.screens.DesktopSurfaceRaised
-import com.furybook.desktop.screens.DesktopText
-import com.furybook.desktop.screens.EquipmentScreen
+import com.furybook.ui.theme.FuryThemedApp
+import com.furybook.dubl.data.DesktopThemeStore
+import com.furybook.ui.components.FuryThemeButton
+import com.furybook.dubl.data.DesktopMasterStore
+import com.furybook.dubl.master.MasterStore
+import com.furybook.dubl.model.SkillCatalog
+import com.furybook.dubl.ui.master.DublMasterScreen
+import com.furybook.dubl.ui.master.MasterCatalogs
+import com.furybook.dubl.data.DesktopArchiveStore
+import com.furybook.dubl.data.DesktopStartStore
+import com.furybook.dubl.ui.characters.DublCharactersScreen
+import com.furybook.dubl.ui.characters.unarchivedCharacters
+import com.furybook.ui.account.FuryAccountPanel
+import com.furybook.ui.account.FuryLoginScreen
+import com.furybook.ui.account.FuryStartMode
+import com.furybook.ui.account.accountDotColor
+import com.furybook.ui.account.furyShowsLogin
+import com.furybook.ui.components.FuryShellAccount
 import com.furybook.desktop.screens.FuryMotion
-import com.furybook.desktop.screens.MagicScreen
-import com.furybook.desktop.screens.SkillsScreen
+import com.furybook.desktop.screens.FuryUndoToast
 import com.furybook.desktop.cloud.DesktopCloudController
 import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.dubl.data.DesktopCharacterStore
 import com.furybook.dubl.data.DesktopCharacterExtrasStore
+import com.furybook.dubl.ui.sheet.SheetChangeReportingHost
+import com.furybook.dubl.ui.sheet.SheetScreen
+import kotlinx.coroutines.delay
 
 internal enum class DesktopSection(val label: String) {
     SHEET("Лист"),
-    SKILLS("Умения"),
-    DEVELOPMENT("Навыки"),
-    MAGIC("Магия"),
-    EQUIPMENT("Снаряжение"),
-    CAMPAIGN("Кампания"),
+    MASTER("Мастер"),
     CHARACTERS("Персонажи"),
 }
 
@@ -87,39 +84,19 @@ fun main() = application {
         title = "Fury Book — DUBL 3.69",
         icon = painterResource("fury-icon.png"),
     ) {
-        DublTheme { DesktopVisualTheme { DesktopApp() } }
+        val themeStore = remember { DesktopThemeStore() }
+        FuryThemedApp(themeStore) { DesktopVisualTheme { DesktopApp() } }
     }
 }
 
 @Composable
 private fun DesktopVisualTheme(content: @Composable () -> Unit) {
-    val colors = MaterialTheme.colorScheme
+    // Colours and fonts come from the shared DublTheme. The dense desktop screens were laid out
+    // around 14sp secondary text, so that size is kept until those screens are rebuilt.
     val typography = MaterialTheme.typography
     MaterialTheme(
-        colorScheme = colors.copy(
-            primary = DesktopAccent,
-            onPrimary = Color.White,
-            primaryContainer = DesktopAccentSoft,
-            onPrimaryContainer = DesktopText,
-            secondary = DesktopGold,
-            background = DesktopBackground,
-            onBackground = DesktopText,
-            surface = DesktopSurface,
-            onSurface = DesktopText,
-            surfaceVariant = DesktopSurfaceRaised,
-            onSurfaceVariant = DesktopMuted,
-            outline = DesktopBorder,
-            outlineVariant = DesktopBorder,
-        ),
         typography = typography.copy(
-            headlineMedium = typography.headlineMedium.copy(fontSize = 30.sp, lineHeight = 36.sp),
-            headlineSmall = typography.headlineSmall.copy(fontSize = 28.sp, lineHeight = 34.sp),
-            titleLarge = typography.titleLarge.copy(fontSize = 20.sp, lineHeight = 25.sp),
-            titleMedium = typography.titleMedium.copy(fontSize = 17.sp, lineHeight = 22.sp),
-            bodyLarge = typography.bodyLarge.copy(fontSize = 16.sp, lineHeight = 22.sp),
-            bodyMedium = typography.bodyMedium.copy(fontSize = 15.sp, lineHeight = 20.sp),
             bodySmall = typography.bodySmall.copy(fontSize = 14.sp, lineHeight = 18.sp),
-            labelLarge = typography.labelLarge.copy(fontSize = 14.sp, lineHeight = 18.sp),
             labelMedium = typography.labelMedium.copy(fontSize = 14.sp, lineHeight = 18.sp),
         ),
         content = content,
@@ -138,8 +115,18 @@ private fun DesktopApp() {
         }
     }
     val reloadToken = cloudController.reloadToken
-    val state = remember(reloadToken) { DesktopAppState(observedCharacters, observedExtras) }
+    val archiveStore = remember { DesktopArchiveStore() }
+    // Мастер's data is the device's, not the account's: it survives sign-out and reloads.
+    val masterStore = remember { DesktopMasterStore() }
+    val startStore = remember { DesktopStartStore() }
+    var startMode by remember { mutableStateOf(startStore.load()) }
+    // A guest opened «Войти» from the menu: the login page with a way back.
+    var loginFromGuest by remember { mutableStateOf(false) }
+    val state = remember(reloadToken) { DesktopAppState(observedCharacters, observedExtras, archiveStore) }
     var selected by remember { mutableStateOf(DesktopSection.SHEET) }
+    // Set by «Новый персонаж»; the sheet consumes it by opening the editor at Основа.
+    var openEditorAtBasics by remember { mutableStateOf(false) }
+    var editorShown by remember { mutableStateOf(false) }
 
     LaunchedEffect(cloudController) {
         cloudController.updateEnabledPackIds(state.enabledContentPackIds())
@@ -152,152 +139,84 @@ private fun DesktopApp() {
         cloudController.updateEnabledPackIds((cloudController.enabledPackIds - availableIds) + activeIds)
     }
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        val layout = layoutClassForWidth(maxWidth.value.toInt())
-        if (layout == DublLayoutClass.COMPACT) {
-            Column(Modifier.fillMaxSize()) {
-                CompactNavigation(selected, { selected = it })
-                DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
-            }
-        } else {
-            Row(Modifier.fillMaxSize()) {
-                DesktopRail(state, selected, { selected = it }, Modifier.width(230.dp).fillMaxHeight())
-                DesktopContent(state, cloudController, selected, layout, { selected = it }, Modifier.weight(1f))
-            }
+    fun saveStart(mode: FuryStartMode) { startMode = mode; startStore.save(mode) }
+    // The login page can leave composition before its own callback runs (the session appears mid-sign-in),
+    // so the start mode follows the account itself.
+    LaunchedEffect(cloudController.signedIn) {
+        if (cloudController.signedIn) {
+            loginFromGuest = false
+            if (startMode != FuryStartMode.SIGNED_IN) saveStart(FuryStartMode.SIGNED_IN)
         }
     }
-}
+    if (loginFromGuest || furyShowsLogin(startMode, cloudController.signedIn, state.snapshot.characters.isNotEmpty())) {
+        FuryLoginScreen(
+            account = cloudController,
+            onGuest = { saveStart(FuryStartMode.GUEST) },
+            onSignedIn = { saveStart(FuryStartMode.SIGNED_IN); loginFromGuest = false; selected = DesktopSection.SHEET },
+            onBack = if (loginFromGuest) ({ loginFromGuest = false }) else null,
+            modifier = Modifier.fillMaxSize(),
+        )
+        return
+    }
+    val accountEntry = FuryShellAccount(
+        label = if (cloudController.signedIn) cloudController.nickname.ifBlank { cloudController.email.substringBefore('@') } else "Гость",
+        dot = accountDotColor(cloudController.status),
+    ) { close ->
+        FuryAccountPanel(
+            account = cloudController,
+            isGuest = !cloudController.signedIn,
+            onSignIn = { close(); loginFromGuest = true },
+            onSignedOut = {
+                close()
+                // The account's characters left the device; so does the list of which were archived.
+                archiveStore.save(emptySet())
+                saveStart(FuryStartMode.NONE)
+            },
+        )
+    }
 
-@Composable
-private fun DesktopRail(
-    state: DesktopAppState,
-    selected: DesktopSection,
-    onSelected: (DesktopSection) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var switcherOpen by remember { mutableStateOf(false) }
-    Column(
-        modifier = modifier.background(DesktopSurfaceInset).padding(horizontal = 14.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+    var characterPickerOpen by remember { mutableStateOf(false) }
+    FuryShell(
+        title = "FURY BOOK",
+        characterName = state.activeCharacter.name,
+        sections = DesktopSection.entries.map { FuryShellSection(it, it.label, primary = false) },
+        selected = selected,
+        onSelect = { selected = it },
+        onSwitchCharacter = { characterPickerOpen = true },
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        account = { FuryThemeButton() },
+        phoneChromeHidden = editorShown && selected == DesktopSection.SHEET,
+        accountEntry = accountEntry,
     ) {
-        Text(
-            "Fury Book",
-            style = MaterialTheme.typography.headlineMedium,
-            color = DesktopAccent,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-        )
-        Text(
-            "DUBL 3.69",
-            color = DesktopMuted,
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.padding(horizontal = 8.dp),
-        )
-        Surface(
-            modifier = Modifier.fillMaxWidth().clickable { switcherOpen = true },
-            color = DesktopSurfaceRaised,
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.52f)),
-        ) {
-            Column(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(state.activeCharacter.name, fontWeight = FontWeight.SemiBold, maxLines = 2)
-                Text("${state.activeCharacter.experience} XP · сменить ▼", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
-            }
-        }
-        DropdownMenu(expanded = switcherOpen, onDismissRequest = { switcherOpen = false }) {
-            state.snapshot.characters.forEach { character ->
-                DropdownMenuItem(
-                    text = { Text(if (character.id == state.snapshot.activeCharacterId) "✓ ${character.name}" else character.name) },
-                    onClick = {
-                        state.selectCharacter(character.id)
-                        switcherOpen = false
-                        onSelected(DesktopSection.SHEET)
-                    },
-                )
-            }
-            DropdownMenuItem(
-                text = { Text("Управление персонажами…") },
-                onClick = { switcherOpen = false; onSelected(DesktopSection.CHARACTERS) },
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val layout = layoutClassForWidth(maxWidth.value.toInt())
+            DesktopContent(
+                state, cloudController, selected, layout, { selected = it }, Modifier.fillMaxSize(),
+                masterStore = masterStore,
+                onSignIn = { loginFromGuest = true },
+                sheetHooks = DesktopSheetHooks(
+                    openEditorAtBasics = openEditorAtBasics,
+                    onOpenEditorConsumed = { openEditorAtBasics = false },
+                    onEditorShown = { editorShown = it },
+                    onCharacterCreated = { openEditorAtBasics = true; selected = DesktopSection.SHEET },
+                ),
             )
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
-        DesktopSection.entries.filter { it != DesktopSection.CHARACTERS }.forEach { section ->
-            NavigationItem(section, section == selected, { onSelected(section) }, Modifier.fillMaxWidth())
-        }
-        Spacer(Modifier.weight(1f))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
-        NavigationItem(DesktopSection.CHARACTERS,
-            DesktopSection.CHARACTERS == selected,
-            { onSelected(DesktopSection.CHARACTERS) },
-            Modifier.fillMaxWidth(),
+    }
+    if (characterPickerOpen) {
+        FuryCharacterPicker(
+            characters = unarchivedCharacters(state).map { FuryShellCharacter(it.id, it.name) },
+            activeId = state.snapshot.activeCharacterId,
+            onSelect = { id ->
+                state.selectCharacter(id)
+                selected = DesktopSection.SHEET
+            },
+            onManage = { selected = DesktopSection.CHARACTERS },
+            onDismiss = { characterPickerOpen = false },
         )
     }
 }
 
-@Composable
-private fun CompactNavigation(selected: DesktopSection, onSelected: (DesktopSection) -> Unit) {
-    Column(Modifier.fillMaxWidth().background(DesktopSurfaceInset).padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        DesktopSection.entries.chunked(3).forEach { row ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                row.forEach { section -> NavigationItem(section, section == selected, { onSelected(section) }, Modifier.weight(1f)) }
-                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
-            }
-        }
-    }
-}
-
-@Composable
-private fun NavigationItem(section: DesktopSection, active: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val background by animateColorAsState(
-        targetValue = if (active) DesktopAccentSoft else Color.Transparent,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "navigation-background",
-    )
-    val iconColor by animateColorAsState(
-        targetValue = if (active) DesktopAccent else DesktopMuted,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "navigation-icon",
-    )
-    val textColor by animateColorAsState(
-        targetValue = if (active) MaterialTheme.colorScheme.onSurface else DesktopMuted,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "navigation-text",
-    )
-    Surface(
-        modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
-        color = background,
-        border = if (active) BorderStroke(1.dp, DesktopAccent.copy(alpha = 0.32f)) else null,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            DesktopIcon(
-                kind = section.iconKind,
-                tint = iconColor,
-                size = 20.dp,
-            )
-            Text(
-                section.label,
-                fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal,
-                color = textColor,
-            )
-        }
-    }
-}
-
-private val DesktopSection.iconKind: DesktopIconKind
-    get() = when (this) {
-        DesktopSection.SHEET -> DesktopIconKind.SHEET
-        DesktopSection.SKILLS -> DesktopIconKind.SKILLS
-        DesktopSection.DEVELOPMENT -> DesktopIconKind.DEVELOPMENT
-        DesktopSection.MAGIC -> DesktopIconKind.MAGIC
-        DesktopSection.EQUIPMENT -> DesktopIconKind.EQUIPMENT
-        DesktopSection.CAMPAIGN -> DesktopIconKind.CHARACTERS
-        DesktopSection.CHARACTERS -> DesktopIconKind.CHARACTERS
-    }
 
 @Composable
 private fun DesktopContent(
@@ -307,6 +226,9 @@ private fun DesktopContent(
     layout: DublLayoutClass,
     onNavigate: (DesktopSection) -> Unit,
     modifier: Modifier = Modifier,
+    masterStore: MasterStore,
+    onSignIn: () -> Unit,
+    sheetHooks: DesktopSheetHooks = DesktopSheetHooks(),
 ) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         val pageModifier = Modifier
@@ -329,25 +251,124 @@ private fun DesktopContent(
                 animationSpec = tween(FuryMotion.FastMs),
                 label = "desktop-section-enter",
             )
-            val animatedPageModifier = pageModifier.graphicsLayer {
+            val enter = Modifier.graphicsLayer {
                 alpha = pageProgress
                 translationY = (1f - pageProgress) * 6f
             }
+            val animatedPageModifier = pageModifier.then(enter)
             when (section) {
-                DesktopSection.SHEET -> CharacterSheetScreen(
+                // The shared sheet pads itself and picks its layout from the full content width.
+                DesktopSection.SHEET -> DesktopSheet(
                     state = state,
-                    modifier = animatedPageModifier,
-                    onNavigateSkills = { onNavigate(DesktopSection.SKILLS) },
-                    onNavigateDevelopment = { onNavigate(DesktopSection.DEVELOPMENT) },
-                    onNavigateMagic = { onNavigate(DesktopSection.MAGIC) },
-                    onNavigateEquipment = { onNavigate(DesktopSection.EQUIPMENT) },
+                    onNavigate = onNavigate,
+                    playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
+                    hooks = sheetHooks,
                 )
-                DesktopSection.SKILLS -> SkillsScreen(state, animatedPageModifier)
-                DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
-                DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
-                DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
-                DesktopSection.CAMPAIGN -> CampaignScreen(state, cloudController, animatedPageModifier)
-                DesktopSection.CHARACTERS -> CharactersScreen(state, cloudController, animatedPageModifier)
+                DesktopSection.MASTER -> DublMasterScreen(
+                    store = masterStore,
+                    account = cloudController,
+                    catalogs = MasterCatalogs(state.canonicalDevelopmentCatalog, state.magicEquipmentCatalog, state.conditionCatalog, SkillCatalog.builtIns),
+                    onSignIn = onSignIn,
+                    modifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
+                )
+                DesktopSection.CHARACTERS -> DublCharactersScreen(
+                    host = state,
+                    account = cloudController,
+                    packs = rememberDesktopPacks(state, cloudController),
+                    onOpen = { onNavigate(DesktopSection.SHEET) },
+                    onNew = { state.createCharacter(); sheetHooks.onCharacterCreated() },
+                    onImportFile = DesktopFiles::importCharacter,
+                    onExportFile = DesktopFiles::exportCharacter,
+                    modifier = animatedPageModifier,
+                    portraitLoader = { path -> rememberDesktopPortrait(path) },
+                )
+            }
+        }
+    }
+}
+
+/** How the sheet section talks to the shell about the editor. */
+private data class DesktopSheetHooks(
+    val openEditorAtBasics: Boolean = false,
+    val onOpenEditorConsumed: () -> Unit = {},
+    val onEditorShown: (Boolean) -> Unit = {},
+    val onCharacterCreated: () -> Unit = {},
+)
+
+private data class SheetToast(val text: String, val canUndo: Boolean, val token: Int)
+
+/**
+ * The shared sheet (play and edit). Changes made on it raise the same
+ * undo toast the old sheet showed, and «Отменить» calls the same one-step [DesktopAppState.undoLast].
+ */
+@Composable
+private fun DesktopSheet(
+    state: DesktopAppState,
+    onNavigate: (DesktopSection) -> Unit,
+    playModifier: Modifier,
+    hooks: DesktopSheetHooks = DesktopSheetHooks(),
+) {
+    val activeId = state.activeCharacter.id
+    // Leaving the sheet section closes the editor with it; the shell gets its phone chrome back.
+    DisposableEffect(Unit) { onDispose { hooks.onEditorShown(false) } }
+    var toast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
+    // Keeps the last toast on screen while it animates out.
+    var displayedToast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
+    var toastHovered by remember(activeId) { mutableStateOf(false) }
+    var toastCount by remember { mutableStateOf(0) }
+    // Keyed on the character too: the toast state above is per character, and a host kept from
+    // before a switch would keep writing into the previous character's toast.
+    val host = remember(state, activeId) {
+        SheetChangeReportingHost(state) { change -> toast = SheetToast(change.text, state.canUndo, ++toastCount) }
+    }
+    LaunchedEffect(toast) {
+        if (toast != null) displayedToast = toast
+    }
+    LaunchedEffect(toast, toastHovered) {
+        val shown = toast ?: return@LaunchedEffect
+        if (!toastHovered) {
+            delay(FuryMotion.UndoToastDurationMs)
+            if (toast == shown && !toastHovered) toast = null
+        }
+    }
+    Box(playModifier) {
+        SheetScreen(
+            host,
+            portraitLoader = { path -> rememberDesktopPortrait(path) },
+            onPickPortrait = { chooseDesktopPortraitFile()?.let(state::importPortrait)?.let(state::setPortrait) },
+            openEditorAtBasics = hooks.openEditorAtBasics,
+            onOpenEditorConsumed = hooks.onOpenEditorConsumed,
+            onEditorShown = hooks.onEditorShown,
+        )
+        AnimatedVisibility(
+            visible = toast != null,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 18.dp, vertical = 10.dp)
+                .widthIn(max = 860.dp)
+                .fillMaxWidth()
+                .zIndex(40f),
+            enter = slideInVertically(
+                animationSpec = tween(FuryMotion.StandardMs),
+                initialOffsetY = { -it / 2 },
+            ) + fadeIn(tween(FuryMotion.FastMs)),
+            exit = slideOutVertically(
+                animationSpec = tween(FuryMotion.StandardMs),
+                targetOffsetY = { -it / 3 },
+            ) + fadeOut(tween(FuryMotion.FastMs)),
+        ) {
+            displayedToast?.let { shown ->
+                FuryUndoToast(
+                    text = shown.text,
+                    canUndo = shown.canUndo,
+                    onUndo = {
+                        if (shown.canUndo) state.undoLast()
+                        toast = null
+                    },
+                    onDismiss = { toast = null; toastHovered = false },
+                    onHoverChange = { toastHovered = it },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }

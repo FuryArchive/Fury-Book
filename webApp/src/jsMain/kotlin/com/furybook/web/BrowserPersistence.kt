@@ -10,20 +10,85 @@ import com.furybook.dubl.model.CharacterSheetExtras
 import com.furybook.dubl.model.CharacterSheetResourceId
 import com.furybook.dubl.model.ConditionLocalDataCodec
 import com.furybook.dubl.model.SheetGroupingRules
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import kotlinx.browser.localStorage
 
+private const val EMPTY_EXTRAS = "{\"version\":1,\"characters\":{}}"
+
+/**
+ * The browser's working copy. Signed in, it lives only in memory (the account is the source). As a guest it is
+ * also written to localStorage under `fury.guest.*`, so characters survive a reload.
+ */
 private object BrowserSessionMemory {
+    var persistent = false
     var snapshotRaw: String? = null
-    var extrasRaw: String = "{\"version\":1,\"characters\":{}}"
+        set(value) { field = value; if (persistent) BrowserGuestStorage.write(BrowserGuestStorage.SNAPSHOT, value) }
+    var extrasRaw: String = EMPTY_EXTRAS
+        set(value) { field = value; if (persistent) BrowserGuestStorage.write(BrowserGuestStorage.EXTRAS, value) }
     var chiEnabled: Boolean = false
+        set(value) { field = value; if (persistent) BrowserGuestStorage.write(BrowserGuestStorage.CHI, value.toString()) }
 
     fun clear() {
         snapshotRaw = null
-        extrasRaw = "{\"version\":1,\"characters\":{}}"
+        extrasRaw = EMPTY_EXTRAS
         chiEnabled = false
     }
 }
 
-fun clearBrowserSessionData() = BrowserSessionMemory.clear()
+/** Guest characters in localStorage. Writing never throws: a full storage is reported through [problem]. */
+object BrowserGuestStorage {
+    const val SNAPSHOT = "fury.guest.snapshot"
+    const val EXTRAS = "fury.guest.extras"
+    const val CHI = "fury.guest.chi"
+    const val QUOTA_MESSAGE = "Не хватает места в браузере: уменьшите портрет или сделайте экспорт."
+
+    var problem by mutableStateOf<String?>(null)
+
+    const val MASTER_QUOTA_MESSAGE = "Не хватает места в браузере: изменения в «Мастер» не сохранились. Удалите лишние заметки или врагов, или уменьшите портреты."
+
+    internal fun write(key: String, value: String?, quotaMessage: String = QUOTA_MESSAGE) {
+        runCatching { if (value == null) localStorage.removeItem(key) else localStorage.setItem(key, value) }
+            .onSuccess { if (problem == quotaMessage) problem = null }
+            .onFailure { problem = quotaMessage }
+    }
+
+    private fun read(key: String): String? = runCatching { localStorage.getItem(key) }.getOrNull()
+
+    /** True when a guest played in this browser and the characters are still here. */
+    fun hasData(): Boolean = read(SNAPSHOT) != null
+
+    /** The guest's characters: the live working copy while guest mode is on (it may hold edits a full storage refused), else what is stored. */
+    fun snapshotRaw(): String? = if (BrowserSessionMemory.persistent) BrowserSessionMemory.snapshotRaw ?: read(SNAPSHOT) else read(SNAPSHOT)
+    fun extrasRaw(): String = if (BrowserSessionMemory.persistent) BrowserSessionMemory.extrasRaw else read(EXTRAS) ?: EMPTY_EXTRAS
+
+    /** Guest mode on: the working copy comes from localStorage and is written back on every change. */
+    fun enable() {
+        BrowserSessionMemory.persistent = false
+        BrowserSessionMemory.snapshotRaw = read(SNAPSHOT)
+        BrowserSessionMemory.extrasRaw = read(EXTRAS) ?: EMPTY_EXTRAS
+        BrowserSessionMemory.chiEnabled = read(CHI) == "true"
+        BrowserSessionMemory.persistent = true
+    }
+
+    /** Guest mode off (signing in): the working copy stays in memory only; the stored guest data is kept. */
+    fun disable() {
+        BrowserSessionMemory.persistent = false
+    }
+
+    /** The guest characters are in the account now (or the device was signed out): forget them. */
+    fun clear() {
+        listOf(SNAPSHOT, EXTRAS, CHI).forEach { key -> runCatching { localStorage.removeItem(key) } }
+        problem = null
+    }
+}
+
+/** Empties the in-memory working copy. Never touches stored guest data: persistence is switched off first. */
+fun clearBrowserSessionData() {
+    BrowserSessionMemory.persistent = false
+    BrowserSessionMemory.clear()
+}
 
 fun webUuid(): String = js("crypto.randomUUID()") as String
 
@@ -62,6 +127,13 @@ class BrowserCharacterExtrasStore : CharacterExtrasStore {
     }
 
     fun raw(): String = encode(state)
+
+    /** Copies the extras of [ids] from another extras file (the guest's) into this one. */
+    fun importFrom(raw: String, ids: Collection<String>) {
+        val other = decode(raw)
+        ids.forEach { id -> other[id]?.let { state[id] = it } }
+        persist()
+    }
 
     fun replaceRaw(raw: String) {
         state = decode(raw).toMutableMap()

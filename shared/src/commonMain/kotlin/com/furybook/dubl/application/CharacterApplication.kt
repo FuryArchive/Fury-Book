@@ -159,6 +159,9 @@ class CharacterApplication internal constructor(
     fun createCharacter() = session.createCharacter()
     fun selectCharacter(id: String) = session.selectCharacter(id)
 
+    /** Duplicates [id] with its extras (portrait, conditions…); returns the copy's id. */
+    fun duplicate(id: String): String? = session.duplicate(id)?.also { copyId -> extras.replace(copyId, extras.load(id)) }
+
     fun deleteActive() {
         val deletedId = session.active.id
         extras.delete(deletedId)

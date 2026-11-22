@@ -2,8 +2,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 SESSION = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/state/CharacterSession.kt').read_text(encoding='utf-8')
-ANDROID = (ROOT / 'app/src/main/java/com/furybook/android/ui/screens/MagicScreen.kt').read_text(encoding='utf-8')
-DESKTOP = (ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/screens/MagicScreen.kt').read_text(encoding='utf-8')
+# Stage 5: both old Магия screens are gone; the catalog lives in the editor's Магия step.
+STEP = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorMagicStep.kt').read_text(encoding='utf-8')
+ACTIONS = (ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/editor/EditorMagicActions.kt').read_text(encoding='utf-8')
 
 
 def test_shared_backend_does_not_hard_reject_incomplete_rulebook_spell():
@@ -12,12 +13,8 @@ def test_shared_backend_does_not_hard_reject_incomplete_rulebook_spell():
     assert 'conflictNote = entry.conflictNote' in SESSION
 
 
-def test_android_catalog_keeps_incomplete_spell_addable_and_editable_after_add():
-    assert 'enabled = !owned && !entry.incomplete' not in ANDROID
-    assert 'if (!owned && !entry.incomplete) onAdd(entry)' not in ANDROID
-    assert 'onEdit = { editSpell = spell' in ANDROID
-
-
-def test_desktop_catalog_keeps_incomplete_spell_addable():
-    assert 'enabled = !spell.incomplete' not in DESKTOP
-    assert 'state.addCatalogSpell(spell)' in DESKTOP
+def test_editor_catalog_keeps_incomplete_spell_addable_and_editable_after_add():
+    assert 'enabled = !known && !entry.incomplete' not in STEP
+    assert 'enabled = !known)' in STEP or 'enabled = !known' in STEP
+    assert 'if (uid != null && entry.incomplete) onFix(uid)' in STEP
+    assert 'host.addCatalogSpell(entry)' in ACTIONS

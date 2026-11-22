@@ -1,6 +1,10 @@
 package com.furybook.web
 
-import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
@@ -21,27 +25,48 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.ComposeViewport
+import androidx.compose.ui.zIndex
 import com.furybook.desktop.DesktopAppState
 import com.furybook.desktop.screens.*
+import com.furybook.dubl.ui.sheet.SheetChangeReportingHost
+import com.furybook.dubl.ui.sheet.SheetScreen
+import com.furybook.ui.components.FuryButton
+import com.furybook.ui.components.FuryButtonStyle
+import com.furybook.ui.components.FuryCharacterPicker
+import com.furybook.ui.components.FuryShell
+import com.furybook.ui.components.FuryShellCharacter
+import com.furybook.ui.components.FuryShellSection
 import com.furybook.ui.layout.DublLayoutClass
 import com.furybook.ui.layout.layoutClassForWidth
-import com.furybook.ui.theme.DublTheme
+import com.furybook.ui.theme.FuryThemedApp
+import com.furybook.ui.components.FuryThemeButton
+import com.furybook.ui.components.FuryShellAccount
+import com.furybook.ui.account.FuryAccountPanel
+import com.furybook.ui.account.FuryLoginScreen
+import com.furybook.ui.account.FuryStartMode
+import com.furybook.ui.account.accountDotColor
+import com.furybook.ui.account.furyShowsLogin
+import com.furybook.ui.theme.FuryColors
+import com.furybook.dubl.ui.characters.DublCharactersScreen
+import com.furybook.dubl.ui.characters.unarchivedCharacters
+import com.furybook.dubl.master.MasterStore
+import com.furybook.dubl.model.SkillCatalog
+import com.furybook.dubl.ui.master.DublMasterScreen
+import com.furybook.dubl.ui.master.MasterCatalogs
+import com.furybook.ui.theme.furyFontsReady
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 internal enum class DesktopSection(val label: String) {
     SHEET("Лист"),
-    SKILLS("Умения"),
-    DEVELOPMENT("Навыки"),
-    MAGIC("Магия"),
-    EQUIPMENT("Снаряжение"),
-    CAMPAIGN("Кампания"),
-    CHARACTERS("Ещё"),
+    MASTER("Мастер"),
+    CHARACTERS("Персонажи"),
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     ComposeViewport(viewportContainerId = "furybook-app") {
-        DublTheme {
+        FuryThemedApp(remember { WebThemeStore() }) {
             DesktopVisualTheme {
                 WebRoot()
             }
@@ -53,24 +78,59 @@ fun main() {
 private fun WebRoot() {
     val cloud = remember { WebCloudSync() }
     val scope = rememberCoroutineScope()
+    val startStore = remember { WebStartStore() }
+    val archiveStore = remember { WebArchiveStore() }
+    var startMode by remember { mutableStateOf(startStore.load()) }
     var resources by remember { mutableStateOf<Map<String, String>?>(null) }
-    var session by remember { mutableStateOf<WebAuthSession?>(null) }
     var booting by remember { mutableStateOf(true) }
     var fatalError by remember { mutableStateOf<String?>(null) }
     var connectionError by remember { mutableStateOf<String?>(null) }
     var appEpoch by remember { mutableStateOf(0) }
+    // A guest opened «Войти» from the menu: the login page with a way back.
+    var loginFromGuest by remember { mutableStateOf(false) }
+    var mergeNotice by remember { mutableStateOf<String?>(null) }
 
-    suspend fun hydrateRemote(): CloudBootstrap {
-        val remote = cloud.pull()
-        BrowserCharacterStore().replaceRaw(remote.snapshot)
-        BrowserCharacterExtrasStore().replaceRaw(remote.extras)
-        BrowserPackState.chiEnabled = remote.chiEnabled
-        return remote
+    fun saveStart(mode: FuryStartMode) { startMode = mode; startStore.save(mode) }
+
+    /**
+     * Loads the account. Guest characters still in this browser (an upload that never finished, a tab closed too
+     * early) join it every time, so they can't stay stranded while signed in.
+     */
+    suspend fun hydrateRemote() {
+        val joined = hydrateRemoteMergingGuest(cloud)
+        if (joined > 0) mergeNotice = "Персонажей с этого устройства добавлено в аккаунт: $joined."
     }
 
     fun cloudErrorMessage(error: Throwable): String =
         error.message?.takeIf { it.isNotBlank() }
             ?: "Не удалось подключиться к Fury Cloud. Проверьте интернет и попробуйте снова."
+
+    val account = remember {
+        WebAccount(
+            cloud = cloud,
+            onSignedIn = {
+                connectionError = null
+                // Guest characters still in this browser join the account; the pull never replaces them.
+                runCatching { hydrateRemote() }.onFailure { connectionError = cloudErrorMessage(it) }
+                saveStart(FuryStartMode.SIGNED_IN)
+                appEpoch++
+            },
+            onSignedOut = {
+                WebGuestUpload.reset()
+                clearBrowserSessionData()
+                // The account's characters left the browser; so does the list of which were archived.
+                archiveStore.save(emptySet())
+                connectionError = null
+                saveStart(FuryStartMode.NONE)
+                appEpoch++
+            },
+            onUseCloud = {
+                runCatching { hydrateRemote() }
+                    .onSuccess { appEpoch++ }
+                    .onFailure { connectionError = cloudErrorMessage(it) }
+            },
+        )
+    }
 
     LaunchedEffect(Unit) {
         runCatching { resources = loadBundledFcpTexts() }
@@ -78,36 +138,41 @@ private fun WebRoot() {
         if (fatalError == null) {
             runCatching { cloud.restoreSession() }
                 .onSuccess { restored ->
-                    session = restored
+                    account.session = restored
                     if (restored != null) {
                         clearBrowserSessionData()
                         runCatching { hydrateRemote() }
                             .onSuccess { connectionError = null }
                             .onFailure { connectionError = cloudErrorMessage(it) }
+                    } else if (startMode == FuryStartMode.GUEST) {
+                        BrowserGuestStorage.enable()
                     }
                 }
-                .onFailure { connectionError = cloudErrorMessage(it) }
+                .onFailure {
+                    // Offline with no session: a guest still plays from this browser's storage.
+                    if (startMode == FuryStartMode.GUEST) BrowserGuestStorage.enable() else connectionError = cloudErrorMessage(it)
+                }
         }
         booting = false
     }
+    LaunchedEffect(cloud.status.phase) { WebGuestUpload.onSyncPhase(cloud.status.phase, cloud) }
 
+    val fontsReady = furyFontsReady()
     when {
         fatalError != null -> FatalScreen(fatalError!!)
-        booting || resources == null -> LoadingScreen("Загружаем Fury Book")
-        session == null -> LoginScreen(
-            cloud = cloud,
-            onAuthenticated = { authenticated ->
-                scope.launch {
-                    clearBrowserSessionData()
-                    session = authenticated
-                    connectionError = null
-                    runCatching { hydrateRemote() }
-                        .onSuccess { appEpoch++ }
-                        .onFailure { connectionError = cloudErrorMessage(it) }
-                }
+        booting || resources == null || !fontsReady -> LoadingScreen("Загружаем Fury Book")
+        loginFromGuest || furyShowsLogin(startMode, account.signedIn, BrowserGuestStorage.hasData()) -> FuryLoginScreen(
+            account = account,
+            onGuest = {
+                BrowserGuestStorage.enable()
+                saveStart(FuryStartMode.GUEST)
+                appEpoch++
             },
+            onSignedIn = { loginFromGuest = false },
+            onBack = if (loginFromGuest) ({ loginFromGuest = false }) else null,
+            modifier = Modifier.fillMaxSize(),
         )
-        connectionError != null -> CloudUnavailableScreen(
+        account.signedIn && connectionError != null -> CloudUnavailableScreen(
             message = connectionError!!,
             onRetry = {
                 scope.launch {
@@ -119,24 +184,16 @@ private fun WebRoot() {
                         .onFailure { connectionError = cloudErrorMessage(it) }
                 }
             },
-            onSignOut = {
-                scope.launch {
-                    cloud.signOut()
-                    clearBrowserSessionData()
-                    session = null
-                    connectionError = null
-                    appEpoch++
-                }
-            },
+            onSignOut = { scope.launch { account.signOutDiscarding() } },
         )
         else -> {
-            val activeSession = session!!
-            key(activeSession.userId, appEpoch) {
-                val state = remember(resources, activeSession.userId, appEpoch) {
-                    DesktopAppState(resources!!, cloud)
+            val activeSession = account.session
+            key(activeSession?.userId ?: "guest", appEpoch) {
+                val state = remember(resources, activeSession?.userId, appEpoch) {
+                    DesktopAppState(resources!!, if (activeSession != null) cloud else null, archiveStore)
                 }
 
-                LaunchedEffect(state) {
+                if (activeSession != null) LaunchedEffect(state) {
                     cloud.schedule(
                         snapshot = BrowserCharacterStore().raw(),
                         extras = BrowserCharacterExtrasStore().raw(),
@@ -144,42 +201,36 @@ private fun WebRoot() {
                     )
                 }
 
+                val accountEntry = FuryShellAccount(
+                    label = if (account.signedIn) account.nickname.ifBlank { account.email.substringBefore('@') } else "Гость",
+                    dot = accountDotColor(account.status),
+                ) { close ->
+                    FuryAccountPanel(
+                        account = account,
+                        isGuest = !account.signedIn,
+                        onSignIn = { close(); loginFromGuest = true },
+                        onSignedOut = close,
+                    )
+                }
                 FuryWebApp(
                     state = state,
                     cloud = cloud,
-                    accountName = cloud.profileNickname.ifBlank { activeSession.email.substringBefore('@') },
-                    accountEmail = activeSession.email,
-                    onSignOut = {
-                        scope.launch {
-                            cloud.signOut()
-                            clearBrowserSessionData()
-                            session = null
-                            connectionError = null
-                            appEpoch++
-                        }
-                    },
+                    account = account,
+                    accountEntry = accountEntry,
+                    mergeNotice = mergeNotice,
+                    onDismissMergeNotice = { mergeNotice = null },
+                    onSignIn = { loginFromGuest = true },
                 )
 
-                cloud.conflict?.let { conflict ->
+                if (activeSession != null) cloud.conflict?.let { conflict ->
                     ConflictDialog(
                         conflict = conflict,
-                        onUseCloud = {
-                            scope.launch {
-                                cloud.clearConflictForReload()
-                                runCatching { hydrateRemote() }
-                                    .onSuccess { appEpoch++ }
-                                    .onFailure { connectionError = cloudErrorMessage(it) }
-                            }
-                        },
-                        onKeepMine = {
-                            scope.launch {
-                                cloud.forceConflict()
-                            }
-                        },
+                        onUseCloud = { scope.launch { account.useCloud() } },
+                        onKeepMine = { scope.launch { cloud.forceConflict() } },
                     )
                 }
 
-                if (cloud.status.phase == CloudSyncPhase.ERROR) {
+                if (activeSession != null && cloud.status.phase == CloudSyncPhase.ERROR) {
                     SyncErrorDialog(
                         message = cloud.status.message ?: "Fury Cloud недоступен",
                         onRetry = { scope.launch { cloud.retryLast() } },
@@ -218,185 +269,6 @@ private fun FatalScreen(message: String) {
             Column(Modifier.widthIn(max = 520.dp).padding(24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text("Fury Book не запустился", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Text(message, color = DesktopMuted)
-            }
-        }
-    }
-}
-
-private enum class AuthMode { LOGIN, REGISTER }
-
-@Composable
-private fun LoginScreen(
-    cloud: WebCloudSync,
-    onAuthenticated: (WebAuthSession) -> Unit,
-) {
-    val scope = rememberCoroutineScope()
-    var mode by remember { mutableStateOf(AuthMode.LOGIN) }
-    var nickname by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var busy by remember { mutableStateOf(false) }
-    var status by remember { mutableStateOf<String?>(null) }
-    var statusIsError by remember { mutableStateOf(false) }
-
-    fun validate(): String? {
-        val cleanEmail = email.trim()
-        if (cleanEmail.isBlank()) return "Введите email."
-        if (!Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$").matches(cleanEmail)) return "Введите корректный email."
-        if (password.isBlank()) return "Введите пароль."
-        if (mode == AuthMode.REGISTER) {
-            val cleanNickname = nickname.trim()
-            if (cleanNickname.length !in 2..32) return "Никнейм должен содержать от 2 до 32 символов."
-            if (password.length < 8) return "Пароль должен содержать минимум 8 символов."
-        }
-        return null
-    }
-
-    Box(
-        Modifier.fillMaxSize().background(DesktopBackground).padding(20.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Surface(
-            modifier = Modifier.widthIn(max = 450.dp).fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
-            color = DesktopSurface,
-            border = BorderStroke(1.dp, DesktopBorder),
-            shadowElevation = 18.dp,
-        ) {
-            Column(
-                Modifier.padding(horizontal = 28.dp, vertical = 30.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text("Fury Book", color = DesktopAccent, fontSize = 34.sp, fontWeight = FontWeight.Bold)
-                Text("DUBL 3.69 · Web", color = DesktopMuted)
-                Text(
-                    if (mode == AuthMode.LOGIN) "Войдите в Fury Account. Веб-версия работает только с облаком."
-                    else "Создайте Fury Account. После регистрации подтвердите email из письма.",
-                    color = DesktopMuted,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                Spacer(Modifier.height(2.dp))
-
-                if (mode == AuthMode.REGISTER) {
-                    OutlinedTextField(
-                        value = nickname,
-                        onValueChange = { nickname = it.take(32); status = null },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        label = { Text("Никнейм") },
-                        supportingText = { Text("От 2 до 32 символов. Будет отображаться в Fury Book.") },
-                    )
-                }
-
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it; status = null },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    label = { Text("Email") },
-                    supportingText = {
-                        if (mode == AuthMode.REGISTER) Text("На этот адрес придёт письмо для подтверждения аккаунта.")
-                    },
-                )
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it; status = null },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    label = { Text("Пароль") },
-                    supportingText = {
-                        if (mode == AuthMode.REGISTER) Text("Минимум 8 символов.")
-                    },
-                )
-
-                status?.let {
-                    Text(
-                        it,
-                        color = if (statusIsError) MaterialTheme.colorScheme.error else DesktopMuted,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !busy,
-                    onClick = {
-                        val validation = validate()
-                        if (validation != null) {
-                            status = validation
-                            statusIsError = true
-                            return@Button
-                        }
-                        busy = true
-                        status = null
-                        statusIsError = false
-                        scope.launch {
-                            if (mode == AuthMode.LOGIN) {
-                                cloud.signIn(email, password)
-                                    .onSuccess(onAuthenticated)
-                                    .onFailure {
-                                        status = it.message ?: "Неверный email или пароль."
-                                        statusIsError = true
-                                    }
-                            } else {
-                                cloud.signUp(email, password, nickname)
-                                    .onSuccess { created ->
-                                        if (created != null) {
-                                            onAuthenticated(created)
-                                        } else {
-                                            status = "Аккаунт создан. Мы отправили письмо на ${email.trim()}. Подтвердите email, затем вернитесь сюда и войдите."
-                                            statusIsError = false
-                                            mode = AuthMode.LOGIN
-                                        }
-                                    }
-                                    .onFailure {
-                                        status = it.message ?: "Не удалось создать аккаунт."
-                                        statusIsError = true
-                                    }
-                            }
-                            busy = false
-                        }
-                    },
-                ) {
-                    Text(
-                        when {
-                            busy -> "Подождите…"
-                            mode == AuthMode.LOGIN -> "Войти"
-                            else -> "Создать аккаунт"
-                        },
-                    )
-                }
-
-                if (mode == AuthMode.LOGIN) {
-                    TextButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        enabled = !busy,
-                        onClick = { kotlinx.browser.window.location.href = "../reset-password.html" },
-                    ) {
-                        Text("Забыли пароль?")
-                    }
-                }
-
-                OutlinedButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !busy,
-                    onClick = {
-                        mode = if (mode == AuthMode.LOGIN) AuthMode.REGISTER else AuthMode.LOGIN
-                        status = null
-                        statusIsError = false
-                    },
-                ) {
-                    Text(if (mode == AuthMode.LOGIN) "Нет аккаунта? Создать" else "Уже есть аккаунт? Войти")
-                }
-
-                if (mode == AuthMode.REGISTER) {
-                    Text(
-                        "1. Введите никнейм, email и пароль.\n2. Нажмите «Создать аккаунт».\n3. Откройте письмо и подтвердите email.\n4. Вернитесь сюда и войдите.",
-                        color = DesktopMuted,
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
             }
         }
     }
@@ -486,33 +358,12 @@ private fun formatWebTime(value: String): String = runCatching {
 
 @Composable
 private fun DesktopVisualTheme(content: @Composable () -> Unit) {
-    val colors = MaterialTheme.colorScheme
+    // Colours and fonts come from the shared DublTheme. The dense desktop screens were laid out
+    // around 14sp secondary text, so that size is kept until those screens are rebuilt.
     val typography = MaterialTheme.typography
     MaterialTheme(
-        colorScheme = colors.copy(
-            primary = DesktopAccent,
-            onPrimary = Color.White,
-            primaryContainer = DesktopAccentSoft,
-            onPrimaryContainer = DesktopText,
-            secondary = DesktopGold,
-            background = DesktopBackground,
-            onBackground = DesktopText,
-            surface = DesktopSurface,
-            onSurface = DesktopText,
-            surfaceVariant = DesktopSurfaceRaised,
-            onSurfaceVariant = DesktopMuted,
-            outline = DesktopBorder,
-            outlineVariant = DesktopBorder,
-        ),
         typography = typography.copy(
-            headlineMedium = typography.headlineMedium.copy(fontSize = 30.sp, lineHeight = 36.sp),
-            headlineSmall = typography.headlineSmall.copy(fontSize = 28.sp, lineHeight = 34.sp),
-            titleLarge = typography.titleLarge.copy(fontSize = 20.sp, lineHeight = 25.sp),
-            titleMedium = typography.titleMedium.copy(fontSize = 17.sp, lineHeight = 22.sp),
-            bodyLarge = typography.bodyLarge.copy(fontSize = 16.sp, lineHeight = 22.sp),
-            bodyMedium = typography.bodyMedium.copy(fontSize = 15.sp, lineHeight = 20.sp),
             bodySmall = typography.bodySmall.copy(fontSize = 14.sp, lineHeight = 18.sp),
-            labelLarge = typography.labelLarge.copy(fontSize = 14.sp, lineHeight = 18.sp),
             labelMedium = typography.labelMedium.copy(fontSize = 14.sp, lineHeight = 18.sp),
         ),
         content = content,
@@ -523,218 +374,111 @@ private fun DesktopVisualTheme(content: @Composable () -> Unit) {
 private fun FuryWebApp(
     state: DesktopAppState,
     cloud: WebCloudSync,
-    accountName: String,
-    accountEmail: String,
-    onSignOut: () -> Unit,
+    account: WebAccount,
+    accountEntry: FuryShellAccount,
+    mergeNotice: String?,
+    onDismissMergeNotice: () -> Unit,
+    onSignIn: () -> Unit,
 ) {
+    // Мастер's data is the browser's, not the account's: it survives sign-out.
+    val masterStore = remember { WebMasterStore() }
     var selected by remember { mutableStateOf(DesktopSection.SHEET) }
+    var characterPickerOpen by remember { mutableStateOf(false) }
+    // Set by «Новый персонаж»; the sheet consumes it by opening the editor at Основа.
+    var openEditorAtBasics by remember { mutableStateOf(false) }
+    var editorShown by remember { mutableStateOf(false) }
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        val layout = layoutClassForWidth(maxWidth.value.toInt())
-        if (layout == DublLayoutClass.COMPACT) {
-            Scaffold(
-                containerColor = MaterialTheme.colorScheme.background,
-                bottomBar = { MobileBottomNavigation(selected, { selected = it }) },
-            ) { padding ->
-                Column(Modifier.fillMaxSize().padding(padding)) {
-                    if (selected == DesktopSection.CHARACTERS) {
-                        MobileAccountStrip(accountName, accountEmail, onSignOut)
-                    }
-                    DesktopContent(state, cloud, selected, layout, { selected = it }, Modifier.weight(1f))
-                }
-            }
-        } else {
-            Row(Modifier.fillMaxSize()) {
-                DesktopRail(
-                    state = state,
-                    selected = selected,
-                    onSelected = { selected = it },
-                    accountName = accountName,
-                    accountEmail = accountEmail,
-                    onSignOut = onSignOut,
-                    modifier = Modifier.width(230.dp).fillMaxHeight(),
-                )
-                DesktopContent(state, cloud, selected, layout, { selected = it }, Modifier.weight(1f))
-            }
-        }
-    }
-}
-
-@Composable
-private fun DesktopRail(
-    state: DesktopAppState,
-    selected: DesktopSection,
-    onSelected: (DesktopSection) -> Unit,
-    accountName: String,
-    accountEmail: String,
-    onSignOut: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    var switcherOpen by remember { mutableStateOf(false) }
-    Column(
-        modifier = modifier.background(DesktopSurfaceInset).padding(horizontal = 14.dp, vertical = 18.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+    FuryShell(
+        title = "FURY BOOK",
+        characterName = state.activeCharacter.name,
+        sections = DesktopSection.entries.map { FuryShellSection(it, it.label, primary = false) },
+        selected = selected,
+        onSelect = { selected = it },
+        onSwitchCharacter = { characterPickerOpen = true },
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+        account = { FuryThemeButton() },
+        phoneChromeHidden = editorShown && selected == DesktopSection.SHEET,
+        accountEntry = accountEntry,
     ) {
-        Text(
-            "Fury Book",
-            style = MaterialTheme.typography.headlineMedium,
-            color = DesktopAccent,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-        )
-        Text("DUBL 3.69", color = DesktopMuted, style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(horizontal = 8.dp))
-        Surface(
-            modifier = Modifier.fillMaxWidth().clickable { switcherOpen = true },
-            color = DesktopSurfaceRaised,
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.52f)),
-        ) {
-            Column(Modifier.padding(horizontal = 12.dp, vertical = 11.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(state.activeCharacter.name, fontWeight = FontWeight.SemiBold, maxLines = 2)
-                Text("${state.activeCharacter.experience} XP · сменить ▼", color = DesktopMuted, style = MaterialTheme.typography.bodySmall)
-            }
-        }
-        DropdownMenu(expanded = switcherOpen, onDismissRequest = { switcherOpen = false }) {
-            state.snapshot.characters.forEach { character ->
-                DropdownMenuItem(
-                    text = { Text(if (character.id == state.snapshot.activeCharacterId) "✓ ${character.name}" else character.name) },
-                    onClick = {
-                        state.selectCharacter(character.id)
-                        switcherOpen = false
-                        onSelected(DesktopSection.SHEET)
-                    },
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val layout = layoutClassForWidth(maxWidth.value.toInt())
+            Column(Modifier.fillMaxSize()) {
+                if (!account.signedIn && !(editorShown && selected == DesktopSection.SHEET)) GuestBar(layout, onSignIn)
+                mergeNotice?.let { NoticeBar(it, onDismissMergeNotice) }
+                // Signed in, the guest bar is gone, but Мастер still saves to this browser: its storage problems show here.
+                if (account.signedIn) BrowserGuestStorage.problem?.let { NoticeBar(it) { BrowserGuestStorage.problem = null } }
+                DesktopContent(
+                    state, account, selected, layout, { selected = it }, Modifier.weight(1f),
+                    masterStore = masterStore,
+                    onSignIn = onSignIn,
+                    sheetHooks = WebSheetHooks(
+                        openEditorAtBasics = openEditorAtBasics,
+                        onOpenEditorConsumed = { openEditorAtBasics = false },
+                        onEditorShown = { editorShown = it },
+                        onCharacterCreated = { openEditorAtBasics = true; selected = DesktopSection.SHEET },
+                    ),
                 )
             }
-            DropdownMenuItem(
-                text = { Text("Управление персонажами…") },
-                onClick = { switcherOpen = false; onSelected(DesktopSection.CHARACTERS) },
-            )
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
-        DesktopSection.entries.filter { it != DesktopSection.CHARACTERS }.forEach { section ->
-            NavigationItem(section, section == selected, { onSelected(section) }, Modifier.fillMaxWidth())
-        }
-        Spacer(Modifier.weight(1f))
-        HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
-        NavigationItem(
-            DesktopSection.CHARACTERS,
-            DesktopSection.CHARACTERS == selected,
-            { onSelected(DesktopSection.CHARACTERS) },
-            Modifier.fillMaxWidth(),
+    }
+    if (characterPickerOpen) {
+        FuryCharacterPicker(
+            characters = unarchivedCharacters(state).map { FuryShellCharacter(it.id, it.name) },
+            activeId = state.snapshot.activeCharacterId,
+            onSelect = { id ->
+                state.selectCharacter(id)
+                selected = DesktopSection.SHEET
+            },
+            onManage = { selected = DesktopSection.CHARACTERS },
+            onDismiss = { characterPickerOpen = false },
         )
-        Column(Modifier.padding(horizontal = 8.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(accountName, color = DesktopText, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, maxLines = 1)
-            Text(accountEmail, color = DesktopMuted, style = MaterialTheme.typography.bodySmall, maxLines = 1)
-        }
-        TextButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) { Text("Выйти") }
     }
 }
 
+
+/** Guest mode: one line on where the characters live, a quota warning when the browser is full, and «Войти». */
 @Composable
-private fun MobileAccountStrip(accountName: String, accountEmail: String, onSignOut: () -> Unit) {
+private fun GuestBar(layout: DublLayoutClass, onSignIn: () -> Unit) {
+    val p = FuryColors.current
     Row(
-        Modifier.fillMaxWidth().background(DesktopSurfaceInset).padding(horizontal = 14.dp, vertical = 6.dp),
+        Modifier.fillMaxWidth().background(p.panel2).padding(horizontal = 14.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text(accountName, color = DesktopText, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, maxLines = 1)
-            Text(accountEmail, color = DesktopMuted, style = MaterialTheme.typography.labelSmall, maxLines = 1)
+            Text(
+                if (layout == DublLayoutClass.COMPACT) "Гостевой режим: всё хранится в этом браузере."
+                else "Гостевой режим: всё хранится на этом устройстве. В браузере очистка данных сайта удалит их — делайте экспорт.",
+                color = p.muted, style = MaterialTheme.typography.bodySmall,
+            )
+            BrowserGuestStorage.problem?.let { Text(it, color = p.accText, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold) }
         }
-        TextButton(onClick = onSignOut) { Text("Выйти") }
+        FuryButton("Войти", onSignIn, style = FuryButtonStyle.Ghost)
     }
 }
 
 @Composable
-private fun MobileBottomNavigation(selected: DesktopSection, onSelected: (DesktopSection) -> Unit) {
-    Column(Modifier.fillMaxWidth().background(DesktopSurfaceInset)) {
-        HorizontalDivider(color = DesktopBorder.copy(alpha = .72f))
-        Row(
-            Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 3.dp, vertical = 5.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            DesktopSection.entries.forEach { section ->
-                val active = selected == section
-                Surface(
-                    modifier = Modifier.weight(1f).fillMaxHeight().clickable { onSelected(section) },
-                    shape = RoundedCornerShape(12.dp),
-                    color = if (active) DesktopAccentSoft else Color.Transparent,
-                    border = if (active) BorderStroke(1.dp, DesktopAccent.copy(alpha = .28f)) else null,
-                ) {
-                    Column(
-                        Modifier.fillMaxSize().padding(horizontal = 1.dp, vertical = 5.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        DesktopIcon(section.iconKind, tint = if (active) DesktopAccent else DesktopMuted, size = 23.dp)
-                        Text(
-                            section.label,
-                            fontSize = 9.5.sp,
-                            lineHeight = 11.sp,
-                            fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
-                            color = if (active) DesktopText else DesktopMuted,
-                            maxLines = 1,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun NavigationItem(section: DesktopSection, active: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    val background by animateColorAsState(
-        targetValue = if (active) DesktopAccentSoft else Color.Transparent,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "navigation-background",
-    )
-    val iconColor by animateColorAsState(
-        targetValue = if (active) DesktopAccent else DesktopMuted,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "navigation-icon",
-    )
-    val textColor by animateColorAsState(
-        targetValue = if (active) MaterialTheme.colorScheme.onSurface else DesktopMuted,
-        animationSpec = tween(FuryMotion.FastMs),
-        label = "navigation-text",
-    )
-    Surface(
-        modifier = modifier.clickable(onClick = onClick),
-        shape = RoundedCornerShape(10.dp),
-        color = background,
-        border = if (active) BorderStroke(1.dp, DesktopAccent.copy(alpha = 0.32f)) else null,
+private fun NoticeBar(text: String, onDismiss: () -> Unit) {
+    val p = FuryColors.current
+    Row(
+        Modifier.fillMaxWidth().background(p.goldSoft).padding(horizontal = 14.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            DesktopIcon(kind = section.iconKind, tint = iconColor, size = 20.dp)
-            Text(section.label, fontWeight = if (active) FontWeight.SemiBold else FontWeight.Normal, color = textColor)
-        }
+        Text(text, Modifier.weight(1f), color = p.goldText, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+        FuryButton("✕", onDismiss, style = FuryButtonStyle.Ghost)
     }
 }
-
-private val DesktopSection.iconKind: DesktopIconKind
-    get() = when (this) {
-        DesktopSection.SHEET -> DesktopIconKind.SHEET
-        DesktopSection.SKILLS -> DesktopIconKind.SKILLS
-        DesktopSection.DEVELOPMENT -> DesktopIconKind.DEVELOPMENT
-        DesktopSection.MAGIC -> DesktopIconKind.MAGIC
-        DesktopSection.EQUIPMENT -> DesktopIconKind.EQUIPMENT
-        DesktopSection.CAMPAIGN -> DesktopIconKind.CHARACTERS
-        DesktopSection.CHARACTERS -> DesktopIconKind.CHARACTERS
-    }
 
 @Composable
 private fun DesktopContent(
     state: DesktopAppState,
-    cloud: WebCloudSync,
+    account: WebAccount,
     section: DesktopSection,
     layout: DublLayoutClass,
     onNavigate: (DesktopSection) -> Unit,
     modifier: Modifier = Modifier,
+    masterStore: MasterStore,
+    onSignIn: () -> Unit,
+    sheetHooks: WebSheetHooks = WebSheetHooks(),
 ) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         val pageModifier = Modifier
@@ -757,25 +501,123 @@ private fun DesktopContent(
                 animationSpec = tween(FuryMotion.FastMs),
                 label = "web-section-enter",
             )
-            val animatedPageModifier = pageModifier.graphicsLayer {
+            val enter = Modifier.graphicsLayer {
                 alpha = pageProgress
                 translationY = (1f - pageProgress) * 6f
             }
+            val animatedPageModifier = pageModifier.then(enter)
             when (section) {
-                DesktopSection.SHEET -> CharacterSheetScreen(
+                // The shared sheet pads itself and picks its layout from the full content width.
+                DesktopSection.SHEET -> WebSheet(
                     state = state,
-                    modifier = animatedPageModifier,
-                    onNavigateSkills = { onNavigate(DesktopSection.SKILLS) },
-                    onNavigateDevelopment = { onNavigate(DesktopSection.DEVELOPMENT) },
-                    onNavigateMagic = { onNavigate(DesktopSection.MAGIC) },
-                    onNavigateEquipment = { onNavigate(DesktopSection.EQUIPMENT) },
+                    onNavigate = onNavigate,
+                    playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
+                    hooks = sheetHooks,
                 )
-                DesktopSection.SKILLS -> SkillsScreen(state, animatedPageModifier)
-                DesktopSection.DEVELOPMENT -> DevelopmentScreen(state, animatedPageModifier)
-                DesktopSection.MAGIC -> MagicScreen(state, animatedPageModifier)
-                DesktopSection.EQUIPMENT -> EquipmentScreen(state, animatedPageModifier)
-                DesktopSection.CAMPAIGN -> CampaignScreen(state, cloud, animatedPageModifier)
-                DesktopSection.CHARACTERS -> CharactersScreen(state, animatedPageModifier)
+                DesktopSection.MASTER -> DublMasterScreen(
+                    store = masterStore,
+                    account = account,
+                    catalogs = MasterCatalogs(state.canonicalDevelopmentCatalog, state.magicEquipmentCatalog, state.conditionCatalog, SkillCatalog.builtIns),
+                    onSignIn = onSignIn,
+                    modifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
+                )
+                DesktopSection.CHARACTERS -> DublCharactersScreen(
+                    host = state,
+                    account = account,
+                    packs = rememberWebPacks(state),
+                    onOpen = { onNavigate(DesktopSection.SHEET) },
+                    onNew = { state.createCharacter(); sheetHooks.onCharacterCreated() },
+                    onImportFile = { onRead -> pickTextFile(".dubl,application/json,text/plain") { raw -> onRead(raw) } },
+                    onExportFile = { fileName, content, onSaved -> downloadTextFile(fileName, content); onSaved(true) },
+                    modifier = animatedPageModifier,
+                    portraitLoader = { dataUrl -> rememberWebPortrait(dataUrl) },
+                )
+            }
+        }
+    }
+}
+/** How the sheet section talks to the shell about the editor. */
+private data class WebSheetHooks(
+    val openEditorAtBasics: Boolean = false,
+    val onOpenEditorConsumed: () -> Unit = {},
+    val onEditorShown: (Boolean) -> Unit = {},
+    val onCharacterCreated: () -> Unit = {},
+)
+
+private data class SheetToast(val text: String, val canUndo: Boolean, val token: Int)
+
+/**
+ * The shared sheet (play and edit). Changes made on it raise the same
+ * undo toast the old sheet showed, and «Отменить» calls the same one-step [DesktopAppState.undoLast].
+ */
+@Composable
+private fun WebSheet(
+    state: DesktopAppState,
+    onNavigate: (DesktopSection) -> Unit,
+    playModifier: Modifier,
+    hooks: WebSheetHooks = WebSheetHooks(),
+) {
+    val activeId = state.activeCharacter.id
+    // Leaving the sheet section closes the editor with it; the shell gets its phone chrome back.
+    DisposableEffect(Unit) { onDispose { hooks.onEditorShown(false) } }
+    var toast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
+    // Keeps the last toast on screen while it animates out.
+    var displayedToast by remember(activeId) { mutableStateOf<SheetToast?>(null) }
+    var toastHovered by remember(activeId) { mutableStateOf(false) }
+    var toastCount by remember { mutableStateOf(0) }
+    // Keyed on the character too: the toast state above is per character, and a host kept from
+    // before a switch would keep writing into the previous character's toast.
+    val host = remember(state, activeId) {
+        SheetChangeReportingHost(state) { change -> toast = SheetToast(change.text, state.canUndo, ++toastCount) }
+    }
+    LaunchedEffect(toast) {
+        if (toast != null) displayedToast = toast
+    }
+    LaunchedEffect(toast, toastHovered) {
+        val shown = toast ?: return@LaunchedEffect
+        if (!toastHovered) {
+            delay(FuryMotion.UndoToastDurationMs)
+            if (toast == shown && !toastHovered) toast = null
+        }
+    }
+    Box(playModifier) {
+        SheetScreen(
+            host,
+            portraitLoader = { dataUrl -> rememberWebPortrait(dataUrl) },
+            onPickPortrait = { pickPortraitDataUrl { dataUrl -> state.setPortrait(dataUrl) } },
+            openEditorAtBasics = hooks.openEditorAtBasics,
+            onOpenEditorConsumed = hooks.onOpenEditorConsumed,
+            onEditorShown = hooks.onEditorShown,
+        )
+        AnimatedVisibility(
+            visible = toast != null,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 18.dp, vertical = 10.dp)
+                .widthIn(max = 860.dp)
+                .fillMaxWidth()
+                .zIndex(40f),
+            enter = slideInVertically(
+                animationSpec = tween(FuryMotion.StandardMs),
+                initialOffsetY = { -it / 2 },
+            ) + fadeIn(tween(FuryMotion.FastMs)),
+            exit = slideOutVertically(
+                animationSpec = tween(FuryMotion.StandardMs),
+                targetOffsetY = { -it / 3 },
+            ) + fadeOut(tween(FuryMotion.FastMs)),
+        ) {
+            displayedToast?.let { shown ->
+                FuryUndoToast(
+                    text = shown.text,
+                    canUndo = shown.canUndo,
+                    onUndo = {
+                        if (shown.canUndo) state.undoLast()
+                        toast = null
+                    },
+                    onDismiss = { toast = null; toastHovered = false },
+                    onHoverChange = { toastHovered = it },
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }

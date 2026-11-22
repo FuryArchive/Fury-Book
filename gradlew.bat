@@ -22,9 +22,12 @@ if not exist "%HOME_DIR%\bin\gradle.bat" (
     "$sha=[System.Security.Cryptography.SHA256]::Create();" ^
     "$stream=[System.IO.File]::OpenRead('%ZIP%');" ^
     "try { $actual=[System.BitConverter]::ToString($sha.ComputeHash($stream)).Replace('-', '').ToLowerInvariant() } finally { $stream.Dispose(); $sha.Dispose() };" ^
-    "if ($actual -ne '%SHA256%') { throw ('Gradle SHA-256 mismatch: ' + $actual) };" ^
-    "Expand-Archive -Path '%ZIP%' -DestinationPath '%BASE%' -Force"
+    "if ($actual -ne '%SHA256%') { throw ('Gradle SHA-256 mismatch: ' + $actual) }"
 
+  if errorlevel 1 exit /b 1
+  rem Windows PowerShell launched from pwsh loads pwsh's Archive module, whose Expand-Archive breaks;
+  rem tar ships with Windows 10+ and unzips without PowerShell.
+  tar -xf "%ZIP%" -C "%BASE%"
   if errorlevel 1 exit /b 1
 )
 

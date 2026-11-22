@@ -1,5 +1,9 @@
 package com.furybook.android.state
 
+import com.furybook.dubl.ui.characters.DublCharactersHost
+import com.furybook.dubl.ui.characters.FuryArchiveStore
+import com.furybook.dubl.ui.characters.InMemoryFuryArchiveStore
+import com.furybook.dubl.application.CharacterRestorePoint
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -29,8 +33,9 @@ import java.util.UUID
 /** Android observable adapter over the shared application boundary. */
 class CharacterController(
     repository: CharacterStore,
-    extrasRepository: CharacterExtrasStore,
-) {
+    private val extrasRepository: CharacterExtrasStore,
+    override val archive: FuryArchiveStore = InMemoryFuryArchiveStore(),
+) : DublCharactersHost {
     private val application = DublApplication(
         characterStore = repository,
         extrasStore = extrasRepository,
@@ -75,6 +80,8 @@ class CharacterController(
     fun setCreationExperience(value: Int) = sync { application.character.setCreationExperience(value) }
     fun setXpAdjustment(value: Int) = sync { application.character.setXpAdjustment(value) }
     fun setAbilityPointsOverride(value: Int?) = sync { application.character.setAbilityPointsOverride(value) }
+    fun setEconomy(total: Int, creation: Int, adjustment: Int, abilityPointsOverride: Int?) =
+        sync { application.character.setEconomy(total, creation, adjustment, abilityPointsOverride) }
     fun completeCreation() = sync { application.character.completeCreation() }
     fun reopenCreation() = sync { application.character.reopenCreation() }
     fun changeHp(delta: Int) = sync { application.character.changeHp(delta) }
@@ -162,6 +169,9 @@ class CharacterController(
     fun setResourceHidden(resource: CharacterSheetResourceId, hidden: Boolean) = sync { application.sheet.setResourceHidden(resource, hidden) }
     fun setSkillGroups(groups: List<SheetGroup>) = sync { application.sheet.setSkillGroups(groups) }
     fun setDevelopmentGroups(groups: List<SheetGroup>) = sync { application.sheet.setDevelopmentGroups(groups) }
+    fun addNote(title: String, body: String = ""): String? = sync { application.sheet.addNote(title, body) }
+    fun updateNote(id: String, title: String, body: String) = sync { application.sheet.updateNote(id, title, body) }
+    fun removeNote(id: String) = sync { application.sheet.removeNote(id) }
     fun setConditionOverride(condition: CharacterConditionId, title: String?, description: String?) = sync { application.sheet.setConditionOverride(condition, title, description) }
     fun resetConditionOverride(condition: CharacterConditionId) = sync { application.sheet.resetConditionOverride(condition) }
     fun addCustomCondition(title: String, description: String = "", active: Boolean = false): String? = sync { application.sheet.addCustomCondition(title, description, active) }
@@ -170,10 +180,31 @@ class CharacterController(
     fun removeCustomCondition(id: String) = sync { application.sheet.removeCustomCondition(id) }
 
     fun exportActiveCharacter(): String = application.transfer.exportActive()
-    fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) }
+    override fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) }
+
+    // Персонажи (DublCharactersHost)
+    override val characters: List<DublCharacter> get() = snapshot.characters
+    override val activeId: String get() = snapshot.activeCharacterId
+    override fun portraitOf(id: String): String? = extrasRepository.load(id).portraitUri
+    override fun select(id: String) = selectCharacter(id)
+    override fun create() = createCharacter()
+    /** Deletes [id]; the active character stays active unless it was the one deleted. */
+    override fun delete(id: String) {
+        val previous = activeId
+        sync {
+            application.character.selectCharacter(id)
+            application.character.deleteActive()
+            if (previous != id) application.character.selectCharacter(previous)
+        }
+    }
+    override fun duplicate(id: String): String? = sync { application.character.duplicate(id) }
+    override fun exportCharacter(id: String): String = application.transfer.export(id).orEmpty()
 
     fun createCharacter() = sync { application.character.createCharacter() }
     fun selectCharacter(id: String) = sync { application.character.selectCharacter(id) }
     fun deleteActive() = sync { application.character.deleteActive() }
+    val canUndo: Boolean get() = application.canUndo
     fun undoLast(): Boolean = sync { application.undoLast() }
+    fun restorePoint(): CharacterRestorePoint = application.restorePoint()
+    fun restore(point: CharacterRestorePoint): Boolean = sync { application.restore(point) }
 }

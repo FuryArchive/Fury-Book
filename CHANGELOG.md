@@ -2,6 +2,60 @@
 
 ## Unreleased
 
+### Мастер replaces Кампания (revamp stage 6, part 2)
+
+- A **Мастер** section replaces Кампания on Android, Desktop and Web, with five tabs. Бой, Враги, Заметки and Справочник work offline and without an account; their data stays on the device (`master.json`, or browser storage on web) and survives «Выйти».
+- **Бой:** an initiative tracker. Type the initiatives rolled at the table (or «Бросить» for 2d6 + bonus), «Следующий →» moves the turn and counts rounds, ▲ reorders equal initiatives, enemies have −/+ hit points, and every row takes conditions from the rulebook or your own. Add players by name, copies of enemies («Гоблин 1», «Гоблин 2») or the whole party. «Новый бой» and removals offer «Вернуть».
+- **Враги:** enemy templates with Защита, Рефлексы, Инициатива, Здоровье, Выносливость, attacks and notes; «В бой», «Изменить», «Дублировать», «Удалить» (with «Вернуть»).
+- **Заметки:** a dated session log with search.
+- **Справочник:** one search over the rulebook's perks, spells, gear, conditions and skills, with type chips and a read-only card.
+- **Партия** (needs the account): your campaigns, «+ Кампания», «Пригласить» (code), a party table (health, endurance, mana, defence, conditions, last update), and each player's character read-only, with «Убрать игрока». Joining and leaving a campaign is on the character in Персонажи.
+
+### Login first, account in the menu, shared Персонажи (revamp stage 6, part 1)
+
+- Android, Desktop and Web open on a login screen: «Вход», «Создать аккаунт» (with the confirm-email message), «Сброс пароля», or **«Играть без входа»**. The choice is remembered; signed-in players and guests go straight to the sheet next time.
+- Guests keep everything on the device, the browser included (a line in the web app says clearing site data deletes it and points to export; a full browser storage says so). Signing in later from the menu brings the guest's characters into the account; on web they are uploaded through the normal save path and the local copy is removed only after the upload succeeds.
+- Account controls live in the menu (the nickname button in the top bar on wide screens): nickname, sync status, «Синхронизировать», conflicts («Сохранить локальную» / «Загрузить облачную», with a gold badge on the menu button), «Журнал синхронизации» and «Выйти». «Выйти» offers «Синхронизировать и выйти» when changes are still waiting, then clears the account's characters from the device.
+- Персонажи is one screen on every platform: cards with portrait, concept and XP; «Экспорт», «Дублировать» («<имя> (копия)», with the sheet settings), «В архив» (with «Вернуть»), «Удалить»; an «Архив · N» tab; «Импорт»; campaigns on a character (join by code, leave) when signed in; and «Пакеты контента» as before.
+- Web can now send a password-reset email too («Забыли пароль?»), as desktop and Android already could.
+
+### Магия and Снаряжение tabs removed (revamp stage 5)
+
+- The Магия and Снаряжение tabs are gone on Android, Desktop and Web, and phones have no bottom bar any more: the sheet is home, Кампания and Персонажи are in «Меню».
+- The sheet has a **Заклинания** block (known spells with mana, time, range and check; «нужна сила школы N» when a school is too weak) and a **Снаряжение** block (all carried gear; weapons and armour show damage, requirement, range and the rest; load and burden in the header). On desktop they are tabs beside Навыки.
+- «Сотворить» opens the spell's full text with a «Мана» amount: cast for less or more than the base cost, and it says when there isn't enough mana.
+- Tapping an item shows all its fields (descriptions that only repeat the fields are hidden), quantity −/+, «Не нести» and «Изменить в редакторе».
+- The editor has two new steps. **Магия**: mana rank (creation only, then a link to «Увеличенный запас маны»), schools from the rulebook list with power steppers, the spellbook with learned switches, school and learned filters and search, the rulebook catalog with a read-only card before «Добавить» («Добавить и исправить» for incomplete entries), and own spells. **Снаряжение**: load mode and manual load, the inventory with quantity and «С собой», the gear catalog with merged categories, and own items with fields as «Название: значение» lines.
+- Deleting a school, spell or item offers «Вернуть»; «Изменения за этот заход» lists mana rank, schools, spells (with their XP) and gear.
+- Catalog item loads stored by older builds are repaired whenever the sheet shows a character, on every platform.
+
+### Навыки tab removed (revamp stage 4)
+
+- The separate Навыки tab is gone on Android, Desktop and Web; the phone bottom bar is now Лист, Магия, Вещи, Кампания.
+- The editor's Навыки step does everything the tab did: «+ Свой навык», «Редактировать / Удалить свою запись», «Локальная правка» and «Сбросить к рулбуку» (delete and reset offer «Вернуть»), «Взять все оставшиеся ранги», «Добрать требования», and the character plan (☆ in a perk, «План» filter, «Взять план»). Requirement targets and «Открывает» names open that perk.
+- The ЦИ tab in the editor has the ЦИ switch, extra ranks with their XP, and the techniques list (searchable, «Доступно» filter).
+- Tapping the ЦИ meter on the sheet opens a ЦИ panel: ±1, amount, «Восстановить», and «Использовать» for each technique (or why it can't be used).
+- A perk's «Подробнее» on the sheet is one dialog on every platform, with «Настроить в редакторе».
+- «Изменения за этот заход» lists own perks, local edits (repriced when the cost changes) and ЦИ settings.
+
+### Умения tab removed (revamp stage 3)
+
+- The separate Умения tab is gone on Android, Desktop and Web; the phone bottom bar is now Лист, Навыки, Магия, Вещи.
+- Each skill's rules and settings open from the editor's Умения step: bonus breakdown, allowed attributes, permanent modifier, special rule note, local edits with «К рулбуку», rules-automation switches, hide and delete (with «Вернуть»). Hidden skills: «Скрытые · N».
+- Skill search also matches descriptions; category chips filter the list.
+- Skill rolls offer the skill's allowed attributes plus «другая…» for a one-off GM call; the last allowed pick is remembered. «Об умении» in the roll panel shows the rules and opens the editor on that skill.
+
+### Character editor («Редактор»)
+
+- New shared step-by-step editor (Android, Desktop, Web) replaces the old sheet edit mode: Развитие (quick rank-ups and perks for an existing character), Основа, Характеристики, Умения, Навыки, Итог.
+- Skill ranks and perks are bought inside the editor through the existing rules; missing prerequisites are taken as one chain with its total cost.
+- Every change saves at once; «Отменить всё» returns the character to how it was when the editor opened (one undoable step).
+- «Новый персонаж» opens the editor at Основа; the play sheet's «Настроить ресурсы» opens resource visibility and custom resources.
+- The custom skill/perk group manager is retired; saved groups stay in the data, sync and transfer files.
+- Lists in the editor no longer move under the cursor: skills keep their order for the visit, Развитие keeps its rows (taken ones show «Взят»), and an open perk stays listed after it is taken.
+- The XP summary tells GM XP apart from refunds («Свободно +3500 XP», «Потрачено 545 XP · свободно +2955»); overspent XP and ability points are said in words.
+- Tablets and narrow windows: the section tabs move to their own row when they don't fit beside the title; perk names on the sheet use the free room; long rank ladders show «1/20» instead of twenty pips.
+
 ### Fury Book rebrand
 
 - Promoted **Fury Book** to the product/platform name while keeping DUBL 3.69 as the current ruleset identity.

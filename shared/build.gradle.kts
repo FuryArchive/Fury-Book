@@ -11,6 +11,7 @@ kotlin {
         compileSdk = 37
         minSdk = 26
         withHostTest {}
+        androidResources { enable = true }
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
         }
@@ -32,9 +33,15 @@ kotlin {
             implementation("org.jetbrains.compose.foundation:foundation:1.12.0")
             implementation("org.jetbrains.compose.material3:material3:1.12.0-alpha03")
             implementation("org.jetbrains.compose.ui:ui:1.12.0")
+            implementation("org.jetbrains.compose.components:components-resources:1.12.0")
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
         }
     }
+}
+
+compose.resources {
+    publicResClass = true
+    packageOfResClass = "com.furybook.shared.generated.resources"
 }
