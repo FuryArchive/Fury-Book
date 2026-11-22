@@ -76,3 +76,17 @@ class FightModelsTest {
         assertEquals(data, masterAfterSignOut(data))
     }
 }
+
+class FightNudgeTest {
+    private fun e(uid: String, ini: String) = FightEntry(uid, uid, FightKind.PLAYER, ini)
+
+    @Test
+    fun nudgeSwapsOnlyTiedNeighbours() {
+        val state = FightState(listOf(e("a", "5"), e("b", "9"), e("c", "5")))
+        assertEquals(listOf("b", "a", "c"), fightOrder(state).map { it.uid })
+        assertEquals(true, canNudgeUp(state, "c"))
+        assertEquals(false, canNudgeUp(state, "a"))
+        assertEquals(listOf("b", "c", "a"), fightOrder(nudgeUp(state, "c")).map { it.uid })
+        assertEquals(state, nudgeUp(state, "a"))
+    }
+}

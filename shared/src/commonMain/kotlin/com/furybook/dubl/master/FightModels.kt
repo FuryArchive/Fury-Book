@@ -72,3 +72,25 @@ fun rollInitiative(entry: FightEntry, d6: () -> Int): Int = d6() + d6() + (entry
 
 /** Signing out never touches Мастер: the GM's data is not tied to an account. */
 fun masterAfterSignOut(data: MasterData): MasterData = data
+
+private fun FightState.tiedWithPrevious(uid: String): Pair<FightEntry, FightEntry>? {
+    val order = fightOrder(this)
+    val index = order.indexOfFirst { it.uid == uid }
+    if (index <= 0) return null
+    val (before, entry) = order[index - 1] to order[index]
+    return if (before.initiativeValue() == entry.initiativeValue()) before to entry else null
+}
+
+/** ▲ only makes sense between equal initiatives: the order of everything else comes from the numbers. */
+fun canNudgeUp(state: FightState, uid: String): Boolean = state.tiedWithPrevious(uid) != null
+
+/** Moves [uid] above the tied entry before it (swaps their places in the list). */
+fun nudgeUp(state: FightState, uid: String): FightState {
+    val (before, entry) = state.tiedWithPrevious(uid) ?: return state
+    val list = state.entries.toMutableList()
+    val i = list.indexOf(before)
+    val j = list.indexOf(entry)
+    list[i] = entry
+    list[j] = before
+    return state.copy(entries = list)
+}
