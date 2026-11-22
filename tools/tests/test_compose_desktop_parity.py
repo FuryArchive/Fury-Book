@@ -28,7 +28,7 @@ def test_compose_host_uses_real_shared_sessions_and_file_persistence():
 
 def test_all_parity_screens_exist():
     required = {
-        'CharactersScreen.kt': ['CharactersScreen', 'createCharacter', 'selectCharacter', 'deleteActive'],
+        # Stage 6: CharactersScreen.kt is gone; Персонажи is the shared DublCharactersScreen (test_login_characters_shared.py).
         # Stage 4: DevelopmentScreen.kt is gone; perks live in the shared editor (test_editor_perk_functions.py).
         # Stage 5: MagicScreen.kt and EquipmentScreen.kt are gone; magic and gear live in the shared editor and sheet.
     }
@@ -51,6 +51,9 @@ def test_all_parity_screens_exist():
     sheet = text(ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetScreen.kt')
     assert 'fun SheetScreen(' in sheet
     assert 'EditorScreen(' in sheet, 'SheetScreen.kt opens the character editor'
+    characters = text(shared / 'characters/CharactersScreen.kt')
+    for token in ['fun DublCharactersScreen(', 'host.create', 'host.select', 'host.delete', 'host.duplicate']:
+        assert token in characters or token.replace('host.', 'host::') in characters or token in text(shared / 'characters/CharactersModels.kt'), f'CharactersScreen.kt missing {token}'
     play = text(ROOT / 'shared/src/commonMain/kotlin/com/furybook/dubl/ui/sheet/SheetPlay.kt')
     for token in ['SHEET_COMBAT_CONTEXTS', 'displayNotes()']:
         assert token in play, f'SheetPlay.kt missing {token}'

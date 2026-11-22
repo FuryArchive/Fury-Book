@@ -1,5 +1,8 @@
 package com.furybook.desktop
 
+import com.furybook.dubl.data.DesktopArchiveStore
+import com.furybook.dubl.ui.characters.DublCharactersHost
+import com.furybook.dubl.ui.characters.FuryArchiveStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -35,7 +38,8 @@ import java.util.prefs.Preferences
 class DesktopAppState(
     private val characterStore: CharacterStore = DesktopCharacterStore(),
     private val extrasStore: CharacterExtrasStore = DesktopCharacterExtrasStore(),
-) : DublEditorHost {
+    override val archive: FuryArchiveStore = DesktopArchiveStore(),
+) : DublEditorHost, DublCharactersHost {
     private val application = DublApplication(
         characterStore = characterStore,
         extrasStore = extrasStore,
@@ -338,7 +342,25 @@ class DesktopAppState(
     override fun removeCustomCondition(id: String) { sync { application.sheet.removeCustomCondition(id) } }
 
     fun exportActiveCharacter(): String = application.transfer.exportActive()
-    fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) }
+    override fun importCharacter(raw: String): CharacterTransferImportResult = sync { application.transfer.importCharacter(raw) }
+
+    // Персонажи (DublCharactersHost)
+    override val characters: List<DublCharacter> get() = snapshot.characters
+    override val activeId: String get() = snapshot.activeCharacterId
+    override fun portraitOf(id: String): String? = extrasStore.load(id).portraitUri
+    override fun select(id: String) = selectCharacter(id)
+    override fun create() = createCharacter()
+    /** Deletes [id]; the active character stays active unless it was the one deleted. */
+    override fun delete(id: String) {
+        val previous = activeId
+        sync {
+            application.character.selectCharacter(id)
+            application.character.deleteActive()
+            if (previous != id) application.character.selectCharacter(previous)
+        }
+    }
+    override fun duplicate(id: String): String? = sync { application.character.duplicate(id) }
+    override fun exportCharacter(id: String): String = application.transfer.export(id).orEmpty()
 
     fun createCharacter() = sync { application.character.createCharacter() }
     fun selectCharacter(id: String) = sync { application.character.selectCharacter(id) }

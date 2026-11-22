@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,10 +47,11 @@ import com.furybook.ui.theme.FuryShapes
 import com.furybook.ui.theme.FurySpacing
 import kotlinx.coroutines.launch
 
-private val loginTabs = listOf(
+/** Tab labels; a phone-width card gets the short ones so nothing is cut off. */
+internal fun loginTabs(narrow: Boolean) = listOf(
     FuryChoice(LoginTab.SIGN_IN, "Вход"),
-    FuryChoice(LoginTab.SIGN_UP, "Создать аккаунт"),
-    FuryChoice(LoginTab.RESET, "Сброс пароля"),
+    FuryChoice(LoginTab.SIGN_UP, if (narrow) "Создать" else "Создать аккаунт"),
+    FuryChoice(LoginTab.RESET, if (narrow) "Сброс" else "Сброс пароля"),
 )
 
 /**
@@ -116,7 +118,9 @@ fun FuryLoginScreen(
                     color = DublMuted, style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center,
                 )
             }
-            FuryChipGroup(loginTabs, form.tab, ::switchTab, columns = 3)
+            BoxWithConstraints {
+                FuryChipGroup(loginTabs(narrow = maxWidth < 380.dp), form.tab, ::switchTab, columns = 3)
+            }
             Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
                 FuryTextField(
                     form.email, { form = form.copy(email = it) }, "Email",
@@ -154,6 +158,7 @@ fun FuryLoginScreen(
                 Hint("Персонажи сохранятся на этом устройстве. Войти можно позже — они перейдут в аккаунт.", center = true)
             } else {
                 FuryButton("Назад", onBack, Modifier.fillMaxWidth().height(48.dp))
+                Hint("Персонажи с этого устройства перейдут в аккаунт.", center = true)
             }
         }
     }

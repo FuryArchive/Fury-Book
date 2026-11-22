@@ -203,13 +203,29 @@ fun DublCharactersScreen(
 
 @Composable
 private fun Header(onNew: () -> Unit, onImport: () -> Unit) {
-    Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-        Column(Modifier.weight(1f)) {
-            Text("Персонажи", color = DublText, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("Нажмите на персонажа, чтобы открыть его лист.", color = DublMuted, style = MaterialTheme.typography.bodyMedium)
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val title: @Composable (Modifier) -> Unit = { m ->
+            Column(m) {
+                Text("Персонажи", color = DublText, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text("Нажмите на персонажа, чтобы открыть его лист.", color = DublMuted, style = MaterialTheme.typography.bodyMedium)
+            }
         }
-        FuryButton("Импорт", onImport)
-        FuryButton("+ Новый", onNew, style = FuryButtonStyle.Primary)
+        val buttons: @Composable () -> Unit = {
+            FuryButton("Импорт", onImport)
+            FuryButton("+ Новый", onNew, style = FuryButtonStyle.Primary)
+        }
+        // Phones: the buttons go under the title so «Персонажи» keeps one line.
+        if (maxWidth < 520.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                title(Modifier)
+                Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) { buttons() }
+            }
+        } else {
+            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                title(Modifier.weight(1f))
+                buttons()
+            }
+        }
     }
 }
 

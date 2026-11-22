@@ -1,5 +1,14 @@
 package com.furybook.android.ui
 
+import com.furybook.android.data.AndroidArchiveStore
+import com.furybook.android.data.AndroidStartStore
+import com.furybook.dubl.ui.characters.DublCharactersScreen
+import com.furybook.ui.account.FuryAccountPanel
+import com.furybook.ui.account.FuryLoginScreen
+import com.furybook.ui.account.FuryStartMode
+import com.furybook.ui.account.accountDotColor
+import com.furybook.ui.account.furyShowsLogin
+import com.furybook.ui.components.FuryShellAccount
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.rememberLauncherForActivityResult
 import android.content.Intent
@@ -44,7 +53,6 @@ import com.furybook.android.state.CharacterController
 import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.android.ui.components.dismissKeyboardOnPointerDown
-import com.furybook.android.ui.screens.CharactersScreen
 import com.furybook.android.ui.screens.CampaignScreen
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.android.ui.screens.RecentChangeBar
@@ -71,7 +79,7 @@ import kotlinx.coroutines.delay
 private enum class AppSection(val label: String) {
     OVERVIEW("Лист"),
     CAMPAIGN("Кампания"),
-    MORE("Ещё"),
+    CHARACTERS("Персонажи"),
 }
 
 @Composable
@@ -87,8 +95,13 @@ fun DublApp() {
         }
     }
     val reloadToken = cloudController.reloadToken
+    val archiveStore = remember(appContext) { AndroidArchiveStore(appContext) }
+    val startStore = remember(appContext) { AndroidStartStore(appContext) }
+    var startMode by remember { mutableStateOf(startStore.load()) }
+    // A guest opened «Войти» from the menu: the login page with a way back.
+    var loginFromGuest by rememberSaveable { mutableStateOf(false) }
     val controller = remember(appContext, reloadToken) {
-        CharacterController(observingCharacters, observingExtras)
+        CharacterController(observingCharacters, observingExtras, archiveStore)
     }
     var selected by rememberSaveable { mutableStateOf(AppSection.OVERVIEW) }
     var chiPackEnabled by rememberSaveable { mutableStateOf(AndroidContentPackState.isChiEnabled(appContext)) }
@@ -122,6 +135,45 @@ fun DublApp() {
         )
     }
 
+    fun saveStart(mode: FuryStartMode) { startMode = mode; startStore.save(mode) }
+    if (loginFromGuest || furyShowsLogin(startMode, cloudController.signedIn, controller.snapshot.characters.isNotEmpty())) {
+        BackHandler(enabled = loginFromGuest) { loginFromGuest = false }
+        Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
+            FuryLoginScreen(
+                account = cloudController,
+                onGuest = { saveStart(FuryStartMode.GUEST) },
+                onSignedIn = { saveStart(FuryStartMode.SIGNED_IN); loginFromGuest = false; selected = AppSection.OVERVIEW },
+                onBack = if (loginFromGuest) ({ loginFromGuest = false }) else null,
+                modifier = Modifier.fillMaxSize().padding(innerPadding).dismissKeyboardOnPointerDown(),
+            )
+        }
+        return
+    }
+    val accountEntry = FuryShellAccount(
+        label = if (cloudController.signedIn) cloudController.nickname.ifBlank { cloudController.email.substringBefore('@') } else "Гость",
+        dot = accountDotColor(cloudController.status),
+    ) { close ->
+        FuryAccountPanel(
+            account = cloudController,
+            isGuest = !cloudController.signedIn,
+            onSignIn = { close(); loginFromGuest = true },
+            onSignedOut = {
+                close()
+                // The account's characters left the device; so does the list of which were archived.
+                archiveStore.save(emptySet())
+                saveStart(FuryStartMode.NONE)
+            },
+        )
+    }
+    val packs = rememberAndroidPacks(chiPackEnabled) { packId, enabled ->
+        AndroidContentPackState.setPackEnabled(appContext, packId, enabled)
+        if (packId == DublChiFcp.PACK_ID) chiPackEnabled = enabled
+        val nextIds = cloudController.enabledPackIds.toMutableSet().apply { if (enabled) add(packId) else remove(packId) }
+        cloudController.updateEnabledPackIds(nextIds)
+        cloudController.requestSync()
+    }
+    val files = rememberAndroidCharacterFiles()
+
     var characterPickerOpen by remember { mutableStateOf(false) }
     // Set by «+ Создать»; the sheet consumes it by opening the editor at Основа.
     var openEditorAtBasics by remember { mutableStateOf(false) }
@@ -143,6 +195,7 @@ fun DublApp() {
                 .padding(innerPadding),
             account = { FuryThemeButton() },
             phoneChromeHidden = editorShown && selected == AppSection.OVERVIEW,
+            accountEntry = accountEntry,
         ) {
                 when (selected) {
                     AppSection.OVERVIEW -> AndroidSheet(
@@ -155,23 +208,17 @@ fun DublApp() {
                     AppSection.CAMPAIGN -> CampaignScreen(
                         controller = controller,
                         cloudController = cloudController,
-                        onBack = { selected = AppSection.MORE },
+                        onBack = { selected = AppSection.CHARACTERS },
                     )
-                    AppSection.MORE -> CharactersScreen(
-                        controller = controller,
-                        cloudController = cloudController,
-                        contentPackComposition = AndroidContentPackState.composition(appContext, chiPackEnabled),
-                        onContentPackActiveChange = { packId, enabled ->
-                            AndroidContentPackState.setPackEnabled(appContext, packId, enabled)
-                            if (packId == DublChiFcp.PACK_ID) chiPackEnabled = enabled
-                            val nextIds = cloudController.enabledPackIds.toMutableSet().apply {
-                                if (enabled) add(packId) else remove(packId)
-                            }
-                            cloudController.updateEnabledPackIds(nextIds)
-                            cloudController.requestSync()
-                        },
-                        onOpenCampaign = { selected = AppSection.CAMPAIGN },
-                        onCreated = { openEditorAtBasics = true; selected = AppSection.OVERVIEW },
+                    AppSection.CHARACTERS -> DublCharactersScreen(
+                        host = controller,
+                        account = cloudController,
+                        packs = packs,
+                        onOpen = { selected = AppSection.OVERVIEW },
+                        onNew = { controller.createCharacter(); openEditorAtBasics = true; selected = AppSection.OVERVIEW },
+                        onImportFile = files.importFile,
+                        onExportFile = files.exportFile,
+                        portraitLoader = { uri -> rememberAndroidPortrait(uri) },
                     )
                 }
         }
@@ -185,7 +232,7 @@ fun DublApp() {
                 controller.selectCharacter(id)
                 selected = AppSection.OVERVIEW
             },
-            onManage = { selected = AppSection.MORE },
+            onManage = { selected = AppSection.CHARACTERS },
             onDismiss = { characterPickerOpen = false },
         )
     }

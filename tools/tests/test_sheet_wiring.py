@@ -95,7 +95,10 @@ def test_android_development_loading_gate_left_with_the_tab():
 
 def test_web_keeps_account_and_sign_out_reachable():
     web = read(WEB)
-    assert 'MobileAccountStrip(accountName, accountEmail, onSignOut)' in web
+    # Stage 6: the strip is gone; the account panel (with «Выйти») opens from the shell on every width.
+    assert 'FuryAccountPanel(' in web and 'accountEntry = accountEntry' in web
+    panel = read(ROOT / 'shared/src/commonMain/kotlin/com/furybook/ui/account/AccountPanel.kt')
+    assert 'FuryButton("Выйти"' in panel
 
 
 def test_reporting_host_is_rebuilt_per_character_like_its_toast_state():

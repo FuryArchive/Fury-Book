@@ -43,4 +43,5 @@ def test_all_desktop_feature_dialogs_use_fury_dialog_instead_of_material_alert_d
     assert not offenders, f'legacy Material AlertDialog remains in: {offenders}'
     # Stage 4: DevelopmentScreen.kt is gone (its dialogs are shared FuryDialogScaffold ones in the editor).
     # Stage 5: MagicScreen.kt and EquipmentScreen.kt are gone too (shared FuryDialogScaffold dialogs in the editor).
-    assert {'CharactersScreen.kt'} <= set(users)
+    # Stage 6: CharactersScreen.kt is gone too (shared FuryDialogScaffold dialogs in Персонажи); CampaignScreen.kt
+    # is the last desktop screen and stays covered by the offenders check above.

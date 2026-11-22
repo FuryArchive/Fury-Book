@@ -149,12 +149,13 @@ def test_builder_validates_composition_metadata_before_packaging():
 
 
 def test_pack_manager_ui_is_driven_by_generic_composition():
-    android = (ROOT / "app/src/main/java/com/furybook/android/ui/screens/CharactersScreen.kt").read_text(encoding="utf-8")
-    desktop = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/screens/CharactersScreen.kt").read_text(encoding="utf-8")
+    # Stage 6: the pack lists moved out of the deleted per-platform Персонажи screens.
+    android = (ROOT / "app/src/main/java/com/furybook/android/ui/AndroidCharacters.kt").read_text(encoding="utf-8")
+    desktop = (ROOT / "desktopApp/src/main/kotlin/com/furybook/desktop/DesktopPacks.kt").read_text(encoding="utf-8")
     composition = (ROOT / "shared/src/commonMain/kotlin/com/furybook/content/FcpComposition.kt").read_text(encoding="utf-8")
 
-    assert "displayedComposition.available.forEach" in android
-    assert "composition.available.forEach" in desktop
+    assert "composition.available.map" in android
+    assert "composition.available.map" in desktop
     assert "requiredPackIds" in android and "requiredPackIds" in desktop
     assert "inactiveClaims" in composition
     assert "content claim conflict" in composition

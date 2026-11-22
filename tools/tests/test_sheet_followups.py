@@ -22,7 +22,9 @@ def test_tabs_animate_their_selected_colour():
 def test_shell_has_an_account_slot_and_web_uses_it_for_sign_out():
     shell = read(COMPONENTS / "FuryShell.kt")
     assert "account: (@Composable () -> Unit)? = null" in shell
+    # Stage 6: «Выйти» lives in the account panel the shell's accountEntry opens, on every platform.
+    assert "accountEntry: FuryShellAccount?" in shell
     web = read(WEB)
-    assert "account = {" in web
-    assert "onSignOut" in web.split("account = {", 1)[1][:600]
+    assert "accountEntry = accountEntry" in web
+    assert "FuryAccountPanel(" in web
 

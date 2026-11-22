@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Login first, account in the menu, shared Персонажи (revamp stage 6, part 1)
+
+- Android, Desktop and Web open on a login screen: «Вход», «Создать аккаунт» (with the confirm-email message), «Сброс пароля», or **«Играть без входа»**. The choice is remembered; signed-in players and guests go straight to the sheet next time.
+- Guests keep everything on the device, the browser included (a line in the web app says clearing site data deletes it and points to export; a full browser storage says so). Signing in later from the menu brings the guest's characters into the account; on web they are uploaded through the normal save path and the local copy is removed only after the upload succeeds.
+- Account controls live in the menu (the nickname button in the top bar on wide screens): nickname, sync status, «Синхронизировать», conflicts («Сохранить локальную» / «Загрузить облачную», with a gold badge on the menu button), «Журнал синхронизации» and «Выйти». «Выйти» offers «Синхронизировать и выйти» when changes are still waiting, then clears the account's characters from the device.
+- Персонажи is one screen on every platform: cards with portrait, concept and XP; «Экспорт», «Дублировать» («<имя> (копия)», with the sheet settings), «В архив» (with «Вернуть»), «Удалить»; an «Архив · N» tab; «Импорт»; campaigns on a character (join by code, leave) when signed in; and «Пакеты контента» as before.
+- Web can now send a password-reset email too («Забыли пароль?»), as desktop and Android already could.
+
 ### Магия and Снаряжение tabs removed (revamp stage 5)
 
 - The Магия and Снаряжение tabs are gone on Android, Desktop and Web, and phones have no bottom bar any more: the sheet is home, Кампания and Персонажи are in «Меню».

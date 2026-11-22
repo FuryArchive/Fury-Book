@@ -47,7 +47,15 @@ import com.furybook.ui.theme.FuryThemedApp
 import com.furybook.dubl.data.DesktopThemeStore
 import com.furybook.ui.components.FuryThemeButton
 import com.furybook.desktop.screens.CampaignScreen
-import com.furybook.desktop.screens.CharactersScreen
+import com.furybook.dubl.data.DesktopArchiveStore
+import com.furybook.dubl.data.DesktopStartStore
+import com.furybook.dubl.ui.characters.DublCharactersScreen
+import com.furybook.ui.account.FuryAccountPanel
+import com.furybook.ui.account.FuryLoginScreen
+import com.furybook.ui.account.FuryStartMode
+import com.furybook.ui.account.accountDotColor
+import com.furybook.ui.account.furyShowsLogin
+import com.furybook.ui.components.FuryShellAccount
 import com.furybook.desktop.screens.FuryMotion
 import com.furybook.desktop.screens.FuryUndoToast
 import com.furybook.desktop.cloud.DesktopCloudController
@@ -102,7 +110,12 @@ private fun DesktopApp() {
         }
     }
     val reloadToken = cloudController.reloadToken
-    val state = remember(reloadToken) { DesktopAppState(observedCharacters, observedExtras) }
+    val archiveStore = remember { DesktopArchiveStore() }
+    val startStore = remember { DesktopStartStore() }
+    var startMode by remember { mutableStateOf(startStore.load()) }
+    // A guest opened «Войти» from the menu: the login page with a way back.
+    var loginFromGuest by remember { mutableStateOf(false) }
+    val state = remember(reloadToken) { DesktopAppState(observedCharacters, observedExtras, archiveStore) }
     var selected by remember { mutableStateOf(DesktopSection.SHEET) }
     // Set by «Новый персонаж»; the sheet consumes it by opening the editor at Основа.
     var openEditorAtBasics by remember { mutableStateOf(false) }
@@ -119,6 +132,34 @@ private fun DesktopApp() {
         cloudController.updateEnabledPackIds((cloudController.enabledPackIds - availableIds) + activeIds)
     }
 
+    fun saveStart(mode: FuryStartMode) { startMode = mode; startStore.save(mode) }
+    if (loginFromGuest || furyShowsLogin(startMode, cloudController.signedIn, state.snapshot.characters.isNotEmpty())) {
+        FuryLoginScreen(
+            account = cloudController,
+            onGuest = { saveStart(FuryStartMode.GUEST) },
+            onSignedIn = { saveStart(FuryStartMode.SIGNED_IN); loginFromGuest = false; selected = DesktopSection.SHEET },
+            onBack = if (loginFromGuest) ({ loginFromGuest = false }) else null,
+            modifier = Modifier.fillMaxSize(),
+        )
+        return
+    }
+    val accountEntry = FuryShellAccount(
+        label = if (cloudController.signedIn) cloudController.nickname.ifBlank { cloudController.email.substringBefore('@') } else "Гость",
+        dot = accountDotColor(cloudController.status),
+    ) { close ->
+        FuryAccountPanel(
+            account = cloudController,
+            isGuest = !cloudController.signedIn,
+            onSignIn = { close(); loginFromGuest = true },
+            onSignedOut = {
+                close()
+                // The account's characters left the device; so does the list of which were archived.
+                archiveStore.save(emptySet())
+                saveStart(FuryStartMode.NONE)
+            },
+        )
+    }
+
     var characterPickerOpen by remember { mutableStateOf(false) }
     FuryShell(
         title = "FURY BOOK",
@@ -130,6 +171,7 @@ private fun DesktopApp() {
         modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
         account = { FuryThemeButton() },
         phoneChromeHidden = editorShown && selected == DesktopSection.SHEET,
+        accountEntry = accountEntry,
     ) {
         BoxWithConstraints(Modifier.fillMaxSize()) {
             val layout = layoutClassForWidth(maxWidth.value.toInt())
@@ -205,7 +247,17 @@ private fun DesktopContent(
                     hooks = sheetHooks,
                 )
                 DesktopSection.CAMPAIGN -> CampaignScreen(state, cloudController, animatedPageModifier)
-                DesktopSection.CHARACTERS -> CharactersScreen(state, cloudController, animatedPageModifier, onCreated = sheetHooks.onCharacterCreated)
+                DesktopSection.CHARACTERS -> DublCharactersScreen(
+                    host = state,
+                    account = cloudController,
+                    packs = rememberDesktopPacks(state, cloudController),
+                    onOpen = { onNavigate(DesktopSection.SHEET) },
+                    onNew = { state.createCharacter(); sheetHooks.onCharacterCreated() },
+                    onImportFile = DesktopFiles::importCharacter,
+                    onExportFile = DesktopFiles::exportCharacter,
+                    modifier = animatedPageModifier,
+                    portraitLoader = { path -> rememberDesktopPortrait(path) },
+                )
             }
         }
     }

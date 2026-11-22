@@ -18,7 +18,7 @@ import com.furybook.ui.account.accountStatusText
  * (and merges guest characters); [onSignedOut] empties the browser's copy.
  */
 class WebAccount(
-    private val cloud: WebCloudSync,
+    val cloud: WebCloudSync,
     private val onSignedIn: suspend (WebAuthSession) -> Unit,
     private val onSignedOut: suspend () -> Unit,
     private val onUseCloud: suspend () -> Unit,
@@ -49,15 +49,17 @@ class WebAccount(
     override val syncLog: List<FuryAccountLogEntry> get() = cloud.status.history.map { FuryAccountLogEntry(it.changedAt, "${it.characterName} · ${it.action}") }
     override val campaigns: List<CampaignSummary> get() = campaignList
 
+    // The session is published only after [onSignedIn] loaded the account, so the app never shows the guest's
+    // working copy as if it were the account's.
     override suspend fun signIn(email: String, password: String): Result<Unit> = cloud.signIn(email, password).mapCatching { authenticated ->
-        session = authenticated
         onSignedIn(authenticated)
+        session = authenticated
     }
 
     override suspend fun signUp(email: String, password: String, nickname: String): Result<Boolean> = cloud.signUp(email, password, nickname).mapCatching { created ->
         if (created == null) return@mapCatching false
-        session = created
         onSignedIn(created)
+        session = created
         true
     }
 
