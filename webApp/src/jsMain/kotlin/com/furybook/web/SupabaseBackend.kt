@@ -134,6 +134,15 @@ class WebCloudSync : FuryCloudTransport {
         }
     }
 
+    /** Sends the password-reset email; the reset is finished on the Fury Book web page, as on desktop and Android. */
+    suspend fun requestPasswordReset(email: String): Result<Unit> = runCatching {
+        val options = js("({})")
+        options.redirectTo = window.location.origin
+        val response = (client.auth.resetPasswordForEmail(email.trim(), options) as Promise<dynamic>).await()
+        val authError = response.error
+        if (authError != null) error((authError.message as? String) ?: "Не удалось отправить письмо для сброса пароля.")
+    }
+
     suspend fun signOut() {
         runCatching { (client.auth.signOut() as Promise<dynamic>).await() }
         userId = null

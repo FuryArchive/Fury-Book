@@ -259,6 +259,20 @@ class NativeCloudSyncCoordinator(
         metadataStore.clear()
     }
 
+    /** Characters changed or deleted on this device and not yet sent to the account. */
+    fun pendingCount(): Int = metadataStore.load().let { it.dirtyIds.size + it.deletedIds.size }
+
+    /**
+     * «Выйти» (stage 6): the account's characters leave the device. The store gets a fresh guest snapshot,
+     * every character's extras go, and the link metadata is cleared.
+     */
+    fun clearLocal() {
+        val old = characterStore.load().characters.map { it.id }
+        characterStore.save(com.furybook.dubl.data.SnapshotCodec.fresh(idFactory))
+        old.forEach(extrasStore::delete)
+        metadataStore.clear()
+    }
+
     private fun loadExtras(snapshot: AppSnapshot): Map<String, CharacterSheetExtras> =
         snapshot.characters.associate { it.id to extrasStore.load(it.id) }
 

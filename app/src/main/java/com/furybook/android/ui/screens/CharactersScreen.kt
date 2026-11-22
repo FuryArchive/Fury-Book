@@ -322,8 +322,8 @@ fun CharactersScreen(
                 )
                 Text(session.email, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
-                    cloudStatusText(cloudController.status),
-                    color = cloudStatusColor(cloudController.status),
+                    cloudStatusText(cloudController.status_),
+                    color = cloudStatusColor(cloudController.status_),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 cloudController.statusMessage?.let { message ->
@@ -445,7 +445,7 @@ fun CharactersScreen(
         }
     }
 
-    cloudController.conflicts.firstOrNull()?.let { conflict ->
+    cloudController.nativeConflicts.firstOrNull()?.let { conflict ->
         AlertDialog(
             onDismissRequest = {},
             title = { Text("Персонаж изменён на другом устройстве") },

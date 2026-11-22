@@ -16,6 +16,14 @@ import com.furybook.core.cloud.NativeSyncConflict
 import com.furybook.core.cloud.NativeSyncOutcome
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.core.cloud.ObservingCharacterStore
+import com.furybook.ui.account.FuryAccount
+import com.furybook.ui.account.FuryAccountConflict
+import com.furybook.ui.account.FuryAccountLogEntry
+import com.furybook.ui.account.FuryAccountStatus
+import com.furybook.ui.account.accountStatusText
+import com.furybook.ui.account.nativeAccountConflicts
+import com.furybook.ui.account.setNativeNickname
+import com.furybook.ui.account.toAccountStatus
 import com.furybook.dubl.data.CharacterExtrasStore
 import com.furybook.dubl.data.CharacterStore
 import com.furybook.dubl.model.AppSnapshot
@@ -31,7 +39,7 @@ import kotlinx.coroutines.launch
 class DesktopCloudController(
     private val characterStore: CharacterStore,
     private val extrasStore: CharacterExtrasStore,
-) {
+) : FuryAccount {
     private val gateway = DesktopFuryCloudGateway()
     private val metadataStore = DesktopCloudMetadataStore()
     private val api = FuryNativeCloudApi(gateway)
@@ -43,13 +51,13 @@ class DesktopCloudController(
 
     var session by mutableStateOf(gateway.currentSession())
         private set
-    var status by mutableStateOf(if (session == null) NativeCloudStatus.SIGNED_OUT else NativeCloudStatus.CONNECTING)
+    var status_ by mutableStateOf(if (session == null) NativeCloudStatus.SIGNED_OUT else NativeCloudStatus.CONNECTING)
         private set
     var statusMessage by mutableStateOf<String?>(null)
         private set
-    var conflicts by mutableStateOf<List<NativeSyncConflict>>(emptyList())
+    var nativeConflicts by mutableStateOf<List<NativeSyncConflict>>(emptyList())
         private set
-    var nickname by mutableStateOf("")
+    override var nickname by mutableStateOf("")
         private set
     var lastSyncedAt by mutableStateOf<String?>(null)
         private set
@@ -59,7 +67,7 @@ class DesktopCloudController(
         private set
     var reloadToken by mutableIntStateOf(0)
         private set
-    var campaigns by mutableStateOf<List<CampaignSummary>>(emptyList())
+    override var campaigns by mutableStateOf<List<CampaignSummary>>(emptyList())
         private set
     var campaignDashboard by mutableStateOf<CampaignDashboard?>(null)
         private set
@@ -69,6 +77,53 @@ class DesktopCloudController(
     init {
         rebuildCoordinator()
     }
+
+    // FuryAccount: the shared login screen, menu account panel, Персонажи and Мастер read the account through this.
+    override val signedIn: Boolean get() = session != null
+    override val email: String get() = session?.email.orEmpty()
+    override val status: FuryAccountStatus get() = status_.toAccountStatus(pendingChanges)
+    override val statusText: String get() = accountStatusText(status, statusMessage, pendingChanges)
+    override val pendingChanges: Int get() = coordinator?.pendingCount() ?: 0
+    override val conflicts: List<FuryAccountConflict> get() = nativeAccountConflicts(nativeConflicts, characterStore.load())
+    override val syncLog: List<FuryAccountLogEntry> get() = emptyList()
+
+    override suspend fun updateNickname(nickname: String): Result<String> = runCatching {
+        setNativeNickname(gateway, nickname).also { this.nickname = it }
+    }
+
+    override suspend fun syncAndSignOut(): Result<Unit> = runCatching {
+        syncInternal(firstLinkAllowed = false)
+        check(nativeConflicts.isEmpty()) { "Сначала решите конфликт изменений." }
+        check(status_ == NativeCloudStatus.SYNCED) { statusMessage ?: "Не удалось отправить изменения." }
+        signOutDiscarding()
+    }
+
+    override suspend fun signOutDiscarding() {
+        scheduledJob?.cancel()
+        gateway.signOut()
+        coordinator?.clearLocal()
+        coordinator = null
+        session = null
+        nativeConflicts = emptyList()
+        nickname = ""
+        lastSyncedAt = null
+        lastSyncedBy = null
+        campaigns = emptyList()
+        campaignDashboard = null
+        campaignMessage = null
+        status_ = NativeCloudStatus.SIGNED_OUT
+        statusMessage = null
+        reloadToken += 1
+    }
+
+    override suspend fun keepLocal(characterId: String) {
+        nativeConflicts.firstOrNull { it.characterId == characterId }?.let { keepLocalVersion(it) }
+    }
+
+    override suspend fun useCloud() = useCloudVersion()
+    override suspend fun createInvite(campaignId: String): Result<CampaignInvite> = createCampaignInvite(campaignId)
+    override suspend fun removeMember(campaignId: String, userId: String): Result<Unit> = removeCampaignMember(campaignId, userId)
+    override suspend fun dashboard(campaignId: String): Result<CampaignDashboard> = openGmDashboard(campaignId)
 
     fun bind(
         characters: ObservingCharacterStore,
@@ -95,50 +150,50 @@ class DesktopCloudController(
 
     suspend fun restoreAndSync() {
         if (session == null) {
-            status = NativeCloudStatus.SIGNED_OUT
+            status_ = NativeCloudStatus.SIGNED_OUT
             return
         }
         syncInternal(firstLinkAllowed = true)
         refreshCampaigns()
     }
 
-    suspend fun signIn(email: String, password: String): Result<Unit> = runCatching {
-        status = NativeCloudStatus.CONNECTING
+    override suspend fun signIn(email: String, password: String): Result<Unit> = runCatching {
+        status_ = NativeCloudStatus.CONNECTING
         statusMessage = "Входим в Fury Account…"
         val signedIn = gateway.signIn(email, password).getOrThrow()
         session = signedIn
-        conflicts = emptyList()
+        nativeConflicts = emptyList()
         rebuildCoordinator()
         syncInternal(firstLinkAllowed = true)
         refreshCampaigns().getOrThrow()
         Unit
     }.onFailure { error ->
-        status = NativeCloudStatus.ERROR
+        status_ = NativeCloudStatus.ERROR
         statusMessage = error.message ?: "Не удалось войти в Fury Account."
     }
 
-    suspend fun signUp(email: String, password: String, nickname: String): Result<Boolean> = runCatching {
-        status = NativeCloudStatus.CONNECTING
+    override suspend fun signUp(email: String, password: String, nickname: String): Result<Boolean> = runCatching {
+        status_ = NativeCloudStatus.CONNECTING
         statusMessage = "Создаём Fury Account…"
         val created = gateway.signUp(email, password, nickname).getOrThrow()
         if (created == null) {
-            status = NativeCloudStatus.SIGNED_OUT
+            status_ = NativeCloudStatus.SIGNED_OUT
             statusMessage = "Аккаунт создан. Подтвердите email из письма, затем войдите."
             false
         } else {
             session = created
-            conflicts = emptyList()
+            nativeConflicts = emptyList()
             rebuildCoordinator()
             syncInternal(firstLinkAllowed = true)
             refreshCampaigns().getOrThrow()
             true
         }
     }.onFailure { error ->
-        status = NativeCloudStatus.ERROR
+        status_ = NativeCloudStatus.ERROR
         statusMessage = error.message ?: "Не удалось создать Fury Account."
     }
 
-    suspend fun requestPasswordReset(email: String): Result<Unit> = gateway.requestPasswordReset(email)
+    override suspend fun requestPasswordReset(email: String): Result<Unit> = gateway.requestPasswordReset(email)
 
     suspend fun signOut() {
         scheduledJob?.cancel()
@@ -146,18 +201,18 @@ class DesktopCloudController(
         coordinator?.unlinkPreservingLocal()
         coordinator = null
         session = null
-        conflicts = emptyList()
+        nativeConflicts = emptyList()
         nickname = ""
         lastSyncedAt = null
         lastSyncedBy = null
         campaigns = emptyList()
         campaignDashboard = null
         campaignMessage = null
-        status = NativeCloudStatus.SIGNED_OUT
+        status_ = NativeCloudStatus.SIGNED_OUT
         statusMessage = "Локальные персонажи сохранены на компьютере."
     }
 
-    suspend fun refreshCampaigns(): Result<Unit> = runCatching {
+    override suspend fun refreshCampaigns(): Result<Unit> = runCatching {
         if (session == null) {
             campaigns = emptyList()
             campaignDashboard = null
@@ -173,7 +228,7 @@ class DesktopCloudController(
         campaignMessage = error.message ?: "Не удалось загрузить кампании."
     }
 
-    suspend fun createCampaign(name: String): Result<CampaignSummary> = runCatching {
+    override suspend fun createCampaign(name: String): Result<CampaignSummary> = runCatching {
         val created = campaignApi.createCampaign(name.trim())
         campaigns = campaignApi.listCampaigns()
         campaignDashboard = campaignApi.getDashboard(created.id)
@@ -189,7 +244,7 @@ class DesktopCloudController(
         campaignMessage = error.message ?: "Не удалось создать приглашение."
     }
 
-    suspend fun joinCampaign(inviteCode: String, characterId: String): Result<CampaignSummary> = runCatching {
+    override suspend fun joinCampaign(inviteCode: String, characterId: String): Result<CampaignSummary> = runCatching {
         val joined = campaignApi.joinCampaign(inviteCode.trim(), characterId)
         campaigns = campaignApi.listCampaigns()
         campaignMessage = "Персонаж добавлен в кампанию."
@@ -229,7 +284,7 @@ class DesktopCloudController(
         campaignMessage = error.message ?: "Не удалось удалить игрока из кампании."
     }
 
-    suspend fun leaveCampaign(campaignId: String): Result<Unit> = runCatching {
+    override suspend fun leaveCampaign(campaignId: String): Result<Unit> = runCatching {
         campaignApi.leaveCampaign(campaignId)
         campaigns = campaignApi.listCampaigns()
         campaignDashboard = campaignDashboard?.takeUnless { it.id == campaignId }
@@ -238,17 +293,17 @@ class DesktopCloudController(
         campaignMessage = error.message ?: "Не удалось выйти из кампании."
     }
 
-    fun requestSync() {
+    override fun requestSync() {
         if (session != null) scheduleSync(delayMs = 0)
     }
 
     suspend fun useCloudVersion() {
         val active = coordinator ?: return
-        status = NativeCloudStatus.SYNCING
+        status_ = NativeCloudStatus.SYNCING
         val before = localSignature()
         runCatching { active.useCloud(localEnabledPackIds) }
             .onSuccess { outcome ->
-                conflicts = emptyList()
+                nativeConflicts = emptyList()
                 applyOutcome(outcome)
                 if (before != localSignature()) reloadToken += 1
             }
@@ -257,7 +312,7 @@ class DesktopCloudController(
 
     suspend fun keepLocalVersion(conflict: NativeSyncConflict) {
         val active = coordinator ?: return
-        status = NativeCloudStatus.SYNCING
+        status_ = NativeCloudStatus.SYNCING
         val before = localSignature()
         runCatching { active.keepLocal(conflict, localEnabledPackIds) }
             .onSuccess { outcome ->
@@ -268,7 +323,7 @@ class DesktopCloudController(
     }
 
     private fun scheduleSync(delayMs: Long = 900L) {
-        if (session == null || conflicts.isNotEmpty()) return
+        if (session == null || nativeConflicts.isNotEmpty()) return
         scheduledJob?.cancel()
         scheduledJob = scope.launch {
             if (delayMs > 0) delay(delayMs)
@@ -278,7 +333,7 @@ class DesktopCloudController(
 
     private suspend fun syncInternal(firstLinkAllowed: Boolean) {
         val active = coordinator ?: return
-        status = NativeCloudStatus.SYNCING
+        status_ = NativeCloudStatus.SYNCING
         statusMessage = if (firstLinkAllowed) {
             "Проверяем локальных персонажей и Fury Cloud…"
         } else {
@@ -296,14 +351,14 @@ class DesktopCloudController(
     private fun applyOutcome(outcome: NativeSyncOutcome) {
         when (outcome) {
             is NativeSyncOutcome.Synced -> {
-                conflicts = emptyList()
+                nativeConflicts = emptyList()
                 updateBootstrap(outcome.bootstrap)
-                status = NativeCloudStatus.SYNCED
+                status_ = NativeCloudStatus.SYNCED
                 statusMessage = "Синхронизация с Fury Cloud успешна."
             }
             is NativeSyncOutcome.Conflicts -> {
-                conflicts = outcome.items
-                status = NativeCloudStatus.CONFLICT
+                nativeConflicts = outcome.items
+                status_ = NativeCloudStatus.CONFLICT
                 statusMessage = "Есть изменения с другого устройства. Ничего не перезаписано."
             }
         }
@@ -323,7 +378,7 @@ class DesktopCloudController(
             text.contains("timeout", ignoreCase = true) ||
             text.contains("network", ignoreCase = true) ||
             text.contains("unreachable", ignoreCase = true)
-        status = if (looksOffline) NativeCloudStatus.OFFLINE else NativeCloudStatus.ERROR
+        status_ = if (looksOffline) NativeCloudStatus.OFFLINE else NativeCloudStatus.ERROR
         statusMessage = if (looksOffline) {
             "Нет связи с Fury Cloud. Локальные изменения сохранены и будут отправлены позже."
         } else {

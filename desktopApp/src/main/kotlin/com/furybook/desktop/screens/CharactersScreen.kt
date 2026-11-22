@@ -256,8 +256,8 @@ fun CharactersScreen(state: DesktopAppState, cloudController: DesktopCloudContro
                     )
                     Text(session.email, color = DublMuted, style = MaterialTheme.typography.bodySmall)
                     Text(
-                        desktopCloudStatusText(cloudController.status),
-                        color = desktopCloudStatusColor(cloudController.status),
+                        desktopCloudStatusText(cloudController.status_),
+                        color = desktopCloudStatusColor(cloudController.status_),
                         fontWeight = FontWeight.SemiBold,
                     )
                     cloudController.statusMessage?.let { message ->
@@ -370,7 +370,7 @@ fun CharactersScreen(state: DesktopAppState, cloudController: DesktopCloudContro
         }
     }
 
-    cloudController.conflicts.firstOrNull()?.let { conflict ->
+    cloudController.nativeConflicts.firstOrNull()?.let { conflict ->
         FuryDialog(
             onDismissRequest = {},
             title = { Text("Персонаж изменён на другом устройстве") },
