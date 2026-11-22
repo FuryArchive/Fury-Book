@@ -217,7 +217,6 @@ private fun DesktopApp() {
     }
 }
 
-/** Phones show the five play sections as bottom tabs; campaign and characters sit behind «Меню». */
 
 @Composable
 private fun DesktopContent(

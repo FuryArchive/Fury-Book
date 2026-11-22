@@ -435,7 +435,6 @@ private fun FuryWebApp(
     }
 }
 
-/** Phones show the five play sections as bottom tabs; campaign and «Ещё» sit behind «Меню». */
 
 /** Guest mode: one line on where the characters live, a quota warning when the browser is full, and «Войти». */
 @Composable

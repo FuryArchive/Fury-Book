@@ -277,7 +277,7 @@ private fun AndroidSheet(
     onEditorShown: (Boolean) -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
-    // Leaving the sheet tab closes the editor with it; the shell gets its bottom tabs back.
+    // Leaving the sheet closes the editor with it; the shell gets its top bar back.
     DisposableEffect(Unit) { onDispose { onEditorShown(false) } }
     val activeId = controller.active.id
     // Same picker as the old sheet: keep read access across restarts, then store the URI.
