@@ -81,7 +81,7 @@ class FakeSheetHost(
     skillEffectCatalogOverride: SkillEffectCatalog? = null,
     chiCatalogOverride: ChiCatalog? = null,
     magicEquipmentCatalogOverride: MagicEquipmentCatalog? = null,
-) : DublEditorHost {
+) : DublEditorHost, com.furybook.dubl.ui.characters.DublCharactersHost {
     private val extrasStore = InMemoryExtrasStore().also { it.save(character.id, extras) }
     private val application = DublApplication(
         characterStore = InMemoryCharacterStore(AppSnapshot(listOf(character), character.id)),
@@ -99,6 +99,16 @@ class FakeSheetHost(
     )
 
     override val active get() = application.active
+    override val characters get() = application.snapshot.characters
+    override val activeId get() = application.snapshot.activeCharacterId
+    override val archive = com.furybook.dubl.ui.characters.InMemoryFuryArchiveStore()
+    override fun portraitOf(id: String): String? = extrasStore.load(id).portraitUri
+    override fun select(id: String) = application.character.selectCharacter(id)
+    override fun create() = application.character.createCharacter()
+    override fun delete(id: String) { application.character.selectCharacter(id); application.character.deleteActive() }
+    override fun duplicate(id: String): String? = application.character.duplicate(id)
+    override fun exportCharacter(id: String): String = application.transfer.export(id).orEmpty()
+    override fun importCharacter(raw: String) = application.transfer.importCharacter(raw)
     override val extras get() = application.activeExtras
     override val canUndo get() = application.canUndo
     override val conditionCatalog = loader.loadConditions()

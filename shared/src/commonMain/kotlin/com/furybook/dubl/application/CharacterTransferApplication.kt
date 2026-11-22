@@ -26,6 +26,11 @@ class CharacterTransferApplication internal constructor(
         extras = extras.load(characters.active.id),
     )
 
+    /** The transfer file for any character on the device, or null when [characterId] is unknown. */
+    fun export(characterId: String): String? = characters.snapshot.characters.firstOrNull { it.id == characterId }?.let { character ->
+        CharacterTransferCodec.encode(character = character, extras = extras.load(character.id))
+    }
+
     fun importCharacter(raw: String): CharacterTransferImportResult {
         val decoded = CharacterTransferCodec.decode(raw, characters::newIdForTransfer)
         if (decoded is CharacterTransferDecodeResult.Failure) {

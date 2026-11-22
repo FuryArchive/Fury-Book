@@ -638,6 +638,17 @@ internal class CharacterSession(
         )
     }
 
+    /** A copy of [id] with a new id and «<имя> (копия)», placed right after it; the active character stays. */
+    fun duplicate(id: String): String? {
+        val index = snapshot.characters.indexOfFirst { it.id == id }
+        if (index < 0) return null
+        val original = snapshot.characters[index]
+        val copy = original.copy(id = idFactory(), name = "${original.name} (копия)")
+        val characters = snapshot.characters.toMutableList().apply { add(index + 1, copy) }
+        persist(snapshot.copy(characters = characters))
+        return copy.id
+    }
+
     internal fun newIdForTransfer(): String = idFactory()
 
     internal fun importTransferredCharacter(character: DublCharacter): String {
