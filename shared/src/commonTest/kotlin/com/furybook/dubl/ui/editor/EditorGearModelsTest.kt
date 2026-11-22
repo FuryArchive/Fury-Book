@@ -22,7 +22,7 @@ class EditorGearModelsTest {
     @Test
     fun countAndBurden() {
         val header = editorGearHeader(character)
-        assertEquals("4 шт. · 3 позиций", header.count)
+        assertEquals("4 шт. · 3 позиции", header.count)
         assertEquals(MagicEquipmentRules.burden(character).title, header.burden)
         assertEquals("3", header.load)
         assertTrue(header.automatic)

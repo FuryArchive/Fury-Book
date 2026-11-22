@@ -31,7 +31,7 @@ fun editorGearHeader(character: DublCharacter): EditorGearHeader {
         penalty = burden.penalty,
         automatic = character.gear.loadAutomatic,
         manual = formatSheetNumber(character.gear.loadManual),
-        count = "${items.sumOf { it.quantity }} шт. · ${items.size} позиций",
+        count = "${items.sumOf { it.quantity }} шт. · ${com.furybook.ui.text.ruCount(items.size, "позиция", "позиции", "позиций")}",
     )
 }
 
