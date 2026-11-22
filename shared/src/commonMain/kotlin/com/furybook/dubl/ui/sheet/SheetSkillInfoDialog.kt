@@ -21,7 +21,7 @@ import com.furybook.ui.theme.FuryColors
  */
 @Composable
 internal fun SheetSkillInfoDialog(host: DublEditorHost, skillId: String, onConfigure: () -> Unit, onDismiss: () -> Unit) {
-    val detail = editorSkillDetail(host, skillId) ?: run { onDismiss(); return }
+    val detail = editorSkillDetail(host, skillId) ?: run { com.furybook.ui.components.FuryDismissWhenGone(onDismiss); return }
     val p = FuryColors.current
     FuryDialogScaffold(
         title = detail.name,

@@ -58,6 +58,29 @@ class EditorMagicActionsTest {
     }
 
     @Test
+    fun catalogSpellWithAKnownNameOpensTheKnownOne() {
+        // «Щит» is already in the book (own entry): adding the catalog «Щит» opens it instead of «Не удалось добавить».
+        val entry = SpellCatalogEntry("c1", "щит", "Ограждение", 4, "4", "", "", "", "", "", "", "", false, "")
+        val host = FakeSheetHost(mage, magicEquipmentCatalogOverride = MagicEquipmentCatalog("t", listOf(entry), emptyList()))
+        val state = opened(host)
+        assertEquals("s1", editorAddCatalogSpell(host, state, entry))
+        assertEquals(1, host.active.magic.spells.size)
+        assertEquals(EditorPane.Spell("s1"), state.magicPane)
+        assertEquals("Уже в книге заклинаний: Щит", state.toast)
+    }
+
+    @Test
+    fun addingOwnedCatalogGearSaysHowMany() {
+        val rope = com.furybook.dubl.model.GearCatalogEntry("g1", "Верёвка", "Снаряжение", "Предметы", emptyMap(), "")
+        val host = FakeSheetHost(hornet, magicEquipmentCatalogOverride = MagicEquipmentCatalog("t", emptyList(), listOf(rope)))
+        val state = opened(host)
+        editorAddCatalogGear(host, state, rope)
+        assertEquals("Добавлено: Верёвка", state.toast)
+        editorAddCatalogGear(host, state, rope)
+        assertEquals("Верёвка: теперь ×2", state.toast)
+    }
+
+    @Test
     fun refusedSchoolSaveSaysSo() {
         val host = FakeSheetHost(mage)
         val state = opened(host)
@@ -106,5 +129,28 @@ class EditorMagicActionsTest {
         assertTrue(state.toast!!.startsWith("Удалено"))
         assertTrue(state.undoToast(host))
         assertEquals("от учителя", host.active.magic.schools.single().note)
+    }
+}
+
+class EditorCatalogPageTest {
+    @Test
+    fun catalogShowsAPageAndCountsTheRest() {
+        val rows = (1..130).toList()
+        val first = editorCatalogPage(rows, shown = EDITOR_CATALOG_PAGE)
+        assertEquals(60, first.visible.size)
+        assertEquals(70, first.more)
+        assertEquals(0, editorCatalogPage(rows, shown = 180).more)
+        assertEquals(130, editorCatalogPage(rows, shown = 180).visible.size)
+    }
+}
+
+class CatalogLoadRepairTest {
+    @Test
+    fun onlyCharactersWithCatalogGearNeedTheCatalog() {
+        assertFalse(com.furybook.dubl.ui.sheet.sheetNeedsCatalogForLoads(hornet.copy(gear = com.furybook.dubl.model.CharacterGear())))
+        val own = com.furybook.dubl.model.GearItem(uid = "o", name = "Свой нож")
+        assertFalse(com.furybook.dubl.ui.sheet.sheetNeedsCatalogForLoads(hornet.copy(gear = com.furybook.dubl.model.CharacterGear(items = listOf(own)))))
+        val fromCatalog = own.copy(uid = "c", catalogId = "g1")
+        assertTrue(com.furybook.dubl.ui.sheet.sheetNeedsCatalogForLoads(hornet.copy(gear = com.furybook.dubl.model.CharacterGear(items = listOf(own, fromCatalog)))))
     }
 }

@@ -15,7 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.ScrollState
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,8 +42,12 @@ internal fun EditorListPane(
     pane: (@Composable () -> Unit)?,
     emptyPane: String,
     onBack: () -> Unit,
+    /** Which pane is open: each keeps its own scroll position (a catalog scrolled far down doesn't push the detail out of view). */
+    paneKey: Any? = null,
 ) {
     val padding = editorContentPadding(layout)
+    val scrolls = remember { mutableMapOf<Any?, ScrollState>() }
+    val paneScroll = scrolls.getOrPut(paneKey) { ScrollState(0) }
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val split = layout == SheetLayout.WIDE_WITH_TRAY && editorPerksSplit(maxWidth.value.toInt())
         when {
@@ -52,13 +57,13 @@ internal fun EditorListPane(
                     list()
                     item { Box(Modifier.heightIn(min = padding)) }
                 }
-                Column(Modifier.width(PANE_WIDTH).fillMaxHeight().verticalScroll(rememberScrollState()).padding(bottom = padding)) {
+                Column(Modifier.width(PANE_WIDTH).fillMaxHeight().verticalScroll(paneScroll).padding(bottom = padding)) {
                     if (pane != null) pane() else EditorCard(Modifier.fillMaxWidth().heightIn(min = 160.dp)) {
                         Text(emptyPane, color = FuryColors.current.muted, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
-            pane != null -> Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(padding), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+            pane != null -> Column(Modifier.fillMaxSize().verticalScroll(paneScroll).padding(padding), verticalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
                 Text(
                     "← К списку", Modifier.clickable(role = Role.Button, onClick = onBack).padding(vertical = 10.dp),
                     color = FuryColors.current.goldText, style = MaterialTheme.typography.labelLarge,

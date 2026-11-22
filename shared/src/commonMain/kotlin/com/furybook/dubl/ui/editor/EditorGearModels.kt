@@ -116,3 +116,11 @@ fun EditorGearForm.toItem(base: GearItem?): GearItem = (base ?: GearItem(uid = "
     fields = parseFields(fields),
     carried = carried,
 )
+
+/** Catalog panes draw this many rows at a time: hundreds of composed rows made the pane slow to open and scroll. */
+internal const val EDITOR_CATALOG_PAGE = 60
+
+internal data class EditorCatalogPage<T>(val visible: List<T>, val more: Int)
+
+internal fun <T> editorCatalogPage(rows: List<T>, shown: Int): EditorCatalogPage<T> =
+    EditorCatalogPage(rows.take(shown), (rows.size - shown).coerceAtLeast(0))

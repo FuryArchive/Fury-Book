@@ -121,7 +121,7 @@ internal fun EditorSummaryStep(
             },
             { m ->
                 EditorCard(m, onClick = { state.step = EditorStep.SKILLS }, onClickLabel = "Открыть Умения") {
-                    EditorOverline("Умения · ${data.rankCount} рангов")
+                    EditorOverline("Умения · ${com.furybook.ui.text.ruCount(data.rankCount, "ранг", "ранга", "рангов")}")
                     Text(skills.ifEmpty { "Пока нет рангов" }, color = p.text2, style = MaterialTheme.typography.bodySmall)
                 }
             },

@@ -120,7 +120,7 @@ internal fun EditorGearStep(host: DublEditorHost, state: EditorState, data: Edit
         EditorPane.GearCatalog -> { { GearCatalogPane(host, state, control, compact) } }
         else -> null
     }
-    EditorListPane(layout, headerContent, list, pane, "Выберите предмет слева — здесь будут все его поля и правка.", onBack = { state.gearPane = null })
+    EditorListPane(layout, headerContent, list, pane, "Выберите предмет слева — здесь будут все его поля и правка.", onBack = { state.gearPane = null }, paneKey = state.gearPane)
     when (val open = form) {
         null -> Unit
         is GearForm.Item -> EditorGearFormDialog(host, state, open.base, layout) { form = null }
@@ -217,7 +217,11 @@ private fun CatalogItemPane(host: DublEditorHost, state: EditorState, entry: Gea
 private fun GearCatalogPane(host: DublEditorHost, state: EditorState, control: Dp, compact: Boolean) {
     val p = FuryColors.current
     val categories = remember(host.magicEquipmentCatalog) { editorGearCategories(host.magicEquipmentCatalog.gear) }
-    val rows = editorGearCatalog(host, state.gearCatalogQuery, state.gearCatalogCategory)
+    val rows = remember(host.magicEquipmentCatalog, host.active, state.gearCatalogQuery, state.gearCatalogCategory) {
+        editorGearCatalog(host, state.gearCatalogQuery, state.gearCatalogCategory)
+    }
+    var shown by remember(state.gearCatalogQuery, state.gearCatalogCategory) { mutableStateOf(EDITOR_CATALOG_PAGE) }
+    val page = editorCatalogPage(rows, shown)
     EditorCard(Modifier.fillMaxWidth()) {
         Text("Каталог снаряжения", color = p.text, style = MaterialTheme.typography.titleMedium)
         SheetSearchField(state.gearCatalogQuery, { state.gearCatalogQuery = it }, "Поиск по каталогу…", Modifier.fillMaxWidth(), compact)
@@ -227,7 +231,7 @@ private fun GearCatalogPane(host: DublEditorHost, state: EditorState, control: D
             categories.forEach { (key, label) -> EditorChip(label, state.gearCatalogCategory == key, { state.gearCatalogCategory = key }, control) }
         }
         if (rows.isEmpty()) Text(if (host.magicEquipmentCatalog.gear.isEmpty()) "Каталог снаряжения пуст" else "Ничего не найдено", color = p.dim, style = MaterialTheme.typography.bodySmall)
-        rows.forEach { row ->
+        page.visible.forEach { row ->
             EditorRow(Modifier.clickable(role = Role.Button, onClickLabel = "Подробнее: ${row.name}") { state.gearPane = EditorPane.CatalogItem(row.id) }, minHeight = control + 8.dp) {
                 Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
                     Text(row.name, color = p.text, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -236,5 +240,6 @@ private fun GearCatalogPane(host: DublEditorHost, state: EditorState, control: D
                 if (row.owned > 0) Text("есть ×${row.owned}", Modifier.padding(end = 6.dp), color = p.muted, style = MaterialTheme.typography.labelSmall)
             }
         }
+        if (page.more > 0) EditorOutlineButton("Показать ещё (${page.more})", { shown += EDITOR_CATALOG_PAGE }, control)
     }
 }

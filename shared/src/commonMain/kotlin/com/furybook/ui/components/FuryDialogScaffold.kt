@@ -168,3 +168,12 @@ fun FuryDialogScaffold(
         }
     }
 }
+
+/**
+ * For a dialog whose subject disappeared (deleted elsewhere, a sync replaced it): closes it after composition instead
+ * of calling [onDismiss] while composing, which changes state mid-frame.
+ */
+@Composable
+fun FuryDismissWhenGone(onDismiss: () -> Unit) {
+    androidx.compose.runtime.LaunchedEffect(Unit) { onDismiss() }
+}

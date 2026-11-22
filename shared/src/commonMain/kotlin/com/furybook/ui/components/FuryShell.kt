@@ -87,9 +87,9 @@ private fun NaturalWidth(onWidth: (Int) -> Unit, content: @Composable () -> Unit
 }
 
 /**
- * The app frame. Wide: a top bar with the wordmark, tabs for every section and the character
- * button. Phone: a slim top bar (wordmark, «Меню»), the content, and five bottom tabs; the
- * menu holds the character switch and the remaining sections.
+ * The app frame. Wide: a top bar with the wordmark, tabs for every section, the account and the
+ * character button. Phone: a slim top bar (wordmark, «Меню») and the content; the menu holds the
+ * character switch, every section and the account. (Bottom tabs exist only for sections marked primary.)
  */
 @Composable
 fun <T> FuryShell(
@@ -100,9 +100,9 @@ fun <T> FuryShell(
     onSelect: (T) -> Unit,
     onSwitchCharacter: () -> Unit,
     modifier: Modifier = Modifier,
-    /** Account control (web sign-in name / «Выйти»): next to the character button, or in the phone menu. */
+    /** Extra top-bar controls (the theme button): next to the character button, or in the phone menu. */
     account: (@Composable () -> Unit)? = null,
-    /** On phones, hide the wordmark bar and the bottom tabs: a full-screen view (the character editor) is open. */
+    /** On phones, hide the wordmark bar (and any bottom tabs): a full-screen view (the character editor) is open. */
     phoneChromeHidden: Boolean = false,
     /** The Fury Account entry: a top-bar button on wide screens, a card in the phone menu. */
     accountEntry: FuryShellAccount? = null,
@@ -160,7 +160,7 @@ private fun <T> WideShell(
                 maxLines = 1,
             )
             Spacer(Modifier.width(FurySpacing.xl))
-            // Too narrow for all seven tabs here (tablets, half-screen windows): they move to the row below.
+            // Too narrow for all the tabs here (tablets, half-screen windows): they move to the row below.
             Box(Modifier.weight(1f).onSizeChanged { room = it.width }) {
                 NaturalWidth({ tabsWidth = it }) { FuryTopTabs(sections.map { FuryTab(it.value, it.label) }, selected, onSelect) }
                 if (!tabsOnOwnRow) tabs(Modifier)

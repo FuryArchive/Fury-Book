@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -108,7 +110,9 @@ fun SheetRollPanel(
             ) {
                 (subject as? SheetRollSubject.Skill)?.let { skillSubject ->
                     Text(
-                        "Об умении", Modifier.clickable(role = Role.Button) { onSkillInfo(skillSubject.skillId) }.padding(vertical = 6.dp),
+                        "Об умении",
+                        Modifier.heightIn(min = 44.dp).clickable(role = Role.Button) { onSkillInfo(skillSubject.skillId) }
+                            .wrapContentHeight().padding(vertical = 6.dp),
                         color = FuryColors.current.goldText, style = MaterialTheme.typography.labelLarge,
                     )
                 }

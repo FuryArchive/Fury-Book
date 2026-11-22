@@ -14,6 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -151,14 +154,14 @@ private fun FightRow(
 ) {
     val p = FuryColors.current
     val marker: @Composable () -> Unit = {
-        Box(Modifier.width(28.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.width(44.dp), contentAlignment = Alignment.Center) {
             when {
                 // A drawn arrow: «▶» turns into a colour emoji on some systems.
                 isTurn -> Text("→", color = p.accText, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { contentDescription = "Сейчас ходит" })
-                canNudge -> Text(
-                    "▲", color = DublMuted, style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.clickable(role = Role.Button, onClickLabel = "Выше при равной инициативе", onClick = onNudge).padding(4.dp),
-                )
+                canNudge -> Box(
+                    Modifier.size(44.dp).clip(FuryShapes.control).clickable(role = Role.Button, onClickLabel = "Выше при равной инициативе", onClick = onNudge),
+                    contentAlignment = Alignment.Center,
+                ) { Text("▲", color = DublMuted, style = MaterialTheme.typography.titleMedium) }
             }
         }
     }
@@ -243,8 +246,8 @@ private fun ConditionChip(label: String, description: String, onClick: () -> Uni
         label,
         color = DublText,
         style = MaterialTheme.typography.bodySmall,
-        modifier = Modifier.background(p.panel2, FuryShapes.control).clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description }.padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = Modifier.heightIn(min = 36.dp).background(p.panel2, FuryShapes.control).clip(FuryShapes.control).clickable(role = Role.Button, onClick = onClick)
+            .semantics { contentDescription = description }.wrapContentHeight().padding(horizontal = 10.dp, vertical = 6.dp),
     )
 }
 

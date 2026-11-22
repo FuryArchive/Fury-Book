@@ -38,8 +38,10 @@ def test_incomplete_catalog_spells_stay_addable_for_local_fix():
     assert '"Добавить и исправить"' in STEP
 
 
-def test_spell_usability_warning_matches_android_learned_semantics():
-    assert 'if (row.learned) row.weakText' in STEP
+def test_spell_usability_warning_shows_for_learned_and_unlearned_spells():
+    # Was learned-only (old Android). Since the stage 6 follow-ups unlearned spells warn too, before XP is spent.
+    assert 'row.weakText?.let' in STEP
+    assert 'if (row.learned) row.weakText' not in STEP
 
 
 def test_custom_spell_save_keeps_mana_text_in_sync_with_numeric_cost():

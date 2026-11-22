@@ -83,7 +83,14 @@ fun SheetScreen(
     SideEffect { state.onEditorOpening = { forceBasics, skillId, entryId, target -> editorState.open(currentHost, forceBasics, skillId, entryId, target) } }
     // Older builds stored catalog items' weight as their load; repair it whenever a character is shown, so the
     // sheet's load line and burden are right before anyone opens the editor (and before its snapshot).
-    LaunchedEffect(host, host.active.id) { host.syncCatalogGearLoads(host.magicEquipmentCatalog.gear) }
+    // Only characters carrying catalog items need the catalog, and it is read off the main thread (Android loads it
+    // lazily from a large JSON file, which used to stall the first frame).
+    LaunchedEffect(host, host.active.id) {
+        if (sheetNeedsCatalogForLoads(host.active)) {
+            val gear = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) { host.magicEquipmentCatalog.gear }
+            host.syncCatalogGearLoads(gear)
+        }
+    }
     LaunchedEffect(openEditorAtBasics) {
         if (openEditorAtBasics) {
             state.openEditor(forceBasics = true)
@@ -199,3 +206,6 @@ private fun SheetScreenRoll(host: DublEditorHost, state: SheetScreenState, modif
         },
     )
 }
+
+/** The load repair only concerns items that came from the catalog. */
+fun sheetNeedsCatalogForLoads(character: com.furybook.dubl.model.DublCharacter): Boolean = character.gear.items.any { it.catalogId != null }

@@ -154,7 +154,7 @@ internal fun EditorMagicStep(host: DublEditorHost, state: EditorState, data: Edi
         EditorPane.SpellCatalog -> { { SpellCatalogPane(host, state, control, compact) } }
         else -> null
     }
-    EditorListPane(layout, headerContent, list, pane, "Выберите заклинание слева — здесь будут полный текст и правка.", onBack = { state.magicPane = null })
+    EditorListPane(layout, headerContent, list, pane, "Выберите заклинание слева — здесь будут полный текст и правка.", onBack = { state.magicPane = null }, paneKey = state.magicPane)
     when (val open = form) {
         null -> Unit
         is MagicForm.Spell -> EditorSpellFormDialog(host, state, open.base, layout) { form = null }
@@ -186,7 +186,8 @@ private fun SpellBookRow(host: DublEditorHost, state: EditorState, row: EditorSp
                 Text(row.name, Modifier.weight(1f, fill = false), color = p.text, style = MaterialTheme.typography.labelLarge, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(row.manaLabel, color = p.manaText, style = MaterialTheme.typography.labelMedium, maxLines = 1, softWrap = false)
             }
-            if (row.learned) row.weakText?.let { Text(it, color = p.goldText, style = MaterialTheme.typography.labelSmall) }
+            // Unlearned spells warn too: the player sees the school is too weak before paying XP for it.
+            row.weakText?.let { Text(it, color = p.goldText, style = MaterialTheme.typography.labelSmall) }
         }
         val xp = row.learnXp?.let { " · $it XP" } ?: ""
         EditorChip(if (row.learned) "Изучено$xp" else "Изучить$xp", row.learned, { host.setSpellLearned(row.uid, !row.learned) }, control, gold = true, role = Role.Switch)
@@ -268,7 +269,11 @@ private fun CatalogSpellPane(
 @Composable
 private fun SpellCatalogPane(host: DublEditorHost, state: EditorState, control: androidx.compose.ui.unit.Dp, compact: Boolean) {
     val p = FuryColors.current
-    val rows = editorSpellCatalog(host, state.spellCatalogQuery, state.spellCatalogSchool, state.spellCatalogUsableOnly)
+    val rows = remember(host.magicEquipmentCatalog, host.active, state.spellCatalogQuery, state.spellCatalogSchool, state.spellCatalogUsableOnly) {
+        editorSpellCatalog(host, state.spellCatalogQuery, state.spellCatalogSchool, state.spellCatalogUsableOnly)
+    }
+    var shown by remember(state.spellCatalogQuery, state.spellCatalogSchool, state.spellCatalogUsableOnly) { mutableStateOf(EDITOR_CATALOG_PAGE) }
+    val page = editorCatalogPage(rows, shown)
     val schools = MagicSchoolCatalog.schools.filter { school -> host.magicEquipmentCatalog.spells.any { school in MagicSchoolCatalog.parseSchools(it.school) } }
     EditorCard(Modifier.fillMaxWidth()) {
         Text("Каталог заклинаний", color = p.text, style = MaterialTheme.typography.titleMedium)
@@ -279,7 +284,7 @@ private fun SpellCatalogPane(host: DublEditorHost, state: EditorState, control: 
         }
         EditorChip("только доступные по силе школы", state.spellCatalogUsableOnly, { state.spellCatalogUsableOnly = !state.spellCatalogUsableOnly }, control, gold = true, role = Role.Switch)
         if (rows.isEmpty()) Text(if (host.magicEquipmentCatalog.spells.isEmpty()) "Каталог заклинаний пуст" else "Ничего не найдено", color = p.dim, style = MaterialTheme.typography.bodySmall)
-        rows.forEach { row ->
+        page.visible.forEach { row ->
             EditorRow(Modifier.clickable(role = Role.Button, onClickLabel = "Подробнее: ${row.name}") { state.magicPane = EditorPane.CatalogSpell(row.id) }, minHeight = control + 8.dp) {
                 Column(Modifier.weight(1f).padding(vertical = 4.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -296,5 +301,6 @@ private fun SpellCatalogPane(host: DublEditorHost, state: EditorState, control: 
                 state2?.let { Text(it, Modifier.padding(end = 6.dp), color = if (row.known) p.muted else p.goldText, style = MaterialTheme.typography.labelSmall) }
             }
         }
+        if (page.more > 0) EditorOutlineButton("Показать ещё (${page.more})", { shown += EDITOR_CATALOG_PAGE }, control)
     }
 }

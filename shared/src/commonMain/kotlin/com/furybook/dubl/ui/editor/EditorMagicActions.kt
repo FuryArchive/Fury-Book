@@ -25,6 +25,12 @@ internal fun editorRemoveSchool(host: DublEditorHost, state: EditorState, index:
 
 /** «Добавить» in the catalog: learns the spell and opens it; returns its uid (null when the application refused). */
 internal fun editorAddCatalogSpell(host: DublEditorHost, state: EditorState, entry: SpellCatalogEntry): String? {
+    // The rules refuse a second spell with the same catalog id or name: open the one already in the book instead.
+    host.active.magic.spells.firstOrNull { it.catalogId == entry.id || it.name.equals(entry.name, ignoreCase = true) }?.let { known ->
+        state.magicPane = EditorPane.Spell(known.uid)
+        state.flash("Уже в книге заклинаний: ${known.name}")
+        return known.uid
+    }
     if (!host.addCatalogSpell(entry)) {
         state.flash("Не удалось добавить: ${entry.name}")
         return null
@@ -70,7 +76,9 @@ internal fun editorRemoveGear(host: DublEditorHost, state: EditorState, uid: Str
 internal fun editorAddCatalogGear(host: DublEditorHost, state: EditorState, entry: com.furybook.dubl.model.GearCatalogEntry) {
     val uid = host.addCatalogGear(entry)
     state.gearPane = EditorPane.Item(uid)
-    state.flash("Добавлено: ${entry.name}")
+    // A catalog item already carried gets one more, not a second row: say so.
+    val quantity = host.active.gear.items.firstOrNull { it.uid == uid }?.quantity ?: 1
+    state.flash(if (quantity > 1) "${entry.name}: теперь ×$quantity" else "Добавлено: ${entry.name}")
 }
 
 /** Saves the item form and opens the saved item; false (nothing written) while the form has errors. */

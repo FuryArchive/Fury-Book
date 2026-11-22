@@ -1,5 +1,7 @@
 package com.furybook.dubl.ui.editor
 
+import com.furybook.ui.text.ruCount
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -237,11 +239,11 @@ private fun stepSub(step: EditorStep, data: EditorFrameData, name: String): Stri
     EditorStep.DEVELOPMENT -> "свободно ${data.economy.remainingXp} XP"
     EditorStep.BASICS -> name.trim().takeIf { it.isNotEmpty() && it != DEFAULT_NAME } ?: "без имени"
     EditorStep.ATTRIBUTES -> "${data.economy.attributeXp} XP"
-    EditorStep.SKILLS -> "${data.rankCount} рангов · ${data.economy.skillXp} XP"
+    EditorStep.SKILLS -> "${ruCount(data.rankCount, "ранг", "ранга", "рангов")} · ${data.economy.skillXp} XP"
     EditorStep.PERKS -> "${data.perkCount} взято · ${data.economy.developmentXp} XP"
-    EditorStep.MAGIC -> "${data.spellCount} заклинаний · ${data.economy.manaXp + data.economy.magicSchoolXp + data.economy.spellXp} XP"
-    EditorStep.GEAR -> "${data.gearCount} позиций · ${data.carriedCount} с собой"
-    EditorStep.SUMMARY -> if (data.problems.isEmpty()) "всё в порядке" else "${data.problems.size} замеч."
+    EditorStep.MAGIC -> "${ruCount(data.spellCount, "заклинание", "заклинания", "заклинаний")} · ${data.economy.manaXp + data.economy.magicSchoolXp + data.economy.spellXp} XP"
+    EditorStep.GEAR -> "${ruCount(data.gearCount, "позиция", "позиции", "позиций")} · ${data.carriedCount} с собой"
+    EditorStep.SUMMARY -> if (data.problems.isEmpty()) "всё в порядке" else ruCount(data.problems.size, "замечание", "замечания", "замечаний")
 }
 
 private fun stepNumber(step: EditorStep, steps: List<EditorStep>): String =

@@ -130,7 +130,7 @@ internal fun SheetFacts(facts: List<Pair<String, String>>) {
 internal fun SheetCastDialog(host: DublEditorHost, uid: String, onDismiss: () -> Unit) {
     val spell = host.active.magic.spells.firstOrNull { it.uid == uid }
     if (spell == null) {
-        onDismiss()
+        com.furybook.ui.components.FuryDismissWhenGone(onDismiss)
         return
     }
     val p = FuryColors.current

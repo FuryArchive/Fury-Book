@@ -42,7 +42,7 @@ import com.furybook.ui.theme.furyOverlineStyle
 @Composable
 fun SheetDevelopmentDetailsDialog(host: DublSheetHost, entryId: String, onConfigure: () -> Unit, onDismiss: () -> Unit) {
     val character = host.active
-    val entry = host.developmentCatalog.byId(entryId) ?: run { onDismiss(); return }
+    val entry = host.developmentCatalog.byId(entryId) ?: run { com.furybook.ui.components.FuryDismissWhenGone(onDismiss); return }
     val progress = DevelopmentProgress(character.development)
     val rules = DevelopmentRules(character, host.developmentCatalog, progress)
     FuryDialogScaffold(

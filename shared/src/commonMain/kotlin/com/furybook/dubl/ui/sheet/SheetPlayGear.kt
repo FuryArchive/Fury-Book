@@ -124,7 +124,7 @@ private fun GearRow(row: SheetGearRow, compact: Boolean, onOpen: () -> Unit) {
 internal fun SheetGearDialog(host: DublEditorHost, uid: String, onEdit: () -> Unit, onDismiss: () -> Unit) {
     val detail = sheetGearDetail(host.active, uid)
     if (detail == null) {
-        onDismiss()
+        com.furybook.ui.components.FuryDismissWhenGone(onDismiss)
         return
     }
     val p = FuryColors.current
