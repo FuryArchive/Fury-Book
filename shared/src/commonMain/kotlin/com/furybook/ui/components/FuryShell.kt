@@ -30,7 +30,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import com.furybook.ui.account.AccountDot
+import com.furybook.ui.account.AccountDotView
 import com.furybook.ui.theme.DublAccent
+import com.furybook.ui.theme.DublGold
+import com.furybook.ui.theme.FuryMinTouch
+import com.furybook.ui.theme.FuryShapes
 import com.furybook.ui.theme.DublAccentStrong
 import com.furybook.ui.theme.DublBorder
 import com.furybook.ui.theme.DublSurface
@@ -93,13 +104,15 @@ fun <T> FuryShell(
     account: (@Composable () -> Unit)? = null,
     /** On phones, hide the wordmark bar and the bottom tabs: a full-screen view (the character editor) is open. */
     phoneChromeHidden: Boolean = false,
+    /** The Fury Account entry: a top-bar button on wide screens, a card in the phone menu. */
+    accountEntry: FuryShellAccount? = null,
     content: @Composable () -> Unit,
 ) {
     BoxWithConstraints(modifier.fillMaxSize()) {
         if (furyShellIsPhone(maxWidth.value.toInt())) {
-            PhoneShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, account, phoneChromeHidden, content)
+            PhoneShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, account, phoneChromeHidden, accountEntry, content)
         } else {
-            WideShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, account, content)
+            WideShell(title, characterName, sections, selected, onSelect, onSwitchCharacter, account, accountEntry, content)
         }
     }
 }
@@ -113,8 +126,16 @@ private fun <T> WideShell(
     onSelect: (T) -> Unit,
     onSwitchCharacter: () -> Unit,
     account: (@Composable () -> Unit)?,
+    accountEntry: FuryShellAccount?,
     content: @Composable () -> Unit,
 ) {
+    var accountOpen by remember { mutableStateOf(false) }
+    if (accountOpen && accountEntry != null) {
+        FuryDialogScaffold(title = "Меню", subtitle = characterName, onDismiss = { accountOpen = false }, subtitleMaxLines = 1) {
+            FuryButton("Сменить персонажа", { accountOpen = false; onSwitchCharacter() }, Modifier.fillMaxWidth())
+            accountEntry.panel(this) { accountOpen = false }
+        }
+    }
     Column(Modifier.fillMaxSize()) {
         var tabsWidth by remember { mutableStateOf(0) }
         var room by remember { mutableStateOf(Int.MAX_VALUE) }
@@ -146,6 +167,7 @@ private fun <T> WideShell(
             }
             Spacer(Modifier.width(FurySpacing.md))
             account?.let { slot -> slot(); Spacer(Modifier.width(FurySpacing.sm)) }
+            accountEntry?.let { entry -> AccountTopButton(entry) { accountOpen = true }; Spacer(Modifier.width(FurySpacing.sm)) }
             FuryButton("$characterName ▾", onSwitchCharacter, Modifier.widthIn(max = 280.dp))
         }
         if (tabsOnOwnRow) {
@@ -166,6 +188,7 @@ private fun <T> PhoneShell(
     onSwitchCharacter: () -> Unit,
     account: (@Composable () -> Unit)?,
     chromeHidden: Boolean,
+    accountEntry: FuryShellAccount?,
     content: @Composable () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
@@ -180,8 +203,14 @@ private fun <T> PhoneShell(
         ) {
             // Small text: plain crimson is 4.497:1 on the bar, the strong tint clears 4.5:1.
             Text(title, Modifier.weight(1f), color = DublAccentStrong, style = furyOverlineStyle(), maxLines = 1)
-            FuryIconButton("Меню", { menuOpen = true }) {
-                Text("☰", color = DublText, style = MaterialTheme.typography.titleMedium)
+            Box {
+                FuryIconButton(if (accountEntry?.dot == AccountDot.GOLD) "Меню: конфликт изменений" else "Меню", { menuOpen = true }) {
+                    Text("☰", color = DublText, style = MaterialTheme.typography.titleMedium)
+                }
+                // A conflict waits in the account panel: a gold badge on the menu button.
+                if (accountEntry?.dot == AccountDot.GOLD) {
+                    Box(Modifier.align(Alignment.TopEnd).padding(4.dp).width(10.dp).height(10.dp).clip(androidx.compose.foundation.shape.CircleShape).background(DublGold))
+                }
             }
         }
         if (!chromeHidden) Box(Modifier.fillMaxWidth().height(1.dp).background(DublBorder))
@@ -211,7 +240,34 @@ private fun <T> PhoneShell(
                 )
             }
             account?.invoke()
+            accountEntry?.panel?.invoke(this) { menuOpen = false }
         }
+    }
+}
+
+/**
+ * The shell's account entry: [label] is the nickname or «Гость», [dot] its sync state. [panel] is the
+ * account card shown in the menu (phone) or behind the top-bar account button (wide); [close] shuts the menu.
+ */
+class FuryShellAccount(
+    val label: String,
+    val dot: AccountDot,
+    val panel: @Composable ColumnScope.(close: () -> Unit) -> Unit,
+)
+
+/** Wide screens: the nickname (or «Гость») with its sync dot, opening the menu with the account panel. */
+@Composable
+private fun AccountTopButton(account: FuryShellAccount, onClick: () -> Unit) {
+    Row(
+        Modifier.defaultMinSize(minHeight = FuryMinTouch).widthIn(max = 240.dp).clip(FuryShapes.control)
+            .border(2.dp, com.furybook.ui.theme.FuryBorderStrong, FuryShapes.control)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm),
+    ) {
+        AccountDotView(account.dot)
+        Text(account.label, color = DublText, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold, maxLines = 1)
     }
 }
 
