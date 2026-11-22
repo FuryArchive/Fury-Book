@@ -29,8 +29,10 @@ def test_desktop_workspace_caps_ultrawide_stretch_and_rail_has_no_prototype_foot
 
 
 def test_desktop_presentation_primitives_exist():
+    # Stage 6 follow-ups: the panel/metric/section primitives went with the last per-platform screens; the shared
+    # components (FuryShell, FuryButton, FuryDialogScaffold) took over. The dialog, toast and colours stay.
     src = read(PRIMITIVES)
-    for primitive in ('DesktopPanel', 'DesktopSectionHeader', 'DesktopHeroPanel', 'DesktopMetricCell', 'DesktopSmallAction'):
+    for primitive in ('FuryDialog', 'FuryUndoToast'):
         assert f'fun {primitive}' in src, primitive
 
 
@@ -150,7 +152,5 @@ def test_secondary_desktop_typography_is_readable_and_inline_actions_are_neutral
     primitives = read(PRIMITIVES)
     assert 'bodySmall = typography.bodySmall.copy(fontSize = 14.sp' in main
     assert 'labelMedium = typography.labelMedium.copy(fontSize = 14.sp' in main
-    assert 'internal fun DesktopInlineAction' in primitives
-    inline = primitives.split('internal fun DesktopInlineAction', 1)[1].split('@Composable', 1)[0]
-    assert 'DesktopMuted' in inline
-    assert 'animateColorAsState' in inline
+    # Stage 6 follow-ups: DesktopInlineAction is gone (no screen used it); inline actions are shared FuryButton Ghost.
+    assert 'fun DesktopInlineAction' not in primitives

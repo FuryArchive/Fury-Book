@@ -55,7 +55,7 @@ def test_smoothness_recent_change_is_timed_overlay_not_layout_item():
 def test_smoothness_dialog_popover_and_resource_motion_contracts():
     primitives = read(PRIMITIVES)
     assert 'internal object FuryMotion' in primitives
-    dialog = section(primitives, 'internal fun FuryDialog(', '@Composable\ninternal fun DesktopPanel')
+    dialog = section(primitives, 'internal fun FuryDialog(', '\n@Composable\ninternal fun ')
     assert 'animateFloatAsState' in dialog
     assert '.graphicsLayer' in dialog
     assert 'animateContentSize' in dialog
@@ -63,18 +63,12 @@ def test_smoothness_dialog_popover_and_resource_motion_contracts():
     # Stage 2b: the breakdown popover and resource tile went with the old sheet.
 
 def test_smoothness_common_controls_interpolate_and_hover():
+    # Stage 6 follow-ups: FurySegmentedControl, FuryChoiceButton, DesktopSmallAction and DesktopInlineAction were
+    # deleted with the last screens that used them (Персонажи and Кампания). The shared FuryButton/FuryChipGroup
+    # replaced them; what is left of the desktop primitives must not regrow them.
     primitives = read(PRIMITIVES)
-    segmented = section(primitives, 'internal fun FurySegmentedControl(', '@Composable\ninternal fun FuryChoiceButton')
-    choice = primitives.split('internal fun FuryChoiceButton(', 1)[1][:4000]
-    assert 'animateColorAsState' in segmented
-    assert 'animateColorAsState' in choice
-    for start, end in (
-        ('internal fun DesktopSmallAction(', '@OptIn(ExperimentalComposeUiApi::class)\n@Composable\ninternal fun DesktopInlineAction'),
-        ('internal fun DesktopInlineAction(', '@Composable\ninternal fun DesktopMetricCell'),
-    ):
-        control = section(primitives, start, end)
-        assert 'pointerMoveFilter' in control
-        assert 'animateColorAsState' in control
+    for gone in ('FurySegmentedControl', 'FuryChoiceButton', 'DesktopSmallAction', 'DesktopInlineAction'):
+        assert f'fun {gone}(' not in primitives, gone
 
 
 def test_smoothness_groups_animate_and_hot_derivations_are_remembered():
