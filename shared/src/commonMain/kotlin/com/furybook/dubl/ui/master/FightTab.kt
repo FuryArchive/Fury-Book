@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -147,15 +148,7 @@ private fun FightRow(
     onRemove: () -> Unit,
 ) {
     val p = FuryColors.current
-    FlowRow(
-        Modifier.fillMaxWidth()
-            .background(if (isTurn) p.accSoft else p.panel, FuryShapes.panel)
-            .border(1.dp, if (isTurn) p.accLine else p.line2, FuryShapes.panel)
-            .padding(horizontal = FurySpacing.md, vertical = FurySpacing.sm),
-        horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm),
-        verticalArrangement = Arrangement.spacedBy(FurySpacing.sm),
-        itemVerticalAlignment = Alignment.CenterVertically,
-    ) {
+    val marker: @Composable () -> Unit = {
         Box(Modifier.width(28.dp), contentAlignment = Alignment.Center) {
             when {
                 // A drawn arrow: «▶» turns into a colour emoji on some systems.
@@ -166,9 +159,9 @@ private fun FightRow(
                 )
             }
         }
-        InitiativeField(entry.initiative, entry.name, onInitiative)
-        // Fixed widths so the HP boxes and «Бросить» line up from row to row.
-        Column(Modifier.width(280.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    }
+    val name: @Composable (Modifier) -> Unit = { m ->
+        Column(m, verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
                 Text(entry.name, color = DublText, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Text(if (entry.kind == FightKind.PLAYER) "игрок" else "враг", color = DublMuted, style = MaterialTheme.typography.bodySmall)
@@ -178,19 +171,49 @@ private fun FightRow(
                 ConditionChip("+ состояние", "Добавить состояние: ${entry.name}", onClick = onAddCondition)
             }
         }
-        if (entry.hpMax == null) Box(Modifier.width(HP_BOX_WIDTH))
-        if (entry.hpMax != null) {
-            Row(Modifier.width(HP_BOX_WIDTH), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                FuryButton("−", { onHp(-1) })
-                Column(Modifier.width(64.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("${entry.hp ?: entry.hpMax}/${entry.hpMax}", color = DublText, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    MasterBar(entry.hp ?: entry.hpMax, entry.hpMax, p.acc, Modifier.fillMaxWidth())
+    }
+    val hp: @Composable (Modifier) -> Unit = { m ->
+        val max = entry.hpMax
+        if (max == null) Box(m) else Row(m, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            FuryButton("−", { onHp(-1) })
+            Column(Modifier.width(64.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("${entry.hp ?: max}/$max", color = DublText, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                MasterBar(entry.hp ?: max, max, p.acc, Modifier.fillMaxWidth())
+            }
+            FuryButton("+", { onHp(1) })
+        }
+    }
+    BoxWithConstraints(
+        Modifier.fillMaxWidth()
+            .background(if (isTurn) p.accSoft else p.panel, FuryShapes.panel)
+            .border(1.dp, if (isTurn) p.accLine else p.line2, FuryShapes.panel)
+            .padding(horizontal = FurySpacing.md, vertical = FurySpacing.sm),
+    ) {
+        if (maxWidth < 640.dp) {
+            // Phones: initiative and name on one line, hit points and «Бросить» under them.
+            Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.xs)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                    marker()
+                    InitiativeField(entry.initiative, entry.name, onInitiative)
+                    name(Modifier.weight(1f))
+                    FuryButton("✕", onRemove, style = FuryButtonStyle.Ghost)
                 }
-                FuryButton("+", { onHp(1) })
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                    hp(Modifier.weight(1f))
+                    FuryButton("Бросить", onRoll)
+                }
+            }
+        } else {
+            // Fixed widths so the hit points and «Бросить» line up from row to row.
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
+                marker()
+                InitiativeField(entry.initiative, entry.name, onInitiative)
+                name(Modifier.width(280.dp))
+                hp(Modifier.width(HP_BOX_WIDTH))
+                FuryButton("Бросить", onRoll)
+                FuryButton("✕", onRemove, style = FuryButtonStyle.Ghost)
             }
         }
-        FuryButton("Бросить", onRoll)
-        FuryButton("✕", onRemove, style = FuryButtonStyle.Ghost)
     }
 }
 
