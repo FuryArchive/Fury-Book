@@ -158,7 +158,8 @@ private fun FightRow(
     ) {
         Box(Modifier.width(28.dp), contentAlignment = Alignment.Center) {
             when {
-                isTurn -> Text("▶", color = p.accText, style = MaterialTheme.typography.titleMedium, modifier = Modifier.semantics { contentDescription = "Сейчас ходит" })
+                // A drawn arrow: «▶» turns into a colour emoji on some systems.
+                isTurn -> Text("→", color = p.accText, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.semantics { contentDescription = "Сейчас ходит" })
                 canNudge -> Text(
                     "▲", color = DublMuted, style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.clickable(role = Role.Button, onClickLabel = "Выше при равной инициативе", onClick = onNudge).padding(4.dp),
@@ -166,7 +167,8 @@ private fun FightRow(
             }
         }
         InitiativeField(entry.initiative, entry.name, onInitiative)
-        Column(Modifier.widthIn(min = 140.dp, max = 420.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        // Fixed widths so the HP boxes and «Бросить» line up from row to row.
+        Column(Modifier.width(280.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
                 Text(entry.name, color = DublText, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Text(if (entry.kind == FightKind.PLAYER) "игрок" else "враг", color = DublMuted, style = MaterialTheme.typography.bodySmall)
@@ -176,8 +178,9 @@ private fun FightRow(
                 ConditionChip("+ состояние", "Добавить состояние: ${entry.name}", onClick = onAddCondition)
             }
         }
+        if (entry.hpMax == null) Box(Modifier.width(HP_BOX_WIDTH))
         if (entry.hpMax != null) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(Modifier.width(HP_BOX_WIDTH), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 FuryButton("−", { onHp(-1) })
                 Column(Modifier.width(64.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("${entry.hp ?: entry.hpMax}/${entry.hpMax}", color = DublText, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
@@ -190,6 +193,8 @@ private fun FightRow(
         FuryButton("✕", onRemove, style = FuryButtonStyle.Ghost)
     }
 }
+
+private val HP_BOX_WIDTH = 168.dp
 
 @Composable
 private fun InitiativeField(value: String, name: String, onChange: (String) -> Unit) {

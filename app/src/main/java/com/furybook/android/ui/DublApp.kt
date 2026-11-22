@@ -53,7 +53,10 @@ import com.furybook.android.state.CharacterController
 import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.android.ui.components.dismissKeyboardOnPointerDown
-import com.furybook.android.ui.screens.CampaignScreen
+import com.furybook.android.data.AndroidMasterStore
+import com.furybook.dubl.model.SkillCatalog
+import com.furybook.dubl.ui.master.DublMasterScreen
+import com.furybook.dubl.ui.master.MasterCatalogs
 import com.furybook.dubl.content.DublChiFcp
 import com.furybook.android.ui.screens.RecentChangeBar
 import com.furybook.android.ui.screens.recentResourceChange
@@ -78,7 +81,7 @@ import kotlinx.coroutines.delay
 
 private enum class AppSection(val label: String) {
     OVERVIEW("Лист"),
-    CAMPAIGN("Кампания"),
+    MASTER("Мастер"),
     CHARACTERS("Персонажи"),
 }
 
@@ -96,6 +99,8 @@ fun DublApp() {
     }
     val reloadToken = cloudController.reloadToken
     val archiveStore = remember(appContext) { AndroidArchiveStore(appContext) }
+    // Мастер's data is the device's, not the account's: it survives sign-out and reloads.
+    val masterStore = remember(appContext) { AndroidMasterStore(appContext) }
     val startStore = remember(appContext) { AndroidStartStore(appContext) }
     var startMode by remember { mutableStateOf(startStore.load()) }
     // A guest opened «Войти» from the menu: the login page with a way back.
@@ -205,11 +210,20 @@ fun DublApp() {
                         onOpenEditorConsumed = { openEditorAtBasics = false },
                         onEditorShown = { editorShown = it },
                     )
-                    AppSection.CAMPAIGN -> CampaignScreen(
-                        controller = controller,
-                        cloudController = cloudController,
-                        onBack = { selected = AppSection.CHARACTERS },
-                    )
+                    AppSection.MASTER -> {
+                        val catalogHost = rememberAndroidSheetHost(controller, appContext, chiPackEnabled)
+                        DublMasterScreen(
+                            store = masterStore,
+                            account = cloudController,
+                            catalogs = MasterCatalogs(
+                                catalogHost.canonicalDevelopmentCatalog,
+                                catalogHost.magicEquipmentCatalog,
+                                catalogHost.conditionCatalog,
+                                SkillCatalog.builtIns,
+                            ),
+                            onSignIn = { loginFromGuest = true },
+                        )
+                    }
                     AppSection.CHARACTERS -> DublCharactersScreen(
                         host = controller,
                         account = cloudController,

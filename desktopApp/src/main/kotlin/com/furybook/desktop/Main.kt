@@ -46,7 +46,11 @@ import com.furybook.ui.layout.layoutClassForWidth
 import com.furybook.ui.theme.FuryThemedApp
 import com.furybook.dubl.data.DesktopThemeStore
 import com.furybook.ui.components.FuryThemeButton
-import com.furybook.desktop.screens.CampaignScreen
+import com.furybook.dubl.data.DesktopMasterStore
+import com.furybook.dubl.master.MasterStore
+import com.furybook.dubl.model.SkillCatalog
+import com.furybook.dubl.ui.master.DublMasterScreen
+import com.furybook.dubl.ui.master.MasterCatalogs
 import com.furybook.dubl.data.DesktopArchiveStore
 import com.furybook.dubl.data.DesktopStartStore
 import com.furybook.dubl.ui.characters.DublCharactersScreen
@@ -69,7 +73,7 @@ import kotlinx.coroutines.delay
 
 internal enum class DesktopSection(val label: String) {
     SHEET("Лист"),
-    CAMPAIGN("Кампания"),
+    MASTER("Мастер"),
     CHARACTERS("Персонажи"),
 }
 
@@ -111,6 +115,8 @@ private fun DesktopApp() {
     }
     val reloadToken = cloudController.reloadToken
     val archiveStore = remember { DesktopArchiveStore() }
+    // Мастер's data is the device's, not the account's: it survives sign-out and reloads.
+    val masterStore = remember { DesktopMasterStore() }
     val startStore = remember { DesktopStartStore() }
     var startMode by remember { mutableStateOf(startStore.load()) }
     // A guest opened «Войти» from the menu: the login page with a way back.
@@ -177,6 +183,8 @@ private fun DesktopApp() {
             val layout = layoutClassForWidth(maxWidth.value.toInt())
             DesktopContent(
                 state, cloudController, selected, layout, { selected = it }, Modifier.fillMaxSize(),
+                masterStore = masterStore,
+                onSignIn = { loginFromGuest = true },
                 sheetHooks = DesktopSheetHooks(
                     openEditorAtBasics = openEditorAtBasics,
                     onOpenEditorConsumed = { openEditorAtBasics = false },
@@ -210,6 +218,8 @@ private fun DesktopContent(
     layout: DublLayoutClass,
     onNavigate: (DesktopSection) -> Unit,
     modifier: Modifier = Modifier,
+    masterStore: MasterStore,
+    onSignIn: () -> Unit,
     sheetHooks: DesktopSheetHooks = DesktopSheetHooks(),
 ) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
@@ -246,7 +256,13 @@ private fun DesktopContent(
                     playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
                     hooks = sheetHooks,
                 )
-                DesktopSection.CAMPAIGN -> CampaignScreen(state, cloudController, animatedPageModifier)
+                DesktopSection.MASTER -> DublMasterScreen(
+                    store = masterStore,
+                    account = cloudController,
+                    catalogs = MasterCatalogs(state.canonicalDevelopmentCatalog, state.magicEquipmentCatalog, state.conditionCatalog, SkillCatalog.builtIns),
+                    onSignIn = onSignIn,
+                    modifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
+                )
                 DesktopSection.CHARACTERS -> DublCharactersScreen(
                     host = state,
                     account = cloudController,

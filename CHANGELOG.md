@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Мастер replaces Кампания (revamp stage 6, part 2)
+
+- A **Мастер** section replaces Кампания on Android, Desktop and Web, with five tabs. Бой, Враги, Заметки and Справочник work offline and without an account; their data stays on the device (`master.json`, or browser storage on web) and survives «Выйти».
+- **Бой:** an initiative tracker. Type the initiatives rolled at the table (or «Бросить» for 2d6 + bonus), «Следующий →» moves the turn and counts rounds, ▲ reorders equal initiatives, enemies have −/+ hit points, and every row takes conditions from the rulebook or your own. Add players by name, copies of enemies («Гоблин 1», «Гоблин 2») or the whole party. «Новый бой» and removals offer «Вернуть».
+- **Враги:** enemy templates with Защита, Рефлексы, Инициатива, Здоровье, Выносливость, attacks and notes; «В бой», «Изменить», «Дублировать», «Удалить» (with «Вернуть»).
+- **Заметки:** a dated session log with search.
+- **Справочник:** one search over the rulebook's perks, spells, gear, conditions and skills, with type chips and a read-only card.
+- **Партия** (needs the account): your campaigns, «+ Кампания», «Пригласить» (code), a party table (health, endurance, mana, defence, conditions, last update), and each player's character read-only, with «Убрать игрока». Joining and leaving a campaign is on the character in Персонажи.
+
 ### Login first, account in the menu, shared Персонажи (revamp stage 6, part 1)
 
 - Android, Desktop and Web open on a login screen: «Вход», «Создать аккаунт» (with the confirm-email message), «Сброс пароля», or **«Играть без входа»**. The choice is remembered; signed-in players and guests go straight to the sheet next time.

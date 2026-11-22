@@ -48,13 +48,17 @@ import com.furybook.ui.account.accountDotColor
 import com.furybook.ui.account.furyShowsLogin
 import com.furybook.ui.theme.FuryColors
 import com.furybook.dubl.ui.characters.DublCharactersScreen
+import com.furybook.dubl.master.MasterStore
+import com.furybook.dubl.model.SkillCatalog
+import com.furybook.dubl.ui.master.DublMasterScreen
+import com.furybook.dubl.ui.master.MasterCatalogs
 import com.furybook.ui.theme.furyFontsReady
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 internal enum class DesktopSection(val label: String) {
     SHEET("Лист"),
-    CAMPAIGN("Кампания"),
+    MASTER("Мастер"),
     CHARACTERS("Персонажи"),
 }
 
@@ -377,6 +381,8 @@ private fun FuryWebApp(
     onDismissMergeNotice: () -> Unit,
     onSignIn: () -> Unit,
 ) {
+    // Мастер's data is the browser's, not the account's: it survives sign-out.
+    val masterStore = remember { WebMasterStore() }
     var selected by remember { mutableStateOf(DesktopSection.SHEET) }
     var characterPickerOpen by remember { mutableStateOf(false) }
     // Set by «Новый персонаж»; the sheet consumes it by opening the editor at Основа.
@@ -402,6 +408,8 @@ private fun FuryWebApp(
                 mergeNotice?.let { NoticeBar(it, onDismissMergeNotice) }
                 DesktopContent(
                     state, account, selected, layout, { selected = it }, Modifier.weight(1f),
+                    masterStore = masterStore,
+                    onSignIn = onSignIn,
                     sheetHooks = WebSheetHooks(
                         openEditorAtBasics = openEditorAtBasics,
                         onOpenEditorConsumed = { openEditorAtBasics = false },
@@ -468,6 +476,8 @@ private fun DesktopContent(
     layout: DublLayoutClass,
     onNavigate: (DesktopSection) -> Unit,
     modifier: Modifier = Modifier,
+    masterStore: MasterStore,
+    onSignIn: () -> Unit,
     sheetHooks: WebSheetHooks = WebSheetHooks(),
 ) {
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
@@ -504,7 +514,13 @@ private fun DesktopContent(
                     playModifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
                     hooks = sheetHooks,
                 )
-                DesktopSection.CAMPAIGN -> CampaignScreen(state, account.cloud, animatedPageModifier)
+                DesktopSection.MASTER -> DublMasterScreen(
+                    store = masterStore,
+                    account = account,
+                    catalogs = MasterCatalogs(state.canonicalDevelopmentCatalog, state.magicEquipmentCatalog, state.conditionCatalog, SkillCatalog.builtIns),
+                    onSignIn = onSignIn,
+                    modifier = Modifier.widthIn(max = 2160.dp).fillMaxSize().then(enter),
+                )
                 DesktopSection.CHARACTERS -> DublCharactersScreen(
                     host = state,
                     account = account,
