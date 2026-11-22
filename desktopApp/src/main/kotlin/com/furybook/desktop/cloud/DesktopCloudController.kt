@@ -18,6 +18,7 @@ import com.furybook.core.cloud.ObservingCharacterExtrasStore
 import com.furybook.core.cloud.ObservingCharacterStore
 import com.furybook.ui.account.FuryAccount
 import com.furybook.ui.account.detachedFromCaller
+import com.furybook.ui.account.lastSyncText
 import com.furybook.ui.account.FuryAccountConflict
 import com.furybook.ui.account.FuryAccountLogEntry
 import com.furybook.ui.account.FuryAccountStatus
@@ -56,8 +57,20 @@ class DesktopCloudController(
         private set
     var statusMessage by mutableStateOf<String?>(null)
         private set
-    var nativeConflicts by mutableStateOf<List<NativeSyncConflict>>(emptyList())
+    private var nativeConflictsState by mutableStateOf<List<NativeSyncConflict>>(emptyList())
+    /** Setting it also refreshes [conflicts] with the characters' names, once, instead of on every frame. */
+    var nativeConflicts: List<NativeSyncConflict>
+        get() = nativeConflictsState
+        private set(value) {
+            nativeConflictsState = value
+            conflicts = nativeAccountConflicts(value, characterStore.load())
+        }
+    override var conflicts by mutableStateOf<List<FuryAccountConflict>>(emptyList())
         private set
+    /** Changes waiting to be sent: Compose state refreshed when the stores change or a sync ends (no disk read per frame). */
+    override var pendingChanges by mutableIntStateOf(0)
+        private set
+    private fun refreshPending() { pendingChanges = coordinator?.pendingCount() ?: 0 }
     override var nickname by mutableStateOf("")
         private set
     var lastSyncedAt by mutableStateOf<String?>(null)
@@ -77,6 +90,7 @@ class DesktopCloudController(
 
     init {
         rebuildCoordinator()
+        refreshPending()
     }
 
     // FuryAccount: the shared login screen, menu account panel, Персонажи and Мастер read the account through this.
@@ -84,9 +98,8 @@ class DesktopCloudController(
     override val email: String get() = session?.email.orEmpty()
     override val status: FuryAccountStatus get() = status_.toAccountStatus(pendingChanges)
     override val statusText: String get() = accountStatusText(status, statusMessage, pendingChanges)
-    override val pendingChanges: Int get() = coordinator?.pendingCount() ?: 0
-    override val conflicts: List<FuryAccountConflict> get() = nativeAccountConflicts(nativeConflicts, characterStore.load())
     override val syncLog: List<FuryAccountLogEntry> get() = emptyList()
+    override val lastSync: String? get() = lastSyncText(lastSyncedAt, lastSyncedBy)
 
     override suspend fun updateNickname(nickname: String): Result<String> = runCatching {
         setNativeNickname(gateway, nickname).also { this.nickname = it }
@@ -102,8 +115,12 @@ class DesktopCloudController(
     override suspend fun signOutDiscarding() {
         scheduledJob?.cancel()
         gateway.signOut()
+        // The account's characters leave the device, their copied portrait files with them.
+        val leaving = characterStore.load().characters.mapTo(HashSet()) { it.id }
         coordinator?.clearLocal()
+        com.furybook.dubl.data.DesktopPortraits.deleteFor(leaving)
         coordinator = null
+        pendingChanges = 0
         session = null
         nativeConflicts = emptyList()
         nickname = ""
@@ -132,10 +149,12 @@ class DesktopCloudController(
     ) {
         characters.onSaved = { before, after ->
             coordinator?.markSnapshotChanged(before, after)
+            refreshPending()
             scheduleSync()
         }
         extras.onSaved = { characterId ->
             coordinator?.markExtrasChanged(characterId)
+            refreshPending()
             scheduleSync()
         }
         extras.onDeleted = { scheduleSync() }
@@ -353,6 +372,7 @@ class DesktopCloudController(
             applyOutcome(outcome)
             if (before != localSignature()) reloadToken += 1
         }.onFailure(::handleSyncFailure)
+        refreshPending()
     }
 
     private fun applyOutcome(outcome: NativeSyncOutcome) {

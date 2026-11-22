@@ -36,7 +36,11 @@ fun accountStatusText(status: FuryAccountStatus, message: String?, pending: Int)
 
 fun nativeAccountConflicts(conflicts: List<NativeSyncConflict>, snapshot: AppSnapshot): List<FuryAccountConflict> =
     conflicts.map { conflict ->
-        FuryAccountConflict(conflict.characterId, snapshot.characters.firstOrNull { it.id == conflict.characterId }?.name ?: "Персонаж")
+        FuryAccountConflict(
+            conflict.characterId,
+            snapshot.characters.firstOrNull { it.id == conflict.characterId }?.name ?: "Персонаж",
+            deleted = conflict.deleteRequested,
+        )
     }
 
 /** The nickname RPC the web app already uses; same Fury Account users. */
@@ -49,3 +53,14 @@ suspend fun setNativeNickname(transport: FuryCloudTransport, nickname: String): 
 /** Runs [block] in [scope] and waits for it; if the caller is cancelled (the login screen left), [block] still finishes. */
 suspend fun <T> detachedFromCaller(scope: kotlinx.coroutines.CoroutineScope, block: suspend () -> T): T =
     scope.async { block() }.await()
+
+/** «2026-11-21T10:05:00Z» → «21.11 10:05» (the server's time, as stored); anything else as it came. */
+fun furyShortTime(raw: String): String {
+    val match = Regex("""(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})""").find(raw) ?: return raw
+    val (_, month, day, hour, minute) = match.destructured
+    return "$day.$month $hour:$minute"
+}
+
+fun lastSyncText(at: String?, device: String?): String? = at?.takeIf(String::isNotBlank)?.let { time ->
+    listOf("Последняя синхронизация: ${furyShortTime(time)}", device?.trim().orEmpty()).filter(String::isNotBlank).joinToString(" · ")
+}

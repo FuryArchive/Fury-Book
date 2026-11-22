@@ -71,3 +71,20 @@ def test_native_sign_in_outlives_the_login_screen():
     for path in [ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/cloud/DesktopCloudController.kt',
                  ROOT / 'app/src/main/java/com/furybook/android/cloud/AndroidCloudController.kt']:
         assert text(path).count('detachedFromCaller(scope) { runCatching {') == 2, path.name
+
+
+def test_native_account_state_is_observable_not_reread():
+    for path in [ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/cloud/DesktopCloudController.kt',
+                 ROOT / 'app/src/main/java/com/furybook/android/cloud/AndroidCloudController.kt']:
+        src = text(path)
+        assert 'override var pendingChanges by mutableIntStateOf(0)' in src, path.name
+        assert 'override var conflicts by mutableStateOf<List<FuryAccountConflict>>' in src, path.name
+        assert 'get() = coordinator?.pendingCount()' not in src, path.name
+        assert 'override val lastSync: String? get() = lastSyncText(' in src, path.name
+    desktop = text(ROOT / 'desktopApp/src/main/kotlin/com/furybook/desktop/cloud/DesktopCloudController.kt')
+    assert 'DesktopPortraits.deleteFor(leaving)' in desktop
+
+
+def test_web_master_storage_problems_show_when_signed_in():
+    assert 'MASTER_QUOTA_MESSAGE' in text(ROOT / 'webApp/src/jsMain/kotlin/com/furybook/web/WebMasterStore.kt')
+    assert 'if (account.signedIn) BrowserGuestStorage.problem?.let' in text(HOSTS['web'])

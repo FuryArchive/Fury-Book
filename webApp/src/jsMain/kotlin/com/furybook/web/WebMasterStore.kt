@@ -10,7 +10,7 @@ class WebMasterStore : MasterStore {
     override fun load(): MasterData = MasterDataCodec.decode(runCatching { localStorage.getItem(KEY) }.getOrNull())
 
     override fun save(data: MasterData) {
-        BrowserGuestStorage.write(KEY, MasterDataCodec.encode(data))
+        BrowserGuestStorage.write(KEY, MasterDataCodec.encode(data), BrowserGuestStorage.MASTER_QUOTA_MESSAGE)
     }
 
     private companion object {

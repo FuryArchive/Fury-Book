@@ -75,3 +75,27 @@ class FuryAccountTest {
         assertEquals(listOf("signIn:a@b.co", "signOutDiscarding"), account.calls)
     }
 }
+
+class AccountDisplayTest {
+    @Test
+    fun deletedHereConflictIsMarked() {
+        val snapshot = com.furybook.dubl.model.AppSnapshot(listOf(com.furybook.dubl.model.DublCharacter(id = "a", name = "Шершень")), "a")
+        val conflicts = nativeAccountConflicts(
+            listOf(
+                com.furybook.core.cloud.NativeSyncConflict("a", 3, null, null, null, null, deleteRequested = false),
+                com.furybook.core.cloud.NativeSyncConflict("gone", 4, null, null, null, null, deleteRequested = true),
+            ),
+            snapshot,
+        )
+        assertEquals(listOf(FuryAccountConflict("a", "Шершень", deleted = false), FuryAccountConflict("gone", "Персонаж", deleted = true)), conflicts)
+    }
+
+    @Test
+    fun timesAreShortAndLastSyncNamesTheDevice() {
+        assertEquals("21.11 10:05", furyShortTime("2026-11-21T10:05:33.123Z"))
+        assertEquals("вчера", furyShortTime("вчера"))
+        assertEquals("Последняя синхронизация: 21.11 10:05 · Pixel 8", lastSyncText("2026-11-21T10:05:00Z", "Pixel 8"))
+        assertEquals("Последняя синхронизация: 21.11 10:05", lastSyncText("2026-11-21T10:05:00Z", " "))
+        assertEquals(null, lastSyncText(null, "Pixel 8"))
+    }
+}

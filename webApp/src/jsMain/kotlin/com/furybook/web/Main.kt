@@ -405,6 +405,8 @@ private fun FuryWebApp(
             Column(Modifier.fillMaxSize()) {
                 if (!account.signedIn && !(editorShown && selected == DesktopSection.SHEET)) GuestBar(layout, onSignIn)
                 mergeNotice?.let { NoticeBar(it, onDismissMergeNotice) }
+                // Signed in, the guest bar is gone, but Мастер still saves to this browser: its storage problems show here.
+                if (account.signedIn) BrowserGuestStorage.problem?.let { NoticeBar(it) { BrowserGuestStorage.problem = null } }
                 DesktopContent(
                     state, account, selected, layout, { selected = it }, Modifier.weight(1f),
                     masterStore = masterStore,

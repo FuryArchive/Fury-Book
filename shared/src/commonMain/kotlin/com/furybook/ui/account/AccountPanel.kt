@@ -93,12 +93,17 @@ fun FuryAccountPanel(
                 Text(account.statusText, Modifier.weight(1f), color = DublText, style = MaterialTheme.typography.bodyMedium)
                 FuryButton("Синхронизировать", account::requestSync)
             }
+            account.lastSync?.let { Text(it, color = DublMuted, style = MaterialTheme.typography.bodySmall) }
             account.conflicts.forEach { conflict ->
                 Column(verticalArrangement = Arrangement.spacedBy(FurySpacing.xs)) {
                     Text("КОНФЛИКТ ИЗМЕНЕНИЙ", color = FuryColors.current.goldText, style = furyOverlineStyle())
-                    Text("«${conflict.name}» изменён на другом устройстве.", color = DublText, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        if (conflict.deleted) "«${conflict.name}» удалён на этом устройстве, а на другом изменён."
+                        else "«${conflict.name}» изменён на другом устройстве.",
+                        color = DublText, style = MaterialTheme.typography.bodyMedium,
+                    )
                     Row(horizontalArrangement = Arrangement.spacedBy(FurySpacing.sm)) {
-                        FuryButton("Сохранить локальную", { scope.launch { account.keepLocal(conflict.characterId) } })
+                        FuryButton(if (conflict.deleted) "Удалить всё равно" else "Сохранить локальную", { scope.launch { account.keepLocal(conflict.characterId) } })
                         FuryButton("Загрузить облачную", { scope.launch { account.useCloud() } })
                     }
                 }

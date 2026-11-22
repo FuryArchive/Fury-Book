@@ -6,7 +6,8 @@ import com.furybook.core.cloud.CampaignSummary
 
 enum class FuryAccountStatus { SIGNED_OUT, CONNECTING, SYNCING, SYNCED, PENDING, OFFLINE, CONFLICT, ERROR }
 
-data class FuryAccountConflict(val characterId: String, val name: String)
+/** A character changed on two devices; [deleted] when this device deleted it and another one changed it. */
+data class FuryAccountConflict(val characterId: String, val name: String, val deleted: Boolean = false)
 
 data class FuryAccountLogEntry(val time: String, val text: String)
 
@@ -25,6 +26,8 @@ interface FuryAccount {
     val pendingChanges: Int
     val conflicts: List<FuryAccountConflict>
     val syncLog: List<FuryAccountLogEntry>
+    /** «Последняя синхронизация: …», or null before the first one. */
+    val lastSync: String? get() = null
     val campaigns: List<CampaignSummary>
 
     suspend fun signIn(email: String, password: String): Result<Unit>

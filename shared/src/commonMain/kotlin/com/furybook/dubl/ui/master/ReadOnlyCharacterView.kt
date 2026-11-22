@@ -100,8 +100,4 @@ private fun Rows(rows: List<Pair<String, String>>, empty: String?) {
 }
 
 /** «2026-11-21T10:05:00Z» → «21.11 10:05»; anything else as it came. */
-fun partyTime(raw: String): String {
-    val match = Regex("""(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})""").find(raw) ?: return raw
-    val (_, month, day, hour, minute) = match.destructured
-    return "$day.$month $hour:$minute"
-}
+fun partyTime(raw: String): String = com.furybook.ui.account.furyShortTime(raw)

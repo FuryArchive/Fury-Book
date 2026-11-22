@@ -12,6 +12,8 @@ import com.furybook.ui.account.FuryAccountConflict
 import com.furybook.ui.account.FuryAccountLogEntry
 import com.furybook.ui.account.FuryAccountStatus
 import com.furybook.ui.account.accountStatusText
+import com.furybook.ui.account.furyShortTime
+import com.furybook.ui.account.lastSyncText
 import kotlinx.coroutines.launch
 
 /**
@@ -46,8 +48,11 @@ class WebAccount(
     override val statusText: String get() = accountStatusText(status, cloud.status.message, pendingChanges)
     /** Web syncs one batch at a time, so it knows only whether something waits, not how many. */
     override val pendingChanges: Int get() = if (cloud.status.phase == CloudSyncPhase.PENDING || cloud.status.phase == CloudSyncPhase.ERROR) 1 else 0
-    override val conflicts: List<FuryAccountConflict> get() = listOfNotNull(cloud.conflict?.let { FuryAccountConflict(it.characterId, it.characterName) })
-    override val syncLog: List<FuryAccountLogEntry> get() = cloud.status.history.map { FuryAccountLogEntry(it.changedAt, "${it.characterName} · ${it.action}") }
+    override val conflicts: List<FuryAccountConflict> get() = listOfNotNull(cloud.conflict?.let { FuryAccountConflict(it.characterId, it.characterName, deleted = it.deleteRequested) })
+    override val syncLog: List<FuryAccountLogEntry> get() = cloud.status.history.map {
+        FuryAccountLogEntry(furyShortTime(it.changedAt), listOf(it.characterName, it.action, it.device).filter(String::isNotBlank).joinToString(" · "))
+    }
+    override val lastSync: String? get() = lastSyncText(cloud.status.lastSuccessfulAt, cloud.status.lastSuccessfulDevice)
     override val campaigns: List<CampaignSummary> get() = campaignList
 
     // The session is published only after [onSignedIn] loaded the account, so the app never shows the guest's

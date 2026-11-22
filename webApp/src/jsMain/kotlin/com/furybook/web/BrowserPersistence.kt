@@ -46,10 +46,12 @@ object BrowserGuestStorage {
 
     var problem by mutableStateOf<String?>(null)
 
-    internal fun write(key: String, value: String?) {
+    const val MASTER_QUOTA_MESSAGE = "Не хватает места в браузере: изменения в «Мастер» не сохранились. Удалите лишние заметки или врагов, или уменьшите портреты."
+
+    internal fun write(key: String, value: String?, quotaMessage: String = QUOTA_MESSAGE) {
         runCatching { if (value == null) localStorage.removeItem(key) else localStorage.setItem(key, value) }
-            .onSuccess { if (problem == QUOTA_MESSAGE) problem = null }
-            .onFailure { problem = QUOTA_MESSAGE }
+            .onSuccess { if (problem == quotaMessage) problem = null }
+            .onFailure { problem = quotaMessage }
     }
 
     private fun read(key: String): String? = runCatching { localStorage.getItem(key) }.getOrNull()
